@@ -1,0 +1,1929 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Simulazione INVALSI – Italiano Terza Media</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+/* ── VARIABILI ─────────────────────────────────────────── */
+:root{
+  --blu:#003f8a;--blu-s:#001f5c;--blu-m:#1a5fa8;--az:#4a90d9;
+  --verde:#2e7d32;--rosso:#c62828;--giallo:#f9a825;--arancio:#e65100;
+  --grigio-ch:#f0f4f8;--grigio:#dde4ed;--testo:#1a2436;
+  --font:'Segoe UI','Helvetica Neue',Arial,sans-serif;
+  --r:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--grigio-ch);color:var(--testo);font-size:15px;line-height:1.65;min-height:100vh}
+.hidden{display:none!important}
+
+/* ── HEADER ────────────────────────────────────────────── */
+.hdr{background:var(--blu-s);color:#fff;position:sticky;top:0;z-index:900;box-shadow:0 2px 10px rgba(0,0,0,.4)}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;border-bottom:3px solid var(--az)}
+.hdr-logo{display:flex;align-items:center;gap:12px}
+.logo-box{width:42px;height:42px;background:var(--az);border-radius:var(--r);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:17px;color:#fff;letter-spacing:-1px}
+.hdr-title{font-size:12px;line-height:1.3}
+.hdr-title strong{font-size:15px;display:block}
+.timer-wrap{background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.25);border-radius:var(--r);padding:7px 16px;text-align:center;min-width:120px}
+.timer-val{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:2px;color:#fff}
+.timer-lbl{font-size:10px;opacity:.75;margin-top:1px;text-transform:uppercase;letter-spacing:.5px}
+.timer-val.warn{color:var(--giallo)}
+.timer-val.danger{color:#ff5252;animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+.hdr-nav{background:var(--blu);padding:5px 20px;display:flex;align-items:center;gap:14px;font-size:12px}
+.sez-badge{background:var(--az);color:#fff;padding:2px 10px;border-radius:4px;font-weight:700;font-size:11px;text-transform:uppercase}
+
+/* ── LAYOUT TEST: sidebar | testo | domande ────────────── */
+.layout{display:grid;grid-template-columns:220px 1fr 1fr;min-height:calc(100vh - 88px)}
+@media(max-width:900px){.layout{grid-template-columns:180px 1fr 1fr}}
+@media(max-width:700px){.layout{grid-template-columns:1fr}.sidebar{display:none}.testo-col{border-right:none}}
+
+/* ── SIDEBAR ────────────────────────────────────────────── */
+.sidebar{background:#fff;border-right:2px solid var(--grigio);padding:14px;overflow-y:auto;max-height:calc(100vh - 88px);position:sticky;top:88px}
+.sb-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--blu);margin-bottom:10px;padding-bottom:5px;border-bottom:2px solid var(--grigio)}
+.nav-sez{margin-bottom:10px}
+.nav-sez-title{font-size:10px;font-weight:700;text-transform:uppercase;color:#777;margin-bottom:5px;padding:3px 5px;background:var(--grigio-ch);border-radius:4px}
+.nav-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:3px}
+.nav-btn{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;border:2px solid var(--grigio);background:#fff;transition:all .12s;color:var(--testo);line-height:1}
+.nav-btn:hover{border-color:var(--az);background:#e8f0fb}
+.nav-btn.att{background:var(--blu);color:#fff;border-color:var(--blu)}
+.nav-btn.ok{background:#e8f5e9;border-color:var(--verde);color:var(--verde)}
+.nav-btn.ok.att{background:var(--verde);color:#fff}
+.nav-btn.seg{border-color:var(--giallo);background:#fffde7}
+.legenda{margin-top:12px;font-size:10px;color:#666}
+.leg-item{display:flex;align-items:center;gap:5px;margin-bottom:3px}
+.leg-box{width:12px;height:12px;border-radius:2px;flex-shrink:0}
+.btn-cons-sb{width:100%;margin-top:10px;padding:9px;background:var(--rosso);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);letter-spacing:.3px}
+.btn-cons-sb:hover{background:#b71c1c}
+
+/* ── COLONNA TESTO ──────────────────────────────────────── */
+.testo-col{background:#fff;border-right:2px solid var(--grigio);padding:20px;overflow-y:auto;max-height:calc(100vh - 88px);position:sticky;top:88px}
+.brano-wrap{border-left:4px solid var(--az);padding:0 0 0 14px}
+.brano-tit{font-size:11px;font-weight:700;color:var(--blu);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.brano-body{font-size:14px;line-height:1.85;color:#222;white-space:pre-line}
+.fonte-txt{font-size:11px;color:#999;font-style:italic;margin-top:10px;padding-top:8px;border-top:1px solid var(--grigio)}
+.no-testo{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#bbb;font-size:13px;text-align:center;gap:8px;padding:30px}
+.no-testo-ico{font-size:36px;opacity:.4}
+
+/* ── COLONNA DOMANDA ────────────────────────────────────── */
+.dom-col{padding:20px 24px;overflow-y:auto;max-height:calc(100vh - 88px)}
+.d-meta{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;gap:10px}
+.d-num{background:var(--blu);color:#fff;font-weight:700;font-size:12px;padding:3px 11px;border-radius:4px;white-space:nowrap}
+.d-comp{font-size:10px;color:#999;font-style:italic;margin-top:3px}
+.btn-seg{background:none;border:2px solid var(--giallo);color:#b45309;padding:3px 9px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:700;white-space:nowrap;transition:all .12s;font-family:var(--font)}
+.btn-seg.att,.btn-seg:hover{background:var(--giallo);color:#fff}
+.d-testo{font-size:15px;font-weight:600;margin-bottom:14px;line-height:1.55;color:#1a2436}
+.opzioni{display:flex;flex-direction:column;gap:7px}
+.opzione{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border:2px solid var(--grigio);border-radius:var(--r);cursor:pointer;background:#fff;transition:all .12s;font-size:14px;line-height:1.5}
+.opzione:hover{border-color:var(--az);background:#e8f0fb}
+.opzione.sel{border-color:var(--blu);background:#dce8f8}
+.op-lett{width:26px;height:26px;border-radius:50%;border:2px solid var(--grigio);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;background:var(--grigio-ch);transition:all .12s}
+.opzione.sel .op-lett{border-color:var(--blu);background:var(--blu);color:#fff}
+.input-ap{width:100%;padding:10px 14px;border:2px solid var(--grigio);border-radius:var(--r);font-size:14px;font-family:var(--font);resize:vertical;min-height:70px;transition:border-color .12s}
+.input-ap:focus{outline:none;border-color:var(--az)}
+
+/* NAVIGAZIONE INFERIORE */
+.nav-bottom{display:flex;justify-content:space-between;align-items:center;margin-top:24px;padding-top:16px;border-top:2px solid var(--grigio);gap:10px;flex-wrap:wrap}
+.btn{padding:9px 20px;border-radius:6px;border:none;cursor:pointer;font-size:13px;font-weight:700;font-family:var(--font);transition:all .12s;display:inline-flex;align-items:center;gap:6px}
+.btn-p{background:var(--blu);color:#fff}.btn-p:hover{background:var(--blu-m)}
+.btn-s{background:#fff;color:var(--blu);border:2px solid var(--blu)}.btn-s:hover{background:var(--grigio-ch)}
+.btn-r{background:var(--rosso);color:#fff}.btn-r:hover{background:#b71c1c}
+.btn-g{background:var(--verde);color:#fff}.btn-g:hover{background:#1b5e20}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.prog-txt{font-size:12px;color:#888}
+
+/* ── SCHERMATA INTRO ────────────────────────────────────── */
+.scr-acc{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--blu-s) 0%,var(--blu-m) 100%);padding:20px}
+.acc-card{background:#fff;border-radius:14px;padding:36px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.acc-logo{text-align:center;margin-bottom:24px}
+.acc-logo-box{width:68px;height:68px;background:var(--blu);border-radius:14px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:26px;color:#fff;margin:0 auto 10px}
+.acc-title{font-size:19px;font-weight:800;color:var(--blu);margin-bottom:3px}
+.acc-sub{font-size:12px;color:#999}
+.fg{margin-bottom:16px}
+.flbl{display:block;font-size:12px;font-weight:700;color:#555;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
+.finp{width:100%;padding:11px 14px;border:2px solid var(--grigio);border-radius:var(--r);font-size:14px;font-family:var(--font);transition:border-color .12s;background:#fff}
+.finp:focus{outline:none;border-color:var(--az)}
+.btn-acc{width:100%;padding:13px;background:var(--blu);color:#fff;border:none;border-radius:var(--r);font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);transition:background .12s;margin-top:4px}
+.btn-acc:hover{background:var(--blu-m)}
+.err-msg{background:#fce4e4;border:1px solid #ef9a9a;color:var(--rosso);padding:9px 13px;border-radius:6px;font-size:12px;margin-top:10px;display:none}
+.info-nota{background:#e3f2fd;border-left:4px solid var(--az);padding:9px 13px;border-radius:4px;font-size:11px;color:#1565c0;margin-top:14px;line-height:1.5}
+.tab-acc{display:flex;gap:0;margin-bottom:20px;border:2px solid var(--grigio);border-radius:var(--r);overflow:hidden}
+.tab-acc-btn{flex:1;padding:9px;border:none;background:#fff;cursor:pointer;font-family:var(--font);font-size:13px;font-weight:600;color:#777;transition:all .12s}
+.tab-acc-btn.att{background:var(--blu);color:#fff}
+
+/* ── ISTRUZIONI ─────────────────────────────────────────── */
+.scr-istr{min-height:100vh;background:var(--grigio-ch);display:flex;align-items:center;justify-content:center;padding:24px}
+.istr-card{background:#fff;border-radius:12px;padding:32px;max-width:680px;width:100%;box-shadow:0 4px 20px rgba(0,0,0,.08)}
+.istr-hdr{background:var(--blu);color:#fff;padding:18px 22px;border-radius:var(--r);margin-bottom:22px}
+.istr-hdr h2{font-size:17px;margin-bottom:3px}
+.istr-hdr p{font-size:12px;opacity:.85}
+.istr-list{list-style:none}
+.istr-list li{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--grigio);font-size:13px;line-height:1.5;align-items:flex-start}
+.istr-ico{font-size:17px;flex-shrink:0;margin-top:1px}
+.avv{background:#fffde7;border:2px solid var(--giallo);border-radius:var(--r);padding:12px 16px;margin-top:18px;font-size:13px;font-weight:700;color:#7a5800;line-height:1.5}
+.istr-footer{display:flex;justify-content:space-between;align-items:center;margin-top:22px;flex-wrap:wrap;gap:12px}
+
+/* ── OVERLAY ─────────────────────────────────────────────── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px}
+.ov-card{background:#fff;border-radius:12px;padding:32px;max-width:460px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.ov-ico{font-size:44px;margin-bottom:14px}
+.ov-title{font-size:19px;font-weight:800;margin-bottom:8px}
+.ov-txt{font-size:14px;color:#555;margin-bottom:22px;line-height:1.6}
+.ov-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+
+/* ── RISULTATI ───────────────────────────────────────────── */
+.scr-ris{min-height:100vh;background:var(--grigio-ch);padding:28px 20px;display:flex;flex-direction:column;align-items:center;gap:18px}
+.ris-card{background:#fff;border-radius:12px;max-width:820px;width:100%;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.1)}
+.ris-hdr{background:linear-gradient(135deg,var(--blu-s),var(--blu-m));color:#fff;padding:26px;text-align:center}
+.ris-score{font-size:62px;font-weight:900;line-height:1;margin:6px 0}
+.ris-su{font-size:18px;opacity:.8}
+.ris-sez-grid{padding:20px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:560px){.ris-sez-grid{grid-template-columns:1fr}}
+.sez-card{border:2px solid var(--grigio);border-radius:var(--r);padding:14px;text-align:center}
+.sez-card h4{font-size:11px;text-transform:uppercase;color:#888;margin-bottom:7px;letter-spacing:.5px}
+.sez-pts{font-size:26px;font-weight:800;color:var(--blu)}
+.sez-su-txt{font-size:12px;color:#888}
+.comp-bars{padding:0 20px 20px}
+.comp-bars h3{font-size:14px;font-weight:700;color:var(--blu);margin-bottom:14px;padding-top:14px;border-top:2px solid var(--grigio)}
+.bar-item{margin-bottom:10px}
+.bar-lbl{display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;color:#444}
+.bar{height:9px;background:var(--grigio);border-radius:5px;overflow:hidden}
+.bar-fill{height:100%;border-radius:5px;transition:width 1.2s ease}
+.bar-fill.h{background:var(--verde)}.bar-fill.m{background:var(--giallo)}.bar-fill.l{background:var(--rosso)}
+
+/* REVISIONE RISPOSTE */
+.risp-detail{padding:0 20px 20px}
+.risp-detail h3{font-size:14px;font-weight:700;color:var(--blu);margin-bottom:14px;padding-top:14px;border-top:2px solid var(--grigio)}
+.risp-sez-hdr{font-size:11px;font-weight:700;text-transform:uppercase;color:#fff;background:var(--blu);padding:6px 12px;border-radius:5px;margin-bottom:8px;letter-spacing:.5px}
+.risp-item{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid var(--grigio-ch);font-size:12px;line-height:1.5}
+.risp-ico{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;margin-top:2px}
+.risp-ico.ok{background:#e8f5e9;color:var(--verde)}
+.risp-ico.no{background:#fce4e4;color:var(--rosso)}
+.risp-ico.sk{background:#fff8e1;color:var(--arancio)}
+.risp-q{color:#333;font-weight:600;margin-bottom:2px}
+.risp-mia{font-size:11px}.risp-mia .ok{color:var(--verde);font-weight:700}.risp-mia .no{color:var(--rosso)}
+.risp-giusta{font-size:11px;color:var(--verde);font-weight:700}
+.risp-sez-group{margin-bottom:16px}
+
+/* SCHEDA RECUPERO */
+.eserc-card{background:#fff;border-radius:12px;max-width:820px;width:100%;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.1)}
+.eserc-hdr{background:linear-gradient(135deg,#1b5e20,#2e7d32);color:#fff;padding:18px 22px}
+.eserc-hdr h3{font-size:16px;margin-bottom:3px}
+.eserc-hdr p{font-size:12px;opacity:.85}
+.eserc-item{padding:16px 22px;border-bottom:1px solid var(--grigio)}
+.eserc-num{font-size:10px;font-weight:700;color:#888;text-transform:uppercase;margin-bottom:3px}
+.eserc-comp-badge{font-size:10px;background:#e8f5e9;color:var(--verde);padding:2px 7px;border-radius:3px;display:inline-block;margin-bottom:7px;font-weight:700}
+.eserc-testo{font-size:13px;line-height:1.7;white-space:pre-line;color:#222}
+.riga-risp{border-bottom:2px solid #bbb;height:26px;margin-top:10px;width:72%}
+.riga-lbl{font-size:10px;color:#aaa;margin-top:2px}
+.ris-btns{max-width:820px;width:100%;display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+
+/* ── PANNELLO DOCENTE ─────────────────────────────────────── */
+.scr-doc{min-height:100vh;background:var(--grigio-ch);padding:22px}
+.doc-hdr{background:var(--blu-s);color:#fff;padding:18px 22px;border-radius:10px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.doc-hdr-info h2{font-size:17px;font-weight:800;margin-bottom:2px}
+.doc-hdr-info p{font-size:12px;opacity:.75}
+.doc-tabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+.tab-btn{padding:8px 16px;border:2px solid var(--blu);border-radius:6px;background:#fff;color:var(--blu);cursor:pointer;font-weight:700;font-size:12px;font-family:var(--font);transition:all .12s}
+.tab-btn.att{background:var(--blu);color:#fff}
+.panel{display:none}.panel.att{display:block}
+.table-wrap{background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.07);overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:480px}
+th{background:var(--blu);color:#fff;padding:11px 14px;text-align:left;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+td{padding:10px 14px;border-bottom:1px solid var(--grigio);font-size:13px;vertical-align:middle}
+tr:hover td{background:var(--grigio-ch)}
+.badge-v{padding:3px 9px;border-radius:4px;font-weight:700;font-size:11px}
+.v-h{background:#e8f5e9;color:var(--verde)}.v-m{background:#fff8e1;color:var(--arancio)}.v-l{background:#fce4e4;color:var(--rosso)}
+.panel-card{background:#fff;border-radius:10px;padding:22px;max-width:500px;box-shadow:0 2px 8px rgba(0,0,0,.07)}
+.panel-card h3{font-size:15px;font-weight:700;color:var(--blu);margin-bottom:18px;padding-bottom:10px;border-bottom:2px solid var(--grigio)}
+.succ-msg{background:#e8f5e9;border:1px solid var(--verde);color:var(--verde);padding:10px 14px;border-radius:6px;margin-top:12px;font-size:13px;display:none}
+.info-panel{background:#e3f2fd;border-left:4px solid var(--az);padding:10px 14px;border-radius:4px;font-size:12px;color:#1565c0;margin-bottom:16px;line-height:1.5}
+
+/* Password manager */
+.pw-row{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--grigio)}
+.pw-row:last-child{border-bottom:none}
+.pw-classe{font-weight:700;font-size:14px;width:40px;color:var(--blu)}
+.pw-input{flex:1;padding:8px 12px;border:2px solid var(--grigio);border-radius:6px;font-size:13px;font-family:var(--font)}
+.pw-input:focus{outline:none;border-color:var(--az)}
+.pw-toggle{background:none;border:none;cursor:pointer;font-size:16px;color:#888;padding:4px}
+
+/* Sessioni: delete button */
+.btn-del{padding:4px 10px;background:#fce4e4;color:var(--rosso);border:1px solid #ef9a9a;border-radius:4px;cursor:pointer;font-size:11px;font-weight:700;font-family:var(--font);transition:all .12s}
+.btn-del:hover{background:var(--rosso);color:#fff}
+.btn-link{padding:4px 10px;background:#e3f2fd;color:var(--blu);border:1px solid #90caf9;border-radius:4px;cursor:pointer;font-size:11px;font-weight:700;font-family:var(--font);transition:all .12s}
+.btn-link:hover{background:var(--blu);color:#fff}
+.sessione-status{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700}
+.status-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.status-attiva .status-dot{background:var(--verde)}.status-attiva{color:var(--verde)}
+.status-chiusa .status-dot{background:#999}.status-chiusa{color:#999}
+
+/* Dettaglio risultati docente */
+.doc-ris-wrap{background:#fff;border-radius:10px;margin-top:16px;box-shadow:0 2px 8px rgba(0,0,0,.07);overflow:hidden}
+.doc-ris-hdr{background:var(--blu-s);color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between}
+.doc-ris-body{padding:18px;max-height:400px;overflow-y:auto}
+</style>
+</head>
+<body>
+
+<!-- ═══ OVERLAY FINESTRA ════════════════════════════════ -->
+<div class="overlay hidden" id="ov-fin">
+  <div class="ov-card" style="border-top:5px solid var(--giallo)">
+    <div class="ov-ico">⚠️</div>
+    <div class="ov-title" id="ov-fin-title">Attenzione</div>
+    <div class="ov-txt" id="ov-fin-txt">Hai abbandonato la finestra.</div>
+    <div class="ov-btns" id="ov-fin-btns">
+      <button class="btn btn-p" onclick="chiudiOvFin()" style="min-width:160px">↩ Torna alla prova</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ OVERLAY CONSEGNA ════════════════════════════════ -->
+<div class="overlay hidden" id="ov-cons">
+  <div class="ov-card">
+    <div class="ov-ico">📤</div>
+    <div class="ov-title">Consegnare la prova?</div>
+    <div class="ov-txt">Hai risposto a <strong id="cnt-r">0</strong> domande su <strong id="cnt-t">0</strong>.<br>Una volta consegnata non potrai modificare le risposte.</div>
+    <div class="ov-btns">
+      <button class="btn btn-s" onclick="$('ov-cons').classList.add('hidden')">Annulla</button>
+      <button class="btn btn-g" onclick="consegna()">✅ Consegna</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ OVERLAY CONFERMA ELIMINA SESSIONE ═══════════════ -->
+<div class="overlay hidden" id="ov-del">
+  <div class="ov-card">
+    <div class="ov-ico">🗑️</div>
+    <div class="ov-title">Eliminare la sessione?</div>
+    <div class="ov-txt">La sessione <strong id="del-cod"></strong> e tutti i suoi risultati verranno eliminati definitivamente.</div>
+    <div class="ov-btns">
+      <button class="btn btn-s" onclick="$('ov-del').classList.add('hidden')">Annulla</button>
+      <button class="btn btn-r" onclick="confermaDel()">🗑️ Elimina</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SCHERMO ACCESSO
+════════════════════════════════════════════════════════ -->
+<div id="scr-acc">
+<div class="scr-acc">
+  <div class="acc-card">
+    <div class="acc-logo">
+      <div class="acc-logo-box">INV</div>
+      <div class="acc-title">Simulazione INVALSI</div>
+      <div class="acc-sub">Italiano – Terza Media (Grado 8)</div>
+    </div>
+    <div class="tab-acc">
+      <button class="tab-acc-btn att" onclick="setTipoAcc('studente',this)">🎓 Studente</button>
+      <button class="tab-acc-btn" onclick="setTipoAcc('docente',this)">👩‍🏫 Docente</button>
+    </div>
+    <div id="form-stud">
+      <div class="fg">
+        <label class="flbl">Codice studente</label>
+        <input class="finp" type="text" id="cod-stud" placeholder="es. 3B-07" autocomplete="off" maxlength="20">
+      </div>
+      <div class="fg">
+        <label class="flbl">Codice prova</label>
+        <input class="finp" type="text" id="cod-prova" placeholder="Fornito dal docente" autocomplete="off" maxlength="20">
+      </div>
+      <button class="btn-acc" onclick="accStud()">Accedi alla prova →</button>
+      <div class="info-nota">⚠️ Non chiudere questa finestra. Alla seconda uscita la prova viene consegnata automaticamente.</div>
+    </div>
+    <div id="form-doc" class="hidden">
+      <div class="fg">
+        <label class="flbl">Classe</label>
+        <select class="finp" id="sel-cl">
+          <option value="3A">Classe 3A</option>
+          <option value="3B">Classe 3B</option>
+          <option value="3C">Classe 3C</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="flbl">Password</label>
+        <input class="finp" type="password" id="pw-doc" placeholder="Password docente" autocomplete="off">
+      </div>
+      <button class="btn-acc" onclick="accDoc()">Accedi al pannello →</button>
+    </div>
+    <div class="err-msg" id="err-acc"></div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SCHERMO ISTRUZIONI
+════════════════════════════════════════════════════════ -->
+<div id="scr-istr" class="hidden">
+<div class="scr-istr">
+  <div class="istr-card">
+    <div class="istr-hdr">
+      <h2 id="istr-title">Prova INVALSI</h2>
+      <p id="istr-sub">Italiano – Grado 8 · 90 minuti</p>
+    </div>
+    <ul class="istr-list">
+      <li><span class="istr-ico">📖</span><span>Il <strong>testo</strong> appare nella colonna di sinistra; la <strong>domanda</strong> appare a destra. Puoi scorrere ciascuna colonna in modo indipendente.</span></li>
+      <li><span class="istr-ico">🖱️</span><span>Clicca sull'opzione che ritieni corretta. Puoi cambiare risposta fino alla consegna.</span></li>
+      <li><span class="istr-ico">🔖</span><span>Usa ⭐ per segnare una domanda e tornarci dopo. La barra laterale mostra lo stato di tutte le domande.</span></li>
+      <li><span class="istr-ico">⏱️</span><span>Il timer in alto diventa giallo a 10 minuti e rosso a 5 minuti.</span></li>
+      <li><span class="istr-ico">📊</span><span>A fine prova scarichi il PDF con risultati, revisione completa e scheda di recupero.</span></li>
+    </ul>
+    <div class="avv">⚠️ Non chiudere né minimizzare questa finestra. Prima uscita = avviso. Seconda uscita = prova consegnata automaticamente.</div>
+    <div class="istr-footer">
+      <div>
+        <div style="font-size:12px;color:#999">Studente</div>
+        <div style="font-weight:800;font-size:17px" id="istr-stud"></div>
+      </div>
+      <button class="btn btn-p" onclick="iniziaProva()" style="font-size:14px;padding:11px 28px">▶ Inizia la prova</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SCHERMO TEST
+════════════════════════════════════════════════════════ -->
+<div id="scr-test" class="hidden">
+  <div class="hdr">
+    <div class="hdr-top">
+      <div class="hdr-logo">
+        <div class="logo-box">INV</div>
+        <div class="hdr-title"><strong>Simulazione INVALSI</strong>Italiano · Grado 8</div>
+      </div>
+      <div class="timer-wrap">
+        <div class="timer-val" id="timer-disp">90:00</div>
+        <div class="timer-lbl">Tempo rimasto</div>
+      </div>
+    </div>
+    <div class="hdr-nav">
+      <span class="sez-badge" id="badge-sez">SEZ. A</span>
+      <span id="hdr-info" style="color:rgba(255,255,255,.8);font-size:12px">Domanda 1 di 35</span>
+    </div>
+  </div>
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sb-title">Navigazione</div>
+      <div id="nav-domande"></div>
+      <div class="legenda">
+        <div class="leg-item"><div class="leg-box" style="background:var(--blu)"></div>Attuale</div>
+        <div class="leg-item"><div class="leg-box" style="background:#e8f5e9;border:2px solid var(--verde)"></div>Risposta data</div>
+        <div class="leg-item"><div class="leg-box" style="background:#fff;border:2px solid var(--grigio)"></div>Non risposta</div>
+        <div class="leg-item"><div class="leg-box" style="background:#fffde7;border:2px solid var(--giallo)"></div>Segnata ⭐</div>
+      </div>
+      <button class="btn-cons-sb" onclick="mostraConsegna()">📤 Consegna prova</button>
+    </div>
+    <!-- TESTO (colonna sinistra) -->
+    <div class="testo-col" id="col-testo">
+      <div class="no-testo">
+        <div class="no-testo-ico">📄</div>
+        <div>Seleziona una domanda per vedere il testo di riferimento</div>
+      </div>
+    </div>
+    <!-- DOMANDA (colonna destra) -->
+    <div class="dom-col" id="col-dom"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SCHERMO RISULTATI
+════════════════════════════════════════════════════════ -->
+<div id="scr-ris" class="hidden">
+<div class="scr-ris">
+
+  <div class="ris-card">
+    <div class="ris-hdr">
+      <div style="font-size:12px;opacity:.8;margin-bottom:3px" id="ris-sub"></div>
+      <div class="ris-score" id="ris-score">--</div>
+      <div class="ris-su" id="ris-su">su -- punti</div>
+      <div style="margin-top:6px;font-size:13px;opacity:.8" id="ris-pct"></div>
+    </div>
+    <div class="ris-sez-grid" id="ris-sez"></div>
+    <div class="comp-bars" id="ris-comp"></div>
+    <div class="risp-detail" id="ris-detail"></div>
+  </div>
+
+  <div class="eserc-card">
+    <div class="eserc-hdr">
+      <h3>📝 Scheda di recupero personalizzata</h3>
+      <p>10 esercizi mirati sulle aree più deboli – da completare a mano e consegnare al docente</p>
+    </div>
+    <div id="lista-eserc"></div>
+    <div style="padding:12px 22px;font-size:11px;color:#888;font-style:italic;border-top:1px solid var(--grigio)">
+      Completa a mano, poi allega il PDF al compito su Google Classroom.
+    </div>
+  </div>
+
+  <div class="ris-btns">
+    <button class="btn btn-p" onclick="scaricaPDF()" style="font-size:14px;padding:12px 26px">⬇️ Scarica PDF completo</button>
+  </div>
+
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SCHERMO DOCENTE
+════════════════════════════════════════════════════════ -->
+<div id="scr-doc" class="hidden">
+<div class="scr-doc">
+
+  <div class="doc-hdr">
+    <div class="doc-hdr-info">
+      <h2>Pannello Docente</h2>
+      <p id="doc-cl-lbl">Classe: --</p>
+    </div>
+    <button class="btn btn-s" onclick="logout()" style="font-size:12px">Esci</button>
+  </div>
+
+  <div class="doc-tabs">
+    <button class="tab-btn att" onclick="mostraTab('tab-sess',this)">📋 Sessioni</button>
+    <button class="tab-btn" onclick="mostraTab('tab-ris',this)">📊 Risultati</button>
+    <button class="tab-btn" onclick="mostraTab('tab-new',this)">➕ Nuova sessione</button>
+    <button class="tab-btn" onclick="mostraTab('tab-pw',this)">🔑 Password</button>
+  </div>
+
+  <!-- TAB: SESSIONI -->
+  <div class="panel att" id="tab-sess">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Codice</th><th>Prova</th><th>Data</th><th>Studenti</th><th>Stato</th><th>Azioni</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-sess"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB: RISULTATI -->
+  <div class="panel" id="tab-ris">
+    <div style="background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.07);margin-bottom:14px">
+      <div style="padding:14px;border-bottom:2px solid var(--grigio);display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <select class="finp" id="sel-sess-ris" style="max-width:300px;padding:9px 12px" onchange="caricaRis()">
+          <option value="">-- Seleziona sessione --</option>
+        </select>
+        <button class="btn btn-s" onclick="esportaCSV()" style="font-size:12px">📥 CSV</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Studente</th><th>Punteggio</th><th>Lettura</th><th>Lessico</th><th>Grammatica</th><th>Punto debole</th></tr></thead>
+          <tbody id="tbody-ris"></tbody>
+        </table>
+      </div>
+    </div>
+    <div id="doc-ris-wrap" class="hidden doc-ris-wrap">
+      <div class="doc-ris-hdr">
+        <span id="doc-det-title" style="font-weight:700;font-size:14px">Dettaglio</span>
+        <button class="btn btn-s" style="font-size:11px;padding:4px 10px" onclick="$('doc-ris-wrap').classList.add('hidden')">✕ Chiudi</button>
+      </div>
+      <div class="doc-ris-body" id="doc-det-body"></div>
+    </div>
+  </div>
+
+  <!-- TAB: NUOVA SESSIONE -->
+  <div class="panel" id="tab-new">
+    <div class="panel-card">
+      <h3>Crea nuova sessione</h3>
+      <div class="fg">
+        <label class="flbl">Prova da somministrare</label>
+        <select class="finp" id="sel-prova-new" style="padding:9px 12px"></select>
+      </div>
+      <div class="fg">
+        <label class="flbl">Codice accesso studenti</label>
+        <div style="display:flex;gap:8px">
+          <input class="finp" type="text" id="new-cod" placeholder="es. 3B-MAR25" style="flex:1;padding:9px 12px" maxlength="20">
+          <button class="btn btn-s" onclick="genCod()" style="padding:9px 14px;white-space:nowrap" title="Genera">🔀</button>
+        </div>
+      </div>
+      <button class="btn btn-g" onclick="creaSessione()" style="width:100%;padding:11px;font-size:14px">✅ Crea sessione</button>
+      <div class="err-msg" id="err-new"></div>
+      <div class="succ-msg" id="succ-new"></div>
+    </div>
+  </div>
+
+  <!-- TAB: PASSWORD -->
+  <div class="panel" id="tab-pw">
+    <div class="panel-card">
+      <h3>🔑 Gestione password docenti</h3>
+      <div class="info-panel">
+        Le password vengono salvate nel browser. Se usi la piattaforma su un nuovo dispositivo, le password ritorneranno a quelle predefinite.<br>
+        <strong>Password predefinite:</strong> docente3A!2025 · docente3B!2025 · docente3C!2025
+      </div>
+      <div id="pw-rows"></div>
+      <button class="btn btn-g" onclick="salvaPW()" style="width:100%;margin-top:16px;padding:11px">💾 Salva nuove password</button>
+      <div class="succ-msg" id="succ-pw"></div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     BANCA PROVE (10 prove originali)
+════════════════════════════════════════════════════════ -->
+<script>
+// ── HELPERS ────────────────────────────────────────────
+const T  = (id,sez,tit,testo,fonte) => ({id,sez,tipo:"testo",tit,testo,fonte:fonte||""});
+const SM = (id,sez,comp,testo,ops,ok) => ({id,sez,tipo:"sm",comp,testo,ops,ok});
+const P  = (id,titolo,domande) => ({id,titolo,domande});
+
+// ── PROVE ──────────────────────────────────────────────
+const PROVE = [
+
+// ══════════════════════════════════════════════════════
+// PROVA 1 – Il viaggio di un'idea (Scienza e scoperta)
+// ══════════════════════════════════════════════════════
+P(1,"Il viaggio di un'idea",[
+T("1_t1",0,"Testo A – Come nasce una scoperta",
+`Come nasce un'idea scientifica? Spesso si immagina il momento dell'invenzione come un lampo improvviso – il classico "eureka!" di Archimede nella vasca da bagno. In realtà, la storia della scienza racconta qualcosa di più lento e complesso. Le grandi scoperte raramente arrivano in un istante: sono il risultato di anni di osservazioni, tentativi falliti, intuizioni parziali e conversazioni tra ricercatori.
+
+Charles Darwin ci impiegò più di vent'anni a elaborare la teoria dell'evoluzione dopo il viaggio sul Beagle. Isaac Newton aveva già in mente il principio di gravitazione prima della celebre mela: l'aneddoto servì a "mettere a fuoco" un'idea già in formazione. Anche Alexander Fleming scoprì la penicillina quasi per caso, ma solo perché da anni cercava sostanze capaci di combattere i batteri: il caso incontrò una mente già preparata.
+
+Gli storici della scienza usano l'espressione "lavoro preparatorio" per descrivere tutto ciò che precede la scoperta. Non basta avere una mente brillante: occorre nutrirla di conoscenze, di dubbi, di tentativi. Le idee, in fondo, non viaggiano da sole – hanno bisogno di un terreno fertile.`,
+"Testo originale a fini didattici"),
+SM("1_1",0,"comprensione_globale","Qual è il messaggio principale del testo?",["Le grandi scoperte avvengono sempre per caso.","Le scoperte sono il frutto di un lungo lavoro di preparazione.","Solo le menti brillanti fanno scoperte importanti.","Darwin, Newton e Fleming ebbero le stesse intuizioni."],1),
+SM("1_2",0,"comprensione_locale","A cosa servì l'aneddoto della mela nel caso di Newton?",["A dimostrare che la gravità fu scoperta per caso.","A far capire a Newton che doveva studiare di più.","A mettere a fuoco un'idea che Newton stava già elaborando.","A convincere gli altri scienziati della sua teoria."],2),
+SM("1_3",0,"inferenza",'Con "il caso incontrò una mente già preparata" il testo vuole dire che:',["Fleming ebbe solo fortuna, senza merito scientifico.","La scoperta dipese unicamente dagli anni di studio.","Fleming cercava qualcosa, il che rese significativa la scoperta casuale.","Il caso è sempre il motore principale delle scoperte."],2),
+SM("1_4",0,"struttura_testo","Quale funzione ha il secondo paragrafo?",["Propone una soluzione al problema del primo paragrafo.","Illustra con esempi concreti l'affermazione del primo paragrafo.","Contraddice quanto affermato nel primo paragrafo.","Presenta l'opinione personale dell'autore."],1),
+SM("1_5",0,"lessico_contesto",'La metafora del "terreno fertile" si riferisce a:',["Un campo per coltivare esperimenti.","Una mente ricca di conoscenze, pronta a nuove idee.","Il laboratorio ideale per uno scienziato.","Le risorse economiche per la ricerca."],1),
+SM("1_6",0,"comprensione_locale","Quale affermazione NON è presente nel testo?",["Newton aveva già in mente la gravitazione prima della mela.","Darwin navigò sul Beagle.","Fleming lavorava da anni su sostanze antibatteriche.","Archimede scoprì la penicillina nella vasca da bagno."],3),
+T("1_t2",0,"Testo B – L'artigianato del rame",
+`Nei mercati del mondo arabo, gli artigiani del rame lavorano con gesti millenari. Le loro mani plasmano il metallo con martelli di varie dimensioni, producendo oggetti venduti nei suk – i mercati tradizionali – oppure esportati. Il suono ritmico dei colpi scandisce le ore della giornata come un antico orologio.
+
+In molte città del Maghreb, come Fez e Marrakech, questi laboratori sopravvivono vicino a boutique di lusso e centri commerciali moderni. I giovani imparano il mestiere dai padri e dai nonni: è una trasmissione di sapere che avviene attraverso l'osservazione e la pratica, non i manuali scritti.
+
+Tuttavia la globalizzazione mette alla prova questa tradizione. I prodotti industriali competono con le creazioni artigianali. Molti giovani preferiscono lavori meno faticosi. Eppure, nei mercati internazionali cresce la domanda di "autenticità": i consumatori pagano di più per un oggetto unico, fatto a mano, con una storia.`,
+"Testo originale a fini didattici"),
+SM("1_7",0,"comprensione_globale","Il secondo testo parla principalmente di:",["La storia economica dei paesi arabi.","L'artigianato del rame e le sfide della globalizzazione.","Come funzionano i mercati del lusso.","Le scuole di arti e mestieri nel Maghreb."],1),
+SM("1_8",0,"comprensione_locale","Come avviene la trasmissione del sapere artigianale?",["Attraverso corsi universitari.","Attraverso manuali scritti.","Attraverso l'osservazione e la pratica con i familiari.","Attraverso scambi culturali internazionali."],2),
+SM("1_9",0,"inferenza","Perché i consumatori pagano di più per oggetti artigianali?",["Perché sono di qualità inferiore.","Perché vogliono un oggetto unico con una storia.","Perché costano meno di quelli industriali.","Perché seguono la moda del momento."],1),
+SM("1_10",0,"struttura_testo",'La congiunzione "eppure" nell\'ultimo paragrafo introduce:',["Una causa.","Un esempio.","Un contrasto rispetto a quanto detto prima.","Una conclusione."],2),
+SM("1_11",0,"lessico_contesto",'Nel testo, "autenticità" significa:',["Il prezzo elevato di un prodotto.","La caratteristica di essere genuino, originale.","La capacità di esportare.","La velocità di produzione."],1),
+T("1_t3",1,"SEZIONE B – LESSICO","",""),
+SM("1_12",1,"lessico",'Sinonimo di "elaborare" nel senso di "sviluppare un\'idea":',["Cancellare","Costruire","Dimenticare","Copiare"],1),
+SM("1_13",1,"lessico",'"Intuitivo" sta a "intuizione" come "creativo" sta a:',["Creazione","Creare","Creativamente","Creatività"],3),
+SM("1_14",1,"lessico_contesto",'In quale frase "fertile" è usato in senso figurato?',["Il terreno fertile produce raccolti.","Quella zona è fertile grazie all'irrigazione.","Ha una mente fertile, capace di idee nuove.","I campi fertili del Po nutrono milioni."],2),
+SM("1_15",1,"lessico","Quale coppia è formata da due contrari?",["Brillante / luminoso","Parziale / totale","Ricercatore / scienziato","Elaborare / sviluppare"],1),
+SM("1_16",1,"lessico_contesto",'Completa: "Gli esaminatori hanno valutato con grande _____ le risposte."',["precisione","velocità","pigrizia","imprecisione"],0),
+SM("1_17",1,"lessico",'"Divulgativo" significa:',["Riservato a pochi esperti.","Destinato a rendere accessibili argomenti complessi.","Scritto in modo molto tecnico.","Caratterizzato da errori."],1),
+SM("1_18",1,"lessico","Quale parola contiene un prefisso con significato negativo?",["Previamente","Impossibile","Ricercatore","Elaborazione"],1),
+SM("1_19",1,"lessico",'Sinonimo di "osservazione" in contesto scientifico:',["Distrazione","Rilevazione","Abbandono","Confusione"],1),
+T("1_t4",2,"SEZIONE C – RIFLESSIONE SULLA LINGUA","",""),
+SM("1_20",2,"morfologia","In quale frase il verbo è al congiuntivo presente?",["Penso che lui abbia ragione.","Lui ha sempre ragione.","Lui aveva ragione allora.","Lui avrà ragione domani."],0),
+SM("1_21",2,"sintassi",'In "Anche se piove, uscirò", la prop. "anche se piove" è:',["Causale.","Concessiva.","Temporale.","Finale."],1),
+SM("1_22",2,"ortografia","Quale frase è scritta correttamente?",["Non so se verrà, perciò aspetto.","Non so se verrà perciò aspetto.","Non so, se verrà perciò aspetto.","Non so se verrà perciò, aspetto."],0),
+SM("1_23",2,"morfologia",'"Partendo" è un:',["Participio presente","Gerundio presente","Infinito presente","Participio passato"],1),
+SM("1_24",2,"sintassi","In quale frase il soggetto è sottinteso?",["I bambini giocano in giardino.","Giocano in giardino.","Loro giocano sempre fuori.","Il cane corre nel prato."],1),
+SM("1_25",2,"punteggiatura","Quale uso dei due punti è corretto?",["Voglio: mangiare una pizza.","I risultati: sono stati ottimi.","Ho comprato: pane, latte e burro.","Lei: è molto brava."],2),
+SM("1_26",2,"morfologia",'In "la scoperta più importante", "più importante" è:',["Un superlativo relativo.","Un comparativo di maggioranza.","Un superlativo assoluto.","Un comparativo di uguaglianza."],0),
+SM("1_27",2,"coesione","Quale connettivo introduce una conclusione?",["Invece","Quindi","Sebbene","Poiché"],1),
+SM("1_28",2,"morfologia",'In "Gli scienziati elaborarono la teoria", il verbo è:',["Indicativo imperfetto.","Indicativo passato prossimo.","Indicativo passato remoto.","Congiuntivo imperfetto."],2),
+SM("1_29",2,"sintassi",'In "Dopo aver studiato, passò l\'esame", "dopo aver studiato" esprime:',["Causa","Tempo","Concessione","Fine"],1),
+SM("1_30",2,"morfologia","Quale è una frase semplice (un solo verbo)?",["Marco studia e Luca dorme.","Sebbene piovesse, uscirono.","Il sole tramonta lentamente.","Quando arriverà, lo chiamerò."],2),
+SM("1_31",2,"coesione",'"Tuttavia" introduce:',["Una conseguenza.","Una causa.","Un contrasto.","Una condizione."],2),
+SM("1_32",2,"ortografia","Quale forma è corretta?",["L'ha detto lui stesso.","Lha detto lui stesso.","L' ha detto lui stesso.","La detto lui stesso."],0),
+SM("1_33",2,"morfologia",'"Velocissimamente" è:',["Un aggettivo superlativo.","Un avverbio di modo.","Un sostantivo astratto.","Un participio."],1),
+SM("1_34",2,"sintassi","Quale proposizione è di tipo finale?",["Studio perché voglio imparare.","Studio affinché tu sia orgoglioso.","Studio sebbene sia stanco.","Studio mentre ascolto musica."],1),
+SM("1_35",2,"morfologia",'"Polpo" al plurale è:',["Polpi","Polpe","Polpa","Polpetti"],0),
+]),
+
+// ══════════════════════════════════════════════════════
+// PROVA 2 – La città e i suoi segreti
+// ══════════════════════════════════════════════════════
+P(2,"La città e i suoi segreti",[
+T("2_t1",0,"Testo A – Stratificazione urbana",
+`Le città crescono, si trasformano, a volte scompaiono. Alcune metropoli del mondo – Tokyo, Città del Messico, Cairo – ospitano decine di milioni di persone, eppure conservano quartieri antichi dove il tempo sembra essersi fermato. Camminare tra i vicoli di una medina marocchina o tra i templi di Kyoto è come sfogliare un libro scritto nei secoli.
+
+Gli urbanisti chiamano questo fenomeno "stratificazione urbana": ogni generazione costruisce sul lavoro di quella precedente, demolisce ciò che non serve, conserva ciò che ha valore. A Roma, sotto le strade moderne, ci sono ancora intere città romane, medievali, rinascimentali. Il sottosuolo è un archivio immenso.
+
+La sfida del futuro è preservare questa memoria mentre si risponde alle esigenze di milioni di abitanti: traffico, inquinamento, abitazioni, spazi verdi. Non è facile trovare l'equilibrio tra passato e futuro. Ma è proprio questa tensione a rendere le città luoghi straordinari di vita e di storia.`,
+"Testo originale a fini didattici"),
+SM("2_1",0,"comprensione_globale","Qual è il tema principale del testo?",["La crescita demografica delle città moderne.","La memoria storica delle città e le sfide del futuro.","Le tecniche di scavo nelle città romane.","I quartieri antichi di Kyoto e Marrakech."],1),
+SM("2_2",0,"comprensione_locale",'Cosa si intende per "stratificazione urbana"?',["Costruzione di grattacieli sempre più alti.","Ogni generazione costruisce sul lavoro di quella precedente.","Divisione della città in quartieri separati.","Demolizione degli edifici storici."],1),
+SM("2_3",0,"inferenza",'Perché il sottosuolo romano è "un archivio immenso"?',["Ci sono molte biblioteche antiche.","Conserva tracce di epoche storiche diverse.","È usato come deposito di documenti moderni.","È inaccessibile agli archeologi."],1),
+SM("2_4",0,"struttura_testo","Quale funzione ha il terzo paragrafo?",["Introduce un problema nuovo.","Presenta la sfida attuale del rapporto tra memoria e futuro.","Elenca le città più antiche del mondo.","Contraddice il secondo paragrafo."],1),
+SM("2_5",0,"lessico_contesto",'"Sfogliare un libro" è usato in senso:',["Letterale.","Figurato, per indicare che camminare è come leggere la storia.","Tecnico.","Ironico."],1),
+SM("2_6",0,"comprensione_locale","Cosa rende le città straordinarie secondo l'autore?",["La modernità delle infrastrutture.","La tensione tra conservazione del passato e bisogni del presente.","Il numero di monumenti.","Il numero di abitanti."],1),
+T("2_t2",0,"Testo B – I fiumi urbani",
+`Il fiume è la vena della città. Lo sanno bene i parigini con la Senna, i londinesi con il Tamigi, i romani con il Tevere. Il Gange attraversa Varanasi come un filo sacro che tiene insieme passato e presente.
+
+Eppure i fiumi urbani sono oggi tra gli ambienti più minacciati: inquinati da scarichi industriali, spesso coperti o tombati nel corso dei secoli. Il caso del fiume Cheonggyecheon a Seul è celebre: interrato per decenni sotto un'autostrada, è stato riscoperto e trasformato in un parco fluviale visitato da milioni di persone ogni anno.
+
+La rinascita di un fiume può cambiare una città: abbassa le temperature, crea ecosistemi, invita i cittadini a camminare. Non è solo una questione ambientale: è una scelta di civiltà.`,
+"Testo originale a fini didattici"),
+SM("2_7",0,"comprensione_globale","Il secondo testo parla principalmente di:",["La storia dei fiumi sacri dell'Asia.","I fiumi nelle città: importanza e minacce.","Come costruire parchi urbani.","L'inquinamento dei mari."],1),
+SM("2_8",0,"comprensione_locale","Cosa è successo al Cheonggyecheon?",["Fu gravemente inquinato.","Fu interrato e poi recuperato come parco.","Fu deviato fuori dalla città.","Divenne una via di trasporto."],1),
+SM("2_9",0,"inferenza",'"Una scelta di civiltà" significa che:',["È molto costosa.","Rivela i valori e le priorità di una comunità.","Riguarda solo aspetti tecnici.","Non dipende dalla volontà politica."],1),
+SM("2_10",0,"lessico_contesto",'"Tombati" nel testo significa:',["Decorati con tombe antiche.","Coperti e nascosti sotto terra o costruzioni.","Inquinati da scarichi.","Trasformati in cimiteri."],1),
+SM("2_11",0,"struttura_testo",'I due punti in "può cambiare una città: abbassa le temperature..." introducono:',["Una citazione.","Una lista che specifica il concetto.","Una domanda retorica.","Un'opinione."],1),
+SM("2_12",0,"coesione",'"Eppure" (inizio secondo paragrafo) introduce:',["Una causa.","Un contrasto rispetto al paragrafo precedente.","Una conseguenza.","Una condizione."],1),
+T("2_t3",1,"SEZIONE B – LESSICO","",""),
+SM("2_13",1,"lessico",'Sinonimo di "metropoli":',["Villaggio","Grande città","Quartiere","Campagna"],1),
+SM("2_14",1,"lessico",'"Urbano" sta a "città" come "rurale" sta a:',["Montagna","Fiume","Campagna","Quartiere"],2),
+SM("2_15",1,"lessico_contesto",'In quale frase "minacciato" è usato in senso figurato?',["L'orso minacciato dal cacciatore fuggì.","Il ragazzo minacciato dai bulli chiese aiuto.","L'ecosistema è minacciato dall'inquinamento.","Il cane abbaiò minaccioso."],2),
+SM("2_16",1,"lessico","Termine NON dell'area semantica urbana:",["Traffico","Grattacielo","Semaforo","Alpeggio"],3),
+SM("2_17",1,"lessico",'"Preservare" significa:',["Distruggere.","Conservare e proteggere.","Costruire rapidamente.","Trasformare completamente."],1),
+SM("2_18",1,"lessico","Coppia di sinonimi:",["Passato / futuro","Demolire / abbattere","Antico / moderno","Crescere / diminuire"],1),
+SM("2_19",1,"lessico",'Completa: "Gli architetti cercano un _____ tra conservazione e innovazione."',["conflitto","equilibrio","problema","errore"],1),
+SM("2_20",1,"lessico","Prefisso che trasforma 'normale' nel suo contrario:",["pre-","ri-","an-","pro-"],2),
+T("2_t4",2,"SEZIONE C – RIFLESSIONE SULLA LINGUA","",""),
+SM("2_21",2,"sintassi",'Proposizione principale in "Sebbene fosse stanco, continuò a lavorare":',['"Sebbene fosse stanco"','"continuò a lavorare"',"Entrambe.","Nessuna."],1),
+SM("2_22",2,"morfologia","Verbo alla forma passiva:",["La città cresce.","Il fiume è stato recuperato.","I cittadini camminano.","Gli urbanisti progettano."],1),
+SM("2_23",2,"punteggiatura","Virgolette per segnalare un termine tecnico:",['Il "cane" abbaiò.','Gli urbanisti chiamano questo "stratificazione urbana".','Domani "andrò" al cinema.','"Il" problema.'],1),
+SM("2_24",2,"morfologia",'"Costruendo" è:',["Participio passato.","Gerundio presente.","Infinito presente.","Participio presente."],1),
+SM("2_25",2,"coesione","Connettivo di causa:",["Quindi","Tuttavia","Poiché","Invece"],2),
+SM("2_26",2,"morfologia","Pronome relativo:",["Questo","Che","Mio","Qualcuno"],1),
+SM("2_27",2,"sintassi",'Proposizione relativa in "La città che preferisco è Venezia":',['"La città... è Venezia"','"che preferisco"','"è Venezia"',"Non c'è."],1),
+SM("2_28",2,"morfologia",'"Erano partiti" è:',["Trapassato prossimo.","Passato prossimo.","Passato remoto.","Imperfetto."],0),
+SM("2_29",2,"sintassi","Frase con complemento di causa:",["Sono andato al supermercato.","Ho comprato pane per mia sorella.","Non sono uscito a causa della pioggia.","Ho studiato durante il pomeriggio."],2),
+SM("2_30",2,"morfologia",'"Incomprensibile" contiene:',["Solo un prefisso.","Prefisso negativo e suffisso aggettivale.","Solo un suffisso.","Nessun affisso."],1),
+SM("2_31",2,"sintassi",'"Prima di partire" è:',["Causale.","Temporale.","Finale.","Concessiva."],1),
+SM("2_32",2,"ortografia","Apostrofo errato:",["C'è qualcuno alla porta.","L'amica di Maria è arrivata.","Un'altro problema è emerso.","Dell'acqua nel bicchiere."],2),
+SM("2_33",2,"morfologia","Plurale di 'l'uovo':",["Le uova","Gli uovi","I uovi","Le uovi"],0),
+SM("2_34",2,"coesione",'Pronome per "il fiume" in "_____ è stato recuperato":',["Lo","La","Li","Le"],0),
+SM("2_35",2,"sintassi","Frase con proposizione consecutiva:",["Studio tanto che non dormo più.","Studio perché voglio imparare.","Studio sebbene sia stanco.","Studio mentre ascolto musica."],0),
+]),
+
+// ══════════════════════════════════════════════════════
+// PROVA 3 – Il tempo libero e il digitale
+// ══════════════════════════════════════════════════════
+P(3,"Il tempo libero e il digitale",[
+T("3_t1",0,"Testo A – Gli e-sport: veri sport?",
+`Gli e-sport – competizioni di videogiochi a livello professionale – hanno una platea enorme. Milioni di spettatori seguono tornei come il Campionato Mondiale di League of Legends, con premi che superano quelli di molte discipline tradizionali. Alcune università americane hanno già istituito borse di studio per giocatori professionisti.
+
+La domanda rimane aperta: gli e-sport sono veri sport? I favorevoli sottolineano che richiedono riflessi rapidissimi, capacità strategica, lavoro di squadra e allenamento quotidiano. I contrari rispondono che mancano della componente fisica intensa e che la sedentarietà crea rischi per la salute.
+
+Il Comitato Olimpico Internazionale ha più volte dibattuto se includerli nei Giochi. La questione non è solo sportiva: riguarda valori, identità e la definizione stessa di "fare sport" nel XXI secolo.`,
+"Testo originale a fini didattici"),
+SM("3_1",0,"comprensione_globale","Questione centrale del testo:",["Quanto guadagnano i giocatori professionisti.","Se gli e-sport possano essere considerati veri sport.","Perché i videogiochi sono pericolosi.","Come funzionano i tornei internazionali."],1),
+SM("3_2",0,"comprensione_locale","Argomento dei contrari agli e-sport:",["I premi sono troppo bassi.","Non richiedono capacità strategica.","Mancano di componente fisica e creano sedentarietà.","Non vengono seguiti da abbastanza spettatori."],2),
+SM("3_3",0,"struttura_testo","Il secondo paragrafo è strutturato come:",["Narrazione cronologica.","Confronto tra argomenti a favore e contro.","Descrizione tecnica.","Opinione personale dell'autore."],1),
+SM("3_4",0,"inferenza",'"La questione non è solo sportiva" suggerisce che:',["Riguarda anche aspetti culturali e identitari.","Il problema è solo la salute.","La questione è già risolta.","Interessa solo i giovani americani."],0),
+SM("3_5",0,"comprensione_locale","Chi ha dibattuto se includere gli e-sport alle Olimpiadi?",["Il Parlamento Europeo","La FIFA","Il Comitato Olimpico Internazionale","L'ONU"],2),
+SM("3_6",0,"lessico_contesto",'"Platea" (prima riga) si riferisce a:',["Il palco di un teatro.","L'insieme degli spettatori.","La sede dei tornei.","Un tipo di competizione."],1),
+T("3_t2",0,"Testo B – Il tempo libero nell'era digitale",
+`Fino a pochi decenni fa il tempo libero dei ragazzi era occupato principalmente da attività all'aperto: giochi di strada, sport, lettura. Oggi lo scenario è cambiato. Secondo alcune ricerche, i giovani tra i 10 e i 17 anni trascorrono in media tra le 4 e le 7 ore al giorno davanti a uno schermo.
+
+Non si tratta però di un fenomeno solo negativo. Molti ragazzi usano il digitale per creare – video, musica, illustrazioni, codice – e per imparare. Le community online possono offrire supporto a chi si sente isolato. Il problema nasce quando lo schermo sostituisce completamente relazioni fisiche, movimento, sonno.
+
+Gli esperti concordano: non è il mezzo a determinare il benessere, ma come si usa. Un'ora di videogiochi in compagnia è diversa da sei ore di scorrimento passivo dei social. La chiave è la consapevolezza – dei ragazzi, delle famiglie, della scuola.`,
+"Testo originale a fini didattici"),
+SM("3_7",0,"comprensione_globale","Messaggio principale del secondo testo:",["I ragazzi non usano abbastanza il digitale.","Il digitale è sempre e solo dannoso.","L'effetto del digitale dipende da come lo si usa.","La scuola dovrebbe vietare gli smartphone."],2),
+SM("3_8",0,"comprensione_locale","Quante ore al giorno davanti agli schermi?",["Tra 1 e 3 ore.","Tra 4 e 7 ore.","Tra 8 e 10 ore.","Il testo non lo dice."],1),
+SM("3_9",0,"inferenza","Perché l'autore distingue i due tipi di uso digitale?",["Per dire che i videogiochi sono migliori dei social.","Per mostrare che la quantità è l'unico fattore.","Per mostrare che il tipo d'uso conta più della durata.","Per criticare i ragazzi che usano i social."],2),
+SM("3_10",0,"struttura_testo","Il terzo paragrafo svolge la funzione di:",["Introdurre un problema nuovo.","Trarre una conclusione che orienta il ragionamento.","Contraddire il secondo paragrafo.","Elencare statistiche."],1),
+SM("3_11",0,"lessico_contesto",'"Uso problematico" si riferisce a:',["Tecnologia non autorizzata.","Uso eccessivo che sostituisce relazioni, movimento, sonno.","Dispositivi vecchi.","Tempo dedicato ai compiti."],1),
+SM("3_12",0,"coesione",'"Non si tratta però di un fenomeno solo negativo" – "però" introduce:',["Una causa.","Un esempio.","Un contrasto rispetto al paragrafo precedente.","Una conclusione."],2),
+T("3_t3",1,"SEZIONE B – LESSICO","",""),
+SM("3_13",1,"lessico",'Sinonimo di "sedentarietà":',["Attività fisica","Mancanza di movimento","Velocità di reazione","Capacità strategica"],1),
+SM("3_14",1,"lessico_contesto",'In quale frase "schermo" è usato in senso figurato?',["Lo schermo del computer era rotto.","Ha usato il lavoro come schermo per nascondere la tristezza.","Lo schermo del telefono è nuovo.","Il film su grande schermo."],1),
+SM("3_15",1,"lessico","Nome e suo derivato aggettivale:",["Veloce / correre","Sport / sportivo","Grande / grandezza","Lento / lentamente"],1),
+SM("3_16",1,"lessico",'"Consapevolezza" è della famiglia di:',["Sapere","Volere","Essere","Avere"],0),
+SM("3_17",1,"lessico",'Completa: "I ricercatori hanno _____ che i social influenzano il sonno."',["dimenticato","dimostrato","negato","ignorato"],1),
+SM("3_18",1,"lessico","Parola con suffisso che indica 'qualità astratta':",["Correre","Bellezza","Veloce","Studiare"],1),
+SM("3_19",1,"lessico",'Antonimo di "attivo":',["Energico","Dinamico","Passivo","Vivace"],2),
+SM("3_20",1,"lessico",'Completa: "La _____ dei dati mostra un aumento dell\'uso degli smartphone."',["narrazione","analisi","favola","poesia"],1),
+T("3_t4",2,"SEZIONE C – RIFLESSIONE SULLA LINGUA","",""),
+SM("3_21",2,"morfologia","Congiuntivo imperfetto:",["Speravo che venisse.","Vengo subito.","È venuto ieri.","Verrà domani."],0),
+SM("3_22",2,"sintassi",'"Per rilassarmi" in "Gioco per rilassarmi" è:',["Causale.","Finale.","Temporale.","Concessiva."],1),
+SM("3_23",2,"morfologia","Verbo irregolare al passato remoto:",["Parlare (parlai)","Essere (fui)","Camminare (camminai)","Studiare (studiai)"],1),
+SM("3_24",2,"ortografia","Forma corretta:",["Qual'è il tuo preferito?","Qual è il tuo preferito?","Quale' il tuo preferito?","Qual'é il tuo preferito?"],1),
+SM("3_25",2,"sintassi","Frase con complemento di mezzo:",["Ho vinto grazie all'allenamento.","Ho vinto con il mio computer.","Ho vinto perché mi sono allenato.","Ho vinto sebbene fossi stanco."],1),
+SM("3_26",2,"morfologia",'"Giocando" è:',["Participio passato.","Infinito.","Gerundio presente.","Participio presente."],2),
+SM("3_27",2,"coesione","Connettivo di conseguenza:",["Benché","Pertanto","Sebbene","Nonostante"],1),
+SM("3_28",2,"punteggiatura","Uso corretto del punto e virgola:",["Ho giocato; a lungo.","Ho vinto il torneo; il premio era enorme.","Il gioco; è difficile.","Ho; comprato un computer."],1),
+SM("3_29",2,"morfologia",'"Il gioco più coinvolgente" contiene:',["Superlativo assoluto.","Superlativo relativo.","Comparativo di minoranza.","Comparativo di uguaglianza."],1),
+SM("3_30",2,"sintassi","Frase con proposizione temporale:",["Mentre giocavo, squillò il telefono.","Gioco perché mi diverto.","Gioco sebbene sia stanco.","Gioco affinché migliori."],0),
+SM("3_31",2,"ortografia","Forma corretta:",["Ce n'è abbastanza.","Ce ne' abbastanza.","Cen'è abbastanza.","Ce ne abbastanza."],0),
+SM("3_32",2,"morfologia","Avverbio di tempo:",["Velocemente","Ieri","Molto","Bene"],1),
+SM("3_33",2,"coesione",'Pronome per "le statistiche" in "_____ mostrano un aumento":',["Li","Le","Lo","La"],1),
+SM("3_34",2,"sintassi","Frase con verbo riflessivo:",["Mi hanno chiamato.","Mi lavo le mani.","Mi piace il calcio.","Mi hanno dato un premio."],1),
+SM("3_35",2,"morfologia","Contrario del prefisso DIS-:",["Non ha contrario preciso.","Il prefisso BEN-","Il prefisso RE-","Il prefisso PRE-"],1),
+]),
+
+// ══════════════════════════════════════════════════════
+// PROVA 4 – Animali e uomini
+// ══════════════════════════════════════════════════════
+P(4,"Animali e uomini",[
+T("4_t1",0,"Testo A – L'intelligenza degli animali",
+`Per molto tempo si è creduto che la capacità di ragionare fosse esclusiva degli esseri umani. Gli animali agivano per puro istinto. Oggi questa visione è radicalmente cambiata. Le scoperte dell'etologia hanno rivelato capacità cognitive sorprendenti in molte specie.
+
+I corvi sanno usare strumenti e risolvere problemi in sequenza logica. I polpi dimostrano capacità di apprendimento sorprendenti, nonostante il loro sistema nervoso sia molto diverso dal nostro. I delfini comunicano con richiami individuali – una sorta di "nome proprio" – e mostrano empatia verso i compagni feriti. Persino le api usano una "danza" codificata per comunicare la posizione delle fonti di cibo.
+
+Questa rivalutazione non è solo di interesse accademico: cambia il modo in cui guardiamo gli altri animali. Se altri esseri viventi pensano, sentono e comunicano, la domanda etica sul loro benessere diventa impossibile da ignorare.`,
+"Testo originale a fini didattici"),
+SM("4_1",0,"comprensione_globale","Idea principale del testo:",["Gli animali sono più intelligenti degli umani.","La scienza ha dimostrato capacità cognitive sorprendenti in molti animali.","Solo corvi e delfini mostrano vera intelligenza.","L'etologia è inutile."],1),
+SM("4_2",0,"comprensione_locale","Comportamento dei delfini citato nel testo:",["Usano strumenti.","Comunicano con richiami individuali e mostrano empatia.","Risolvono problemi logici.","Danzano per comunicare."],1),
+SM("4_3",0,"struttura_testo","Il terzo paragrafo ha la funzione di:",["Descrivere nuovi esperimenti.","Trarre le implicazioni etiche.","Contraddire le osservazioni precedenti.","Introdurre un argomento nuovo."],1),
+SM("4_4",0,"inferenza","Perché la domanda etica è 'impossibile da ignorare'?",["Perché è imposta dalla legge.","Perché se gli animali sentono, trattarli male è moralmente problematico.","Perché gli animali sono più numerosi degli umani.","Perché l'etologia è la scienza più importante."],1),
+SM("4_5",0,"lessico_contesto",'La "danza" delle api è "codificata", cioè:',["Le api ballano per divertimento.","Segue un sistema di segnali con significato preciso.","Le api la usano per difendersi.","È caotica e incomprensibile."],1),
+SM("4_6",0,"comprensione_locale","Cosa afferma il testo sui polpi?",["Hanno un sistema nervoso simile al nostro.","Usano richiami individuali.","Mostrano apprendimento nonostante sistema nervoso diverso.","Sanno costruire strumenti."],2),
+T("4_t2",0,"Testo B – La sesta estinzione",
+`Gli scienziati parlano di "sesta estinzione di massa": dopo le cinque grandi estinzioni geologiche, staremmo vivendo una sesta, causata dall'attività umana. La velocità con cui le specie scompaiono supera di centinaia di volte il ritmo naturale dell'estinzione.
+
+Le cause principali sono la distruzione degli habitat, il cambiamento climatico, l'inquinamento e la caccia illegale. Alcune stime indicano che ogni anno scompaiono tra 10.000 e 100.000 specie – la maggior parte senza che l'uomo le abbia studiate.
+
+Non si tratta solo di una perdita di biodiversità. Ogni specie porta con sé un pezzo di ecosistema: predatori che regolano le prede, impollinatori che permettono la riproduzione delle piante, funghi che decompongono la materia organica. È una rete, e quando si taglia troppo, la rete si strappa.`,
+"Testo originale a fini didattici"),
+SM("4_7",0,"comprensione_globale","Il secondo testo parla principalmente di:",["Le cinque grandi estinzioni geologiche.","La perdita accelerata di specie causata dall'uomo.","Come proteggere le barriere coralline.","Gli asteroidi e le estinzioni."],1),
+SM("4_8",0,"comprensione_locale","Cosa distingue la 'sesta estinzione'?",["È causata dall'attività umana.","È più lenta delle precedenti.","Riguarda solo specie marine.","È avvenuta milioni di anni fa."],0),
+SM("4_9",0,"inferenza",'Cosa intende la metafora "la rete si strappa"?',["Gli ecosistemi sono reti da pesca.","La perdita di specie danneggia l'intero sistema ecologico.","L'uomo costruisce reti per catturare animali.","La biodiversità è utile solo agli scienziati."],1),
+SM("4_10",0,"struttura_testo","Funzione del terzo paragrafo:",["Elencare le specie in estinzione.","Spiegare perché la perdita di biodiversità è un problema sistemico.","Presentare soluzioni.","Contraddire le stime del secondo paragrafo."],1),
+SM("4_11",0,"comprensione_locale","Specie scomparse ogni anno secondo le stime:",["Tra 100 e 1.000","Tra 10.000 e 100.000","Tra 1.000.000 e 10.000.000","Il testo non fornisce stime."],1),
+SM("4_12",0,"lessico_contesto",'"Paludi prosciugate" significa:',["Paludi inquinate.","Zone umide di cui è stata eliminata l'acqua.","Paludi trasformate in riserve.","Aree allagate artificialmente."],1),
+T("4_t3",1,"SEZIONE B – LESSICO","",""),
+SM("4_13",1,"lessico","L'etologia è:",["Studio dei comportamenti animali","Studio delle stelle","Studio dei fossili","Studio delle piante"],0),
+SM("4_14",1,"lessico","Coppia di contrari:",["Istinto / ragione","Animale / bestia","Specie / varietà","Natura / ambiente"],0),
+SM("4_15",1,"lessico_contesto",'Il prefisso RI- in "rivalutazione" indica:',["Azione fatta per la prima volta.","Azione che modifica una valutazione precedente.","Azione negativa.","Azione futura."],1),
+SM("4_16",1,"lessico",'Iperonimo di "corvo", "delfino", "ape":',["Vertebrato","Animale","Mammifero","Insetto"],1),
+SM("4_17",1,"lessico",'Completa: "La _____ della foresta amazzonica minaccia migliaia di specie."',["costruzione","distruzione","conservazione","protezione"],1),
+SM("4_18",1,"lessico",'"Biodiversità" è composta da:',['"bio" (vita) + "diversità"',"biologia + città","bio + divisione","biota + versità"],0),
+SM("4_19",1,"lessico",'Parola della famiglia di "estinzione" che significa "che rischia di scomparire":',["Estinguere","Estinto","A rischio di estinzione","Estintore"],2),
+SM("4_20",1,"lessico",'Completa: "Gli scienziati hanno scoperto _____ capacità nei polpi."',["sorprendenti","banali","inutili","semplici"],0),
+T("4_t4",2,"SEZIONE C – RIFLESSIONE SULLA LINGUA","",""),
+SM("4_21",2,"morfologia",'"Gli ecosistemi sarebbero stati distrutti" è:',["Condizionale presente passivo.","Condizionale passato passivo.","Congiuntivo trapassato.","Futuro anteriore passivo."],1),
+SM("4_22",2,"sintassi",'"Se distruggiamo gli habitat" è:',["Causale.","Ipotetica/condizionale.","Temporale.","Concessiva."],1),
+SM("4_23",2,"morfologia","Participio passato:",["Studiando","Studiare","Studiato","Studierò"],2),
+SM("4_24",2,"ortografia","Forma corretta:",["Vengono studiati da secoli.","Vengono studiatti.","Vengono studioati.","Vengono studiato."],0),
+SM("4_25",2,"sintassi","Frase con complemento di fine/scopo:",["Studio la biologia con interesse.","Studio la biologia per capire la natura.","Studio la biologia da tre anni.","Studio la biologia in laboratorio."],1),
+SM("4_26",2,"morfologia","Preposizione articolata:",["Di","Sul","Con","Per"],1),
+SM("4_27",2,"coesione",'Pronome per "gli animali" in "_____ mostrano capacità":',["Li","Gli","Loro","Le"],0),
+SM("4_28",2,"sintassi","Frase con proposizione relativa:",["Ieri sono andato al museo.","Lo scienziato che ha scoperto questo è italiano.","Ho studiato molto perché voglio capire.","Sebbene piovesse, siamo usciti."],1),
+SM("4_29",2,"morfologia",'Struttura di "rapidissimamente":',["Aggettivo + suffisso avverbiale.","Aggettivo superlativo + suffisso avverbiale.","Sostantivo + prefisso + suffisso.","Verbo + suffisso."],1),
+SM("4_30",2,"punteggiatura","Parentesi usate correttamente:",["(Gli) animali mostrano intelligenza.","Gli animali (come i corvi) mostrano intelligenza.","Gli animali mostrano (intelligenza).","Gli animali mostrano intelligenza(.)"],1),
+SM("4_31",2,"coesione",'"Nonostante ciò" introduce:',["Una causa.","Una conseguenza.","Un contrasto/concessione.","Una condizione."],2),
+SM("4_32",2,"ortografia","Forma corretta:",["Non c'è nessun animale.","Non c'è nessun'animale.","Non cè nessun animale.","Non c'è neun animale."],0),
+SM("4_33",2,"sintassi","Frase con struttura S + V + C.O.:",["Il corvo vola lontano.","Il corvo mangia il cibo.","Il corvo è intelligente.","Il corvo sembra stanco."],1),
+SM("4_34",2,"morfologia",'"Polpo" al plurale è:',["Polpi","Polpe","Polpa","Polpetti"],0),
+SM("4_35",2,"morfologia","Verbo difettivo:",["Mangiare","Essere","Urgere","Avere"],2),
+]),
+
+// ══════════════════════════════════════════════════════
+// PROVA 5 – L'Italia in versi
+// ══════════════════════════════════════════════════════
+P(5,"L'Italia in versi",[
+T("5_t1",0,"Testo A – Veglia (G. Ungaretti, 1915)",
+`Un'intera nottata
+buttato vicino
+a un compagno
+massacrato
+con la sua bocca
+digrignata
+volta al plenilunio
+con la congestione
+delle sue mani
+penetrata
+nel mio silenzio
+ho scritto
+lettere piene d'amore
+
+Non sono mai stato
+tanto
+attaccato alla vita
+
+Cima Quattro il 23 dicembre 1915`,
+"G. Ungaretti, L'Allegria (1931) – opera in pubblico dominio"),
+SM("5_1",0,"comprensione_globale","Tema principale della poesia:",["La bellezza della luna in montagna.","La guerra e il senso acuto della vita di fronte alla morte.","La nostalgia per la famiglia.","La difficoltà di scrivere lettere."],1),
+SM("5_2",0,"comprensione_locale","Dove si trova il poeta?",["In ospedale.","In trincea accanto a un compagno morto.","In città durante un bombardamento.","A casa."],1),
+SM("5_3",0,"inferenza",'Perché il poeta è "tanto attaccato alla vita"?',["La guerra gli ha insegnato ad amare la pace.","La vicinanza alla morte gli fa sentire il valore della vita intensamente.","Ha scritto molte lettere d'amore.","La luna piena è bellissima."],1),
+SM("5_4",0,"struttura_testo","Effetto dei versi brevissimi di Ungaretti:",["Rendono il testo difficile.","Creano ritmo franto che rispecchia la tensione emotiva.","Permettono più rime.","Imitano la poesia greca."],1),
+SM("5_5",0,"lessico_contesto",'"Digrignata" (bocca) significa:',["Aperta in un sorriso.","Contratta con i denti scoperti.","Chiusa e silenziosa.","Colorata dal sangue."],1),
+SM("5_6",0,"struttura_testo","Funzione di 'Cima Quattro il 23 dicembre 1915':",["È decorativo.","Ancora la poesia a un momento reale, trasformandola in testimonianza.","Indica che la scrisse qualcun altro.","Completa il formato tipografico."],1),
+T("5_t2",0,"Testo B – La poesia e la sua funzione",
+`Che cosa serve la poesia? La domanda può sembrare ingenua, eppure è la più urgente che possiamo rivolgere alla letteratura. In un'epoca dominata dalla comunicazione rapida, la poesia sembra fuori luogo: troppo lenta, troppo densa, troppo sibillina. Eppure continua a essere scritta, letta, amata.
+
+La poesia non serve a comunicare informazioni nel senso ordinario. Serve a rendere percettibile ciò che di solito sfugge: la texture del tempo, la qualità di un'emozione. Il poeta Roberto Piumini ha scritto che la poesia è "un modo di ascoltare il silenzio". Nella poesia, il non detto pesa quanto il detto.
+
+Leggere poesia è un esercizio di rallentamento. In un testo in prosa si può leggere velocemente. Con la poesia questo non funziona: ogni parola è stata scelta con cura, ogni pausa ha un senso. Rallentare, rileggere, sostare su una parola: sono gesti sempre più rari, e forse per questo sempre più necessari.`,
+"Testo originale a fini didattici"),
+SM("5_7",0,"comprensione_globale","Tesi principale del testo critico:",["La poesia è inutile nell'epoca digitale.","La poesia ha un ruolo insostituibile: rendere percettibile ciò che sfugge.","I poeti contemporanei scrivono meglio del passato.","La prosa è superiore per trasmettere emozioni."],1),
+SM("5_8",0,"comprensione_locale","Come si legge correttamente la poesia?",["Velocemente.","Saltando le parti difficili.","Lentamente, rileggendo e sostando su ogni parola.","Ad alta voce davanti a un pubblico."],2),
+SM("5_9",0,"inferenza",'"La poesia è un modo di ascoltare il silenzio" significa:',["Si scrive in luoghi silenziosi.","Valorizza il non detto, le pause.","I poeti non parlano mai.","Non ha senso per chi non sa stare in silenzio."],1),
+SM("5_10",0,"struttura_testo","Il terzo paragrafo sviluppa principalmente:",["Un confronto tra poesia e prosa.","Dati statistici sulla lettura.","Citazioni di poeti famosi.","Descrizione storica della poesia."],0),
+SM("5_11",0,"lessico_contesto",'"Sibillina" significa:',["Molto semplice.","Oscura, difficile da interpretare.","Molto lunga.","Musicale."],1),
+SM("5_12",0,"coesione",'"Eppure" (due volte nel primo paragrafo) introduce:',["Una causa.","Un contrasto che smentisce l'aspettativa.","Una conseguenza.","Un esempio."],1),
+T("5_t3",1,"SEZIONE B – LESSICO","",""),
+SM("5_13",1,"lessico",'Sinonimo di "sfumatura":',["Chiarezza assoluta","Gradazione sottile di significato","Contrasto netto","Silenzio"],1),
+SM("5_14",1,"lessico",'"Plenilunio" significa:',["Alba","Luna piena","Tramonto","Eclissi"],1),
+SM("5_15",1,"lessico_contesto",'"Denso" in senso figurato:',["Il liquido è molto denso.","Un testo denso di significato.","L'aria densa di smog.","La nebbia densa."],1),
+SM("5_16",1,"lessico","Parola del linguaggio della critica letteraria:",["Fotosintesi","Metafora","Chromosoma","Algoritmo"],1),
+SM("5_17",1,"lessico",'"Testimonianza" è derivato da:',["Testare","Testimone","Testa","Testo"],1),
+SM("5_18",1,"lessico",'Completa: "La poesia di Ungaretti è caratterizzata da un\'estrema _____ del verso."',["lunghezza","essenzialità","complessità","oscurità"],1),
+SM("5_19",1,"lessico","Coppia di contrari:",["Lento / veloce","Poesia / verso","Testo / parola","Emozione / sentimento"],0),
+SM("5_20",1,"lessico",'Sinonimo di "percettibile":',["Invisibile","Avvertibile con i sensi","Incomprensibile","Lontano"],1),
+T("5_t4",2,"SEZIONE C – RIFLESSIONE SULLA LINGUA","",""),
+SM("5_21",2,"morfologia",'"Non sono mai stato tanto attaccato alla vita" è:',["Passato remoto.","Passato prossimo.","Trapassato prossimo.","Imperfetto."],1),
+SM("5_22",2,"sintassi",'"Leggere poesia" in "Leggere poesia è un esercizio" è:',["Complemento oggetto.","Soggetto della frase.","Attributo.","Complemento di mezzo."],1),
+SM("5_23",2,"morfologia",'"Percettibile" è formato da:',["Percepire + suffisso aggettivale.","Percezione + prefisso.","Percossa + suffisso.","Percorrere + suffisso."],0),
+SM("5_24",2,"ortografia","Forma corretta:",["Pò sembrare strano.","Può sembrare strano.","Puó sembrare strano.","Puo' sembrare strano."],1),
+SM("5_25",2,"sintassi",'"Eppure è la più urgente" è:',["Causale.","Coordinata avversativa.","Subordinata concessiva.","Finale."],1),
+SM("5_26",2,"morfologia","Aggettivo di relazione:",["Bellissimo","Letterario","Più lungo","Lentissimamente"],1),
+SM("5_27",2,"coesione",'"scritta, letta, amata" – i tre participi sono uniti da:',["Congiunzione esplicita.","Asindeto con virgola.","Punto e virgola.","Due punti."],1),
+SM("5_28",2,"morfologia",'"Se avessi tempo, leggerei più poesia" – i tempi sono:',["Condizionale presente + congiuntivo imperfetto.","Indicativo + infinito.","Congiuntivo presente + condizionale passato.","Indicativo imperfetto + condizionale presente."],0),
+SM("5_29",2,"punteggiatura",'I due punti in "non è un\'esagerazione: il non detto pesa quanto il detto":',["Citazione diretta.","Spiegazione/specificazione.","Due proposizioni coordinate.","Elenco."],1),
+SM("5_30",2,"sintassi","Frase con apposizione:",["Il poeta scrisse questa lirica.","Ungaretti, poeta della guerra, scrisse 'Veglia'.","La poesia è bella.","Ho letto la poesia con attenzione."],1),
+SM("5_31",2,"morfologia",'"Ingenua" è aggettivo di grado:',["Comparativo.","Superlativo relativo.","Positivo.","Superlativo assoluto."],2),
+SM("5_32",2,"ortografia","Forma corretta:",["Lo fece lui stesso.","Lo fece lu stesso.","Lo fecce lui stesso.","Lo fece lui steso."],0),
+SM("5_33",2,"sintassi","Frase con complemento di limitazione:",["È bravo in matematica.","Studia con impegno.","Legge per imparare.","Scrive lentamente."],0),
+SM("5_34",2,"morfologia",'"Buttato" nella poesia è:',["Gerundio.","Participio passato usato come aggettivo.","Infinito.","Participio presente."],1),
+SM("5_35",2,"coesione",'A cosa si riferisce "questo" in "Con la poesia questo non funziona"?',["Al testo in prosa.","Al tentativo di leggere la poesia velocemente.","Alla scrittura poetica.","All'autore Piumini."],1),
+]),
+
+// ══════════════════════════════════════════════════════
+// PROVA 6 – Cibo e cultura
+// ══════════════════════════════════════════════════════
+P(6,"Cibo e cultura",[
+T("6_t1",0,"Testo A – Il cibo racconta chi siamo",
+`Ogni popolo ha una cucina, e ogni cucina racconta una storia. I piatti che mangiamo non sono solo nutrimento: sono memoria, identità, appartenenza. La pasta al pomodoro evoca il Sud Italia, il sushi evoca il Giappone, il couscous evoca il Maghreb. Dietro ogni ricetta c'è una geografia, un clima, una cultura.
+
+L'antropologo Claude Lévi-Strauss sosteneva che la cucina è un "linguaggio" attraverso cui le società si esprimono e si distinguono. Non a caso, quando ci troviamo in un paese straniero, uno dei modi più immediati per capirne la cultura è sederci a tavola. Il cibo parla di gerarchie sociali, di religione, di stagioni, di commerci antichi.
+
+La globalizzazione ha mescolato questo linguaggio: oggi si mangia sushi a Milano e pizza a Tokyo. Per alcuni questo è impoverimento culturale; per altri, arricchimento reciproco. Quel che è certo è che il cibo rimane uno dei terreni in cui l'identità si negozia con più intensità – e dove le battaglie culturali si combattono, spesso, intorno a un tavolo.`,
+"Testo originale a fini didattici"),
+SM("6_1",0,"comprensione_globale","Qual è il messaggio principale del testo?",["Il cibo è esclusivamente nutrimento.","La cucina è un linguaggio che esprime l'identità culturale di un popolo.","La globalizzazione ha distrutto le tradizioni culinarie.","Lévi-Strauss era il più grande antropologo del Novecento."],1),
+SM("6_2",0,"comprensione_locale","Cosa sosteneva Lévi-Strauss?",["Che ogni popolo deve proteggere la propria cucina.","Che la cucina è un linguaggio attraverso cui le società si esprimono.","Che la globalizzazione ha migliorato la qualità del cibo.","Che la pasta al pomodoro è il piatto più importante del mondo."],1),
+SM("6_3",0,"inferenza","Perché l'autore dice che 'le battaglie culturali si combattono intorno a un tavolo'?",["Perché le dispute diplomatiche avvengono durante i banchetti.","Perché il cibo è un terreno in cui identità diverse si confrontano e si scontrano.","Perché le guerre si decidevano durante i pasti dei generali.","Perché i cuochi sono le persone più influenti della società."],1),
+SM("6_4",0,"struttura_testo","Quale funzione ha il terzo paragrafo?",["Contraddice i paragrafi precedenti.","Presenta il punto di vista di Lévi-Strauss.","Introduce la globalizzazione e le sue interpretazioni contrastanti.","Elenca i piatti tipici di vari paesi."],2),
+SM("6_5",0,"lessico_contesto","'L'identità si negozia' significa che:",["L'identità culturale si compra e si vende.","L'identità si costruisce e si ridefinisce nel confronto con l'altro.","L'identità è fissa e non cambia mai.","L'identità dipende solo dalla lingua."],1),
+SM("6_6",0,"comprensione_locale","Quale esempio NON è citato nel testo?",["La pasta al pomodoro e il Sud Italia.","Il sushi e il Giappone.","Il curry e l'India.","Il couscous e il Maghreb."],2),
+T("6_t2",0,"Testo B – La dieta mediterranea patrimonio dell'umanità",
+`Nel 2010 l'UNESCO ha riconosciuto la dieta mediterranea come Patrimonio Culturale Immateriale dell'Umanità. Non si trattava di proteggere solo un insieme di alimenti – olio d'oliva, cereali, legumi, pesce, frutta e verdura – ma un intero sistema di valori: convivialità, stagionalità, rispetto per il territorio.
+
+La ricerca scientifica ha confermato i benefici di questo modello: riduzione del rischio cardiovascolare, effetti positivi sulla longevità, protezione contro alcune forme di tumore. Non è una dieta dimagrante, ma un modello di alimentazione sostenibile nel tempo.
+
+Il paradosso è che proprio nei paesi del Mediterraneo questo modello viene sempre più abbandonato. L'avanzata del cibo industriale e i ritmi frenetici hanno ridotto la cucina tradizionale a pratica del fine settimana. I giovani delle città mediterranee mangiano spesso meno mediterraneo dei loro coetanei del Nord Europa.`,
+"Testo originale a fini didattici"),
+T("6_t3",0,"Testo C – Il cibo spazzatura",
+`L'espressione 'cibo spazzatura' indica alimenti ad alto contenuto calorico ma poveri di nutrienti: patatine fritte, hamburger industriali, bevande zuccherate, snack confezionati. Questi prodotti contengono elevate quantità di grassi saturi, zuccheri aggiunti e sale, e quasi nessuna fibra, vitamina o minerale.
+
+Il consumo eccessivo è associato a obesità, diabete di tipo 2, malattie cardiovascolari e problemi dentali. Secondo l'OMS, l'obesità è diventata una delle principali emergenze sanitarie globali.
+
+Le industrie alimentari investono miliardi in pubblicità rivolta ai bambini. Studi scientifici dimostrano che questi alimenti sono formulati per stimolare la dipendenza: le combinazioni di sale, zucchero e grasso attivano i centri del piacere nel cervello. Questo ha spinto molti governi a introdurre tasse sul cibo spazzatura.`,
+"Testo originale a fini didattici"),
+SM("6_7",0,"comprensione_globale","Il secondo testo parla principalmente di:",["I benefici di una dieta dimagrante.","La dieta mediterranea come patrimonio culturale, oggi paradossalmente in declino.","Come l'UNESCO protegge il patrimonio gastronomico.","Perché il cibo industriale è più conveniente."],1),
+SM("6_8",0,"comprensione_locale","Cosa ha riconosciuto l'UNESCO nel 2010?",["Il sushi come patrimonio dell'umanità.","La cucina italiana come la migliore del mondo.","La dieta mediterranea come Patrimonio Culturale Immateriale.","L'olio d'oliva come prodotto di eccellenza."],2),
+SM("6_9",0,"inferenza","Perché l'autore parla di 'paradosso' nell'ultimo paragrafo del secondo testo?",["Perché la dieta mediterranea fa bene ma nessuno la segue.","Perché chi vive nel Mediterraneo abbandona un modello che i nordeuropei riscoprano.","Perché la dieta mediterranea è troppo costosa.","Perché l'UNESCO ha protetto qualcosa che non esiste più."],1),
+SM("6_10",0,"comprensione_globale","Il terzo testo tratta principalmente di:",["La storia dell'espressione 'junk food'.","Le caratteristiche, i rischi e le strategie commerciali del cibo spazzatura.","Come l'OMS combatte la malnutrizione.","Perché i bambini preferiscono il cibo spazzatura."],1),
+SM("6_11",0,"comprensione_locale","A cosa è associato il consumo eccessivo di junk food?",["Solo all'obesità infantile.","A obesità, diabete di tipo 2, malattie cardiovascolari e problemi dentali.","Solo ai problemi dentali.","Solo alle malattie cardiovascolari."],1),
+SM("6_12",0,"inferenza","Perché l'autore paragona il junk food alle sostanze stupefacenti?",["Per esagerare e spaventare.","Per mostrare che questi alimenti creano dipendenza attivando i centri del piacere.","Per dire che il junk food è illegale.","Per criticare le politiche sanitarie."],1),
+T("6_t4",1,"SEZIONE B – LESSICO","",""),
+SM("6_13",1,"lessico","Sinonimo di 'convivialità':",["Solitudine.","Piacere dello stare insieme e della condivisione.","Competizione.","Austerità."],1),
+SM("6_14",1,"lessico_contesto","In quale frase 'stagionale' è usato correttamente?",["Ho comprato frutta stagionale: fragole a dicembre.","Preferisco prodotti stagionali: pomodori in estate, castagne in autunno.","Il cibo stagionale si conserva tutto l'anno.","La dieta stagionale è sempre la più costosa."],1),
+SM("6_15",1,"lessico","'Longevità' significa:",["Qualità della vita.","Lunga durata della vita.","Forma fisica eccellente.","Resistenza alle malattie."],1),
+SM("6_16",1,"lessico_contesto","Completa: 'Una scelta _____ è quella che si fa con piena consapevolezza.'",["casuale","inconscia","consapevole","automatica"],2),
+SM("6_17",1,"lessico","Quale parola contiene il suffisso '-ità' che indica una qualità astratta?",["Alimentare","Stagionalità","Nutrire","Cucinare"],1),
+SM("6_18",1,"lessico","Contrario di 'frenetico':",["Veloce","Caotico","Calmo","Intenso"],2),
+SM("6_19",1,"lessico","Completa: 'Il modello alimentare tradizionale viene sempre più _____ a favore del cibo industriale.'",["adottato","abbandonato","riscoperto","valorizzato"],1),
+SM("6_20",1,"lessico","Quale coppia è formata da un termine specifico e il suo iperonimo?",["Pane / cibo","Cibo / pane","Legume / pianta","Frutta / mela"],0),
+T("6_t5",2,"SEZIONE C – RIFLESSIONE SULLA LINGUA","",""),
+SM("6_21",2,"morfologia","In quale frase il verbo è al congiuntivo trapassato?",["Pensavo che fosse partito prima di noi.","Penso che parta domani.","Pensavo che partisse tardi.","Pensavo che partirà domani."],0),
+SM("6_22",2,"sintassi","In 'Il cibo parla di gerarchie, di religione, di stagioni', le sequenze sono collegate da:",["Congiunzione 'e'.","Asindeto (senza congiunzioni esplicite).","Punto e virgola.","Proposizione relativa."],1),
+SM("6_23",2,"morfologia","'Riconosciuto' è un:",["Gerundio.","Participio passato con funzione aggettivale.","Infinito passato.","Participio presente."],1),
+SM("6_24",2,"ortografia","Forma corretta:",["Si trattava di proteggere un'insieme di valori.","Si trattava di proteggere un insieme di valori.","Si trattava di proteggere un'insième.","Si trattava di protteggere un insieme."],1),
+SM("6_25",2,"sintassi","Tipo di proposizione in 'affinché la tradizione si preservi':",["Causale.","Finale.","Temporale.","Concessiva."],1),
+SM("6_26",2,"morfologia","'Mangiamo' è alla:",["Prima persona singolare.","Seconda persona plurale.","Prima persona plurale.","Terza persona plurale."],2),
+SM("6_27",2,"coesione","'Non a caso' serve a:",["Introdurre un'eccezione.","Sottolineare che quanto segue è conseguenza logica.","Contraddire l'affermazione precedente.","Introdurre un'opinione."],1),
+SM("6_28",2,"punteggiatura","I due punti in 'un sistema di valori: convivialità, stagionalità, rispetto' introducono:",["Una citazione diretta.","Un elenco che specifica il concetto precedente.","Una domanda retorica.","Una spiegazione causale."],1),
+SM("6_29",2,"morfologia","Quale forma è il condizionale passato?",["Mangerei.","Mangio.","Avrei mangiato.","Mangiai."],2),
+SM("6_30",2,"sintassi","Frase con complemento di argomento:",["Ho parlato di cucina con mia nonna.","Ho mangiato con mia nonna.","Sono andato dalla nonna.","Ho cucinato per mia nonna."],0),
+SM("6_31",2,"morfologia","'Frenetica' è un aggettivo di grado:",["Comparativo.","Superlativo relativo.","Positivo.","Superlativo assoluto."],2),
+SM("6_32",2,"coesione","'Per altri' si contrappone a:",["'Per alcuni' dello stesso paragrafo.","'Per i cuochi' del primo paragrafo.","'Per i ricercatori' del secondo paragrafo.","Non si contrappone a nulla."],0),
+SM("6_33",2,"ortografia","Quale forma è corretta?",["Lévi-Strauss sosteneva che la cucina é un linguaggio.","Lévi-Strauss sosteneva che la cucina è un linguaggio.","Lévi-Strauss sosteneva che la cucina e' un linguaggio.","Lévi-Strauss sostenevà che la cucina è un linguaggio."],1),
+SM("6_34",2,"sintassi","In 'quando ci troviamo in un paese straniero', la proposizione è:",["Causale.","Finale.","Temporale.","Concessiva."],2),
+SM("6_35",2,"morfologia","Voce verbale passiva:",["La cucina esprime la cultura.","La dieta mediterranea è stata riconosciuta dall'UNESCO.","I giovani mangiano meno pesce.","Il cibo racconta la storia."],1),
+]),
+
+// ══════════════════════════════════════════════════════
+// PROVA 7 – Il mare e l'oceano
+// ══════════════════════════════════════════════════════
+P(7,"Il mare e l'oceano",[
+T("7_t1",0,"Testo A – L'oceano che non conosciamo",
+`Copre il 71% della superficie terrestre, regola il clima del pianeta e ospita la maggior parte della vita sulla Terra. Eppure l'oceano è il luogo meno conosciuto del nostro pianeta: si stima che oltre l'80% dei fondali marini non sia ancora stato esplorato. Sappiamo più della superficie della Luna che del fondo del mare.
+
+Le ragioni sono tecniche: la pressione dell'acqua in profondità è schiacciante – a 10.000 metri supera 1.000 volte quella atmosferica – e l'oscurità è totale. I veicoli sottomarini capaci di raggiungere le grandi profondità sono pochissimi e costosissimi. Per questo la scoperta di nuove specie marine avviene a ritmi molto più lenti rispetto ad altri ambienti naturali.
+
+Eppure ogni spedizione in profondità rivela creature straordinarie: pesci bioluminescenti che producono luce propria, organismi che vivono senza ossigeno, spugne vecchie di secoli. L'oceano profondo potrebbe contenere risposte a domande fondamentali: sull'origine della vita, sulla resistenza degli organismi a condizioni estreme, persino su come potrebbe essere la vita su altri pianeti.`,
+"Testo originale a fini didattici"),
+SM("7_1",0,"comprensione_globale","Idea principale del testo:",["L'oceano è troppo pericoloso da esplorare.","L'oceano, pur coprendo la maggior parte della Terra, è il luogo meno esplorato del pianeta.","I fondali marini non contengono nulla di interessante.","Le spedizioni subacquee costano troppo."],1),
+SM("7_2",0,"comprensione_locale","Perché esplorare i fondali è così difficile?",["Non esistono tecnologie adeguate.","Per la pressione schiacciante, l'oscurità totale e i costi elevati.","I governi non finanziano la ricerca.","I fondali sono completamente deserti."],1),
+SM("7_3",0,"inferenza","Cosa intende 'sappiamo più della Luna che del fondo del mare'?",["La Luna è più facile da raggiungere degli abissi.","Abbiamo esplorato e mappato meglio la Luna che i fondali terrestri.","Gli astronauti sono più bravi degli oceanografi.","Le missioni spaziali costano meno."],1),
+SM("7_4",0,"struttura_testo","Il terzo paragrafo ha la funzione di:",["Descrivere difficoltà tecniche.","Mostrare scoperte straordinarie e potenziale scientifico degli abissi.","Giustificare le spese economicamente.","Contraddire il secondo paragrafo."],1),
+SM("7_5",0,"lessico_contesto","'Bioluminescenti' indica organismi capaci di:",["Resistere a pressioni elevate.","Produrre luce propria attraverso processi biologici.","Sopravvivere senza ossigeno.","Cambiare colore per mimetizzarsi."],1),
+SM("7_6",0,"comprensione_locale","Quale percentuale dei fondali non è stata esplorata?",["Circa il 50%.","Circa il 71%.","Oltre l'80%.","Circa il 30%."],2),
+SM("7_7",0,"comprensione_locale","A che profondità la pressione supera 1.000 volte quella atmosferica?",["A 1.000 metri.","A 5.000 metri.","A 10.000 metri.","A 100 metri."],2),
+SM("7_8",0,"inferenza","Perché l'autore cita la vita su altri pianeti nell'ultimo paragrafo?",["Per cambiare argomento.","Per mostrare che gli abissi, con condizioni estreme simili ad altri pianeti, offrono modelli scientifici preziosi.","Per dimostrare che gli oceani sono più importanti dello spazio.","Per criticare le spese della NASA."],1),
+T("7_t2",0,"Testo B – La plastica nel mare",
+`Ogni anno finiscono negli oceani tra 8 e 12 milioni di tonnellate di plastica. Questa cifra equivale a scaricare un camion di plastica in mare ogni minuto, per tutto il giorno, per tutti i giorni dell'anno. La plastica non si biodegrada: si frammenta in pezzi sempre più piccoli, fino a diventare microplastica, particelle invisibili a occhio nudo che si infiltrano nella catena alimentare.
+
+I pesci ingeriscono microplastica scambiandola per plancton; gli uccelli marini la raccolgono per nutrire i piccoli; le foche si impigliano negli anelli di plastica. Ma la plastica non è solo un problema degli animali: studi recenti hanno rilevato microplastica nell'acqua potabile, nel sale da cucina, nel miele e nel sangue umano.
+
+Ridurre la plastica monouso è una delle sfide più urgenti del nostro tempo. Alcuni paesi hanno già vietato sacchetti, cannucce e posate di plastica. Ma la vera soluzione richiede di ripensare l'intero sistema produttivo: non basta raccogliere la plastica che già c'è – occorre smettere di produrne così tanta.`,
+"Testo originale a fini didattici"),
+SM("7_9",0,"comprensione_globale","Il secondo testo tratta principalmente di:",["Le tecniche per riciclare la plastica.","L'inquinamento da plastica negli oceani e le sue conseguenze.","Come gli animali si adattano alla plastica.","I paesi che hanno risolto il problema."],1),
+SM("7_10",0,"comprensione_locale","Come viene descritta la quantità di plastica negli oceani?",["Come un problema minore.","Come equivalente a un camion di plastica al minuto.","Come una quantità in diminuzione.","Come inferiore a un milione di tonnellate."],1),
+SM("7_11",0,"inferenza","Perché la plastica è 'anche un problema nostro'?",["Perché siamo responsabili moralmente.","Perché la microplastica è stata trovata in alimenti e nel sangue umano.","Perché paghiamo le tasse per la bonifica.","Perché i turisti sporcano le spiagge."],1),
+SM("7_12",0,"lessico_contesto","'Si biodegrada' significa:",["Si colora di un pigmento naturale.","Si decompone grazie ad agenti biologici.","Si trasforma in materiale più resistente.","Diventa invisibile nell'acqua."],1),
+SM("7_13",0,"struttura_testo","La struttura del secondo testo segue:",["Soluzione – problema – esempio.","Dati sul problema – conseguenze – proposta di soluzione.","Opinione – dati – conclusione contraria.","Descrizione storica – confronto – previsione."],1),
+SM("7_14",0,"comprensione_locale","Quale soluzione propone l'autore?",["Solo raccogliere la plastica già presente.","Solo vietare sacchetti e cannucce.","Ripensare l'intero sistema produttivo e ridurre la produzione.","Insegnare agli animali a non ingerire plastica."],2),
+SM("7_15",0,"coesione","'Ma la plastica non è solo un problema degli animali' – 'ma' introduce:",["Una conferma di quanto detto.","Un ampliamento del problema che tocca anche l'essere umano.","Una contraddizione con i dati.","Una conclusione."],1),
+T("7_t3",1,"SEZIONE B – LESSICO","",""),
+SM("7_16",1,"lessico","Sinonimo di 'abisso':",["Superficie marina.","Grande profondità.","Corrente sottomarina.","Fondale sabbioso."],1),
+SM("7_17",1,"lessico_contesto","In quale frase 'trasparente' è usato in senso figurato?",["L'acqua è trasparente.","Il vetro permette di vedere attraverso.","La sua risposta è stata trasparente: non ha nascosto nulla.","La medusa è quasi trasparente."],2),
+SM("7_18",1,"lessico","'Micro-' in 'microplastica' indica:",["Grande dimensione.","Piccola dimensione.","Forma circolare.","Origine marina."],1),
+SM("7_19",1,"lessico","Coppia di contrari:",["Fondale / abisso.","Biodegradabile / non biodegradabile.","Oceano / mare.","Pressione / forza."],1),
+SM("7_20",1,"lessico","Completa: 'Ogni anno milioni di tonnellate di plastica _____ negli oceani.'",["emergono","scompaiono","finiscono","galleggiano"],2),
+SM("7_21",1,"lessico","Quale parola è derivata dal verbo 'esplorare'?",["Esplorazione.","Piattaforma.","Fondale.","Pressione."],0),
+SM("7_22",1,"lessico","Completa: 'La ricerca oceanografica ha fatto scoperte _____ negli ultimi decenni.'",["banali","inutili","straordinarie","prevedibili"],2),
+SM("7_23",1,"lessico","'Plancton' appartiene al linguaggio:",["Giuridico.","Scientifico-biologico.","Letterario.","Economico."],1),
+SM("7_24",1,"lessico","Quale parola ha lo stesso significato di 'schiacciante' nel testo?",["Debole.","Di intensità massima.","Leggera.","Moderata."],1),
+T("7_t4",2,"SEZIONE C – RIFLESSIONE SULLA LINGUA","",""),
+SM("7_25",2,"morfologia","'Schiacciante' è un:",["Participio passato.","Gerundio.","Participio presente.","Infinito."],2),
+SM("7_26",2,"sintassi","'che producono luce propria' è:",["Causale.","Relativa.","Finale.","Temporale."],1),
+SM("7_27",2,"morfologia","Modo e tempo di 'si stima':",["Congiuntivo presente.","Indicativo presente.","Condizionale.","Imperativo."],1),
+SM("7_28",2,"ortografia","Forma corretta:",["L'oceano copre il 71% della superfice.","L'oceano copre il 71% della superficie.","L'oceano copre il 71% della superfiscie.","L'oceano copre il 71% della soperficie."],1),
+SM("7_29",2,"sintassi","Frase con proposizione concessiva:",["Non esploriamo perché è pericoloso.","Esploriamo per trovare nuove specie.","Sebbene sia pericoloso, continuiamo a esplorare.","Esploriamo quando abbiamo i fondi."],2),
+SM("7_30",2,"morfologia","'Avremmo scoperto' è:",["Condizionale presente.","Condizionale passato.","Futuro anteriore.","Congiuntivo trapassato."],1),
+SM("7_31",2,"coesione","'Eppure' (terzo paragrafo) introduce:",["Una conseguenza attesa.","Un contrasto rispetto alla difficoltà descritta prima.","Una causa.","Un elenco."],1),
+SM("7_32",2,"punteggiatura","Uso corretto del trattino:",["La plastica – è un problema.","Ogni anno – finiscono milioni di tonnellate.","La pressione – a 10.000 metri – supera 1.000 volte quella atmosferica.","Il mare – è grande."],2),
+SM("7_33",2,"morfologia","Plurale di 'il fondale':",["I fondali.","Le fondale.","I fondales.","Le fondali."],0),
+SM("7_34",2,"sintassi","Complemento di modo/maniera:",["Ha esplorato con un sottomarino.","Ha esplorato lentamente.","Ha esplorato per tre ore.","Ha esplorato vicino alla riva."],1),
+SM("7_35",2,"ortografia","Forma corretta:",["Studi recenti hanno rilevatto microplastica nel sangue.","Studi recenti hanno rilevato microplastica nel sangue.","Studi recenti anno rilevato microplastica nel sangue.","Studi recenti hanno relevato microplastica nel sangue."],1),
+]),
+
+// ══════════════════════════════════════════════════════
+// PROVA 8 – La scrittura e le lingue
+// ══════════════════════════════════════════════════════
+P(8,"La scrittura e le lingue",[
+T("8_t1",0,"Testo A – Quando l'uomo iniziò a scrivere",
+`La scrittura non è sempre esistita. Per la quasi totalità della sua storia – oltre centomila anni – l'essere umano ha trasmesso conoscenze e leggi solo attraverso la parola parlata e la memoria. La scrittura è un'invenzione relativamente recente: i primi sistemi conosciuti risalgono a circa 5.000 anni fa, in Mesopotamia e in Egitto.
+
+La cuneiforme mesopotamica nacque per esigenze pratiche, non letterarie: serviva a registrare transazioni commerciali, inventari, debiti e crediti. Solo in seguito la scrittura divenne strumento per tramandare miti, leggi, poesie. I geroglifici egizi, invece, fin dalle origini ebbero una forte componente sacra: erano considerati "parole degli dèi".
+
+L'invenzione della scrittura cambiò radicalmente il modo in cui l'uomo organizza il pensiero e la società. Con la scrittura nacque la storia – in contrapposizione alla preistoria – perché divenne possibile conservare testimonianze verificabili del passato. Nacquero l'amministrazione statale, il diritto codificato, la letteratura. La scrittura non è solo comunicazione: è uno strumento di potere e di civiltà.`,
+"Testo originale a fini didattici"),
+SM("8_1",0,"comprensione_globale","Messaggio principale del testo:",["La scrittura è sempre esistita.","La scrittura è un'invenzione recente che ha trasformato radicalmente la civiltà umana.","I sumeri erano il popolo più intelligente dell'antichità.","La scrittura è meno importante della tradizione orale."],1),
+SM("8_2",0,"comprensione_locale","A cosa serviva originariamente la scrittura cuneiforme?",["A tramandare miti e poesie.","A registrare transazioni commerciali e inventari.","A comunicare con le divinità.","A insegnare nelle scuole."],1),
+SM("8_3",0,"inferenza","Perché con la scrittura nacque la 'storia' in contrapposizione alla 'preistoria'?",["Perché la scrittura rese possibile conservare testimonianze verificabili del passato.","Perché la preistoria non aveva eventi importanti.","Perché gli storici greci inventarono il concetto di storia.","Perché la scrittura sostituì la memoria orale."],0),
+SM("8_4",0,"struttura_testo","Quale schema descrive la struttura del testo?",["Narrazione cronologica.","Descrizione dell'invenzione, degli usi originari e delle conseguenze culturali.","Confronto tra scritture antiche.","Argomentazione contro l'importanza della scrittura."],1),
+SM("8_5",0,"lessico_contesto","'Tramandare' significa:",["Dimenticare nel tempo.","Trasmettere di generazione in generazione.","Scrivere su supporti duraturi.","Insegnare nelle scuole."],1),
+SM("8_6",0,"comprensione_locale","Come erano considerati i geroglifici dagli Egizi?",["Come strumento di commercio.","Come sistema per registrare dati.","Come parole degli dèi, con componente sacra.","Come forma di arte decorativa."],2),
+T("8_t2",0,"Testo B – L'alfabeto che ha cambiato il mondo",
+`Tra le invenzioni più rivoluzionarie della storia umana c'è l'alfabeto fonetico. Prima di esso, i sistemi di scrittura erano legati a migliaia di simboli – ciascuno corrispondente a una parola o a una sillaba – e richiedevano anni di studio. L'alfabeto ridusse i simboli a poche decine: ciascuno rappresenta un suono, e combinandoli si può scrivere qualsiasi parola.
+
+L'alfabeto fu inventato dai Fenici attorno al 1050 a.C. e si diffuse nel Mediterraneo. I Greci lo adottarono aggiungendo le vocali – assenti nell'originale fenicio. I Romani lo adattarono ulteriormente: l'alfabeto latino che usiamo oggi discende direttamente da quello fenicio.
+
+La conseguenza fu enorme: la scrittura non fu più appannaggio di una casta di scribi professionisti. Imparare a leggere divenne possibile per molte più persone. La diffusione dell'alfabetizzazione cambiò le strutture di potere: chi sa leggere può accedere alle leggi, ai contratti, alle idee. Non è un caso che nelle società autoritarie il controllo sulla scrittura sia sempre stato uno strumento di dominio.`,
+"Testo originale a fini didattici"),
+SM("8_7",0,"comprensione_globale","Il secondo testo parla principalmente di:",["La storia commerciale dei Fenici.","L'alfabeto fonetico come invenzione rivoluzionaria e le sue conseguenze sociali.","Perché il greco è superiore al latino.","Come imparare a leggere in modo efficiente."],1),
+SM("8_8",0,"comprensione_locale","Cosa aggiunsero i Greci all'alfabeto fenicio?",["I numeri.","Le consonanti.","Le vocali.","La punteggiatura."],2),
+SM("8_9",0,"inferenza","Perché il controllo sulla scrittura è stato strumento di dominio?",["Perché la scrittura è difficile da imparare.","Perché chi sa leggere può accedere a leggi, contratti e idee.","Perché le società autoritarie non apprezzano la cultura.","Perché la stampa è sempre stata controllata dai governi."],1),
+SM("8_10",0,"struttura_testo","Il terzo paragrafo sviluppa principalmente:",["Le conseguenze sociali e politiche della diffusione dell'alfabeto.","La storia tecnica dei simboli.","Un confronto tra alfabeto fenicio e greco.","Le ragioni per cui l'alfabeto si diffuse lentamente."],0),
+SM("8_11",0,"lessico_contesto","'Appannaggio' significa:",["Patrimonio o privilegio esclusivo di qualcuno.","Strumento di lavoro dei professionisti.","Tipo di scrittura complicata.","Premio per chi impara a leggere."],0),
+SM("8_12",0,"coesione","'Non è un caso che...' introduce:",["Una pura coincidenza.","Un'affermazione presentata come conseguenza logica.","Un'eccezione alla regola.","Un esempio storico concreto."],1),
+SM("8_13",0,"comprensione_locale","Quando fu inventato l'alfabeto fenicio?",["Circa 5.000 anni fa.","Attorno al 1050 a.C.","Nel periodo dell'Impero Romano.","Nel V secolo a.C."],1),
+SM("8_14",0,"inferenza","Perché l'autore sottolinea che l'alfabeto 'ridusse i simboli a poche decine'?",["Per dire che l'alfabeto è inferiore ai sistemi ideografici.","Per evidenziare come la semplicità abbia reso la scrittura accessibile a molti.","Per criticare la povertà espressiva dell'alfabeto.","Per spiegare perché le lingue moderne hanno poche parole."],1),
+T("8_t3",1,"SEZIONE B – LESSICO","",""),
+SM("8_15",1,"lessico","Sinonimo di 'codificato' nel senso di 'diritto codificato':",["Segreto e incomprensibile.","Scritto e organizzato in un sistema formale.","Trasmesso oralmente.","Antico e superato."],1),
+SM("8_16",1,"lessico_contesto","'La memoria' in 'trasmettere attraverso la memoria' si riferisce a:",["Un dispositivo elettronico.","La facoltà di ricordare e tramandare oralmente.","Un libro antico di grande valore.","Una cerimonia rituale."],1),
+SM("8_17",1,"lessico","Antonimo di 'recente':",["Nuovo.","Antico.","Attuale.","Moderno."],1),
+SM("8_18",1,"lessico","'Fonetico' significa relativo a:",["I suoni della lingua.","La grammatica scritta.","Il significato delle parole.","La storia delle lingue."],0),
+SM("8_19",1,"lessico_contesto","Completa: 'L'invenzione della stampa rese la scrittura _____ a milioni di persone.'",["inaccessibile","difficile","accessibile","segreta"],2),
+SM("8_20",1,"lessico","Quale parola è formata con un prefisso?",["Scrittura.","Preistoria.","Inventore.","Simbolo."],1),
+SM("8_21",1,"lessico","'Amministrazione' appartiene all'area semantica di:",["Arte e letteratura.","Organizzazione e gestione del potere.","Scienza e tecnologia.","Natura e ambiente."],1),
+SM("8_22",1,"lessico","Sinonimo di 'rivoluzionario' nel senso del testo:",["Violento e distruttivo.","Che cambia radicalmente qualcosa.","Relativo a una rivoluzione politica.","Graduale e lento."],1),
+SM("8_23",1,"lessico","Parola della stessa famiglia di 'scrivere' che indica chi scrive nell'antichità:",["Scrittore.","Scriba.","Scrittura.","Scritto."],1),
+T("8_t4",2,"SEZIONE C – RIFLESSIONE SULLA LINGUA","",""),
+SM("8_24",2,"morfologia","'Conosciuti' è un:",["Gerundio passato.","Participio passato con funzione aggettivale.","Infinito passato.","Participio presente."],1),
+SM("8_25",2,"sintassi","In 'prima di esso', a cosa si riferisce 'esso'?",["Al sistema ideografico in generale.","All'alfabeto fonetico citato nella frase precedente.","Ai Fenici.","Ai Greci."],1),
+SM("8_26",2,"morfologia","'Divenne' è il passato remoto di:",["Divenire/diventare.","Dividere.","Diversificare.","Divertire."],0),
+SM("8_27",2,"ortografia","Forma corretta:",["L'alfabeto fenicio risale al 1050 a.C. circa.","L'alfabeto fenicio risale al 1050 a.C. cira.","L'alfabeto fenicio risale al 1050 A.C. circa.","L'alfabeto fenicio risale al 1050 a.c. circa."],0),
+SM("8_28",2,"sintassi","Tipo di proposizione in 'poiché divenne possibile conservare testimonianze':",["Finale.","Causale.","Concessiva.","Temporale."],1),
+SM("8_29",2,"morfologia","Modo e tempo di 'avesse padroneggiato':",["Congiuntivo trapassato.","Congiuntivo imperfetto.","Condizionale passato.","Indicativo trapassato."],0),
+SM("8_30",2,"coesione","'Solo in seguito' indica:",["Una causa.","Una successione temporale.","Un contrasto.","Una conseguenza immediata."],1),
+SM("8_31",2,"punteggiatura","Il trattino in 'in contrapposizione alla preistoria – perché divenne possibile...' introduce:",["Un inciso esplicativo.","Un elenco.","Una citazione.","Un'opposizione tra soggetti."],0),
+SM("8_32",2,"morfologia","Plurale di 'il simbolo':",["I simboli.","Le simbole.","Gli simboli.","I simbole."],0),
+SM("8_33",2,"sintassi","In 'chi sa leggere può accedere alle leggi', 'chi sa leggere' è:",["Soggetto semplice.","Complemento oggetto.","Proposizione relativa con valore di soggetto.","Proposizione temporale."],2),
+SM("8_34",2,"morfologia","'Rivoluzionario' è derivato da:",["Rivoluzione + suffisso -ario.","Rivoltare + suffisso -nario.","Rivolto + suffisso -ario.","Rivera + suffisso."],0),
+SM("8_35",2,"coesione","'La scrittura non è solo comunicazione: è uno strumento di potere.' I due punti introducono:",["Una lista.","Una correzione/precisazione della prima affermazione.","Una citazione.","Una causa."],1),
+]),
+
+// ══════════════════════════════════════════════════════
+// PROVA 9 – Montagna e natura
+// ══════════════════════════════════════════════════════
+P(9,"Montagna e natura",[
+T("9_t1",0,"Testo A – La montagna come specchio del clima",
+`Le montagne sono tra i luoghi più sensibili ai cambiamenti climatici. I ghiacciai alpini si stanno ritirando a una velocità senza precedenti: negli ultimi cent'anni le Alpi hanno perso circa la metà del loro volume glaciale, e le previsioni indicano che entro il 2100 la maggior parte dei ghiacciai al di sotto dei 3.500 metri potrebbe scomparire.
+
+Le conseguenze non riguardano solo il paesaggio. I ghiacciai sono riserve d'acqua fondamentali: in estate il disgelo alimenta fiumi e laghi che irrigano pianure agricole e forniscono acqua potabile a milioni di persone. La scomparsa dei ghiacciai non è solo un problema estetico: è una crisi idrica annunciata.
+
+Ma le Alpi non sono solo una riserva d'acqua: sono anche un ecosistema unico. Specie adattate a condizioni di alta quota stanno vedendo il loro habitat ridursi progressivamente. Piante che vivono solo oltre i 2.500 metri non hanno dove "salire" quando le temperature aumentano. Alcuni ricercatori le chiamano "specie prigioniere delle vette".`,
+"Testo originale a fini didattici"),
+SM("9_1",0,"comprensione_globale","Idea principale del testo:",["Il cambiamento climatico sta causando la scomparsa dei ghiacciai alpini con gravi conseguenze.","Le Alpi sono le montagne più belle d'Europa.","I ghiacciai sono inutili per l'approvvigionamento idrico.","Le specie alpine si stanno adattando ai nuovi climi."],0),
+SM("9_2",0,"comprensione_locale","Quanta parte del volume glaciale alpino è andata perduta negli ultimi cent'anni?",["Un quarto.","Circa la metà.","Tre quarti.","Quasi tutto."],1),
+SM("9_3",0,"inferenza","Perché l'autore chiama certe specie 'prigioniere delle vette'?",["Perché vivono in gabbie protette.","Perché con l'aumento delle temperature non possono spostarsi a quote più elevate.","Perché gli animali alpini sono difficili da catturare.","Perché le specie di alta quota sono nelle riserve naturali."],1),
+SM("9_4",0,"struttura_testo","Qual è l'ordine dei temi trattati nei tre paragrafi?",["Fauna – flora – acqua.","Ritiro dei ghiacciai – conseguenze idriche – conseguenze ecologiche.","Storia – presente – futuro.","Causa – effetto – soluzione."],1),
+SM("9_5",0,"lessico_contesto","'Il disgelo alimenta fiumi e laghi' – 'alimenta' significa:",["Nutre con sostanze nutritive.","Fornisce acqua, mantenendo il livello dei corsi d'acqua.","Distrugge e prosciuga i corsi d'acqua.","Contamina le acque con sedimenti."],1),
+SM("9_6",0,"comprensione_locale","Secondo le previsioni, cosa potrebbe succedere entro il 2100?",["Le Alpi perderanno tutta la neve.","I ghiacciai sotto i 3.500 metri potrebbero scomparire.","Le temperature alpine scenderanno drasticamente.","Le specie alpine emigreranno verso le pianure."],1),
+T("9_t2",0,"Testo B – Il turismo in montagna tra benefici e danni",
+`La montagna è diventata una delle mete turistiche più frequentate. Le Alpi accolgono ogni anno oltre 120 milioni di turisti, attirati da sci, escursionismo, paesaggi e aria pulita. Questo afflusso porta vantaggi economici enormi per le comunità locali: posti di lavoro, infrastrutture, reddito.
+
+Ma il turismo di massa ha anche un lato oscuro. La costruzione di impianti sciistici richiede disboscamento e impermeabilizzazione del suolo. Gli impianti di innevamento artificiale consumano quantità enormi di acqua. I rifugi producono rifiuti difficili da smaltire in zone remote.
+
+Negli ultimi anni si è sviluppato il concetto di 'turismo lento': escursioni a piedi o in bici, pernottamenti in malghe tradizionali, rispetto dei sentieri segnalati. Questo modello cerca di combinare la fruizione della montagna con la sua conservazione. Non è la soluzione definitiva al sovraffollamento, ma è una direzione culturale importante.`,
+"Testo originale a fini didattici"),
+T("9_t3",0,"Testo C – I popoli della montagna",
+`In tutto il mondo, le montagne sono abitate da popolazioni che hanno sviluppato culture straordinarie. I pastori nomadi delle Ande, i contadini terrazzati delle Filippine, gli sherpa dell'Himalaya: ciascuno di questi gruppi ha accumulato nei secoli un sapere profondo sull'ambiente montano, le sue risorse, i suoi pericoli.
+
+Questo sapere – spesso trasmesso oralmente di padre in figlio – sta scomparendo a ritmo accelerato. I giovani emigrano verso le città in cerca di lavoro, lasciando comunità sempre più anziane e spopolate. Con loro se ne va un patrimonio di conoscenze difficilmente recuperabile.
+
+Alcune organizzazioni lavorano per documentare e preservare questo patrimonio immateriale, raccogliendo testimonianze degli anziani e digitalizzando saperi tradizionali. Ma il rischio di arrivare tardi è concreto.`,
+"Testo originale a fini didattici"),
+SM("9_7",0,"comprensione_globale","Il secondo testo affronta principalmente:",["I benefici economici del turismo montano senza riserve.","Il turismo montano: vantaggi economici, impatto ambientale e alternative.","Come costruire impianti sciistici in modo sostenibile.","Perché il turismo di massa va vietato."],1),
+SM("9_8",0,"comprensione_locale","Quanti turisti visitano le Alpi ogni anno?",["Circa 12 milioni.","Oltre 120 milioni.","Circa 50 milioni.","Il testo non lo dice."],1),
+SM("9_9",0,"inferenza","Perché l'innevamento artificiale è un problema?",["Rende le piste troppo pericolose.","Consuma enormi quantità d'acqua da ambienti già sotto pressione.","È più costoso dell'innevamento naturale.","Provoca smottamenti e frane."],1),
+SM("9_10",0,"struttura_testo","Quale connettivo segna il passaggio dal lato positivo a quello negativo del turismo?",["'Solo' (primo paragrafo).","'Ma' (inizio del secondo paragrafo).","'Negli ultimi anni' (terzo paragrafo).","'Questo' (terzo paragrafo)."],1),
+SM("9_11",0,"comprensione_globale","Il terzo testo tratta principalmente di:",["Le tecniche di alpinismo dei popoli di montagna.","La scomparsa del sapere tradizionale dei popoli montani a causa dello spopolamento.","Come le organizzazioni internazionali sfruttano le risorse montane.","Perché i giovani preferiscono la città."],1),
+SM("9_12",0,"comprensione_locale","Come viene trasmesso il sapere tradizionale delle comunità montane?",["Attraverso libri e manuali.","Attraverso scuole specializzate.","Oralmente, di padre in figlio.","Attraverso università di montagna."],2),
+SM("9_13",0,"inferenza","Perché il rischio di 'arrivare tardi' è concreto?",["Perché le organizzazioni lavorano lentamente.","Perché gli anziani depositari del sapere stanno scomparendo insieme alle comunità.","Perché i documenti vengono distrutti dal clima.","Perché i giovani non imparano dai loro anziani."],1),
+SM("9_14",0,"coesione","'Con loro se ne va un patrimonio' – a chi si riferisce 'loro'?",["Agli anziani.","Ai giovani che emigrano.","Agli sherpa dell'Himalaya.","Alle organizzazioni internazionali."],1),
+SM("9_15",0,"lessico_contesto","'Turismo lento' si contrappone a:",["Il turismo estivo.","Il turismo di massa, veloce e ad alto impatto.","Il turismo sciistico.","Il turismo culturale."],1),
+T("9_t4",1,"SEZIONE B – LESSICO","",""),
+SM("9_16",1,"lessico","Sinonimo di 'glaciale' in senso proprio:",["Caldo e afoso.","Relativo al ghiaccio e ai ghiacciai.","Umido e piovoso.","Ventoso."],1),
+SM("9_17",1,"lessico_contesto","In quale frase 'vetta' è usata in senso figurato?",["Gli alpinisti hanno raggiunto la vetta.","La vetta della montagna era coperta di neve.","Ha raggiunto la vetta del successo dopo anni di sacrifici.","La vetta è visibile nelle giornate limpide."],2),
+SM("9_18",1,"lessico","'Impermeabilizzazione' indica il processo di:",["Rendere un terreno capace di assorbire più acqua.","Rendere una superficie incapace di far passare l'acqua.","Trattare il legno per renderlo più resistente.","Purificare l'acqua."],1),
+SM("9_19",1,"lessico","'Spopolamento' significa:",["Aumento della popolazione.","Progressivo abbandono di un territorio da parte dei suoi abitanti.","Aumento del turismo.","Distruzione di un ecosistema."],1),
+SM("9_20",1,"lessico","Completa: 'I ghiacciai alpini si stanno _____ a causa dell'aumento delle temperature.'",["espandendo","moltiplicando","ritirando","stabilizzando"],2),
+SM("9_21",1,"lessico","Quale parola NON appartiene all'area semantica della montagna?",["Vetta","Ghiacciaio","Laguna","Valanga"],2),
+SM("9_22",1,"lessico","'Patrimonio immateriale' indica:",["Edifici e monumenti storici.","Conoscenze, tradizioni e pratiche culturali trasmesse oralmente.","Risorse naturali.","Proprietà terriere."],1),
+SM("9_23",1,"lessico","Completa: 'Le specie alpine non hanno dove _____ quando le temperature aumentano.'",["scendere","espandersi","salire","adattarsi"],2),
+SM("9_24",1,"lessico","'Disboscamento' è formato da:",["Dis- (prefisso privativo) + bosco + suffisso -amento.","Di- + sboscamento.","Dis- + boscoso + -mento.","Bosco + -amento senza prefisso."],0),
+T("9_t5",2,"SEZIONE C – RIFLESSIONE SULLA LINGUA","",""),
+SM("9_25",2,"morfologia","'Ritirando' è un:",["Participio presente.","Gerundio presente.","Infinito presente.","Participio passato."],1),
+SM("9_26",2,"sintassi","'che vivono solo oltre i 2.500 metri' è:",["Una proposizione causale.","Una proposizione relativa.","Una proposizione finale.","Una proposizione temporale."],1),
+SM("9_27",2,"morfologia","'Potrebbero scomparire' è:",["Indicativo futuro.","Condizionale presente.","Congiuntivo presente.","Condizionale passato."],1),
+SM("9_28",2,"ortografia","Forma corretta:",["I ghiaciai alpini si stanno ritirando.","I ghiacciai alpini si stanno ritirando.","I ghiacciai alpini si stanno ritirrando.","I ghiacciaii alpini si stanno ritirando."],1),
+SM("9_29",2,"sintassi","Frase con proposizione causale:",["Saliremo in vetta domani.","Non siamo potuti salire perché il meteo era pessimo.","Saliremo sebbene sia pericoloso.","Saliremo per vedere il panorama."],1),
+SM("9_30",2,"morfologia","Aggettivo indefinito:",["Questo ghiacciaio.","Molte specie.","Il primo sentiero.","Tre percorsi."],1),
+SM("9_31",2,"coesione","'Ma il turismo di massa ha anche un lato oscuro' – 'ma' introduce:",["Una causa.","Un contrasto rispetto ai vantaggi economici.","Una conseguenza.","Una condizione."],1),
+SM("9_32",2,"punteggiatura","In 'I pastori delle Ande, i contadini delle Filippine, gli sherpa dell'Himalaya: ciascuno...', i due punti introducono:",["Una citazione.","Una precisazione sul soggetto dell'elenco precedente.","Un elenco aggiuntivo.","Una domanda retorica."],1),
+SM("9_33",2,"morfologia","Plurale di 'il ghiacciaio':",["I ghiacciai.","Le ghiacciaie.","I ghiacciaii.","Gli ghiacciai."],0),
+SM("9_34",2,"sintassi","In 'cercando di combinare fruizione e conservazione', 'cercando di' è:",["Una proposizione temporale implicita.","Una proposizione modale implicita con gerundio.","Una proposizione causale implicita.","Una proposizione finale implicita."],1),
+SM("9_35",2,"morfologia","'Recuperabile' è formato da:",["Recupero + suffisso -abile.","Recuperare + suffisso -abile.","Recupero + prefisso -bile.","Ricuperare + suffisso."],1),
+]),
+
+// ══════════════════════════════════════════════════════
+// PROVA 10 – Il corpo umano e la salute
+// ══════════════════════════════════════════════════════
+P(10,"Il corpo umano e la salute",[
+T("10_t1",0,"Testo A – Il sonno, il grande dimenticato",
+`Dormiamo circa un terzo della nostra vita. Eppure il sonno è ancora oggi poco compreso e spesso sottovalutato. Per molti, dormire meno è sinonimo di produttività: "dormirò da morto", si dice. Ma la scienza racconta una storia molto diversa.
+
+Durante il sonno, il cervello non si spegne: lavora intensamente. Consolida i ricordi trasferendo le informazioni dalla memoria a breve termine a quella a lungo termine. Elimina le sostanze di scarto accumulate durante la giornata, tra cui proteine associate a malattie neurodegenerative come l'Alzheimer. Regola gli ormoni che controllano appetito, stress e sistema immunitario.
+
+La privazione del sonno ha conseguenze serie e rapide: già dopo 17-19 ore di veglia, le prestazioni cognitive si abbassano al livello di chi ha un tasso alcolemico pari al limite legale. Dopo pochi giorni di sonno ridotto, il rischio di malattie cardiovascolari, obesità e diabete aumenta significativamente. Gli adolescenti sono particolarmente vulnerabili: il loro cervello è in sviluppo e ha bisogno di 8-10 ore di sonno per funzionare al meglio.`,
+"Testo originale a fini didattici"),
+SM("10_1",0,"comprensione_globale","Messaggio principale del testo:",["Il sonno è una perdita di tempo.","Il sonno è un processo biologico fondamentale, sottovalutato, con importanti funzioni per la salute.","Gli adolescenti dormono troppo.","Le malattie neurodegenerative si curano dormendo di più."],1),
+SM("10_2",0,"comprensione_locale","Quale delle seguenti NON è una funzione del sonno citata nel testo?",["Consolidare i ricordi.","Eliminare sostanze di scarto dal cervello.","Aumentare la velocità di digestione degli alimenti.","Regolare gli ormoni che controllano appetito e stress."],2),
+SM("10_3",0,"inferenza","Perché l'autore paragona la privazione del sonno all'alcol?",["Per dire che sonno e alcol hanno gli stessi effetti piacevoli.","Per rendere concreta l'entità del danno cognitivo causato dalla mancanza di sonno.","Per suggerire che chi dorme poco dovrebbe essere multato.","Per criticare chi beve alcolici prima di dormire."],1),
+SM("10_4",0,"struttura_testo","Il secondo paragrafo ha la funzione di:",["Confutare la credenza popolare del primo paragrafo.","Descrivere le conseguenze della privazione del sonno.","Spiegare cosa accade nel cervello durante il sonno.","Presentare dati statistici sull'insonnia."],2),
+SM("10_5",0,"lessico_contesto","'Tasso alcolemico' indica:",["La velocità di metabolizzazione dell'alcol.","La quantità di alcol presente nel sangue.","Il numero di bevande consumate.","Il livello di dipendenza dall'alcol."],1),
+SM("10_6",0,"comprensione_locale","Di quante ore di sonno hanno bisogno gli adolescenti?",["6-7 ore.","8-10 ore.","Almeno 12 ore.","5-6 ore."],1),
+SM("10_7",0,"inferenza","Cosa intende 'dormirò da morto'?",["Si può recuperare il sonno perduto dopo la morte.","Un'idea errata che ridurre il sonno sia compatibile con una vita produttiva.","Un modo di dire che indica stanchezza estrema.","Una filosofia di vita basata sull'efficienza."],1),
+T("10_t2",0,"Testo B – Il movimento che fa bene",
+`Sedere è il nuovo fumare. Questa provocazione riassume una preoccupazione crescente: nelle società moderne l'inattività fisica è diventata una delle principali cause di morte prematura. Secondo l'OMS, oltre un quarto degli adulti nel mondo non raggiunge i livelli minimi di attività fisica raccomandati.
+
+L'attività fisica regolare – anche solo 150 minuti di camminata veloce alla settimana – riduce il rischio di malattie cardiovascolari, diabete di tipo 2, alcuni tumori e depressione. Migliora la qualità del sonno, aumenta la concentrazione e riduce lo stress. Eppure muoversi è diventato sempre più difficile: lavori sedentari, spostamenti in auto, tempo libero davanti agli schermi.
+
+La soluzione non richiede necessariamente una palestra. Gli esperti suggeriscono di integrare il movimento nella vita quotidiana: usare le scale invece dell'ascensore, camminare o andare in bici quando possibile, fare pause attive durante le ore al computer. Piccoli cambiamenti, applicati con costanza, possono fare una differenza enorme.`,
+"Testo originale a fini didattici"),
+SM("10_8",0,"comprensione_globale","Il secondo testo tratta principalmente di:",["I pericoli del fumo di sigaretta.","L'inattività fisica come problema di salute pubblica e le sue soluzioni pratiche.","Come iscriversi in palestra economicamente.","Le cause della depressione."],1),
+SM("10_9",0,"comprensione_locale","Quanti minuti di camminata alla settimana sono sufficienti?",["Almeno 300 minuti.","150 minuti.","60 minuti.","500 minuti."],1),
+SM("10_10",0,"inferenza","Perché i ricercatori dicono 'sedere è il nuovo fumare'?",["Perché sedere crea dipendenza fisica.","Per segnalare che l'inattività, come il fumo, è una delle principali cause di morte prematura.","Perché stare seduti provoca malattie polmonari.","Per promuovere campagne antifumo."],1),
+SM("10_11",0,"struttura_testo","La struttura del secondo testo segue:",["Soluzione – problema – esempio.","Problema (dati) – benefici dell'attività – soluzioni pratiche.","Opinione – confutazione – conclusione.","Storia del problema – confronto – previsioni."],1),
+SM("10_12",0,"lessico_contesto","'Sedentario' descrive uno stile di vita caratterizzato da:",["Molto sport e attività fisica.","Poca attività e molto tempo seduti.","Alimentazione scorretta.","Eccessivo utilizzo dei dispositivi digitali."],1),
+SM("10_13",0,"comprensione_locale","Quale percentuale di adulti non raggiunge i livelli minimi di attività?",["Circa il 10%.","Circa il 50%.","Oltre un quarto.","Quasi tutti."],2),
+SM("10_14",0,"coesione","'Eppure muoversi è diventato sempre più difficile' – 'eppure' introduce:",["Una conferma dei benefici.","Un contrasto: nonostante i benefici noti, ci si muove sempre meno.","Una causa dell'inattività.","Una soluzione al problema."],1),
+SM("10_15",0,"inferenza","Perché l'autore suggerisce 'usare le scale invece dell'ascensore'?",["Perché le scale sono più sicure degli ascensori.","Per mostrare che il movimento può essere integrato nelle abitudini senza grandi sforzi.","Perché salire le scale brucia più calorie.","Perché gli ascensori consumano troppa energia."],1),
+T("10_t3",1,"SEZIONE B – LESSICO","",""),
+SM("10_16",1,"lessico","Sinonimo di 'consolidare' nel senso di 'consolidare i ricordi':",["Cancellare e dimenticare.","Rafforzare e rendere stabili.","Trasmettere ad altre persone.","Mettere in ordine cronologico."],1),
+SM("10_17",1,"lessico_contesto","In quale frase 'dormire' è usato in senso figurato?",["Ho dormito otto ore.","Il bambino dorme profondamente.","Quel progetto dorme nel cassetto da anni.","Dormiamo con la finestra aperta."],2),
+SM("10_18",1,"lessico","'Neurodegenerativo' è un termine del linguaggio:",["Giuridico.","Medico-scientifico.","Economico.","Letterario."],1),
+SM("10_19",1,"lessico","Contrario di 'vulnerabile':",["Fragile.","Resistente.","Malato.","Sensibile."],1),
+SM("10_20",1,"lessico","Completa: 'L'attività fisica _____ riduce il rischio di malattie cardiovascolari.'",["occasionale","regolare","intensa","faticosa"],1),
+SM("10_21",1,"lessico","'Prematura' in 'morte prematura' significa:",["Che avviene in modo violento.","Che avviene prima del tempo previsto.","Che avviene in modo improvviso.","Che avviene durante il sonno."],1),
+SM("10_22",1,"lessico_contesto","Completa: 'I medici raccomandano di fare _____ attive durante le ore di lavoro.'",["vacanze","pause","sessioni","interruzioni"],1),
+SM("10_23",1,"lessico","Quale parola ha un prefisso che significa 'oltre, eccessivo'?",["Sottovalutato.","Sovrappeso.","Predisposto.","Disidratato."],1),
+SM("10_24",1,"lessico","'Costanza' significa:",["Forza fisica notevole.","Perseveranza e continuità nel tempo.","Velocità nell'eseguire.","Entusiasmo iniziale."],1),
+T("10_t4",2,"SEZIONE C – RIFLESSIONE SULLA LINGUA","",""),
+SM("10_25",2,"morfologia","'Sottovalutato' è un:",["Gerundio presente.","Participio passato con funzione aggettivale.","Participio presente.","Infinito passato."],1),
+SM("10_26",2,"sintassi","In 'Secondo l'OMS, oltre un quarto non è sufficientemente attivo', 'secondo l'OMS' è:",["Complemento di causa.","Complemento di modo.","Complemento di fonte dell'informazione.","Soggetto implicito."],2),
+SM("10_27",2,"morfologia","Modo e tempo di 'abbassano':",["Congiuntivo presente.","Indicativo presente.","Condizionale presente.","Imperativo."],1),
+SM("10_28",2,"ortografia","Forma corretta:",["Il cervelo consolida i ricordi durante il sonno.","Il cervello consolida i ricordi durante il sonno.","Il cervello consolidda i ricordi durante il sonno.","Il cervello consolida i ricordi duranti il sonno."],1),
+SM("10_29",2,"sintassi","Frase con proposizione concessiva:",["Non dormo perché ho troppo da studiare.","Dormo poco per finire i compiti.","Dormo poco sebbene sappia che fa male.","Dormo quando sono stanco."],2),
+SM("10_30",2,"morfologia","'Migliorando' è un:",["Participio passato.","Gerundio presente.","Participio presente.","Infinito presente."],1),
+SM("10_31",2,"coesione","'Già dopo 17-19 ore di veglia' – 'già' serve a:",["Introdurre una conclusione.","Sottolineare la rapidità con cui si manifesta l'effetto.","Contraddire quanto detto prima.","Introdurre un'eccezione."],1),
+SM("10_32",2,"punteggiatura","In 'Sedere è il nuovo fumare. Questa provocazione...', il punto fermo serve a:",["Separare principale da subordinata.","Isolare la frase breve ad effetto, dandole risalto prima di spiegarla.","Indicare la fine di un elenco.","Sostituire il punto e virgola."],1),
+SM("10_33",2,"morfologia","Plurale di 'il ricordo':",["I ricordi.","Le ricorde.","I ricordes.","Gli ricordi."],0),
+SM("10_34",2,"sintassi","Frase con complemento di limitazione:",["Studio con molta concentrazione.","Dal punto di vista fisico, è un atleta perfetto.","Studio per diventare medico.","Studio durante le vacanze."],1),
+SM("10_35",2,"morfologia","'Inattività' contiene:",["Solo un suffisso.","Prefisso negativo (in-) e suffisso nominale (-ità).","Solo un prefisso.","Nessun affisso."],1),
+]),
+
+]; // fine array PROVE
+
+// ══════════════════════════════════════════════════════
+//  BANCA ESERCIZI DI RECUPERO
+// ══════════════════════════════════════════════════════
+const ESERC = {
+  comprensione_globale:[
+    `Leggi il testo e indica qual è l'idea principale.\n"La fotosintesi è il processo attraverso cui le piante producono nutrimento usando luce solare, anidride carbonica e acqua. Questo processo è fondamentale per la vita sulla Terra perché produce ossigeno."\n\n(A) Le piante usano la luce solare\n(B) La fotosintesi è fondamentale per la vita\n(C) Le piante producono anidride carbonica\n(D) L'acqua è inutile per le piante\n\nRisposta: ___`,
+    `Leggi e indica di cosa parla principalmente il testo.\n"Nel 1969 l'uomo mise piede sulla Luna per la prima volta. Fu un evento epocale che cambiò per sempre la percezione dell'esplorazione spaziale."\n\n(A) La storia della NASA  (B) L'importanza dello spazio  (C) Lo sbarco sulla Luna come evento storico  (D) La tecnologia degli anni '60\n\nRisposta: ___`,
+    `Leggi il paragrafo e scrivi in una frase la sua idea principale.\n"Le api svolgono un ruolo fondamentale: impollinando i fiori, permettono la riproduzione di molte piante e garantiscono la produzione di frutta e verdura. Senza le api, molte specie vegetali scomparirebbero."\n\nIdea principale: ________________________________`,
+  ],
+  comprensione_locale:[
+    `Leggi e rispondi.\n"Maria studiava ogni sera per tre ore. Prima ripassava le note, poi rileggeva il libro, infine si faceva interrogare dalla sorella."\n\nQuante ore studiava Maria?\n(A) Due  (B) Tre  (C) Quattro  (D) Il testo non lo dice\n\nRisposta: ___`,
+    `"Il treno partì dalle stazione alle 8:15, con dieci minuti di ritardo."\n\nA che ora era prevista la partenza?\n(A) 8:05  (B) 8:15  (C) 8:25  (D) 8:00\n\nRisposta: ___`,
+    `Leggi e rispondi con una parola o breve frase.\n"La conferenza si tenne a Milano, nella sala principale del Museo della Scienza. Parteciparono circa trecento persone tra ricercatori, insegnanti e studenti."\n\nDove si tenne la conferenza? ___________________\nQuante persone parteciparono? ___________________`,
+  ],
+  inferenza:[
+    `"Giulia entrò in classe con gli occhi gonfi e non parlò con nessuno per tutto il giorno."\n\nCosa si può dedurre?\n(A) Giulia era annoiata  (B) Giulia probabilmente stava male o era triste  (C) Giulia non conosceva i compagni  (D) Giulia aveva sonno\n\nRisposta: ___`,
+    `"Il negozio aveva le serrande abbassate, le luci spente e un cartello sulla porta."\n\nCosa si può dedurre?\n(A) Aperto ma vuoto  (B) Chiuso  (C) Stava per aprire  (D) In saldo\n\nRisposta: ___`,
+    `Leggi la frase e spiega cosa si può dedurre.\n"Appena entrò nella stanza, Lorenzo aprì la finestra, si allentò il colletto e si asciugò la fronte."\n\nCosa si deduce? ________________________________`,
+  ],
+  struttura_testo:[
+    `Quale dei seguenti blocchi potrebbe essere l'INTRODUZIONE di un testo argomentativo?\n\n(A) "Per questi motivi, occorre agire subito contro l'inquinamento."\n(B) "L'inquinamento atmosferico è uno dei problemi più urgenti del nostro tempo."\n(C) "Nel 2020 le emissioni di CO₂ hanno raggiunto livelli record."\n\nRisposta: ___  Perché: ________________________________`,
+    `Quale connettivo introduce la CONCLUSIONE di un testo?\n\n(A) Innanzitutto  (B) Per esempio  (C) In conclusione  (D) Tuttavia\n\nRisposta: ___`,
+  ],
+  lessico:[
+    `Quale parola è sinonimo di "antico"?\n(A) Nuovo  (B) Vecchio  (C) Grande  (D) Piccolo\n\nRisposta: ___`,
+    `Qual è il contrario di "costruire"?\n(A) Fondare  (B) Erigere  (C) Demolire  (D) Progettare\n\nRisposta: ___`,
+    `Quale parola contiene un suffisso che indica "chi fa qualcosa di professione"?\n(A) Coraggio  (B) Medico  (C) Insegnante  (D) Veloce\n\nRisposta: ___`,
+    `Scrivi un sinonimo e un contrario per ciascuna parola.\n\n"Coraggioso": sinonimo ___________ / contrario ___________\n"Silenzioso": sinonimo ___________ / contrario ___________`,
+  ],
+  lessico_contesto:[
+    `In "Il tempo vola quando ci si diverte", "vola" è usato in senso:\n(A) Letterale  (B) Figurato, per indicare che passa velocemente  (C) Tecnico  (D) Ironico\n\nRisposta: ___`,
+    `Quale significato ha "fertile" in "Ha una mente fertile"?\n(A) Ricca di idee  (B) Difficile da capire  (C) Stanca  (D) Distratta\n\nRisposta: ___`,
+    `Indica se le parole sono usate in senso letterale (L) o figurato (F).\n\n"Il sole sorride sulla città." ___\n"Ha il cuore di pietra." ___\n"Il vento soffiava forte." ___\n"Le sue parole erano taglienti." ___`,
+  ],
+  morfologia:[
+    `Quale verbo è al congiuntivo presente?\n(A) Lui mangia  (B) Pensavo che lui mangiasse  (C) Lui ha mangiato  (D) Lui mangerà\n\nRisposta: ___`,
+    `"Correndo" è:\n(A) Participio passato  (B) Gerundio presente  (C) Infinito  (D) Participio presente\n\nRisposta: ___`,
+    `Qual è il plurale di "l'uovo"?\n(A) Le uova  (B) Gli uovi  (C) I uovi  (D) Le uovi\n\nRisposta: ___`,
+    `"La torta più buona" contiene:\n(A) Superlativo assoluto  (B) Superlativo relativo  (C) Comparativo di maggioranza  (D) Comparativo di uguaglianza\n\nRisposta: ___`,
+    `Coniuga "essere" al congiuntivo imperfetto: io ___, tu ___, lui/lei ___`,
+  ],
+  sintassi:[
+    `In "Benché piovesse, uscimmo", "benché" introduce una proposizione:\n(A) Causale  (B) Finale  (C) Concessiva  (D) Temporale\n\nRisposta: ___`,
+    `Proposizione principale in "Dopo aver studiato, passò l'esame":\n(A) "Dopo aver studiato"  (B) "passò l'esame"  (C) Entrambe  (D) Nessuna\n\nRisposta: ___`,
+    `Quale frase ha il soggetto sottinteso?\n(A) I ragazzi ridono.  (B) Ridono sempre.  (C) Loro ridono.  (D) Il bambino ride.\n\nRisposta: ___`,
+    `Indica il tipo di proposizione subordinata (causale, finale, temporale, concessiva, condizionale).\n\n"Studio perché voglio imparare." → ___________\n"Usciremo se smette di piovere." → ___________\n"Telefona appena arrivi a casa." → ___________`,
+  ],
+  ortografia:[
+    `Quale forma è corretta?\n(A) Un'altra volta  (B) Unaltra volta  (C) Un altra volta  (D) Un' altra volta\n\nRisposta: ___`,
+    `Quale frase ha punteggiatura corretta?\n(A) Ho comprato: pane latte e burro.  (B) Ho comprato pane, latte e burro.  (C) Ho comprato pane latte, e burro.\n\nRisposta: ___`,
+    `Correggi gli errori (ce ne sono due in ogni frase).\n\n"Non cè nessuno in casa, sei sicuro d'averli telefonato?"\n→ ________________________________\n\n"Quand'é arrivato, si è accorto d'avere dimenticato le chiavi."\n→ ________________________________`,
+  ],
+  punteggiatura:[
+    `I due punti sono usati correttamente in:\n(A) Domani: andrò al mare.  (B) Ho visto: un film.  (C) Servono tre cose: carta, penna e gomma.\n\nRisposta: ___`,
+    `Il punto e virgola è usato correttamente in:\n(A) Ho studiato; matematica.  (B) È arrivato tardi; tuttavia, si è scusato.  (C) Mi piace; la pizza.\n\nRisposta: ___`,
+    `Inserisci la punteggiatura mancante.\n\n"In quella stanza c'erano molti oggetti una scrivania vecchissima tre sedie rotte uno specchio incrinato e una finestra sbarrata"\n\n→ ________________________________`,
+  ],
+  coesione:[
+    `Quale connettivo introduce una conseguenza?\n(A) Sebbene  (B) Poiché  (C) Quindi  (D) Benché\n\nRisposta: ___`,
+    `Quale pronome sostituisce "la mela" in "_____ è caduta dal tavolo"?\n(A) Lo  (B) La  (C) Li  (D) Le\n\nRisposta: ___`,
+    `Scegli il connettivo giusto tra: quindi, tuttavia, poiché, affinché.\n\n"Non avevo studiato, _____ ho preso un brutto voto."\n"Era stanco; _____, continuò a lavorare."\n"Studia _____ tu possa superare l'esame."`,
+  ],
+};
+
+// ══════════════════════════════════════════════════════
+//  CONFIGURAZIONE
+// ══════════════════════════════════════════════════════
+const CFG = {
+  durata: 90,
+  sezLabel: ['Lettura','Lessico','Grammatica'],
+  sezNomi:  ['A – Comprensione della lettura','B – Lessico','C – Riflessione sulla lingua'],
+};
+const COMP_NOMI = {
+  comprensione_globale:'Comprensione globale',
+  comprensione_locale:'Comprensione locale',
+  inferenza:'Inferenza e interpretazione',
+  struttura_testo:'Struttura del testo',
+  lessico:'Lessico',
+  lessico_contesto:'Lessico in contesto',
+  morfologia:'Morfologia',
+  sintassi:'Sintassi',
+  ortografia:'Ortografia',
+  punteggiatura:'Punteggiatura',
+  coesione:'Coesione testuale',
+};
+const nC = c => COMP_NOMI[c]||c||'';
+const $ = id => document.getElementById(id);
+
+// PASSWORD (da localStorage o default)
+function getPW(cl){ return localStorage.getItem('inv_pw_'+cl) || `docente${cl}!2025`; }
+function setPW(cl,pw){ localStorage.setItem('inv_pw_'+cl,pw); }
+
+// DB
+let DB = {
+  sessioni: JSON.parse(localStorage.getItem('inv_sess')||'{}'),
+  risultati: JSON.parse(localStorage.getItem('inv_ris') ||'[]'),
+};
+const saveDB = () => {
+  localStorage.setItem('inv_sess', JSON.stringify(DB.sessioni));
+  localStorage.setItem('inv_ris',  JSON.stringify(DB.risultati));
+};
+
+// STATO
+let S = {
+  scr:'acc', stud:'', prova:null, sessione:'', classe:'',
+  risposte:{}, segnati:new Set(), cur:0,
+  timer:null, sec:5400, uscite:0, calcolo:null,
+  tipoAcc:'studente', delTarget:null,
+};
+
+// ── UTILS ──────────────────────────────────────────────
+const SCR=['scr-acc','scr-istr','scr-test','scr-ris','scr-doc'];
+function mostraScr(id){ SCR.forEach(s=>$(s).classList.toggle('hidden',s!==id)); S.scr=id; }
+function showErr(id,msg){ const el=$(id); if(!el)return; el.textContent=msg; el.style.display='block'; }
+function hideErr(id){ const el=$(id); if(el) el.style.display='none'; }
+function getDomRis(){ return S.prova.domande.filter(d=>d.tipo!=='testo'); }
+function L(){ return ['A','B','C','D']; }
+
+// ── ACCESSO ────────────────────────────────────────────
+function setTipoAcc(tipo, btn){
+  S.tipoAcc=tipo;
+  document.querySelectorAll('.tab-acc-btn').forEach(b=>b.classList.remove('att'));
+  btn.classList.add('att');
+  $('form-stud').classList.toggle('hidden', tipo!=='studente');
+  $('form-doc').classList.toggle('hidden',  tipo!=='docente');
+  hideErr('err-acc');
+}
+
+function accStud(){
+  const cod=$('cod-stud').value.trim().toUpperCase();
+  const cp=$('cod-prova').value.trim().toUpperCase();
+  if(!cod){ showErr('err-acc','Inserisci il tuo codice studente.'); return; }
+  if(!cp) { showErr('err-acc','Inserisci il codice della prova.'); return; }
+  const sess=DB.sessioni[cp];
+  if(!sess){ showErr('err-acc','Codice prova non valido. Chiedi al docente.'); return; }
+  if(sess.chiusa){ showErr('err-acc','Questa sessione è chiusa. Chiedi al docente.'); return; }
+  const prova=PROVE.find(p=>p.id===sess.provaId);
+  if(!prova){ showErr('err-acc','Prova non trovata.'); return; }
+  Object.assign(S,{stud:cod, prova, sessione:cp, classe:sess.classe,
+    risposte:{}, segnati:new Set(), cur:0, uscite:0, calcolo:null});
+  $('istr-title').textContent = prova.titolo;
+  $('istr-sub').textContent   = `Italiano – Grado 8 · ${CFG.durata} minuti`;
+  $('istr-stud').textContent  = cod;
+  hideErr('err-acc');
+  mostraScr('scr-istr');
+}
+
+function accDoc(){
+  const cl=$('sel-cl').value;
+  const pw=$('pw-doc').value;
+  if(getPW(cl)!==pw){ showErr('err-acc','Password errata.'); return; }
+  S.classe=cl;
+  $('doc-cl-lbl').textContent='Classe: '+cl;
+  hideErr('err-acc');
+  popolaDocente();
+  mostraScr('scr-doc');
+}
+
+function logout(){
+  S.classe=''; $('pw-doc').value=''; mostraScr('scr-acc');
+}
+
+// ── INIZIO PROVA ────────────────────────────────────────
+function iniziaProva(){
+  mostraScr('scr-test');
+  S.sec=CFG.durata*60;
+  buildSidebar();
+  renderDom(0);
+  startTimer();
+  attivaSicurezza();
+}
+
+// ── TIMER ──────────────────────────────────────────────
+function startTimer(){
+  aggTimer();
+  S.timer=setInterval(()=>{ S.sec--; aggTimer(); if(S.sec<=0){clearInterval(S.timer);consegna();} },1000);
+}
+function aggTimer(){
+  const d=$('timer-disp'); if(!d)return;
+  const m=Math.floor(S.sec/60), s=S.sec%60;
+  d.textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  d.className='timer-val';
+  if(S.sec<=300) d.classList.add('danger');
+  else if(S.sec<=600) d.classList.add('warn');
+}
+
+// ── SICUREZZA FINESTRA ─────────────────────────────────
+function attivaSicurezza(){
+  document.addEventListener('visibilitychange',()=>{
+    if(S.scr!=='scr-test'||!document.hidden) return;
+    S.uscite++;
+    const ov=$('ov-fin'); ov.classList.remove('hidden');
+    if(S.uscite>=2){
+      $('ov-fin-title').textContent='⛔ Prova terminata automaticamente';
+      $('ov-fin-txt').textContent='Hai abbandonato la finestra per la seconda volta. La prova è stata consegnata.';
+      $('ov-fin-btns').innerHTML='';
+      clearInterval(S.timer);
+      setTimeout(()=>{ ov.classList.add('hidden'); consegna(); },3000);
+    } else {
+      $('ov-fin-title').textContent='⚠️ Attenzione: finestra non attiva';
+      $('ov-fin-txt').textContent='Avviso 1 di 2. Se esci ancora, la prova verrà consegnata automaticamente.';
+    }
+  });
+}
+function chiudiOvFin(){ $('ov-fin').classList.add('hidden'); }
+
+// ── SIDEBAR ────────────────────────────────────────────
+function buildSidebar(){
+  const dr=getDomRis();
+  const c=$('nav-domande'); c.innerHTML='';
+  CFG.sezLabel.forEach((lbl,iSez)=>{
+    const ds=dr.filter(d=>d.sez===iSez);
+    if(!ds.length) return;
+    const div=document.createElement('div'); div.className='nav-sez';
+    div.innerHTML=`<div class="nav-sez-title">${lbl}</div><div class="nav-grid" id="ng-${iSez}"></div>`;
+    c.appendChild(div);
+    const grid=div.querySelector(`#ng-${iSez}`);
+    ds.forEach((d,i)=>{
+      const btn=document.createElement('div'); btn.className='nav-btn'; btn.id=`nb-${d.id}`;
+      btn.textContent=i+1; btn.title=nC(d.comp);
+      btn.onclick=()=>renderDom(S.prova.domande.indexOf(d));
+      grid.appendChild(btn);
+    });
+  });
+}
+
+function aggSidebar(){
+  const tutte=S.prova.domande, dr=getDomRis();
+  dr.forEach(d=>{
+    const btn=$(`nb-${d.id}`); if(!btn)return;
+    btn.className='nav-btn';
+    if(S.risposte[d.id]!==undefined) btn.classList.add('ok');
+    if(S.segnati.has(d.id)) btn.classList.add('seg');
+    if(tutte.indexOf(d)===S.cur) btn.classList.add('att');
+  });
+}
+
+// ── RENDER DOMANDA (layout affiancato) ─────────────────
+function renderDom(idx){
+  S.cur=idx;
+  const domande=S.prova.domande, d=domande[idx];
+  const dr=getDomRis(), pos=dr.indexOf(d);
+
+  // Aggiorna header
+  $('badge-sez').textContent = (CFG.sezLabel[d.sez]||'')+' ('+['A','B','C'][d.sez]+')';
+  $('hdr-info').textContent  = d.tipo==='testo'
+    ? CFG.sezNomi[d.sez]||'' : `Domanda ${pos+1} di ${dr.length}`;
+
+  // ── COLONNA TESTO ──────────────────────────────────
+  const colTesto=$('col-testo');
+  if(d.tipo==='testo'){
+    // Il blocco testo va nella colonna testo
+    colTesto.innerHTML=`<div class="brano-wrap">
+      <div class="brano-tit">📄 ${d.tit||'Testo'}</div>
+      <div class="brano-body">${d.testo}</div>
+      ${d.fonte?`<div class="fonte-txt">${d.fonte}</div>`:''}
+    </div>`;
+    // Colonna domanda: solo avanti
+    $('col-dom').innerHTML=`
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;padding:30px;text-align:center;color:#aaa">
+        <div style="font-size:40px">📖</div>
+        <div style="font-size:14px">Leggi il testo a sinistra, poi premi Avanti per le domande.</div>
+        <button class="btn btn-p" onclick="avanti()" style="margin-top:8px">Avanti →</button>
+      </div>`;
+    aggSidebar(); return;
+  }
+
+  // Trova testo di riferimento
+  const ref=trovaRef(domande,idx);
+  if(ref){
+    colTesto.innerHTML=`<div class="brano-wrap">
+      <div class="brano-tit">📄 ${ref.tit||'Testo'}</div>
+      <div class="brano-body">${ref.testo}</div>
+      ${ref.fonte?`<div class="fonte-txt">${ref.fonte}</div>`:''}
+    </div>`;
+  } else {
+    colTesto.innerHTML=`<div class="no-testo">
+      <div class="no-testo-ico">📝</div>
+      <div>Questa domanda non fa riferimento a un testo specifico</div>
+    </div>`;
+  }
+
+  // ── COLONNA DOMANDA ──────────────────────────────────
+  let html=`<div class="d-meta">
+    <div>
+      <div class="d-num">Domanda ${pos+1}</div>
+      <div class="d-comp">${nC(d.comp)}</div>
+    </div>
+    <button class="btn-seg ${S.segnati.has(d.id)?'att':''}" onclick="toggleSeg('${d.id}')">
+      ${S.segnati.has(d.id)?'⭐ Segnata':'☆ Segna'}
+    </button>
+  </div>
+  <div class="d-testo">${d.testo}</div>`;
+
+  if(d.tipo==='sm'){
+    html+=`<div class="opzioni">`+d.ops.map((op,i)=>`
+      <div class="opzione ${S.risposte[d.id]===i?'sel':''}" onclick="selRisp('${d.id}',${i})">
+        <div class="op-lett">${L()[i]}</div><div>${op}</div>
+      </div>`).join('')+`</div>`;
+  } else if(d.tipo==='ap'){
+    html+=`<textarea class="input-ap" placeholder="Scrivi qui la risposta..."
+      onchange="salvaAp('${d.id}',this.value)">${S.risposte[d.id]||''}</textarea>`;
+  }
+
+  html+=`<div class="nav-bottom">
+    <button class="btn btn-s" onclick="indietro()" ${idx===0?'disabled':''}>← Indietro</button>
+    <div class="prog-txt">${pos>=0?pos+1+'/'+dr.length:''}</div>
+    ${idx<domande.length-1
+      ?`<button class="btn btn-p" onclick="avanti()">Avanti →</button>`
+      :`<button class="btn btn-r" onclick="mostraConsegna()">📤 Consegna</button>`}
+  </div>`;
+
+  $('col-dom').innerHTML=html; aggSidebar();
+  $('col-dom').scrollTop=0;
+}
+
+function trovaRef(domande,idx){
+  const sez=domande[idx].sez;
+  for(let i=idx-1;i>=0;i--){
+    if(domande[i].sez!==sez) break;
+    if(domande[i].tipo==='testo') return domande[i];
+  }
+  return null;
+}
+
+function selRisp(id,opz){ S.risposte[id]=opz; renderDom(S.cur); }
+function salvaAp(id,val){ S.risposte[id]=val; aggSidebar(); }
+function toggleSeg(id){ S.segnati.has(id)?S.segnati.delete(id):S.segnati.add(id); renderDom(S.cur); }
+function avanti(){ if(S.cur<S.prova.domande.length-1) renderDom(S.cur+1); }
+function indietro(){ if(S.cur>0) renderDom(S.cur-1); }
+
+// ── CONSEGNA ───────────────────────────────────────────
+function mostraConsegna(){
+  const dr=getDomRis();
+  $('cnt-r').textContent=Object.keys(S.risposte).length;
+  $('cnt-t').textContent=dr.length;
+  $('ov-cons').classList.remove('hidden');
+}
+function consegna(){
+  clearInterval(S.timer);
+  $('ov-cons').classList.add('hidden');
+  calcolaRisultati();
+  mostraScr('scr-ris');
+}
+
+// ══════════════════════════════════════════════════════
+//  CALCOLO RISULTATI
+// ══════════════════════════════════════════════════════
+function calcolaRisultati(){
+  const dr=getDomRis();
+  let tot=0, corrette=0;
+  const errComp={}, sez=[{c:0,t:0},{c:0,t:0},{c:0,t:0}];
+  const det=[];
+
+  dr.forEach(d=>{
+    tot++; sez[d.sez].t++;
+    let ok=false, mia=S.risposte[d.id];
+    if(d.tipo==='sm') ok=mia===d.ok;
+    else if(d.tipo==='ap'){
+      const v=(mia||'').toLowerCase().trim();
+      ok=d.ok_open&&d.ok_open.some(k=>v.includes(k.toLowerCase()));
+    }
+    if(ok){corrette++;sez[d.sez].c++;}
+    else{errComp[d.comp]=(errComp[d.comp]||0)+1;}
+    det.push({
+      d, ok, mia,
+      miaLbl: d.tipo==='sm'&&mia!==undefined ? d.ops[mia] : (mia||'— Senza risposta —'),
+      okLbl:  d.tipo==='sm' ? d.ops[d.ok] : (d.ok_open?d.ok_open[0]:'–'),
+    });
+  });
+
+  const pct=Math.round(corrette/tot*100);
+
+  // HEADER
+  $('ris-sub').textContent   = `${S.prova.titolo} • Studente: ${S.stud} • Classe: ${S.classe}`;
+  $('ris-score').textContent = corrette;
+  $('ris-su').textContent    = `su ${tot} punti`;
+  $('ris-pct').textContent   = `${pct}% di risposte corrette`;
+
+  // SEZIONI
+  $('ris-sez').innerHTML=sez.map((s,i)=>`
+    <div class="sez-card">
+      <h4>${CFG.sezLabel[i]}</h4>
+      <div class="sez-pts">${s.c}</div>
+      <div class="sez-su-txt">su ${s.t}</div>
+    </div>`).join('');
+
+  // BARRE COMPETENZE
+  const tutteComp=[...new Set(dr.map(d=>d.comp).filter(Boolean))];
+  let bH='';
+  tutteComp.forEach(comp=>{
+    const err=errComp[comp]||0, dc=dr.filter(d=>d.comp===comp).length;
+    const c=dc-err, p=dc>0?Math.round(c/dc*100):100;
+    bH+=`<div class="bar-item">
+      <div class="bar-lbl"><span>${nC(comp)}</span><span>${c}/${dc}</span></div>
+      <div class="bar"><div class="bar-fill ${p>=70?'h':p>=40?'m':'l'}" style="width:${p}%"></div></div>
+    </div>`;
+  });
+  $('ris-comp').innerHTML=`<h3>Dettaglio per competenza</h3>${bH}`;
+
+  // REVISIONE RISPOSTE
+  let rH='<h3>Revisione completa delle risposte</h3>';
+  [0,1,2].forEach(iSez=>{
+    const ds=det.filter(x=>x.d.sez===iSez); if(!ds.length) return;
+    rH+=`<div class="risp-sez-group"><div class="risp-sez-hdr">${CFG.sezNomi[iSez]}</div>`;
+    ds.forEach((x,i)=>{
+      const icoC=x.ok?'ok':(x.mia===undefined?'sk':'no');
+      rH+=`<div class="risp-item">
+        <div class="risp-ico ${icoC}">${x.ok?'✓':(x.mia===undefined?'–':'✗')}</div>
+        <div>
+          <div class="risp-q"><strong>${i+1}.</strong> ${x.d.testo.substring(0,85)}${x.d.testo.length>85?'…':''}</div>
+          <div class="risp-mia">La tua risposta: <span class="${x.ok?'ok':'no'}">${x.miaLbl}</span>
+          ${!x.ok?`&nbsp;→&nbsp;<span class="risp-giusta">✓ ${x.okLbl}</span>`:''}</div>
+          <div style="font-size:10px;color:#bbb">${nC(x.d.comp)}</div>
+        </div>
+      </div>`;
+    });
+    rH+=`</div>`;
+  });
+  $('ris-detail').innerHTML=rH;
+
+  // ESERCIZI DI RECUPERO
+  const ordinate=Object.entries(errComp).sort((a,b)=>b[1]-a[1]);
+  const compDeboli=ordinate.slice(0,3).map(x=>x[0]);
+  let eH='', num=0; const usati=new Set();
+  function addE(comp){
+    (ESERC[comp]||[]).forEach((txt,pi)=>{
+      if(num>=10) return;
+      const key=`${comp}_${pi}`; if(usati.has(key)) return; usati.add(key);
+      eH+=`<div class="eserc-item">
+        <div class="eserc-num">Esercizio ${num+1}</div>
+        <div class="eserc-comp-badge">${nC(comp)}</div>
+        <div class="eserc-testo">${txt}</div>
+        <div class="riga-risp"></div>
+        <div class="riga-lbl">Scrivi qui la tua risposta a mano</div>
+      </div>`;
+      num++;
+    });
+  }
+  compDeboli.forEach(addE);
+  if(num<10) Object.keys(ESERC).forEach(c=>{if(num>=10||compDeboli.includes(c)) return; addE(c);});
+  $('lista-eserc').innerHTML=eH||'<div style="padding:20px;color:#aaa">Ottimo lavoro, nessun esercizio di recupero necessario!</div>';
+
+  // SALVATAGGIO
+  S.calcolo={corrette,tot,pct,sez,errComp,compDeboli,det,tutteComp};
+  const entry={
+    codice:S.stud, sessione:S.sessione, classe:S.classe,
+    totale:corrette, su:tot, pct, sezioni:sez, errori:errComp,
+    data:new Date().toISOString(),
+    det:det.map(x=>({id:x.d.id, testo:x.d.testo, ok:x.ok, mia:x.miaLbl, corretta:x.okLbl, comp:x.d.comp, sez:x.d.sez}))
+  };
+  DB.risultati.push(entry);
+  if(DB.sessioni[S.sessione]) DB.sessioni[S.sessione].studenti=(DB.sessioni[S.sessione].studenti||0)+1;
+  saveDB();
+}
+
+// ══════════════════════════════════════════════════════
+//  PDF COMPLETO
+// ══════════════════════════════════════════════════════
+function scaricaPDF(){
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const r=S.calcolo;
+  function chY(y,n=12){ if(y>280-n){doc.addPage();return 20;} return y; }
+
+  // COPERTINA
+  doc.setFillColor(0,31,92); doc.rect(0,0,210,46,'F');
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(20);doc.setFont('helvetica','bold');
+  doc.text('SIMULAZIONE INVALSI',20,15);
+  doc.setFontSize(12);doc.setFont('helvetica','normal');
+  doc.text('Italiano – Grado 8 (Terza Media)',20,24);
+  doc.setFontSize(10);
+  doc.text(`Prova: ${S.prova.titolo}`,20,32);
+  doc.text(`Studente: ${S.stud}  |  Classe: ${S.classe}  |  Data: ${new Date().toLocaleDateString('it-IT')}`,20,40);
+
+  // PUNTEGGIO
+  let y=56;
+  doc.setTextColor(0,31,92);doc.setFontSize(16);doc.setFont('helvetica','bold');
+  doc.text(`PUNTEGGIO: ${r.corrette}/${r.tot} (${r.pct}%)`,20,y); y+=11;
+  doc.setFontSize(10);doc.setFont('helvetica','normal');doc.setTextColor(50,50,50);
+  r.sez.forEach((s,i)=>{
+    const p=s.t>0?Math.round(s.c/s.t*100):0;
+    const col=p>=70?[46,125,50]:p>=40?[230,130,0]:[198,40,40];
+    doc.setFillColor(...col);doc.rect(20,y-3.5,3,4,'F');
+    doc.text(`${CFG.sezLabel[i]}: ${s.c}/${s.t} (${p}%)`,26,y); y+=7;
+  }); y+=4;
+
+  // BARRE
+  doc.setDrawColor(210,210,210);doc.line(15,y,195,y);y+=6;
+  doc.setFontSize(11);doc.setFont('helvetica','bold');doc.setTextColor(0,31,92);
+  doc.text('Dettaglio per competenza',20,y);y+=8;
+  r.tutteComp.forEach(comp=>{
+    y=chY(y,10);
+    const err=r.errComp[comp]||0, dc=getDomRis().filter(d=>d.comp===comp).length;
+    const c=dc-err, p=dc>0?Math.round(c/dc*100):100;
+    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(50,50,50);
+    doc.text(`${nC(comp)}: ${c}/${dc} (${p}%)`,24,y);
+    doc.setFillColor(220,220,220);doc.rect(100,y-3.5,80,4,'F');
+    const col=p>=70?[46,125,50]:p>=40?[249,168,37]:[198,40,40];
+    doc.setFillColor(...col);doc.rect(100,y-3.5,80*p/100,4,'F');
+    y+=9;
+  });
+
+  // REVISIONE RISPOSTE
+  doc.addPage(); y=20;
+  doc.setFillColor(0,31,92);doc.rect(0,0,210,26,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(14);doc.setFont('helvetica','bold');
+  doc.text('REVISIONE COMPLETA DELLE RISPOSTE',20,11);
+  doc.setFontSize(10);doc.setFont('helvetica','normal');
+  doc.text(`${S.prova.titolo}  •  Studente: ${S.stud}`,20,20);
+  y=34;
+
+  [0,1,2].forEach(iSez=>{
+    const ds=r.det.filter(x=>x.d.sez===iSez); if(!ds.length) return;
+    y=chY(y,14);
+    const colBg=iSez===0?[0,63,138]:iSez===1?[30,100,0]:[80,0,0];
+    doc.setFillColor(...colBg);doc.rect(15,y-5,180,7,'F');
+    doc.setTextColor(255,255,255);doc.setFontSize(9);doc.setFont('helvetica','bold');
+    doc.text(CFG.sezNomi[iSez],20,y);
+    doc.setTextColor(30,30,30);y+=10;
+    ds.forEach((x,i)=>{
+      y=chY(y,16);
+      const col=x.ok?[46,125,50]:x.mia===undefined?[180,120,0]:[198,40,40];
+      doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(...col);
+      doc.text(x.ok?'✓':'✗',18,y);
+      doc.setTextColor(30,30,30);doc.setFont('helvetica','bold');doc.setFontSize(8);
+      const q=`${i+1}. `+(x.d.testo.length>72?x.d.testo.substring(0,72)+'…':x.d.testo);
+      const qL=doc.splitTextToSize(q,158);
+      qL.forEach(l=>{y=chY(y,5);doc.text(l,24,y);y+=5;});
+      doc.setFont('helvetica','normal');doc.setFontSize(8);
+      doc.setTextColor(x.ok?46:198,x.ok?125:40,x.ok?50:40);
+      doc.text(`Tua: ${x.miaLbl}`,26,y);y+=4;
+      if(!x.ok){doc.setTextColor(46,125,50);doc.setFont('helvetica','bold');
+        doc.text(`Corretta: ${x.okLbl}`,26,y);y+=4;}
+      doc.setTextColor(160,160,160);doc.setFont('helvetica','normal');doc.setFontSize(7);
+      doc.text(nC(x.d.comp),26,y);y+=5;
+      doc.setDrawColor(230,230,230);doc.line(20,y,190,y);y+=3;
+    });
+    y+=4;
+  });
+
+  // SCHEDA RECUPERO
+  doc.addPage();y=20;
+  doc.setFillColor(27,94,32);doc.rect(0,0,210,30,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(14);doc.setFont('helvetica','bold');
+  doc.text('SCHEDA DI RECUPERO PERSONALIZZATA',20,12);
+  doc.setFontSize(9);doc.setFont('helvetica','normal');
+  doc.text(`${S.stud}  |  ${S.classe}  |  Aree: ${r.compDeboli.map(nC).join(', ')||'–'}`,20,22);
+  y=38;
+  doc.setFontSize(8);doc.setTextColor(80,80,80);
+  doc.text('Completa gli esercizi a mano e consegna al docente.',20,y);y+=10;
+
+  let numEs=0; const usatiP=new Set();
+  function addEP(comp){
+    (ESERC[comp]||[]).forEach((txt,pi)=>{
+      if(numEs>=10) return;
+      const key=`${comp}_${pi}`; if(usatiP.has(key)) return; usatiP.add(key);
+      y=chY(y,38);
+      doc.setFillColor(232,245,233);doc.rect(15,y-4,180,6,'F');
+      doc.setTextColor(27,94,32);doc.setFontSize(9);doc.setFont('helvetica','bold');
+      doc.text(`Esercizio ${numEs+1}  –  ${nC(comp)}`,20,y);y+=7;
+      doc.setTextColor(30,30,30);doc.setFont('helvetica','normal');doc.setFontSize(8);
+      const righe=doc.splitTextToSize(txt,170);
+      righe.forEach(r2=>{y=chY(y,5);doc.text(r2,20,y);y+=5;});
+      y=chY(y,12);
+      doc.setFontSize(7);doc.setTextColor(130,130,130);
+      doc.text('Risposta:',20,y+4);
+      doc.setDrawColor(100,100,100);doc.line(42,y+4,190,y+4);
+      y+=10;doc.setDrawColor(210,210,210);doc.line(15,y,195,y);y+=5;
+      numEs++;
+    });
+  }
+  r.compDeboli.forEach(addEP);
+  if(numEs<10) Object.keys(ESERC).forEach(c=>{if(numEs>=10||r.compDeboli.includes(c)) return; addEP(c);});
+
+  // FOOTER
+  const pp=doc.internal.getNumberOfPages();
+  for(let p=1;p<=pp;p++){
+    doc.setPage(p);doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(160,160,160);
+    doc.text(`Simulazione INVALSI – Italiano Grado 8  •  Pag. ${p} di ${pp}`,105,292,{align:'center'});
+  }
+  doc.save(`INVALSI_${S.stud}_${S.classe}_${new Date().toLocaleDateString('it-IT').replace(/\//g,'-')}.pdf`);
+}
+
+// ══════════════════════════════════════════════════════
+//  PANNELLO DOCENTE
+// ══════════════════════════════════════════════════════
+function popolaDocente(){
+  // Select prove
+  $('sel-prova-new').innerHTML=PROVE.map(p=>`<option value="${p.id}">${p.id}. ${p.titolo}</option>`).join('');
+  aggSelSessioni();
+  aggiornaTabellaSessioni();
+  costruisciPwRows();
+}
+
+function aggSelSessioni(){
+  const sel=$('sel-sess-ris');
+  const sessClasse=Object.entries(DB.sessioni).filter(([,s])=>s.classe===S.classe);
+  sel.innerHTML='<option value="">-- Seleziona sessione --</option>'+
+    sessClasse.map(([cod,s])=>{
+      const p=PROVE.find(x=>x.id===s.provaId);
+      return `<option value="${cod}">${cod} – ${p?p.titolo:''}</option>`;
+    }).join('');
+}
+
+function aggiornaTabellaSessioni(){
+  const tbody=$('tbody-sess');
+  const sessClasse=Object.entries(DB.sessioni).filter(([,s])=>s.classe===S.classe);
+  if(!sessClasse.length){
+    tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:#aaa;padding:20px">Nessuna sessione. Usa "+ Nuova sessione".</td></tr>';
+    return;
+  }
+  tbody.innerHTML=sessClasse.map(([cod,s])=>{
+    const p=PROVE.find(x=>x.id===s.provaId);
+    const chiusa=!!s.chiusa;
+    const statoHTML=chiusa
+      ? `<span class="sessione-status status-chiusa"><span class="status-dot"></span>Chiusa</span>`
+      : `<span class="sessione-status status-attiva"><span class="status-dot"></span>Attiva</span>`;
+    return `<tr>
+      <td><strong>${cod}</strong></td>
+      <td>${p?p.titolo:'–'}</td>
+      <td>${new Date(s.data).toLocaleDateString('it-IT')}</td>
+      <td>${s.studenti||0}</td>
+      <td>${statoHTML}</td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn-link" onclick="copiaLink('${cod}')">📋 Link</button>
+        ${!chiusa?`<button class="btn-link" style="background:#fff8e1;color:#b45309;border-color:#f9a825" onclick="chiudiSessione('${cod}')">🔒 Chiudi</button>`:''}
+        <button class="btn-del" onclick="chiediDel('${cod}')">🗑️ Elimina</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function mostraTab(id,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('att'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('att'));
+  $(id).classList.add('att'); btn.classList.add('att');
+}
+
+function genCod(){
+  const mesi=['GEN','FEB','MAR','APR','MAG','GIU','LUG','AGO','SET','OTT','NOV','DIC'];
+  const m=mesi[new Date().getMonth()], y=String(new Date().getFullYear()).slice(-2);
+  $('new-cod').value=`${S.classe}-${m}${y}`;
+}
+
+function creaSessione(){
+  const provaId=Number($('sel-prova-new').value);
+  const codice=$('new-cod').value.trim().toUpperCase();
+  hideErr('err-new'); $('succ-new').style.display='none';
+  if(!codice){ showErr('err-new','Inserisci un codice.'); return; }
+  if(DB.sessioni[codice]){ showErr('err-new','Codice già esistente. Scegline un altro.'); return; }
+  DB.sessioni[codice]={provaId, classe:S.classe, data:new Date().toISOString(), studenti:0};
+  saveDB();
+  const link=`${window.location.href.split('?')[0]}?prova=${codice}`;
+  const el=$('succ-new');
+  el.innerHTML=`✅ Sessione creata!<br>Codice: <strong>${codice}</strong><br>
+    Link: <code style="font-size:11px;word-break:break-all">${link}</code>`;
+  el.style.display='block';
+  popolaDocente();
+}
+
+function copiaLink(codice){
+  const link=`${window.location.href.split('?')[0]}?prova=${codice}`;
+  navigator.clipboard.writeText(link).then(()=>alert('✅ Link copiato negli appunti:\n\n'+link));
+}
+
+function chiudiSessione(codice){
+  if(!confirm(`Chiudere la sessione ${codice}? Gli studenti non potranno più accedervi.`)) return;
+  DB.sessioni[codice].chiusa=true;
+  saveDB(); aggiornaTabellaSessioni();
+}
+
+// ELIMINA SESSIONE
+function chiediDel(codice){
+  S.delTarget=codice;
+  $('del-cod').textContent=codice;
+  $('ov-del').classList.remove('hidden');
+}
+
+function confermaDel(){
+  const cod=S.delTarget; if(!cod) return;
+  delete DB.sessioni[cod];
+  DB.risultati=DB.risultati.filter(r=>r.sessione!==cod);
+  saveDB();
+  $('ov-del').classList.add('hidden');
+  S.delTarget=null;
+  popolaDocente();
+  // Chiudi eventuale dettaglio aperto
+  $('doc-ris-wrap').classList.add('hidden');
+}
+
+// RISULTATI
+function caricaRis(){
+  const sessione=$('sel-sess-ris').value; if(!sessione) return;
+  const risultati=DB.risultati.filter(r=>r.sessione===sessione);
+  const tbody=$('tbody-ris');
+  if(!risultati.length){
+    tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:#aaa;padding:20px">Nessun risultato per questa sessione.</td></tr>';
+    $('doc-ris-wrap').classList.add('hidden'); return;
+  }
+  tbody.innerHTML=risultati.map(r=>{
+    const cls=r.pct>=70?'v-h':r.pct>=40?'v-m':'v-l';
+    const deb=Object.entries(r.errori||{}).sort((a,b)=>b[1]-a[1])[0];
+    return `<tr onclick="mostraDetDoc('${r.codice}','${sessione}')" style="cursor:pointer" title="Clicca per il dettaglio">
+      <td><strong>${r.codice}</strong></td>
+      <td><span class="badge-v ${cls}">${r.totale}/${r.su} (${r.pct}%)</span></td>
+      <td>${r.sezioni[0]?.c??'–'}/${r.sezioni[0]?.t??'–'}</td>
+      <td>${r.sezioni[1]?.c??'–'}/${r.sezioni[1]?.t??'–'}</td>
+      <td>${r.sezioni[2]?.c??'–'}/${r.sezioni[2]?.t??'–'}</td>
+      <td>${deb?nC(deb[0]):'–'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function mostraDetDoc(codice, sessione){
+  const r=DB.risultati.find(x=>x.codice===codice&&x.sessione===sessione);
+  if(!r) return;
+  $('doc-det-title').textContent=`Dettaglio – ${codice}`;
+  let html='';
+  [0,1,2].forEach(iSez=>{
+    const ds=(r.det||[]).filter(x=>x.sez===iSez); if(!ds.length) return;
+    html+=`<div style="margin-bottom:14px"><div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--blu);margin-bottom:7px;padding:4px 8px;background:var(--grigio-ch);border-radius:4px">${CFG.sezNomi[iSez]}</div>`;
+    ds.forEach((x,i)=>{
+      const c=x.ok?'var(--verde)':'var(--rosso)';
+      html+=`<div style="padding:6px 0;border-bottom:1px solid #eee;font-size:12px">
+        <span style="color:${c};font-weight:800">${x.ok?'✓':'✗'}</span>&nbsp;
+        <strong>${i+1}.</strong> ${(x.testo||'').substring(0,65)}…<br>
+        <span style="color:${c};font-size:11px">Tua: ${x.mia||'—'}</span>
+        ${!x.ok?`&nbsp;→&nbsp;<span style="color:var(--verde);font-size:11px">✓ ${x.corretta}</span>`:''}
+      </div>`;
+    });
+    html+=`</div>`;
+  });
+  $('doc-det-body').innerHTML=html;
+  $('doc-ris-wrap').classList.remove('hidden');
+}
+
+function esportaCSV(){
+  const sessione=$('sel-sess-ris').value;
+  const risultati=DB.risultati.filter(r=>r.sessione===sessione);
+  if(!risultati.length){ alert('Nessun risultato da esportare.'); return; }
+  const hdr='Codice,Sessione,Classe,Totale,Su,Percentuale,Lettura,Lessico,Grammatica,CompetenzaDebole,Data';
+  const rows=risultati.map(r=>{
+    const deb=Object.entries(r.errori||{}).sort((a,b)=>b[1]-a[1])[0];
+    return [r.codice,r.sessione,r.classe,r.totale,r.su,r.pct,
+      `${r.sezioni[0]?.c||0}/${r.sezioni[0]?.t||0}`,
+      `${r.sezioni[1]?.c||0}/${r.sezioni[1]?.t||0}`,
+      `${r.sezioni[2]?.c||0}/${r.sezioni[2]?.t||0}`,
+      deb?nC(deb[0]):'', new Date(r.data).toLocaleDateString('it-IT')].join(',');
+  });
+  const csv=[hdr,...rows].join('\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download=`risultati_${sessione}_${S.classe}.csv`; a.click();
+}
+
+// GESTIONE PASSWORD
+function costruisciPwRows(){
+  const classi=['3A','3B','3C'];
+  $('pw-rows').innerHTML=classi.map(cl=>`
+    <div class="pw-row">
+      <span class="pw-classe">${cl}</span>
+      <input class="pw-input" type="password" id="pw-input-${cl}" value="${getPW(cl)}" placeholder="Nuova password">
+      <button class="pw-toggle" onclick="togglePwVis('${cl}')" title="Mostra/Nascondi">👁️</button>
+    </div>`).join('');
+}
+
+function togglePwVis(cl){
+  const inp=$(`pw-input-${cl}`);
+  inp.type = inp.type==='password'?'text':'password';
+}
+
+function salvaPW(){
+  const classi=['3A','3B','3C'];
+  let errore=false;
+  classi.forEach(cl=>{
+    const val=$(`pw-input-${cl}`).value.trim();
+    if(!val){ errore=true; return; }
+    setPW(cl, val);
+  });
+  if(errore){ alert('Le password non possono essere vuote.'); return; }
+  const el=$('succ-pw');
+  el.textContent='✅ Password aggiornate con successo!';
+  el.style.display='block';
+  setTimeout(()=>el.style.display='none', 3000);
+}
+
+// URL PARAMS
+window.addEventListener('load',()=>{
+  const params=new URLSearchParams(window.location.search);
+  const prova=params.get('prova');
+  if(prova){ $('cod-prova').value=prova.toUpperCase(); }
+});
+</script>
+</body>
+</html>
