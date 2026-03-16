@@ -467,9 +467,540 @@ tr:hover td{background:var(--grigio-ch)}
       <div id="banner-no-prova" style="background:#fff8e1;border:2px solid var(--giallo);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#7a5800">
         ⚠️ Accesso diretto. Usa il link fornito dal docente su Classroom per accedere alla prova corretta.
       </div>
+
+      <!-- SELEZIONE CLASSE -->
+      <div class="fg" id="fg-classe">
+        <label class="flbl">La tua classe</label>
+        <select class="finp" id="sel-classe-stud" style="padding:11px 14px;font-size:15px;font-weight:700;cursor:pointer">
+          <option value="">— Seleziona la tua classe —</option>
+          <option value="3A">3A</option>
+          <option value="3E">3E</option>
+        </select>
+      </div>
+
       <div class="fg">
-        <label class="flbl">Codice studente</label>
-        <input class="finp" type="text" id="cod-stud" placeholder="es. Mario Rossi oppure 3A-07" autocomplete="off" maxlength="30">
+        <label class="flbl">Il tuo nome</label>
+        <input class="finp" type="text" id="cod-stud" placeholder="es. Mario Rossi" autocomplete="off" maxlength="30">
+      </div>
+      <button class="btn-acc" onclick="accStud()">Accedi alla prova →</button>
+      <div class="info-nota">⚠️ Non chiudere questa finestra. Alla seconda uscita la prova viene consegnata automaticamente.</div>
+    </div>
+    <div id="form-doc" class="hidden">
+      <div class="fg">
+        <label class="flbl">Password docente</label>
+        <input class="finp" type="password" id="pw-doc" placeholder="Password" autocomplete="off">
+      </div>
+      <button class="btn-acc" onclick="accDoc()">Accedi al pannello →</button>
+    </div>
+    <div class="err-msg" id="err-acc"></div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SCHERMO ISTRUZIONI
+════════════════════════════════════════════════════════ -->
+<div id="scr-istr" class="hidden">
+<div class="scr-istr">
+  <div class="istr-card">
+    <div class="istr-hdr">
+      <h2 id="istr-title">Prova INVALSI</h2>
+      <p id="istr-sub">Italiano – Grado 8 · 90 minuti</p>
+    </div>
+    <ul class="istr-list">
+      <li><span class="istr-ico">📖</span><span>Il <strong>testo del brano</strong> appare nella parte alta dello schermo. Le <strong>domande</strong> appaiono sotto (su PC: a destra). Puoi rileggere il testo in qualsiasi momento.</span></li>
+      <li><span class="istr-ico">🖱️</span><span>Tocca o clicca la risposta che ritieni corretta. Puoi cambiarla fino alla consegna.</span></li>
+      <li><span class="istr-ico">➡️</span><span>Usa i tasti <strong>Avanti</strong> e <strong>Indietro</strong> in fondo allo schermo per navigare tra le domande.</span></li>
+      <li><span class="istr-ico">⏱️</span><span>Il timer in alto diventa giallo a 10 minuti e rosso a 5 minuti.</span></li>
+      <li><span class="istr-ico">📊</span><span>A fine prova vedi il punteggio e puoi aprire le soluzioni o scaricare gli esercizi di recupero.</span></li>
+    </ul>
+    <div class="avv">⚠️ Non chiudere né minimizzare questa finestra. Prima uscita = avviso. Seconda uscita = prova consegnata automaticamente.</div>
+    <div class="istr-footer">
+      <div>
+        <div style="font-size:12px;color:#999">Studente</div>
+        <div style="font-weight:800;font-size:17px" id="istr-stud"></div>
+      </div>
+      <button class="btn btn-p" onclick="iniziaProva()" style="font-size:14px;padding:11px 28px">▶ Inizia la prova</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SCHERMO TEST
+════════════════════════════════════════════════════════ -->
+<div id="scr-test" class="hidden">
+  <div class="hdr">
+    <div class="hdr-top">
+      <div class="hdr-logo">
+        <div class="logo-box">INV</div>
+        <div class="hdr-title"><strong>Simulazione INVALSI</strong>Italiano · Grado 8</div>
+      </div>
+      <div class="timer-wrap">
+        <div class="timer-val" id="timer-disp">90:00</div>
+        <div class="timer-lbl">Tempo rimasto</div>
+      </div>
+    </div>
+    <div class="hdr-nav">
+      <span class="sez-badge" id="badge-sez">SEZ. A</span>
+      <span id="hdr-info" style="color:rgba(255,255,255,.8);font-size:12px">Domanda 1 di 35</span>
+    </div>
+  </div>
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sb-title">Navigazione</div>
+      <div id="nav-domande"></div>
+      <div class="legenda">
+        <div class="leg-item"><div class="leg-box" style="background:var(--blu)"></div>Attuale</div>
+        <div class="leg-item"><div class="leg-box" style="background:#e8f5e9;border:2px solid var(--verde)"></div>Risposta data</div>
+        <div class="leg-item"><div class="leg-box" style="background:#fff;border:2px solid var(--grigio)"></div>Non risposta</div>
+        <div class="leg-item"><div class="leg-box" style="background:#fffde7;border:2px solid var(--giallo)"></div>Segnata ⭐</div>
+      </div>
+      <button class="btn-cons-sb" onclick="mostraConsegna()">📤 Consegna prova</button>
+    </div>
+    <!-- TESTO (colonna sinistra) -->
+    <div class="testo-col" id="col-testo">
+      <div class="no-testo">
+        <div class="no-testo-ico">📄</div>
+        <div>Seleziona una domanda per vedere il testo di riferimento</div>
+      </div>
+    </div>
+    <!-- DOMANDA (colonna destra) -->
+    <div class="dom-col" id="col-dom"></div>
+  </div>
+
+  <!-- BARRA NAVIGAZIONE MOBILE — sempre visibile, solo su schermi < 1024px -->
+  <div id="mobile-nav-bar" style="display:none;position:fixed;bottom:0;left:0;right:0;
+    background:#fff;border-top:3px solid var(--blu);padding:10px 16px;z-index:1000;
+    box-shadow:0 -4px 16px rgba(0,0,0,.18);gap:10px;align-items:center;justify-content:space-between">
+    <button id="mnb-ind" class="btn btn-s" onclick="indietro()" style="flex:1;padding:12px;font-size:15px">← Indietro</button>
+    <div id="mnb-prog" style="font-size:13px;color:#888;font-weight:700;min-width:60px;text-align:center">1/35</div>
+    <button id="mnb-av"  class="btn btn-p" onclick="avanti()"   style="flex:1;padding:12px;font-size:15px">Avanti →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SCHERMO RISULTATI
+════════════════════════════════════════════════════════ -->
+<div id="scr-ris" class="hidden">
+<div class="scr-ris">
+
+  <!-- BLOCCO 1: PUNTEGGIO + 3 MACRO AREE -->
+  <div class="ris-card">
+    <div class="ris-hdr">
+      <div style="font-size:12px;opacity:.8;margin-bottom:3px" id="ris-sub"></div>
+      <div class="ris-score" id="ris-score">--</div>
+      <div class="ris-su" id="ris-su">su -- punti</div>
+      <div style="margin-top:6px;font-size:13px;opacity:.8" id="ris-pct"></div>
+    </div>
+    <!-- 3 macro-aree -->
+    <div class="ris-sez-grid" id="ris-sez"></div>
+    <!-- Barre 3 macro competenze (solo Lettura / Lessico / Grammatica aggregate) -->
+    <div style="padding:0 22px 22px" id="ris-macro-bars"></div>
+  </div>
+
+  <!-- BLOCCO 2: DUE BOTTONI -->
+  <div style="max-width:820px;width:100%;display:grid;grid-template-columns:1fr 1fr;gap:16px">
+
+    <!-- Bottone 1: Soluzioni -->
+    <button onclick="toggleSoluzioni()" class="ris-big-btn" id="btn-soluzioni" style="background:#fff;border:2px solid var(--blu);color:var(--blu)">
+      <div style="font-size:28px;margin-bottom:8px">📋</div>
+      <div style="font-size:16px;font-weight:800">Soluzioni della prova</div>
+      <div style="font-size:12px;margin-top:4px;opacity:.7">Vedi tutte le risposte corrette</div>
+    </button>
+
+    <!-- Bottone 2: Esercizi -->
+    <button onclick="toggleEsercizi()" class="ris-big-btn" id="btn-esercizi" style="background:#fff;border:2px solid var(--verde);color:var(--verde)">
+      <div style="font-size:28px;margin-bottom:8px">✏️</div>
+      <div style="font-size:16px;font-weight:800">Esercizi di recupero</div>
+      <div style="font-size:12px;margin-top:4px;opacity:.7">15 esercizi mirati · scaricabili</div>
+    </button>
+  </div>
+
+  <!-- PANNELLO SOLUZIONI (nascosto di default) -->
+  <div id="pannello-soluzioni" class="hidden" style="max-width:820px;width:100%">
+    <div style="background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.1);overflow:hidden">
+      <div style="background:var(--blu-s);color:#fff;padding:18px 24px;display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:16px;font-weight:800">📋 Soluzioni della prova</div>
+          <div style="font-size:12px;opacity:.8;margin-top:2px" id="sol-sub"></div>
+        </div>
+        <button onclick="toggleSoluzioni()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px;font-family:var(--font)">✕ Chiudi</button>
+      </div>
+      <div id="ris-detail" style="padding:24px;max-height:70vh;overflow-y:auto"></div>
+    </div>
+  </div>
+
+  <!-- PANNELLO ESERCIZI (nascosto di default) -->
+  <div id="pannello-esercizi" class="hidden" style="max-width:820px;width:100%">
+    <div class="eserc-card">
+      <div class="eserc-hdr" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div>
+          <h3>✏️ Esercizi di recupero personalizzati</h3>
+          <p>15 esercizi mirati sulle aree più deboli – completa a mano e consegna al docente</p>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <button onclick="scaricaEserciziPDF()" class="btn btn-g" style="font-size:13px;padding:9px 18px">⬇️ Scarica PDF esercizi</button>
+          <button onclick="toggleEsercizi()" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;padding:9px 14px;border-radius:6px;cursor:pointer;font-size:13px;font-family:var(--font)">✕ Chiudi</button>
+        </div>
+      </div>
+      <div id="lista-eserc"></div>
+      <div style="padding:12px 22px;font-size:12px;color:#888;font-style:italic;border-top:1px solid var(--grigio)">
+        Completa a mano, poi consegna al docente o allega su Google Classroom.
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SCHERMO DOCENTE
+════════════════════════════════════════════════════════ -->
+<div id="scr-doc" class="hidden">
+<div class="scr-doc">
+
+  <div class="doc-hdr">
+    <div class="doc-hdr-info">
+      <h2>Pannello Docente</h2>
+      <p id="doc-cl-lbl">Seleziona la classe da visualizzare</p>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-s" onclick="logout()" style="font-size:12px">Esci</button>
+    </div>
+  </div>
+
+  <!-- SELETTORE CLASSE -->
+  <div style="background:#fff;border-radius:10px;padding:14px 18px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.07);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <span style="font-size:13px;font-weight:700;color:#555">Classe:</span>
+    <button id="btn-cl-3A" class="btn btn-p" onclick="cambiaClasse('3A')" style="padding:7px 18px;font-size:14px">3A</button>
+    <button id="btn-cl-3E" class="btn btn-s" onclick="cambiaClasse('3E')" style="padding:7px 18px;font-size:14px">3E</button>
+    <button id="btn-cl-ALL" class="btn btn-s" onclick="cambiaClasse('ALL')" style="padding:7px 18px;font-size:14px">Tutte le classi</button>
+    <span id="lbl-classe-attiva" style="font-size:12px;color:#888;margin-left:4px"></span>
+  </div>
+
+  <div class="doc-tabs">
+    <button class="tab-btn att" onclick="mostraTab('tab-sess',this)">📋 Sessioni</button>
+    <button class="tab-btn" onclick="mostraTab('tab-analisi-sess',this)">🔍 Analisi sessione</button>
+    <button class="tab-btn" onclick="mostraTab('tab-analisi-prova',this)">📊 Analisi per prova</button>
+    <button class="tab-btn" onclick="mostraTab('tab-generale',this)">📈 Andamento generale</button>
+    <button class="tab-btn" onclick="mostraTab('tab-new',this)">➕ Nuova sessione</button>
+    <button class="tab-btn" onclick="mostraTab('tab-pw',this)">🔑 Password</button>
+    <button class="tab-btn" onclick="mostraTab('tab-import',this)">☁️ Importa</button>
+  </div>
+
+  <!-- ─── TAB: SESSIONI ──────────────────────────────────── -->
+  <div class="panel att" id="tab-sess">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Codice</th><th>Prova</th><th>Classe</th><th>Data</th><th>Studenti</th><th>Stato</th><th>Azioni</th></tr></thead>
+        <tbody id="tbody-sess"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ─── TAB: ANALISI SINGOLA SESSIONE ─────────────────── -->
+  <div class="panel" id="tab-analisi-sess">
+    <div style="background:#fff;border-radius:10px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.07);margin-bottom:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <select class="finp" id="sel-sess-analisi" style="max-width:340px;padding:9px 12px" onchange="caricaAnalisi()">
+        <option value="">-- Seleziona sessione da analizzare --</option>
+      </select>
+      <button class="btn btn-s" onclick="esportaCSV()" style="font-size:12px">📥 Esporta CSV</button>
+    </div>
+    <div id="analisi-contenuto" class="hidden">
+      <div id="analisi-riepilogo" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px"></div>
+      <div class="table-wrap" style="margin-bottom:20px">
+        <table>
+          <thead><tr><th>Studente</th><th>Classe</th><th>Punteggio</th><th>Lettura</th><th>Lessico</th><th>Grammatica</th><th>Punto debole</th><th>Azioni</th></tr></thead>
+          <tbody id="tbody-ris"></tbody>
+        </table>
+      </div>
+      <div style="background:#fff;border-radius:10px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.07);margin-bottom:20px">
+        <h3 style="font-size:14px;font-weight:700;color:var(--blu);margin-bottom:16px">📊 % risposte corrette per competenza</h3>
+        <div id="grafico-competenze"></div>
+      </div>
+      <div id="suggerimenti-box" style="background:#fff;border-radius:10px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.07)">
+        <h3 style="font-size:14px;font-weight:700;color:var(--blu);margin-bottom:14px">💡 Suggerimenti didattici per la classe</h3>
+        <div id="suggerimenti-contenuto"></div>
+      </div>
+    </div>
+    <div id="doc-ris-wrap" class="hidden doc-ris-wrap" style="margin-top:16px">
+      <div class="doc-ris-hdr">
+        <span id="doc-det-title" style="font-weight:700;font-size:14px">Dettaglio studente</span>
+        <button class="btn btn-s" style="font-size:11px;padding:4px 10px" onclick="$('doc-ris-wrap').classList.add('hidden')">✕ Chiudi</button>
+      </div>
+      <div class="doc-ris-body" id="doc-det-body"></div>
+    </div>
+  </div>
+
+  <!-- ─── TAB: ANALISI PER PROVA ────────────────────────── -->
+  <div class="panel" id="tab-analisi-prova">
+    <div style="background:#fff;border-radius:10px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.07);margin-bottom:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <select class="finp" id="sel-prova-analisi" style="max-width:340px;padding:9px 12px" onchange="caricaAnalisiProva()">
+        <option value="">-- Seleziona prova --</option>
+      </select>
+    </div>
+    <div id="analisi-prova-contenuto" class="hidden">
+      <!-- Riepilogo numerico -->
+      <div id="prova-riepilogo" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px"></div>
+      <!-- Confronto classi -->
+      <div style="background:#fff;border-radius:10px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.07);margin-bottom:20px">
+        <h3 style="font-size:14px;font-weight:700;color:var(--blu);margin-bottom:16px">🏫 Confronto tra classi</h3>
+        <div id="prova-confronto-classi"></div>
+      </div>
+      <!-- Classifica studenti -->
+      <div style="background:#fff;border-radius:10px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.07);margin-bottom:20px">
+        <h3 style="font-size:14px;font-weight:700;color:var(--blu);margin-bottom:16px">🏆 Classifica studenti</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px" id="prova-classifica-wrap">
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--verde);margin-bottom:8px">⬆️ Migliori risultati</div>
+            <div id="prova-top5"></div>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--rosso);margin-bottom:8px">⬇️ Necessitano supporto</div>
+            <div id="prova-bottom5"></div>
+          </div>
+        </div>
+      </div>
+      <!-- Competenze aggregate -->
+      <div style="background:#fff;border-radius:10px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.07)">
+        <h3 style="font-size:14px;font-weight:700;color:var(--blu);margin-bottom:16px">🎯 Competenze — media di tutti gli studenti</h3>
+        <div id="prova-competenze"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── TAB: ANDAMENTO GENERALE ──────────────────────── -->
+  <div class="panel" id="tab-generale">
+    <!-- KPI globali -->
+    <div id="gen-kpi" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px"></div>
+
+    <!-- Andamento nel tempo per classe -->
+    <div style="background:#fff;border-radius:10px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.07);margin-bottom:16px">
+      <h3 style="font-size:14px;font-weight:700;color:var(--blu);margin-bottom:14px">📈 Andamento nel tempo per classe</h3>
+      <div id="gen-andamento"></div>
+    </div>
+
+    <!-- Competenze aggregate globali -->
+    <div style="background:#fff;border-radius:10px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.07);margin-bottom:16px">
+      <h3 style="font-size:14px;font-weight:700;color:var(--blu);margin-bottom:14px">🎯 Competenze — punti di forza e debolezza globali</h3>
+      <div id="gen-competenze"></div>
+    </div>
+
+    <!-- Classifica globale studenti -->
+    <div style="background:#fff;border-radius:10px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.07);margin-bottom:16px">
+      <h3 style="font-size:14px;font-weight:700;color:var(--blu);margin-bottom:14px">🏆 Classifica generale studenti (media su tutte le prove)</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--verde);margin-bottom:8px">⬆️ Top 10 migliori</div>
+          <div id="gen-top10"></div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--rosso);margin-bottom:8px">⬇️ Top 10 necessitano supporto</div>
+          <div id="gen-bottom10"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Suggerimenti globali -->
+    <div style="background:#fff;border-radius:10px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.07)">
+      <h3 style="font-size:14px;font-weight:700;color:var(--blu);margin-bottom:14px">💡 Analisi e suggerimenti globali</h3>
+      <div id="gen-suggerimenti"></div>
+    </div>
+  </div>
+
+  <!-- ─── TAB: NUOVA SESSIONE ───────────────────────────── -->
+  <div class="panel" id="tab-new">
+    <div class="panel-card">
+      <h3>Crea nuova sessione</h3>
+      <div class="info-panel">
+        Il link generato include già la classe e la prova. Gli studenti inseriscono solo il loro nome.
+      </div>
+      <div class="fg">
+        <label class="flbl">Prova da somministrare</label>
+        <select class="finp" id="sel-prova-new" style="padding:9px 12px"></select>
+      </div>
+      <button class="btn btn-g" onclick="creaSessione()" style="width:100%;padding:11px;font-size:14px">✅ Crea sessione e genera link</button>
+      <div class="err-msg" id="err-new"></div>
+      <div class="succ-msg" id="succ-new"></div>
+    </div>
+  </div>
+
+  <!-- ─── TAB: PASSWORD ─────────────────────────────────── -->
+  <div class="panel" id="tab-pw">
+    <div class="panel-card">
+      <h3>🔑 Cambia password docente</h3>
+      <div class="info-panel">Password unica per accedere al pannello.</div>
+      <div class="fg">
+        <label class="flbl">Nuova password</label>
+        <div style="display:flex;gap:8px">
+          <input class="pw-input finp" type="password" id="pw-nuova" placeholder="Nuova password" style="flex:1">
+          <button class="btn btn-s" onclick="togglePwVis('nuova')" style="padding:8px 12px">👁️</button>
+        </div>
+      </div>
+      <div class="fg">
+        <label class="flbl">Conferma password</label>
+        <input class="pw-input finp" type="password" id="pw-conferma" placeholder="Ripeti la password">
+      </div>
+      <button class="btn btn-g" onclick="salvaPW()" style="width:100%;padding:11px">💾 Salva nuova password</button>
+      <div class="succ-msg" id="succ-pw"></div>
+      <div class="err-msg" id="err-pw" style="margin-top:10px"></div>
+    </div>
+  </div>
+
+  <!-- ─── TAB: IMPORTA DA SHEET ─────────────────────────── -->
+  <div class="panel" id="tab-import">
+    <div class="panel-card" style="max-width:640px">
+      <h3>☁️ Importa risultati dal Google Sheet</h3>
+      <div class="info-panel" style="margin-bottom:16px">
+        I risultati vengono salvati automaticamente sul Google Sheet quando gli studenti consegnano, da qualsiasi device. Importali qui per vederli nel pannello.
+      </div>
+      <div class="fg">
+        <label class="flbl">Sessione da importare</label>
+        <select class="finp" id="sel-import-sess" style="padding:9px 12px">
+          <option value="">-- Seleziona sessione --</option>
+        </select>
+      </div>
+      <button class="btn btn-p" onclick="importaDaSheet()" style="width:100%;padding:11px;font-size:14px;margin-bottom:12px">
+        ☁️ Leggi risultati dal Google Sheet
+      </button>
+      <div id="import-status" style="font-size:13px;color:#555;line-height:1.6;display:none"></div>
+      <div id="import-preview" style="margin-top:14px"></div>
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--grigio);font-size:11px;color:#aaa;line-height:1.6">
+        💡 Puoi anche aprire direttamente il foglio <em>"INVALSI RISULTATI BEAC"</em> nel tuo Google Drive per vedere tutti i dati in tempo reale.
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ═══ OVERLAY CONFERMA ELIMINA SESSIONE ═══════════════ -->
+<div class="overlay hidden" id="ov-del">
+  <div class="ov-card">
+    <div class="ov-ico">🗑️</div>
+    <div class="ov-title">Eliminare la sessione?</div>
+    <div class="ov-txt">La sessione <strong id="del-cod"></strong> e tutti i suoi risultati verranno eliminati definitivamente.</div>
+    <div class="ov-btns">
+      <button class="btn btn-s" onclick="$('ov-del').classList.add('hidden')">Annulla</button>
+      <button class="btn btn-r" onclick="confermaDel()">🗑️ Elimina</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ OVERLAY CONFERMA ELIMINA STUDENTE ════════════════ -->
+<div class="overlay hidden" id="ov-del-stud">
+  <div class="ov-card">
+    <div class="ov-ico">🗑️</div>
+    <div class="ov-title">Eliminare questo risultato?</div>
+    <div class="ov-txt">Il risultato di <strong id="del-stud-cod"></strong> dalla sessione <strong id="del-stud-sess"></strong> verrà eliminato definitivamente.</div>
+    <div class="ov-btns">
+      <button class="btn btn-s" onclick="$('ov-del-stud').classList.add('hidden')">Annulla</button>
+      <button class="btn btn-r" onclick="confermaDelStudente()">🗑️ Elimina</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ OVERLAY CONFERMA ELIMINA SESSIONE ═══════════════ -->
+<div class="overlay hidden" id="ov-del">
+  <div class="ov-card">
+    <div class="ov-ico">🗑️</div>
+    <div class="ov-title">Eliminare la sessione?</div>
+    <div class="ov-txt">La sessione <strong id="del-cod"></strong> e tutti i suoi risultati verranno eliminati definitivamente.</div>
+    <div class="ov-btns">
+      <button class="btn btn-s" onclick="$('ov-del').classList.add('hidden')">Annulla</button>
+      <button class="btn btn-r" onclick="confermaDel()">🗑️ Elimina</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ OVERLAY CONFERMA ELIMINA STUDENTE ════════════════ -->
+<div class="overlay hidden" id="ov-del-stud">
+  <div class="ov-card">
+    <div class="ov-ico">🗑️</div>
+    <div class="ov-title">Eliminare questo risultato?</div>
+    <div class="ov-txt">Il risultato di <strong id="del-stud-cod"></strong> dalla sessione <strong id="del-stud-sess"></strong> verrà eliminato definitivamente.</div>
+    <div class="ov-btns">
+      <button class="btn btn-s" onclick="$('ov-del-stud').classList.add('hidden')">Annulla</button>
+      <button class="btn btn-r" onclick="confermaDelStudente()">🗑️ Elimina</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SCHERMO ACCESSO
+════════════════════════════════════════════════════════ -->
+<!-- ═══ SCHERMATA BENVENUTO ANIMATA ══════════════════════ -->
+<div id="scr-benvenuto" style="position:fixed;inset:0;z-index:9998;background:linear-gradient(135deg,#001f5c 0%,#003f8a 50%,#1a5fa8 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;overflow:hidden">
+
+  <!-- Particelle sfondo -->
+  <div id="particelle" style="position:absolute;inset:0;pointer-events:none;overflow:hidden"></div>
+
+  <!-- Logo animato -->
+  <div id="bv-logo" style="width:90px;height:90px;background:rgba(255,255,255,.15);border:3px solid rgba(255,255,255,.4);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;color:#fff;letter-spacing:-2px;margin-bottom:24px;opacity:0;transform:scale(.5) translateY(30px);transition:all .7s cubic-bezier(.34,1.56,.64,1)">INV</div>
+
+  <!-- Testo scuola -->
+  <div id="bv-scuola" style="font-size:13px;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:3px;margin-bottom:10px;opacity:0;transform:translateY(20px);transition:all .6s ease .2s">I.C. Pasquale Sottocorno</div>
+
+  <!-- Titolo principale -->
+  <div id="bv-titolo" style="font-size:clamp(22px,5vw,36px);font-weight:900;color:#fff;text-align:center;line-height:1.2;margin-bottom:10px;opacity:0;transform:translateY(20px);transition:all .6s ease .35s">
+    Simulazioni INVALSI
+  </div>
+  <div id="bv-sottotitolo" style="font-size:clamp(14px,3vw,19px);color:rgba(255,255,255,.85);text-align:center;margin-bottom:32px;opacity:0;transform:translateY(20px);transition:all .6s ease .5s">
+    Italiano · Terza Media
+  </div>
+
+  <!-- Barra di caricamento -->
+  <div id="bv-barra-wrap" style="width:280px;height:4px;background:rgba(255,255,255,.2);border-radius:2px;overflow:hidden;margin-bottom:16px;opacity:0;transition:opacity .4s ease .7s">
+    <div id="bv-barra" style="height:100%;width:0%;background:linear-gradient(90deg,#4a90d9,#fff);border-radius:2px;transition:width 2s ease"></div>
+  </div>
+
+  <!-- Messaggio caricamento -->
+  <div id="bv-loading" style="font-size:12px;color:rgba(255,255,255,.6);letter-spacing:1px;opacity:0;transition:opacity .4s ease .7s">Caricamento prove in corso…</div>
+
+  <!-- Benvenuto finale -->
+  <div id="bv-benvenuto" style="position:absolute;bottom:40px;font-size:13px;color:rgba(255,255,255,.5);opacity:0;transition:opacity .6s ease">
+    Anno scolastico 2025–2026
+  </div>
+</div>
+
+<div id="scr-acc">
+<div class="scr-acc">
+  <div class="acc-card">
+    <div class="acc-logo">
+      <div class="acc-logo-box">INV</div>
+      <div class="acc-title">Simulazione INVALSI</div>
+      <div class="acc-sub">Italiano – Terza Media (Grado 8)</div>
+    </div>
+    <div class="tab-acc">
+      <button class="tab-acc-btn att" onclick="setTipoAcc('studente',this)">🎓 Studente</button>
+      <button class="tab-acc-btn" onclick="setTipoAcc('docente',this)">👩‍🏫 Docente</button>
+    </div>
+    <div id="form-stud">
+      <!-- Banner prova caricata dall'URL (visibile solo se link corretto) -->
+      <div id="banner-prova" class="hidden" style="background:#e8f5e9;border:2px solid var(--verde);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#1b5e20">
+        <div style="font-weight:700;margin-bottom:2px">📋 Prova assegnata:</div>
+        <div id="banner-prova-nome" style="font-size:15px;font-weight:800"></div>
+      </div>
+      <!-- Messaggio se accesso diretto senza link -->
+      <div id="banner-no-prova" style="background:#fff8e1;border:2px solid var(--giallo);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#7a5800">
+        ⚠️ Accesso diretto. Usa il link fornito dal docente su Classroom per accedere alla prova corretta.
+      </div>
+
+      <!-- SELEZIONE CLASSE -->
+      <div class="fg" id="fg-classe">
+        <label class="flbl">La tua classe</label>
+        <select class="finp" id="sel-classe-stud" style="padding:11px 14px;font-size:15px;font-weight:700;cursor:pointer">
+          <option value="">— Seleziona la tua classe —</option>
+          <option value="3A">3A</option>
+          <option value="3E">3E</option>
+        </select>
+      </div>
+
+      <div class="fg">
+        <label class="flbl">Il tuo nome</label>
+        <input class="finp" type="text" id="cod-stud" placeholder="es. Mario Rossi" autocomplete="off" maxlength="30">
       </div>
       <button class="btn-acc" onclick="accStud()">Accedi alla prova →</button>
       <div class="info-nota">⚠️ Non chiudere questa finestra. Alla seconda uscita la prova viene consegnata automaticamente.</div>
@@ -2690,6 +3221,412 @@ function confermaDelStudente(){
 }
 
 // RISULTATI
+// ══════════════════════════════════════════════════════════════
+//  ANALISI PANNELLO DOCENTE — versione completa
+//  3 livelli: sessione singola | per prova | andamento generale
+// ══════════════════════════════════════════════════════════════
+
+// ── HELPERS ANALISI ───────────────────────────────────────────
+function getRisultatiClasse(){
+  // Ritorna i risultati filtrati per la classe attiva (o tutti se ALL)
+  if(S.classe === 'ALL') return DB.risultati;
+  return DB.risultati.filter(r => r.classe === S.classe);
+}
+
+function kpiCard(ico, lbl, val, col='var(--blu)'){
+  return `<div style="background:#fff;border-radius:10px;padding:16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.07)">
+    <div style="font-size:26px">${ico}</div>
+    <div style="font-size:22px;font-weight:800;color:${col};margin:4px 0">${val}</div>
+    <div style="font-size:11px;color:#888">${lbl}</div>
+  </div>`;
+}
+
+function barraComp(comp, corrette, totale, errMedio){
+  const pct = totale > 0 ? Math.round(corrette/totale*100) : 0;
+  const col = pct >= 70 ? 'var(--verde)' : pct >= 40 ? 'var(--giallo)' : 'var(--rosso)';
+  return `<div style="margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">
+      <span>${nC(comp)}</span>
+      <span style="color:${col};font-weight:700">${pct}% corrette${errMedio!==undefined?' ('+errMedio+' err medi)':''}</span>
+    </div>
+    <div style="height:10px;background:var(--grigio);border-radius:5px;overflow:hidden">
+      <div style="height:100%;width:${pct}%;background:${col};border-radius:5px;transition:width .8s ease"></div>
+    </div>
+  </div>`;
+}
+
+function studenteCard(r, rank, tipo){
+  const col = tipo === 'top' ? 'var(--verde)' : 'var(--rosso)';
+  const cls = r.pct >= 70 ? 'v-h' : r.pct >= 40 ? 'v-m' : 'v-l';
+  return `<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--grigio-ch);border-radius:8px;margin-bottom:6px">
+    <div style="font-size:16px;font-weight:900;color:${col};min-width:28px;text-align:center">${rank}</div>
+    <div style="flex:1">
+      <div style="font-weight:700;font-size:13px">${r.codice}</div>
+      <div style="font-size:11px;color:#888">Classe ${r.classe}</div>
+    </div>
+    <span class="badge-v ${cls}">${r.pct}%</span>
+  </div>`;
+}
+
+// ── CAMBIO CLASSE ────────────────────────────────────────────
+function cambiaClasse(cl){
+  S.classe = cl;
+  ['3A','3E','ALL'].forEach(c=>{
+    const b = $(`btn-cl-${c}`);
+    if(b) b.className = c === cl ? 'btn btn-p' : 'btn btn-s';
+    if(b) b.style.cssText = 'padding:7px 18px;font-size:14px';
+  });
+  $('lbl-classe-attiva').textContent = cl === 'ALL' ? 'Visualizzando tutte le classi' : `Classe selezionata: ${cl}`;
+  $('doc-cl-lbl').textContent = cl === 'ALL' ? 'Tutte le classi' : `Classe: ${cl}`;
+  cambiaClassePanel(cl);
+  // Aggiorna tab generale automaticamente
+  aggiornaGenerale();
+}
+
+function cambiaClassePanel(cl){
+  aggiornaTabellaSessioni();
+  aggSelSessioni();
+  popolaSelImport();
+  popolaSelProvaAnalisi();
+  // Reset analisi aperta
+  $('analisi-contenuto').classList.add('hidden');
+  $('analisi-prova-contenuto').classList.add('hidden');
+}
+
+// ── SESSIONI ─────────────────────────────────────────────────
+function aggSelSessioni(){
+  const sel = $('sel-sess-analisi');
+  if(!sel) return;
+  const ris = getRisultatiClasse();
+  const sessiIds = [...new Set(ris.map(r=>r.sessione))];
+  // Aggiungi anche sessioni nel DB anche senza risultati
+  const tutteSessioni = Object.entries(DB.sessioni).filter(([,s])=>{
+    if(S.classe === 'ALL') return true;
+    return s.classe === S.classe;
+  });
+  const tutteKeys = [...new Set([...sessiIds, ...tutteSessioni.map(([k])=>k)])];
+  sel.innerHTML = '<option value="">-- Seleziona sessione --</option>' +
+    tutteKeys.map(cod=>{
+      const s = DB.sessioni[cod];
+      const p = s ? PROVE.find(x=>x.id===s.provaId) : null;
+      const n = ris.filter(r=>r.sessione===cod).length;
+      return `<option value="${cod}">${cod} – ${p?p.titolo:''} (${n} stud.)</option>`;
+    }).join('');
+}
+
+function aggiornaTabellaSessioni(){
+  const tbody = $('tbody-sess');
+  if(!tbody) return;
+  const tutteSessioni = Object.entries(DB.sessioni).filter(([,s])=>{
+    if(S.classe === 'ALL') return true;
+    return s.classe === S.classe;
+  });
+  if(!tutteSessioni.length){
+    tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:#aaa;padding:20px">Nessuna sessione. Usa "+ Nuova sessione".</td></tr>';
+    return;
+  }
+  tbody.innerHTML = tutteSessioni.map(([cod,s])=>{
+    const p = PROVE.find(x=>x.id===s.provaId);
+    const chiusa = !!s.chiusa;
+    const nStud = DB.risultati.filter(r=>r.sessione===cod).length;
+    const statoH = chiusa
+      ? `<span class="sessione-status status-chiusa"><span class="status-dot"></span>Chiusa</span>`
+      : `<span class="sessione-status status-attiva"><span class="status-dot"></span>Attiva</span>`;
+    return `<tr>
+      <td><strong>${cod}</strong></td>
+      <td>${p?p.titolo:'–'}</td>
+      <td><span style="font-weight:700;color:var(--blu)">${s.classe||'–'}</span></td>
+      <td>${new Date(s.data).toLocaleDateString('it-IT')}</td>
+      <td>${nStud}</td>
+      <td>${statoH}</td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn-link" onclick="copiaLink('${cod}')">📋 Link</button>
+        ${!chiusa?`<button class="btn-link" style="background:#fff8e1;color:#b45309;border-color:#f9a825" onclick="chiudiSessione('${cod}')">🔒 Chiudi</button>`:''}
+        <button class="btn-del" onclick="chiediDel('${cod}')">🗑️</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ── ANALISI SINGOLA SESSIONE ─────────────────────────────────
+function caricaAnalisi(){
+  const sessione = $('sel-sess-analisi').value;
+  if(!sessione){ $('analisi-contenuto').classList.add('hidden'); return; }
+  $('analisi-contenuto').classList.remove('hidden');
+
+  const risultati = DB.risultati.filter(r=>r.sessione===sessione);
+  const tbody = $('tbody-ris');
+
+  if(!risultati.length){
+    tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:#aaa;padding:20px">Nessun risultato ancora per questa sessione.</td></tr>';
+    $('analisi-riepilogo').innerHTML='';
+    $('grafico-competenze').innerHTML='<p style="color:#aaa;font-size:13px">Nessun dato disponibile.</p>';
+    $('suggerimenti-contenuto').innerHTML='';
+    return;
+  }
+
+  const avgPct = Math.round(risultati.reduce((s,r)=>s+r.pct,0)/risultati.length);
+  const maxPct = Math.max(...risultati.map(r=>r.pct));
+  const minPct = Math.min(...risultati.map(r=>r.pct));
+  const nPromossi = risultati.filter(r=>r.pct>=60).length;
+
+  $('analisi-riepilogo').innerHTML = [
+    kpiCard('👥','Studenti',risultati.length),
+    kpiCard('📊','Media classe',`${avgPct}%`, avgPct>=60?'var(--verde)':avgPct>=40?'var(--giallo)':'var(--rosso)'),
+    kpiCard('🏆','Punteggio più alto',`${maxPct}%`,'var(--verde)'),
+    kpiCard('📉','Punteggio più basso',`${minPct}%`,'var(--rosso)'),
+  ].join('');
+
+  tbody.innerHTML = risultati
+    .sort((a,b)=>b.pct-a.pct)
+    .map(r=>{
+      const cls = r.pct>=70?'v-h':r.pct>=40?'v-m':'v-l';
+      const deb = Object.entries(r.errori||{}).sort((a,b)=>b[1]-a[1])[0];
+      return `<tr>
+        <td><strong>${r.codice}</strong></td>
+        <td>${r.classe||'–'}</td>
+        <td><span class="badge-v ${cls}">${r.totale}/${r.su} (${r.pct}%)</span></td>
+        <td>${r.sezioni[0]?.c??'–'}/${r.sezioni[0]?.t??'–'}</td>
+        <td>${r.sezioni[1]?.c??'–'}/${r.sezioni[1]?.t??'–'}</td>
+        <td>${r.sezioni[2]?.c??'–'}/${r.sezioni[2]?.t??'–'}</td>
+        <td>${deb?nC(deb[0]):'–'}</td>
+        <td style="display:flex;gap:4px">
+          <button class="btn-link" style="font-size:11px" onclick="mostraDetDoc('${r.codice}','${sessione}')">🔍</button>
+          <button class="btn-del" style="font-size:11px" onclick="chiediDelStudente('${r.codice}','${sessione}')">🗑️</button>
+        </td>
+      </tr>`;
+    }).join('');
+
+  // Grafico competenze
+  const compTot = {};
+  const compN = {};
+  risultati.forEach(r=>{
+    Object.entries(r.errori||{}).forEach(([c,n])=>{
+      compTot[c] = (compTot[c]||0)+n;
+      compN[c] = (compN[c]||0)+1;
+    });
+  });
+  $('grafico-competenze').innerHTML = Object.entries(compTot)
+    .sort((a,b)=>b[1]-a[1])
+    .map(([c,tot])=>{
+      const avg = (tot/risultati.length).toFixed(1);
+      const pct = Math.max(0,100-Math.round(parseFloat(avg)*15));
+      return barraComp(c, pct, 100, avg);
+    }).join('') || '<p style="color:var(--verde);font-weight:700">✅ Nessuna area critica.</p>';
+
+  // Suggerimenti
+  renderSuggerimenti('suggerimenti-contenuto', Object.entries(compTot).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]));
+  aggiornaGenerale();
+}
+
+// ── ANALISI PER SINGOLA PROVA ─────────────────────────────────
+function popolaSelProvaAnalisi(){
+  const sel = $('sel-prova-analisi');
+  if(!sel) return;
+  const ris = getRisultatiClasse();
+  const provaIds = [...new Set(ris.map(r=>parseInt(r.sessione.replace('prova-',''))))].filter(n=>!isNaN(n));
+  sel.innerHTML = '<option value="">-- Seleziona prova --</option>' +
+    provaIds.sort((a,b)=>a-b).map(id=>{
+      const p = PROVE.find(x=>x.id===id);
+      const n = ris.filter(r=>r.sessione===`prova-${id}`).length;
+      return `<option value="${id}">${id}. ${p?p.titolo:''} (${n} stud.)</option>`;
+    }).join('');
+}
+
+function caricaAnalisiProva(){
+  const provaId = $('sel-prova-analisi').value;
+  if(!provaId){ $('analisi-prova-contenuto').classList.add('hidden'); return; }
+  $('analisi-prova-contenuto').classList.remove('hidden');
+
+  const sessKey = `prova-${provaId}`;
+  const tuttiRis = DB.risultati.filter(r=>r.sessione===sessKey);
+  const ris = S.classe==='ALL' ? tuttiRis : tuttiRis.filter(r=>r.classe===S.classe);
+
+  if(!ris.length){
+    $('prova-riepilogo').innerHTML='<p style="color:#aaa">Nessun risultato disponibile.</p>';
+    return;
+  }
+
+  const avgPct = Math.round(ris.reduce((s,r)=>s+r.pct,0)/ris.length);
+
+  // KPI
+  $('prova-riepilogo').innerHTML = [
+    kpiCard('👥','Studenti totali',ris.length),
+    kpiCard('📊','Media generale',`${avgPct}%`,avgPct>=60?'var(--verde)':avgPct>=40?'var(--giallo)':'var(--rosso)'),
+    kpiCard('🏆','Miglior punteggio',`${Math.max(...ris.map(r=>r.pct))}%`,'var(--verde)'),
+    kpiCard('⚠️','Sotto il 40%',ris.filter(r=>r.pct<40).length,'var(--rosso)'),
+  ].join('');
+
+  // Confronto classi
+  const classi = [...new Set(tuttiRis.map(r=>r.classe))].filter(Boolean);
+  $('prova-confronto-classi').innerHTML = classi.length > 1
+    ? classi.map(cl=>{
+        const rCl = tuttiRis.filter(r=>r.classe===cl);
+        const avg = Math.round(rCl.reduce((s,r)=>s+r.pct,0)/rCl.length);
+        const col = avg>=70?'var(--verde)':avg>=40?'var(--giallo)':'var(--rosso)';
+        return `<div style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+            <span style="font-weight:700">Classe ${cl} (${rCl.length} studenti)</span>
+            <span style="font-weight:800;color:${col}">${avg}%</span>
+          </div>
+          <div style="height:14px;background:var(--grigio);border-radius:7px;overflow:hidden">
+            <div style="height:100%;width:${avg}%;background:${col};border-radius:7px"></div>
+          </div>
+        </div>`;
+      }).join('')
+    : '<p style="color:#888;font-size:13px">Solo una classe ha fatto questa prova.</p>';
+
+  // Classifica
+  const sorted = [...ris].sort((a,b)=>b.pct-a.pct);
+  $('prova-top5').innerHTML    = sorted.slice(0,5).map((r,i)=>studenteCard(r,i+1,'top')).join('');
+  $('prova-bottom5').innerHTML = [...sorted].reverse().slice(0,5).map((r,i)=>studenteCard(r,i+1,'bottom')).join('');
+
+  // Competenze aggregate
+  const compTot={}, compN={};
+  ris.forEach(r=>Object.entries(r.errori||{}).forEach(([c,n])=>{
+    compTot[c]=(compTot[c]||0)+n;
+    compN[c]=(compN[c]||0)+1;
+  }));
+  $('prova-competenze').innerHTML = Object.entries(compTot)
+    .sort((a,b)=>b[1]-a[1])
+    .map(([c,tot])=>{
+      const avg=(tot/ris.length).toFixed(1);
+      const pct=Math.max(0,100-Math.round(parseFloat(avg)*15));
+      return barraComp(c,pct,100,avg);
+    }).join('') || '<p style="color:var(--verde);font-weight:700">✅ Nessuna area critica rilevante.</p>';
+}
+
+// ── ANDAMENTO GENERALE ────────────────────────────────────────
+function aggiornaGenerale(){
+  const ris = getRisultatiClasse();
+
+  if(!ris.length){
+    ['gen-kpi','gen-andamento','gen-competenze','gen-top10','gen-bottom10','gen-suggerimenti']
+      .forEach(id=>{ const el=$(id); if(el) el.innerHTML='<p style="color:#aaa;font-size:13px">Nessun dato disponibile.</p>'; });
+    return;
+  }
+
+  // KPI globali
+  const avgPct = Math.round(ris.reduce((s,r)=>s+r.pct,0)/ris.length);
+  const studenti = [...new Set(ris.map(r=>r.codice))].length;
+  const classi   = [...new Set(ris.map(r=>r.classe))].filter(Boolean);
+  const sessioni = [...new Set(ris.map(r=>r.sessione))].length;
+
+  $('gen-kpi').innerHTML = [
+    kpiCard('👥','Studenti totali',studenti),
+    kpiCard('📝','Prove completate',ris.length),
+    kpiCard('📊','Media generale',`${avgPct}%`,avgPct>=60?'var(--verde)':avgPct>=40?'var(--giallo)':'var(--rosso)'),
+    kpiCard('🏫','Sessioni svolte',sessioni),
+  ].join('');
+
+  // Andamento per classe nel tempo
+  const classiGrafico = S.classe==='ALL' ? classi : [S.classe];
+  const coloriClassi = {'3A':'var(--blu)','3E':'var(--verde)'};
+  let andH = '';
+  classiGrafico.forEach(cl=>{
+    const rCl = ris.filter(r=>r.classe===cl);
+    const provaIds = [...new Set(rCl.map(r=>parseInt(r.sessione.replace('prova-',''))))].filter(n=>!isNaN(n)).sort((a,b)=>a-b);
+    if(!provaIds.length) return;
+    andH += `<div style="margin-bottom:18px">
+      <div style="font-size:13px;font-weight:700;color:${coloriClassi[cl]||'var(--blu)'};margin-bottom:8px">Classe ${cl}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">`;
+    provaIds.forEach(pid=>{
+      const rP = rCl.filter(r=>r.sessione===`prova-${pid}`);
+      const avg = Math.round(rP.reduce((s,r)=>s+r.pct,0)/rP.length);
+      const p = PROVE.find(x=>x.id===pid);
+      const col = avg>=70?'var(--verde)':avg>=40?'var(--giallo)':'var(--rosso)';
+      andH += `<div style="background:var(--grigio-ch);border-radius:8px;padding:10px 14px;min-width:100px;text-align:center;border-left:4px solid ${col}">
+        <div style="font-size:10px;color:#888;margin-bottom:4px">Prova ${pid}</div>
+        <div style="font-size:20px;font-weight:800;color:${col}">${avg}%</div>
+        <div style="font-size:10px;color:#aaa">${rP.length} stud.</div>
+      </div>`;
+    });
+    andH += `</div></div>`;
+  });
+  $('gen-andamento').innerHTML = andH || '<p style="color:#aaa;font-size:13px">Nessun dato.</p>';
+
+  // Competenze aggregate globali
+  const compTot={};
+  ris.forEach(r=>Object.entries(r.errori||{}).forEach(([c,n])=>{
+    compTot[c]=(compTot[c]||0)+n;
+  }));
+  $('gen-competenze').innerHTML = Object.entries(compTot)
+    .sort((a,b)=>b[1]-a[1])
+    .map(([c,tot])=>{
+      const avg=(tot/ris.length).toFixed(1);
+      const pct=Math.max(0,100-Math.round(parseFloat(avg)*15));
+      return barraComp(c,pct,100,avg);
+    }).join('') || '<p style="color:var(--verde);font-weight:700">✅ Nessuna area critica rilevante.</p>';
+
+  // Classifica globale — media per studente su tutte le prove
+  const byStud = {};
+  ris.forEach(r=>{
+    const key = `${r.codice}__${r.classe}`;
+    if(!byStud[key]) byStud[key]={codice:r.codice,classe:r.classe,pcts:[],n:0};
+    byStud[key].pcts.push(r.pct);
+    byStud[key].n++;
+  });
+  const ranking = Object.values(byStud)
+    .map(s=>({...s, media:Math.round(s.pcts.reduce((a,b)=>a+b,0)/s.pcts.length)}))
+    .sort((a,b)=>b.media-a.media);
+
+  const toCard = (s,i,tipo)=>studenteCard({...s,pct:s.media},i+1,tipo);
+  $('gen-top10').innerHTML    = ranking.slice(0,10).map((s,i)=>toCard(s,i,'top')).join('');
+  $('gen-bottom10').innerHTML = [...ranking].reverse().slice(0,10).map((s,i)=>toCard(s,i,'bottom')).join('');
+
+  // Suggerimenti globali
+  const compDeboli = Object.entries(compTot).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]);
+  renderSuggerimenti('gen-suggerimenti', compDeboli, true);
+}
+
+// ── SUGGERIMENTI ──────────────────────────────────────────────
+function renderSuggerimenti(elId, compDeboli, globale=false){
+  const SUGG = {
+    comprensione_globale:'Esercitare la sintesi: proporre riassunti e titolazione di testi.',
+    comprensione_locale:'Esercizi di ricerca di informazioni esplicite. Abituare a sottolineare con criteri (chi, cosa, quando, dove).',
+    inferenza:'Allenare il ragionamento implicito: domande aperte su motivazioni dei personaggi, cause non dette, conseguenze logiche.',
+    struttura_testo:'Lavorare sui connettivi e sulla struttura dei paragrafi. Esercizi di ricostruzione dell\'ordine dei paragrafi.',
+    lessico:'Costruire mappe semantiche. Esercizi di sinonimi/contrari in contesto.',
+    lessico_contesto:'Lavorare sul significato figurato e sul lessico in contesto.',
+    morfologia:'Ripasso sistematico di modi e tempi verbali con schemi. Analisi grammaticale su frasi brevi.',
+    sintassi:'Analisi del periodo: individuare proposizioni principali e subordinate.',
+    ortografia:'Dettati mirati. Schemi riassuntivi su apostrofo, accento, maiuscole.',
+    punteggiatura:'Esercizi di inserimento punteggiatura in testi privi.',
+    coesione:'Lavorare sui pronomi di ripresa e sui connettivi.',
+  };
+  const el = $(elId);
+  if(!el) return;
+  el.innerHTML = compDeboli.length
+    ? compDeboli.map(c=>`
+        <div style="background:var(--grigio-ch);border-left:4px solid var(--az);padding:12px 16px;border-radius:4px;margin-bottom:12px">
+          <div style="font-weight:700;font-size:13px;color:var(--blu);margin-bottom:4px">🎯 ${nC(c)}</div>
+          <div style="font-size:13px;color:#444;line-height:1.6">${SUGG[c]||'Vedi quadro di riferimento INVALSI.'}</div>
+        </div>`).join('')
+    : '<p style="color:var(--verde);font-weight:700">✅ Nessuna area critica in questa sessione.</p>';
+}
+
+// ── POPOLADOCENTE ─────────────────────────────────────────────
+function popolaDocente(){
+  const selPanel = $('sel-cl-panel');
+  if(selPanel) selPanel.value = S.classe;
+  $('doc-cl-lbl').textContent = S.classe === 'ALL' ? 'Tutte le classi' : 'Classe: ' + S.classe;
+  $('sel-prova-new').innerHTML = PROVE.map(p=>`<option value="${p.id}">${p.id}. ${p.titolo}</option>`).join('');
+  aggiornaTabellaSessioni();
+  aggSelSessioni();
+  popolaSelImport();
+  popolaSelProvaAnalisi();
+  aggiornaGenerale();
+  // Aggiorna bottoni classe
+  ['3A','3E','ALL'].forEach(c=>{
+    const b = $(`btn-cl-${c}`);
+    if(b){
+      b.className = c === S.classe ? 'btn btn-p' : 'btn btn-s';
+      b.style.cssText = 'padding:7px 18px;font-size:14px';
+    }
+  });
+}
+
+
 // ── IMPORTA DA GOOGLE SHEET ───────────────────────────
 function popolaSelImport(){
   const sel = $('sel-import-sess');
@@ -3194,9 +4131,26 @@ window.addEventListener('load', () => {
     $('banner-prova').classList.remove('hidden');
     $('banner-no-prova').style.display = 'none';
   } else {
-    // Nessun link valido: mostra avviso
     $('banner-prova').classList.add('hidden');
     $('banner-no-prova').style.display = 'block';
+  }
+
+  // Se la classe è nel link: pre-seleziona e NASCONDI il menu
+  const selClasse = $('sel-classe-stud');
+  const fgClasse  = $('fg-classe');
+  if(classe && selClasse){
+    selClasse.value = classe;
+    // Sostituisce il menu con un badge classe visibile ma non modificabile
+    if(fgClasse){
+      fgClasse.innerHTML = `
+        <label class="flbl">La tua classe</label>
+        <div style="background:#e8f5e9;border:2px solid var(--verde);border-radius:var(--r);
+          padding:11px 14px;font-size:17px;font-weight:800;color:var(--verde);
+          display:flex;align-items:center;gap:8px">
+          🏫 Classe <span style="font-size:22px">${classe}</span>
+          <span style="font-size:12px;font-weight:400;color:#555;margin-left:4px">(dal link del docente)</span>
+        </div>`;
+    }
   }
 });
 </script>
