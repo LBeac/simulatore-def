@@ -1778,36 +1778,52 @@ function aggSidebar(){
 }
 
 // ── RENDER DOMANDA (layout affiancato) ─────────────────
+function isMobileLayout(){ return window.innerWidth < 1024; }
+
 function renderDom(idx){
   S.cur=idx;
   const domande=S.prova.domande, d=domande[idx];
   const dr=getDomRis(), pos=dr.indexOf(d);
+  const mobile = isMobileLayout();
 
   // Aggiorna header
   $('badge-sez').textContent = (CFG.sezLabel[d.sez]||'')+' ('+['A','B','C'][d.sez]+')';
   $('hdr-info').textContent  = d.tipo==='testo'
     ? CFG.sezNomi[d.sez]||'' : `Domanda ${pos+1} di ${dr.length}`;
 
-  // ── COLONNA TESTO ──────────────────────────────────
   const colTesto=$('col-testo');
+
+  // ── BLOCCO TESTO PURO ─────────────────────────────────
   if(d.tipo==='testo'){
-    // Il blocco testo va nella colonna testo
     colTesto.innerHTML=`<div class="brano-wrap">
       <div class="brano-tit">📄 ${d.tit||'Testo'}</div>
       <div class="brano-body">${d.testo}</div>
       ${d.fonte?`<div class="fonte-txt">${d.fonte}</div>`:''}
     </div>`;
-    // Colonna domanda: solo avanti
-    $('col-dom').innerHTML=`
-      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;padding:30px;text-align:center;color:#aaa">
-        <div style="font-size:40px">📖</div>
-        <div style="font-size:14px">Leggi il testo a sinistra, poi premi Avanti per le domande.</div>
-        <button class="btn btn-p" onclick="avanti()" style="margin-top:8px">Avanti →</button>
-      </div>`;
+
+    // Su mobile: bottone Avanti dentro col-dom sotto al testo
+    if(mobile){
+      $('col-dom').innerHTML=`
+        <div style="padding:18px 16px 20px;text-align:center">
+          <div style="font-size:13px;color:#888;margin-bottom:14px">
+            📖 Leggi il testo qui sopra, poi premi <strong>Avanti</strong> per le domande.
+          </div>
+          <button class="btn btn-p" onclick="avanti()" style="width:100%;padding:14px;font-size:16px;border-radius:10px">
+            Avanti → Le domande
+          </button>
+        </div>`;
+    } else {
+      $('col-dom').innerHTML=`
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;padding:30px;text-align:center;color:#aaa">
+          <div style="font-size:40px">📖</div>
+          <div style="font-size:14px">Leggi il testo a sinistra, poi premi Avanti per le domande.</div>
+          <button class="btn btn-p" onclick="avanti()" style="margin-top:8px">Avanti →</button>
+        </div>`;
+    }
     aggSidebar(); return;
   }
 
-  // Trova testo di riferimento
+  // ── DOMANDA: aggiorna colonna testo con brano di riferimento ──
   const ref=trovaRef(domande,idx);
   if(ref){
     colTesto.innerHTML=`<div class="brano-wrap">
@@ -1822,14 +1838,25 @@ function renderDom(idx){
     </div>`;
   }
 
-  // ── COLONNA DOMANDA ──────────────────────────────────
-  let html=`<div class="d-meta">
+  // Su mobile: mostra testo collassato con pulsante "Leggi testo" se presente
+  let testoMobileBtn = '';
+  if(mobile && ref){
+    testoMobileBtn = `<button onclick="toggleTestoMobile()" class="btn btn-s"
+      style="width:100%;margin-bottom:14px;font-size:13px;padding:8px 12px;text-align:left">
+      📄 <span id="lbl-testo-btn">Mostra testo di riferimento ▼</span>
+    </button>`;
+  }
+
+  // ── COSTRUISCE HTML DOMANDA ──────────────────────────
+  let html = testoMobileBtn;
+
+  html+=`<div class="d-meta">
     <div>
       <div class="d-num">Domanda ${pos+1}</div>
       <div class="d-comp">${nC(d.comp)}</div>
     </div>
     <button class="btn-seg ${S.segnati.has(d.id)?'att':''}" onclick="toggleSeg('${d.id}')">
-      ${S.segnati.has(d.id)?'⭐ Segnata':'☆ Segna'}
+      ${S.segnati.has(d.id)?'⭐':'☆ Segna'}
     </button>
   </div>
   <div class="d-testo">${d.testo}</div>`;
@@ -1845,85 +1872,170 @@ function renderDom(idx){
       oninput="salvaAp('${d.id}',this.value)">${S.risposte[d.id]||''}</textarea>`;
 
   } else if(d.tipo==='vf'){
-    // Vero / Falso a tabella — con etichette intelligenti
     const risp = S.risposte[d.id] || {};
-
-    // Rileva etichette personalizzate dal testo della domanda
     const tL = d.testo.toLowerCase();
-    let lbl1 = 'V', lbl2 = 'F', col1 = 'Vero', col2 = 'Falso';
-
+    let lbl1='V', lbl2='F', col1='Vero', col2='Falso';
     if(tL.includes('indicativo') && tL.includes('congiuntivo')){
       lbl1='I'; lbl2='C'; col1='Indicativo (I)'; col2='Congiuntivo (C)';
     } else if(tL.includes('certezza') && tL.includes('dubbio')){
       lbl1='C'; lbl2='D'; col1='Certezza (C)'; col2='Dubbio (D)';
     } else if(tL.includes('narrazione esterna') && tL.includes('interiore')){
-      lbl1='NE'; lbl2='IE'; col1='Narraz. esterna (NE)'; col2='Pensiero interiore (IE)';
+      lbl1='NE'; lbl2='IE'; col1='NE'; col2='IE';
+    }
+    // Su mobile: VF verticale (un'affermazione per riga con bottoni grandi)
+    if(mobile){
+      html+=`<div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">`;
+      d.righe.forEach((r,i)=>{
+        const selV=risp[i]==='V', selF=risp[i]==='F';
+        html+=`<div style="border:2px solid ${selV||selF?'var(--az)':'var(--grigio)'};border-radius:10px;padding:12px;background:${selV||selF?'#e8f0fb':'#fff'}">
+          <div style="font-size:13px;line-height:1.5;margin-bottom:10px;color:#222">
+            <strong>${String.fromCharCode(97+i)})</strong> ${r.t}
+          </div>
+          <div style="display:flex;gap:10px">
+            <button onclick="salvaVF('${d.id}',${i},'V')" style="flex:1;padding:10px;border:2px solid ${selV?'var(--verde)':'var(--grigio)'};background:${selV?'#e8f5e9':'#fff'};color:${selV?'var(--verde)':'#555'};border-radius:8px;font-weight:800;font-size:15px;cursor:pointer;font-family:var(--font)">${lbl1}</button>
+            <button onclick="salvaVF('${d.id}',${i},'F')" style="flex:1;padding:10px;border:2px solid ${selF?'var(--rosso)':'var(--grigio)'};background:${selF?'#fce4e4':'#fff'};color:${selF?'var(--rosso)':'#555'};border-radius:8px;font-weight:800;font-size:15px;cursor:pointer;font-family:var(--font)">${lbl2}</button>
+          </div>
+        </div>`;
+      });
+      html+=`</div>`;
+    } else {
+      html+=`<table class="vf-table"><thead><tr>
+        <th style="width:55%">Affermazione</th>
+        <th style="width:22%;text-align:center">${col1}</th>
+        <th style="width:23%;text-align:center">${col2}</th>
+      </tr></thead><tbody>`;
+      d.righe.forEach((r,i)=>{
+        const selV=risp[i]==='V', selF=risp[i]==='F';
+        html+=`<tr>
+          <td>${String.fromCharCode(97+i)}) ${r.t}</td>
+          <td style="text-align:center"><button class="vf-btn ${selV?'sel-v':''}" onclick="salvaVF('${d.id}',${i},'V')">${lbl1}</button></td>
+          <td style="text-align:center"><button class="vf-btn ${selF?'sel-f':''}" onclick="salvaVF('${d.id}',${i},'F')">${lbl2}</button></td>
+        </tr>`;
+      });
+      html+=`</tbody></table>`;
     }
 
-    html+=`<table class="vf-table"><thead><tr>
-      <th style="width:55%">Affermazione</th>
-      <th style="width:22%;text-align:center">${col1}</th>
-      <th style="width:23%;text-align:center">${col2}</th>
-    </tr></thead><tbody>`;
-    d.righe.forEach((r,i)=>{
-      const selV = risp[i]==='V', selF = risp[i]==='F';
-      html+=`<tr>
-        <td>${String.fromCharCode(97+i)}) ${r.t}</td>
-        <td style="text-align:center"><button class="vf-btn ${selV?'sel-v':''}" onclick="salvaVF('${d.id}',${i},'V')">${lbl1}</button></td>
-        <td style="text-align:center"><button class="vf-btn ${selF?'sel-f':''}" onclick="salvaVF('${d.id}',${i},'F')">${lbl2}</button></td>
-      </tr>`;
-    });
-    html+=`</tbody></table>`;
-
   } else if(d.tipo==='comp'){
-    // Completamento con parole
     html+=`<div class="parole-list">${d.parole.map(p=>`<span class="parola-chip">${p}</span>`).join('')}</div>
-      <div class="comp-nota">Scegli la parola corretta dal menu a tendina per completare ogni frase.</div>
+      <div class="comp-nota">Scegli la parola corretta dal menu per completare ogni frase.</div>
       <div style="margin-top:14px">`;
-    const risp = S.risposte[d.id] || {};
+    const risp=S.risposte[d.id]||{};
     d.gaps.forEach((g,i)=>{
-      html+=`<div style="margin-bottom:16px;line-height:2.2;font-size:15px">${g.prima}
-        <select class="comp-select" onchange="salvaComp('${d.id}',${i},this.value)">
-          <option value="">— scegli —</option>
-          ${d.parole.map((p,pi)=>`<option value="${pi}" ${risp[i]==pi?'selected':''}>${p}</option>`).join('')}
-        </select> ${g.dopo}</div>`;
+      if(mobile){
+        // Mobile: testo sopra, select sotto
+        html+=`<div style="margin-bottom:18px;background:var(--grigio-ch);border-radius:8px;padding:12px">
+          <div style="font-size:14px;line-height:1.7;margin-bottom:8px;color:#222">${g.prima} <span style="color:var(--az);font-weight:700">[ ? ]</span> ${g.dopo}</div>
+          <select class="comp-select" onchange="salvaComp('${d.id}',${i},this.value)" style="width:100%;font-size:16px;padding:8px;border:2px solid var(--az);border-radius:8px;background:#fff">
+            <option value="">— scegli —</option>
+            ${d.parole.map((p,pi)=>`<option value="${pi}" ${risp[i]==pi?'selected':''}>${p}</option>`).join('')}
+          </select>
+        </div>`;
+      } else {
+        html+=`<div style="margin-bottom:16px;line-height:2.2;font-size:15px">${g.prima}
+          <select class="comp-select" onchange="salvaComp('${d.id}',${i},this.value)">
+            <option value="">— scegli —</option>
+            ${d.parole.map((p,pi)=>`<option value="${pi}" ${risp[i]==pi?'selected':''}>${p}</option>`).join('')}
+          </select> ${g.dopo}</div>`;
+      }
     });
     html+=`</div>`;
 
   } else if(d.tipo==='col'){
-    // Collegamento colonne
-    const risp = S.risposte[d.id] || {};
-    const selSx = S._colSxSel && S._colSxSel.id===d.id ? S._colSxSel.idx : null;
-    html+=`<div style="font-size:12px;color:#888;margin-bottom:8px">Clicca un elemento a sinistra, poi uno a destra per collegarlo.</div>
-    <div class="col-wrap">
-      <div class="col-sx">`;
-    d.sx.forEach((item,i)=>{
-      const linked = Object.keys(risp).some(k=>parseInt(k)===i);
-      html+=`<div class="col-item ${linked?'linked':''} ${selSx===i?'sel':''}" onclick="colSelSx('${d.id}',${i})">${String.fromCharCode(65+i)}. ${item}</div>`;
-    });
-    html+=`</div><div class="col-arrows">`;
-    d.sx.forEach((_,i)=>{
-      const to = risp[i]; const linked = to!==undefined;
-      html+=`<div class="col-arrow ${linked?'linked':''}">${linked?'→':'·'}</div>`;
-    });
-    html+=`</div><div class="col-dx">`;
-    d.dx.forEach((item,j)=>{
-      const linked = Object.values(risp).some(v=>parseInt(v)===j);
-      html+=`<div class="col-item ${linked?'linked':''}" onclick="colSelDx('${d.id}',${j})">${j+1}. ${item}</div>`;
-    });
-    html+=`</div><div class="col-nota">Elementi collegati: ${Object.keys(risp).length}/${d.sx.length}</div></div>`;
+    const risp=S.risposte[d.id]||{};
+    const selSx=S._colSxSel&&S._colSxSel.id===d.id?S._colSxSel.idx:null;
+    if(mobile){
+      // Mobile: colonne impilate, prima sx poi dx
+      html+=`<div style="font-size:13px;color:#666;margin-bottom:10px;background:#fff8e1;padding:8px 12px;border-radius:8px;border-left:3px solid var(--giallo)">
+        👆 Tocca un elemento a <strong>sinistra</strong>, poi tocca quello a <strong>destra</strong> a cui vuoi collegarlo.
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--blu);text-transform:uppercase;margin-bottom:6px;text-align:center">Elementi</div>`;
+      d.sx.forEach((item,i)=>{
+        const linked=Object.keys(risp).some(k=>parseInt(k)===i);
+        const sel=selSx===i;
+        html+=`<div onclick="colSelSx('${d.id}',${i})"
+          style="padding:10px 8px;margin-bottom:6px;border:2px solid ${sel?'var(--blu)':linked?'var(--az)':'var(--grigio)'};background:${sel?'#dce8f8':linked?'#e8f0fb':'#fff'};border-radius:8px;font-size:13px;cursor:pointer;font-weight:${sel?'700':'400'}">
+          ${String.fromCharCode(65+i)}. ${item}${linked?` <span style="color:var(--az);font-size:11px">→${risp[i]!==undefined?risp[i]+1:''}</span>`:''}
+        </div>`;
+      });
+      html+=`</div><div>
+        <div style="font-size:11px;font-weight:700;color:var(--verde);text-transform:uppercase;margin-bottom:6px;text-align:center">Definizioni</div>`;
+      d.dx.forEach((item,j)=>{
+        const linked=Object.values(risp).some(v=>parseInt(v)===j);
+        html+=`<div onclick="colSelDx('${d.id}',${j})"
+          style="padding:10px 8px;margin-bottom:6px;border:2px solid ${linked?'var(--verde)':'var(--grigio)'};background:${linked?'#e8f5e9':'#fff'};border-radius:8px;font-size:13px;cursor:pointer">
+          ${j+1}. ${item}
+        </div>`;
+      });
+      html+=`</div></div>
+      <div style="font-size:12px;color:#888;margin-top:6px;text-align:right">Collegati: ${Object.keys(risp).length}/${d.sx.length}</div>`;
+    } else {
+      html+=`<div style="font-size:12px;color:#888;margin-bottom:8px">Clicca un elemento a sinistra, poi uno a destra per collegarlo.</div>
+      <div class="col-wrap">
+        <div class="col-sx">`;
+      d.sx.forEach((item,i)=>{
+        const linked=Object.keys(risp).some(k=>parseInt(k)===i);
+        html+=`<div class="col-item ${linked?'linked':''} ${selSx===i?'sel':''}" onclick="colSelSx('${d.id}',${i})">${String.fromCharCode(65+i)}. ${item}</div>`;
+      });
+      html+=`</div><div class="col-arrows">`;
+      d.sx.forEach((_,i)=>{
+        const to=risp[i]; const linked=to!==undefined;
+        html+=`<div class="col-arrow ${linked?'linked':''}">${linked?'→':'·'}</div>`;
+      });
+      html+=`</div><div class="col-dx">`;
+      d.dx.forEach((item,j)=>{
+        const linked=Object.values(risp).some(v=>parseInt(v)===j);
+        html+=`<div class="col-item ${linked?'linked':''}" onclick="colSelDx('${d.id}',${j})">${j+1}. ${item}</div>`;
+      });
+      html+=`</div><div class="col-nota">Elementi collegati: ${Object.keys(risp).length}/${d.sx.length}</div></div>`;
+    }
   }
 
-  html+=`<div class="nav-bottom">
+  // Bottoni navigazione — su mobile SEMPRE visibili inline + barra fissa
+  const navBtns = `
     <button class="btn btn-s" onclick="indietro()" ${idx===0?'disabled':''}>← Indietro</button>
     <div class="prog-txt">${pos>=0?pos+1+'/'+dr.length:''}</div>
     ${idx<domande.length-1
       ?`<button class="btn btn-p" onclick="avanti()">Avanti →</button>`
-      :`<button class="btn btn-r" onclick="mostraConsegna()">📤 Consegna</button>`}
-  </div>`;
+      :`<button class="btn btn-r" onclick="mostraConsegna()">📤 Consegna</button>`}`;
 
-  $('col-dom').innerHTML=html; aggSidebar();
-  $('col-dom').scrollTop=0;
+  // Su mobile: bottoni inline ben visibili (non solo fissi)
+  if(mobile){
+    html+=`<div style="display:flex;justify-content:space-between;align-items:center;
+      margin-top:24px;padding:14px 0;border-top:2px solid var(--grigio);gap:10px;flex-wrap:wrap">
+      ${navBtns}
+    </div>
+    <!-- Spazio extra per la barra fissa -->
+    <div style="height:20px"></div>`;
+  } else {
+    html+=`<div class="nav-bottom">${navBtns}</div>`;
+  }
+
+  $('col-dom').innerHTML=html;
+  aggSidebar();
+  // Scrolla all'inizio della colonna domanda
+  if(mobile){
+    window.scrollTo({top: $('col-testo').offsetHeight + 88, behavior:'smooth'});
+  } else {
+    $('col-dom').scrollTop=0;
+  }
+}
+
+// Toggle testo di riferimento su mobile
+function toggleTestoMobile(){
+  const testo = $('col-testo');
+  const lbl   = $('lbl-testo-btn');
+  if(!testo||!lbl) return;
+  const aperto = testo.style.maxHeight === 'none' || testo.style.maxHeight === '';
+  if(aperto){
+    testo.style.maxHeight='35vh';
+    lbl.textContent='Mostra testo di riferimento ▼';
+  } else {
+    testo.style.maxHeight='none';
+    lbl.textContent='Nascondi testo ▲';
+  }
+  testo.scrollTop=0;
 }
 
 function trovaRef(domande,idx){
