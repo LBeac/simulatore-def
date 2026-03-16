@@ -2,7 +2,10 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#001f5c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <title>Simulazione INVALSI – Italiano Terza Media</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
@@ -41,8 +44,174 @@ body{font-family:var(--font);background:var(--grigio-ch);color:var(--testo);font
 
 /* ── LAYOUT TEST: sidebar | testo | domande ────────────── */
 .layout{display:grid;grid-template-columns:220px 1fr 1fr;min-height:calc(100vh - 88px)}
-@media(max-width:900px){.layout{grid-template-columns:180px 1fr 1fr}}
-@media(max-width:700px){.layout{grid-template-columns:1fr}.sidebar{display:none}.testo-col{border-right:none}}
+/* ══════════════════════════════════════════════════════
+   RESPONSIVO COMPLETO — PC / Tablet / Mobile
+   Breakpoint: ≥1024 desktop | 600-1023 tablet | <600 mobile
+══════════════════════════════════════════════════════ */
+
+/* TABLET (600–1023px): sidebar nascosta, testo sopra domanda */
+@media(max-width:1023px){
+  .layout{display:block}
+  .sidebar{display:none}
+  .testo-col{
+    max-height:40vh; position:relative; top:0;
+    border-right:none; border-bottom:3px solid var(--az);
+    padding:14px 16px; overflow-y:auto;
+  }
+  .dom-col{
+    max-height:none; padding:16px 18px;
+    padding-bottom:90px; /* spazio barra fissa */
+    overflow-y:visible;
+  }
+  .brano-body{font-size:15px; line-height:1.9}
+  .d-testo{font-size:16px}
+  .opzione{font-size:15px; padding:12px 16px}
+  .vf-btn{width:46px; height:34px; font-size:13px}
+  .nav-bottom{
+    position:fixed; bottom:0; left:0; right:0;
+    background:#fff; border-top:2px solid var(--grigio);
+    padding:10px 16px; margin:0; z-index:800;
+    box-shadow:0 -4px 12px rgba(0,0,0,.12);
+  }
+  .btn{padding:11px 22px; font-size:14px}
+  .ris-sez-grid{grid-template-columns:repeat(3,1fr)}
+}
+
+/* MOBILE (< 600px): tutto in colonna, font e touch ottimizzati */
+@media(max-width:599px){
+  /* Header compatto */
+  .hdr-top{padding:6px 12px; gap:6px}
+  .logo-box{width:32px; height:32px; font-size:13px}
+  .hdr-title strong{font-size:13px}
+  .hdr-title{font-size:10px}
+  .timer-val{font-size:18px; letter-spacing:0}
+  .timer-wrap{padding:5px 9px; min-width:80px}
+  .hdr-nav{padding:3px 12px; font-size:10px}
+  .sez-badge{font-size:10px; padding:2px 7px}
+
+  /* Layout */
+  .layout{display:block}
+  .sidebar{display:none}
+  .testo-col{
+    max-height:35vh; position:relative; top:0;
+    border-right:none; border-bottom:3px solid var(--az);
+    padding:12px 14px; overflow-y:auto;
+  }
+  .dom-col{padding:12px 14px 90px; max-height:none; overflow-y:visible}
+
+  /* Testo brano */
+  .brano-tit{font-size:10px}
+  .brano-body{font-size:14px; line-height:1.8}
+
+  /* Domanda */
+  .d-testo{font-size:15px; line-height:1.5; margin-bottom:12px}
+  .d-num{font-size:11px}
+  .d-comp{font-size:10px}
+  .btn-seg{font-size:10px; padding:3px 7px}
+
+  /* Opzioni SM: grandi per tocco */
+  .opzione{font-size:14px; padding:12px 12px; gap:10px; border-radius:8px}
+  .op-lett{width:30px; height:30px; font-size:13px; flex-shrink:0}
+
+  /* Risposta aperta */
+  .input-ap{font-size:16px; min-height:80px}
+
+  /* VF: bottoni touch-friendly */
+  .vf-table th{padding:8px 6px; font-size:10px}
+  .vf-table td{padding:10px 6px; font-size:13px; line-height:1.4}
+  .vf-btn{width:50px; height:40px; font-size:13px; font-weight:800}
+
+  /* COMP: select a tutta larghezza su mobile */
+  .comp-select{
+    min-width:0; width:100%; display:block;
+    margin:6px 0; font-size:15px; padding:6px 8px;
+    border:2px solid var(--az); border-radius:6px;
+    background:#e8f0fb;
+  }
+  .comp-nota{font-size:11px}
+  .parole-list{gap:5px}
+  .parola-chip{font-size:12px; padding:3px 8px}
+
+  /* COL: colonne verticali su mobile */
+  .col-wrap{
+    grid-template-columns:1fr 28px 1fr;
+    gap:5px;
+  }
+  .col-item{font-size:12px; padding:8px 8px; min-height:38px}
+  .col-arrow{height:38px; font-size:14px}
+
+  /* Nav bottom fissa */
+  .nav-bottom{
+    position:fixed; bottom:0; left:0; right:0;
+    background:#fff; border-top:2px solid var(--grigio);
+    padding:8px 12px; margin:0; z-index:800;
+    box-shadow:0 -4px 12px rgba(0,0,0,.12);
+    gap:6px;
+  }
+  .btn{padding:10px 16px; font-size:13px}
+  .prog-txt{font-size:11px}
+
+  /* Risultati */
+  .ris-sez-grid{grid-template-columns:1fr; gap:8px}
+  .ris-score{font-size:48px}
+  .ris-hdr{padding:20px 16px}
+  .ris-big-btn{padding:18px 14px}
+
+  /* Istruzioni */
+  .istr-card{padding:20px 16px}
+  .istr-list li{font-size:12px}
+  .avv{font-size:12px}
+
+  /* Accesso */
+  .acc-card{padding:24px 18px}
+  .acc-title{font-size:16px}
+
+  /* Overlay */
+  .ov-card{padding:24px 18px}
+  .ov-title{font-size:16px}
+  .ov-txt{font-size:13px}
+}
+
+/* MOBILE MOLTO PICCOLO (<380px: iPhone SE, Android compatti) */
+@media(max-width:379px){
+  .testo-col{max-height:28vh}
+  .brano-body{font-size:13px; line-height:1.7}
+  .d-testo{font-size:13px}
+  .opzione{font-size:13px; padding:10px 10px}
+  .vf-btn{width:44px; height:38px; font-size:12px}
+  .btn{padding:9px 12px; font-size:12px}
+  .timer-val{font-size:15px}
+  .col-item{font-size:11px; padding:6px 5px}
+  .col-wrap{grid-template-columns:1fr 22px 1fr; gap:3px}
+}
+
+/* TOUCH: rimuovi hover e aumenta aree cliccabili */
+.has-touch .opzione:hover{border-color:var(--grigio); background:#fff}
+.has-touch .opzione:active{border-color:var(--blu); background:#dce8f8}
+.has-touch .btn:hover{opacity:1}
+.has-touch .btn:active{opacity:.8}
+.has-touch .vf-btn:hover{background:#fff; border-color:var(--grigio); color:var(--testo)}
+.has-touch .col-item:hover{border-color:var(--grigio); background:#fff}
+.has-touch .col-item:active{border-color:var(--az); background:#e8f0fb}
+
+/* iOS: fix per safe area (iPhone con notch/Dynamic Island) */
+.is-ios .nav-bottom{
+  padding-bottom:calc(10px + env(safe-area-inset-bottom));
+}
+.is-ios .hdr-top{
+  padding-top:calc(6px + env(safe-area-inset-top, 0px));
+}
+
+/* iOS: fix input zoom (iOS zoomma gli input con font < 16px) */
+.is-ios input, .is-ios select, .is-ios textarea{
+  font-size:16px !important;
+}
+
+/* Android: Chrome address bar variable height fix */
+.is-android .testo-col,
+.is-android .dom-col{
+  height: auto;
+}
 
 /* ── SIDEBAR ────────────────────────────────────────────── */
 .sidebar{background:#fff;border-right:2px solid var(--grigio);padding:14px;overflow-y:auto;max-height:calc(100vh - 88px);position:sticky;top:88px}
@@ -164,6 +333,23 @@ body{font-family:var(--font);background:var(--grigio-ch);color:var(--testo);font
 .ov-txt{font-size:14px;color:#555;margin-bottom:22px;line-height:1.6}
 .ov-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 
+/* ── RISULTATI NUOVI ─────────────────────────────────── */
+.ris-big-btn{border-radius:12px;padding:22px 18px;cursor:pointer;font-family:var(--font);text-align:center;transition:all .15s;box-shadow:0 2px 8px rgba(0,0,0,.07)}
+.ris-big-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.13)}
+
+/* Soluzioni - testo leggibile */
+#ris-detail{font-size:15px;line-height:1.7}
+#ris-detail .risp-sez-group{margin-bottom:20px}
+#ris-detail .risp-sez-hdr{font-size:12px;font-weight:700;text-transform:uppercase;color:#fff;background:var(--blu);padding:8px 14px;border-radius:6px;margin-bottom:10px;letter-spacing:.5px}
+#ris-detail .risp-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--grigio-ch);line-height:1.6}
+#ris-detail .risp-ico{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;margin-top:2px}
+#ris-detail .risp-ico.ok{background:#e8f5e9;color:var(--verde)}
+#ris-detail .risp-ico.no{background:#fce4e4;color:var(--rosso)}
+#ris-detail .risp-ico.sk{background:#fff8e1;color:var(--arancio)}
+#ris-detail .risp-q{color:#222;font-weight:600;margin-bottom:4px;font-size:15px}
+#ris-detail .risp-mia{font-size:13px;margin-top:2px}
+#ris-detail .risp-giusta{font-size:13px;color:var(--verde);font-weight:700}
+
 /* ── RISULTATI ───────────────────────────────────────────── */
 .scr-ris{min-height:100vh;background:var(--grigio-ch);padding:28px 20px;display:flex;flex-direction:column;align-items:center;gap:18px}
 .ris-card{background:#fff;border-radius:12px;max-width:820px;width:100%;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.1)}
@@ -172,6 +358,7 @@ body{font-family:var(--font);background:var(--grigio-ch);color:var(--testo);font
 .ris-su{font-size:18px;opacity:.8}
 .ris-sez-grid{padding:20px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 @media(max-width:560px){.ris-sez-grid{grid-template-columns:1fr}}
+@media(min-width:600px) and (max-width:1023px){.ris-sez-grid{grid-template-columns:repeat(3,1fr)}}
 .sez-card{border:2px solid var(--grigio);border-radius:var(--r);padding:14px;text-align:center}
 .sez-card h4{font-size:11px;text-transform:uppercase;color:#888;margin-bottom:7px;letter-spacing:.5px}
 .sez-pts{font-size:26px;font-weight:800;color:var(--blu)}
@@ -296,6 +483,19 @@ tr:hover td{background:var(--grigio-ch)}
   </div>
 </div>
 
+<!-- ═══ OVERLAY CONFERMA ELIMINA STUDENTE ════════════════ -->
+<div class="overlay hidden" id="ov-del-stud">
+  <div class="ov-card">
+    <div class="ov-ico">🗑️</div>
+    <div class="ov-title">Eliminare questo risultato?</div>
+    <div class="ov-txt">Il risultato di <strong id="del-stud-cod"></strong> dalla sessione <strong id="del-stud-sess"></strong> verrà eliminato definitivamente.</div>
+    <div class="ov-btns">
+      <button class="btn btn-s" onclick="$('ov-del-stud').classList.add('hidden')">Annulla</button>
+      <button class="btn btn-r" onclick="confermaDelStudente()">🗑️ Elimina</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════════════════════════════════════════════════
      SCHERMO ACCESSO
 ════════════════════════════════════════════════════════ -->
@@ -357,7 +557,7 @@ tr:hover td{background:var(--grigio-ch)}
       </div>
       <div class="fg">
         <label class="flbl">Codice studente</label>
-        <input class="finp" type="text" id="cod-stud" placeholder="es. 3A-07" autocomplete="off" maxlength="20">
+        <input class="finp" type="text" id="cod-stud" placeholder="es. Mario Rossi oppure 3A-07" autocomplete="off" maxlength="30">
       </div>
       <button class="btn-acc" onclick="accStud()">Accedi alla prova →</button>
       <div class="info-nota">⚠️ Non chiudere questa finestra. Alla seconda uscita la prova viene consegnata automaticamente.</div>
@@ -454,6 +654,7 @@ tr:hover td{background:var(--grigio-ch)}
 <div id="scr-ris" class="hidden">
 <div class="scr-ris">
 
+  <!-- BLOCCO 1: PUNTEGGIO + 3 MACRO AREE -->
   <div class="ris-card">
     <div class="ris-hdr">
       <div style="font-size:12px;opacity:.8;margin-bottom:3px" id="ris-sub"></div>
@@ -461,24 +662,62 @@ tr:hover td{background:var(--grigio-ch)}
       <div class="ris-su" id="ris-su">su -- punti</div>
       <div style="margin-top:6px;font-size:13px;opacity:.8" id="ris-pct"></div>
     </div>
+    <!-- 3 macro-aree -->
     <div class="ris-sez-grid" id="ris-sez"></div>
-    <div class="comp-bars" id="ris-comp"></div>
-    <div class="risp-detail" id="ris-detail"></div>
+    <!-- Barre 3 macro competenze (solo Lettura / Lessico / Grammatica aggregate) -->
+    <div style="padding:0 22px 22px" id="ris-macro-bars"></div>
   </div>
 
-  <div class="eserc-card">
-    <div class="eserc-hdr">
-      <h3>📝 Scheda di recupero personalizzata</h3>
-      <p>10 esercizi mirati sulle aree più deboli – da completare a mano e consegnare al docente</p>
-    </div>
-    <div id="lista-eserc"></div>
-    <div style="padding:12px 22px;font-size:11px;color:#888;font-style:italic;border-top:1px solid var(--grigio)">
-      Completa a mano, poi allega il PDF al compito su Google Classroom.
+  <!-- BLOCCO 2: DUE BOTTONI -->
+  <div style="max-width:820px;width:100%;display:grid;grid-template-columns:1fr 1fr;gap:16px">
+
+    <!-- Bottone 1: Soluzioni -->
+    <button onclick="toggleSoluzioni()" class="ris-big-btn" id="btn-soluzioni" style="background:#fff;border:2px solid var(--blu);color:var(--blu)">
+      <div style="font-size:28px;margin-bottom:8px">📋</div>
+      <div style="font-size:16px;font-weight:800">Soluzioni della prova</div>
+      <div style="font-size:12px;margin-top:4px;opacity:.7">Vedi tutte le risposte corrette</div>
+    </button>
+
+    <!-- Bottone 2: Esercizi -->
+    <button onclick="toggleEsercizi()" class="ris-big-btn" id="btn-esercizi" style="background:#fff;border:2px solid var(--verde);color:var(--verde)">
+      <div style="font-size:28px;margin-bottom:8px">✏️</div>
+      <div style="font-size:16px;font-weight:800">Esercizi di recupero</div>
+      <div style="font-size:12px;margin-top:4px;opacity:.7">15 esercizi mirati · scaricabili</div>
+    </button>
+  </div>
+
+  <!-- PANNELLO SOLUZIONI (nascosto di default) -->
+  <div id="pannello-soluzioni" class="hidden" style="max-width:820px;width:100%">
+    <div style="background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.1);overflow:hidden">
+      <div style="background:var(--blu-s);color:#fff;padding:18px 24px;display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:16px;font-weight:800">📋 Soluzioni della prova</div>
+          <div style="font-size:12px;opacity:.8;margin-top:2px" id="sol-sub"></div>
+        </div>
+        <button onclick="toggleSoluzioni()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px;font-family:var(--font)">✕ Chiudi</button>
+      </div>
+      <div id="ris-detail" style="padding:24px;max-height:70vh;overflow-y:auto"></div>
     </div>
   </div>
 
-  <div class="ris-btns">
-    <button class="btn btn-p" onclick="scaricaPDF()" style="font-size:14px;padding:12px 26px">⬇️ Scarica PDF completo</button>
+  <!-- PANNELLO ESERCIZI (nascosto di default) -->
+  <div id="pannello-esercizi" class="hidden" style="max-width:820px;width:100%">
+    <div class="eserc-card">
+      <div class="eserc-hdr" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div>
+          <h3>✏️ Esercizi di recupero personalizzati</h3>
+          <p>15 esercizi mirati sulle aree più deboli – completa a mano e consegna al docente</p>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <button onclick="scaricaEserciziPDF()" class="btn btn-g" style="font-size:13px;padding:9px 18px">⬇️ Scarica PDF esercizi</button>
+          <button onclick="toggleEsercizi()" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;padding:9px 14px;border-radius:6px;cursor:pointer;font-size:13px;font-family:var(--font)">✕ Chiudi</button>
+        </div>
+      </div>
+      <div id="lista-eserc"></div>
+      <div style="padding:12px 22px;font-size:12px;color:#888;font-style:italic;border-top:1px solid var(--grigio)">
+        Completa a mano, poi consegna al docente o allega su Google Classroom.
+      </div>
+    </div>
   </div>
 
 </div>
@@ -522,6 +761,7 @@ tr:hover td{background:var(--grigio-ch)}
     <button class="tab-btn" onclick="mostraTab('tab-generale',this)">📈 Analisi generale</button>
     <button class="tab-btn" onclick="mostraTab('tab-new',this)">➕ Nuova sessione</button>
     <button class="tab-btn" onclick="mostraTab('tab-pw',this)">🔑 Password</button>
+    <button class="tab-btn" onclick="mostraTab('tab-import',this)">☁️ Importa da Sheet</button>
   </div>
 
   <!-- TAB: SESSIONI -->
@@ -628,6 +868,39 @@ tr:hover td{background:var(--grigio-ch)}
       <button class="btn btn-g" onclick="salvaPW()" style="width:100%;padding:11px">💾 Salva nuova password</button>
       <div class="succ-msg" id="succ-pw"></div>
       <div class="err-msg" id="err-pw" style="margin-top:10px"></div>
+    </div>
+  </div>
+
+  <!-- TAB: IMPORTA DA SHEET -->
+  <div class="panel" id="tab-import">
+    <div class="panel-card" style="max-width:640px">
+      <h3>☁️ Importa risultati dal Google Sheet</h3>
+      <div class="info-panel" style="margin-bottom:16px">
+        I risultati degli studenti vengono salvati automaticamente sul Google Sheet quando consegnano la prova,
+        anche da browser o dispositivi diversi dal tuo. Usa questa funzione per importarli nel pannello docente
+        sul tuo computer.
+      </div>
+
+      <div class="fg">
+        <label class="flbl">Sessione da importare</label>
+        <select class="finp" id="sel-import-sess" style="padding:9px 12px">
+          <option value="">-- Seleziona sessione --</option>
+        </select>
+      </div>
+
+      <button class="btn btn-p" onclick="importaDaSheet()" style="width:100%;padding:11px;font-size:14px;margin-bottom:12px">
+        ☁️ Leggi risultati dal Google Sheet
+      </button>
+
+      <div id="import-status" style="font-size:13px;color:#555;line-height:1.6;display:none"></div>
+      <div id="import-preview" style="margin-top:14px"></div>
+
+      <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--grigio)">
+        <div style="font-size:11px;color:#aaa;line-height:1.6">
+          💡 Suggerimento: puoi anche aprire direttamente il Google Sheet dal tuo Drive per vedere tutti i risultati in tempo reale,
+          anche senza importarli qui.
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1384,20 +1657,31 @@ function accStud(){
   const cod = $('cod-stud').value.trim().toUpperCase();
   if(!cod){ showErr('err-acc','Inserisci il tuo codice studente (es. 3A-07).'); return; }
 
-  // Prova determinata dall'URL (?prova=3 oppure ?prova=3A-MAR26 → estrae il numero)
+  // Accetta qualsiasi codice/nome non vuoto (minimo 2 caratteri)
+  if(cod.length < 2){
+    showErr('err-acc','Inserisci almeno 2 caratteri (es. il tuo nome o codice).');
+    return;
+  }
+
   const provaId = S.provaIdDaURL || 1;
   const prova   = PROVE.find(p => p.id === provaId);
   if(!prova){ showErr('err-acc','Prova non trovata. Usa il link corretto fornito dal docente su Classroom.'); return; }
 
+  // Controlla se esiste una sessione docente attiva per questa prova+classe
+  const classeURL  = S.classeDaURL || '';
+  const sessKey    = `prova-${provaId}`;
+  const sessReale  = DB.sessioni[sessKey] && !DB.sessioni[sessKey].chiusa;
+  S.modoTest       = !sessReale;   // true se nessuna sessione docente attiva
+
   Object.assign(S, {
     stud: cod, prova,
-    sessione: `prova-${provaId}`,
-    classe: S.classeDaURL || '',
+    sessione: sessKey,
+    classe: classeURL,
     risposte:{}, segnati: new Set(), cur:0, uscite:0, calcolo:null
   });
   $('istr-title').textContent = prova.titolo;
   $('istr-sub').textContent   = `Italiano – Grado 8 · ${CFG.durata} minuti`;
-  $('istr-stud').textContent  = cod;
+  $('istr-stud').textContent  = cod + (S.modoTest ? ' (modalità demo)' : '');
   hideErr('err-acc');
   mostraScr('scr-istr');
 }
@@ -1425,6 +1709,7 @@ function iniziaProva(){
   renderDom(0);
   startTimer();
   attivaSicurezza();
+  gestisciTastieraMobile();
 }
 
 // ── TIMER ──────────────────────────────────────────────
@@ -1560,17 +1845,32 @@ function renderDom(idx){
       oninput="salvaAp('${d.id}',this.value)">${S.risposte[d.id]||''}</textarea>`;
 
   } else if(d.tipo==='vf'){
-    // Vero / Falso a tabella
+    // Vero / Falso a tabella — con etichette intelligenti
     const risp = S.risposte[d.id] || {};
+
+    // Rileva etichette personalizzate dal testo della domanda
+    const tL = d.testo.toLowerCase();
+    let lbl1 = 'V', lbl2 = 'F', col1 = 'Vero', col2 = 'Falso';
+
+    if(tL.includes('indicativo') && tL.includes('congiuntivo')){
+      lbl1='I'; lbl2='C'; col1='Indicativo (I)'; col2='Congiuntivo (C)';
+    } else if(tL.includes('certezza') && tL.includes('dubbio')){
+      lbl1='C'; lbl2='D'; col1='Certezza (C)'; col2='Dubbio (D)';
+    } else if(tL.includes('narrazione esterna') && tL.includes('interiore')){
+      lbl1='NE'; lbl2='IE'; col1='Narraz. esterna (NE)'; col2='Pensiero interiore (IE)';
+    }
+
     html+=`<table class="vf-table"><thead><tr>
-      <th style="width:60%">Affermazione</th><th style="width:20%;text-align:center">Vero</th><th style="width:20%;text-align:center">Falso</th>
+      <th style="width:55%">Affermazione</th>
+      <th style="width:22%;text-align:center">${col1}</th>
+      <th style="width:23%;text-align:center">${col2}</th>
     </tr></thead><tbody>`;
     d.righe.forEach((r,i)=>{
       const selV = risp[i]==='V', selF = risp[i]==='F';
       html+=`<tr>
         <td>${String.fromCharCode(97+i)}) ${r.t}</td>
-        <td style="text-align:center"><button class="vf-btn ${selV?'sel-v':''}" onclick="salvaVF('${d.id}',${i},'V')">V</button></td>
-        <td style="text-align:center"><button class="vf-btn ${selF?'sel-f':''}" onclick="salvaVF('${d.id}',${i},'F')">F</button></td>
+        <td style="text-align:center"><button class="vf-btn ${selV?'sel-v':''}" onclick="salvaVF('${d.id}',${i},'V')">${lbl1}</button></td>
+        <td style="text-align:center"><button class="vf-btn ${selF?'sel-f':''}" onclick="salvaVF('${d.id}',${i},'F')">${lbl2}</button></td>
       </tr>`;
     });
     html+=`</tbody></table>`;
@@ -1767,35 +2067,51 @@ function calcolaRisultati(){
 
   const pct=Math.round(corrette/tot*100);
 
-  // HEADER
+  // HEADER — banner demo se modalità test
+  const testBanner = S.modoTest
+    ? `<div style="background:#fff8e1;border:2px solid var(--giallo);border-radius:8px;padding:10px 16px;margin-bottom:14px;font-size:13px;color:#7a5800;text-align:center">
+        ⚠️ <strong>Modalità demo</strong> — nessuna sessione docente attiva. I risultati NON sono stati registrati né inviati.
+       </div>`
+    : '';
+
   $('ris-sub').textContent   = `${S.prova.titolo} • Studente: ${S.stud} • Classe: ${S.classe}`;
   $('ris-score').textContent = corrette;
   $('ris-su').textContent    = `su ${tot} punti`;
   $('ris-pct').textContent   = `${pct}% di risposte corrette`;
 
-  // SEZIONI
-  $('ris-sez').innerHTML=sez.map((s,i)=>`
-    <div class="sez-card">
-      <h4>${CFG.sezLabel[i]}</h4>
-      <div class="sez-pts">${s.c}</div>
-      <div class="sez-su-txt">su ${s.t}</div>
-    </div>`).join('');
+  // Inietta banner demo sopra la card risultati
+  const risSub = $('ris-sub');
+  if(risSub && S.modoTest){
+    risSub.insertAdjacentHTML('beforebegin', testBanner);
+  }
 
-  // BARRE COMPETENZE
+  // 3 MACRO AREE
+  $('ris-sez').innerHTML = sez.map((s,i)=>{
+    const p = s.t>0?Math.round(s.c/s.t*100):0;
+    const col = p>=70?'var(--verde)':p>=40?'var(--giallo)':'var(--rosso)';
+    return `<div class="sez-card">
+      <h4>${CFG.sezLabel[i]}</h4>
+      <div class="sez-pts" style="color:${col}">${s.c}</div>
+      <div class="sez-su-txt">su ${s.t} · ${p}%</div>
+    </div>`;
+  }).join('');
+
+  // BARRE MACRO (solo 3 aree, non le singole competenze)
   const tutteComp=[...new Set(dr.map(d=>d.comp).filter(Boolean))];
-  let bH='';
-  tutteComp.forEach(comp=>{
-    const err=errComp[comp]||0, dc=dr.filter(d=>d.comp===comp).length;
-    const c=dc-err, p=dc>0?Math.round(c/dc*100):100;
-    bH+=`<div class="bar-item">
-      <div class="bar-lbl"><span>${nC(comp)}</span><span>${c}/${dc}</span></div>
-      <div class="bar"><div class="bar-fill ${p>=70?'h':p>=40?'m':'l'}" style="width:${p}%"></div></div>
+  let macroH = '';
+  sez.forEach((s,i)=>{
+    const p = s.t>0?Math.round(s.c/s.t*100):0;
+    const col = p>=70?'var(--verde)':p>=40?'var(--giallo)':'var(--rosso)';
+    macroH += `<div class="bar-item">
+      <div class="bar-lbl"><span style="font-weight:700">${CFG.sezLabel[i]}</span><span style="color:${col};font-weight:700">${s.c}/${s.t} (${p}%)</span></div>
+      <div class="bar"><div class="bar-fill" style="width:${p}%;background:${col}"></div></div>
     </div>`;
   });
-  $('ris-comp').innerHTML=`<h3>Dettaglio per competenza</h3>${bH}`;
+  $('ris-macro-bars').innerHTML = macroH;
 
-  // REVISIONE RISPOSTE
-  let rH='<h3>Revisione completa delle risposte</h3>';
+  // PANNELLO SOLUZIONI (costruito ma nascosto)
+  $('sol-sub').textContent = `${S.prova.titolo} · ${S.stud} · ${new Date().toLocaleDateString('it-IT')}`;
+  let rH = '';
   [0,1,2].forEach(iSez=>{
     const ds=det.filter(x=>x.d.sez===iSez); if(!ds.length) return;
     rH+=`<div class="risp-sez-group"><div class="risp-sez-hdr">${CFG.sezNomi[iSez]}</div>`;
@@ -1803,28 +2119,30 @@ function calcolaRisultati(){
       const icoC=x.ok?'ok':(x.mia===undefined?'sk':'no');
       rH+=`<div class="risp-item">
         <div class="risp-ico ${icoC}">${x.ok?'✓':(x.mia===undefined?'–':'✗')}</div>
-        <div>
-          <div class="risp-q"><strong>${i+1}.</strong> ${x.d.testo.substring(0,85)}${x.d.testo.length>85?'…':''}</div>
-          <div class="risp-mia">La tua risposta: <span class="${x.ok?'ok':'no'}">${x.miaLbl}</span>
-          ${!x.ok?`&nbsp;→&nbsp;<span class="risp-giusta">✓ ${x.okLbl}</span>`:''}</div>
-          <div style="font-size:10px;color:#bbb">${nC(x.d.comp)}</div>
+        <div style="flex:1">
+          <div class="risp-q"><strong>${i+1}.</strong> ${x.d.testo.substring(0,100)}${x.d.testo.length>100?'…':''}</div>
+          <div class="risp-mia" style="margin-top:4px">
+            La tua risposta: <span style="font-weight:700;color:${x.ok?'var(--verde)':'var(--rosso)'}">${x.miaLbl}</span>
+            ${!x.ok?`&ensp;→&ensp;<span class="risp-giusta">✓ Corretta: ${x.okLbl}</span>`:''}
+          </div>
+          <div style="font-size:11px;color:#bbb;margin-top:2px">${nC(x.d.comp)}</div>
         </div>
       </div>`;
     });
     rH+=`</div>`;
   });
-  $('ris-detail').innerHTML=rH;
+  $('ris-detail').innerHTML = rH;
 
-  // ESERCIZI DI RECUPERO
+  // ESERCIZI DI RECUPERO (15, aree più deboli)
   const ordinate=Object.entries(errComp).sort((a,b)=>b[1]-a[1]);
-  const compDeboli=ordinate.slice(0,3).map(x=>x[0]);
+  const compDeboli=ordinate.slice(0,4).map(x=>x[0]); // prendi top 4 aree deboli
   let eH='', num=0; const usati=new Set();
   function addE(comp){
     (ESERC[comp]||[]).forEach((txt,pi)=>{
-      if(num>=10) return;
+      if(num>=15) return;
       const key=`${comp}_${pi}`; if(usati.has(key)) return; usati.add(key);
       eH+=`<div class="eserc-item">
-        <div class="eserc-num">Esercizio ${num+1}</div>
+        <div class="eserc-num">Esercizio ${num+1} di 15</div>
         <div class="eserc-comp-badge">${nC(comp)}</div>
         <div class="eserc-testo">${txt}</div>
         <div class="riga-risp"></div>
@@ -1834,28 +2152,136 @@ function calcolaRisultati(){
     });
   }
   compDeboli.forEach(addE);
-  if(num<10) Object.keys(ESERC).forEach(c=>{if(num>=10||compDeboli.includes(c)) return; addE(c);});
-  $('lista-eserc').innerHTML=eH||'<div style="padding:20px;color:#aaa">Ottimo lavoro, nessun esercizio di recupero necessario!</div>';
+  // Completa fino a 15 con altre competenze
+  Object.keys(ESERC).forEach(c=>{
+    if(num>=15||compDeboli.includes(c)) return;
+    addE(c);
+  });
+  $('lista-eserc').innerHTML = eH||'<div style="padding:24px;color:var(--verde);font-weight:700;text-align:center">✅ Ottimo lavoro! Nessuna area critica.</div>';
 
-  // SALVATAGGIO
+  // SALVATAGGIO — solo se sessione docente reale
   S.calcolo={corrette,tot,pct,sez,errComp,compDeboli,det,tutteComp};
-  const entry={
-    codice:S.stud, sessione:S.sessione, classe:S.classe,
-    totale:corrette, su:tot, pct, sezioni:sez, errori:errComp,
-    data:new Date().toISOString(),
-    det:det.map(x=>({id:x.d.id, testo:x.d.testo, ok:x.ok, mia:x.miaLbl, corretta:x.okLbl, comp:x.d.comp, sez:x.d.sez}))
-  };
-  DB.risultati.push(entry);
-  if(DB.sessioni[S.sessione]) DB.sessioni[S.sessione].studenti=(DB.sessioni[S.sessione].studenti||0)+1;
-  saveDB();
 
-  // ── INVIO AUTOMATICO AL GOOGLE SHEET ──────────────────
-  inviaARisultatiSheet(entry);
+  if(!S.modoTest){
+    const entry={
+      codice:S.stud, sessione:S.sessione, classe:S.classe,
+      totale:corrette, su:tot, pct, sezioni:sez, errori:errComp,
+      data:new Date().toISOString(),
+      det:det.map(x=>({id:x.d.id, testo:x.d.testo, ok:x.ok, mia:x.miaLbl, corretta:x.okLbl, comp:x.d.comp, sez:x.d.sez}))
+    };
+    DB.risultati.push(entry);
+    if(DB.sessioni[S.sessione]) DB.sessioni[S.sessione].studenti=(DB.sessioni[S.sessione].studenti||0)+1;
+    saveDB();
+    inviaARisultatiSheet(entry);
+  }
 }
 
-// ══════════════════════════════════════════════════════
-//  PDF COMPLETO
-// ══════════════════════════════════════════════════════
+// ── TOGGLE PANNELLI RISULTATI ──────────────────────────
+function toggleSoluzioni(){
+  const p=$('pannello-soluzioni'), b=$('btn-soluzioni');
+  const aperto = !p.classList.contains('hidden');
+  p.classList.toggle('hidden');
+  // Chiudi l'altro se aperto
+  $('pannello-esercizi').classList.add('hidden');
+  $('btn-esercizi').style.background='#fff';
+  // Stile bottone attivo
+  b.style.background = aperto ? '#fff' : 'var(--blu)';
+  b.style.color      = aperto ? 'var(--blu)' : '#fff';
+  if(!aperto) p.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function toggleEsercizi(){
+  const p=$('pannello-esercizi'), b=$('btn-esercizi');
+  const aperto = !p.classList.contains('hidden');
+  p.classList.toggle('hidden');
+  // Chiudi l'altro se aperto
+  $('pannello-soluzioni').classList.add('hidden');
+  $('btn-soluzioni').style.background='#fff';
+  $('btn-soluzioni').style.color='var(--blu)';
+  // Stile bottone attivo
+  b.style.background = aperto ? '#fff' : 'var(--verde)';
+  b.style.color      = aperto ? 'var(--verde)' : '#fff';
+  if(!aperto) p.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+// ── PDF ESERCIZI SICURO (solo esercizi, senza soluzioni) ───
+function scaricaEserciziPDF(){
+  const {jsPDF}=window.jspdf;
+  if(!S.calcolo){ alert('Completa la prova prima di scaricare gli esercizi.'); return; }
+  const r=S.calcolo;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  function chY(y,n=14){ if(y>280-n){doc.addPage();return 22;} return y; }
+
+  // INTESTAZIONE
+  doc.setFillColor(27,94,32); doc.rect(0,0,210,34,'F');
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(16); doc.setFont('helvetica','bold');
+  doc.text('ESERCIZI DI STUDIO MIRATO',20,13);
+  doc.setFontSize(10); doc.setFont('helvetica','normal');
+  doc.text('I.C. Pasquale Sottocorno · Simulazione INVALSI – Italiano Terza Media',20,22);
+  doc.setFontSize(9);
+  doc.text(`Studente: ${S.stud}  |  Classe: ${S.classe}  |  Prova: ${S.prova.titolo}  |  Data: ${new Date().toLocaleDateString('it-IT')}`,20,30);
+
+  // AREE DI RECUPERO
+  let y = 44;
+  doc.setTextColor(27,94,32); doc.setFontSize(11); doc.setFont('helvetica','bold');
+  doc.text('Aree su cui lavorare:', 20, y); y+=7;
+  doc.setTextColor(60,60,60); doc.setFont('helvetica','normal'); doc.setFontSize(10);
+  r.compDeboli.forEach((c,i)=>{
+    doc.text(`${i+1}. ${nC(c)}`, 26, y); y+=6;
+  });
+  y+=4;
+  doc.setDrawColor(200,200,200); doc.line(15,y,195,y); y+=8;
+
+  // ISTRUZIONI
+  doc.setFontSize(9); doc.setTextColor(100,100,100);
+  doc.text('Completa gli esercizi a mano nello spazio indicato. Poi consegna questo foglio al docente.',20,y); y+=10;
+
+  // ESERCIZI (senza soluzioni)
+  let numEs=0; const usatiP=new Set();
+  const COMP_ORDER=[...r.compDeboli, ...Object.keys(ESERC).filter(c=>!r.compDeboli.includes(c))];
+
+  COMP_ORDER.forEach(comp=>{
+    (ESERC[comp]||[]).forEach((txt,pi)=>{
+      if(numEs>=15) return;
+      const key=`${comp}_${pi}`; if(usatiP.has(key)) return; usatiP.add(key);
+
+      y=chY(y,42);
+
+      // Numero e area
+      doc.setFillColor(232,245,233); doc.rect(15,y-4,180,8,'F');
+      doc.setTextColor(27,94,32); doc.setFontSize(9); doc.setFont('helvetica','bold');
+      doc.text(`Esercizio ${numEs+1}  ·  ${nC(comp)}`,20,y); y+=9;
+
+      // Testo esercizio
+      doc.setTextColor(30,30,30); doc.setFont('helvetica','normal'); doc.setFontSize(9);
+      const righe=doc.splitTextToSize(txt,168);
+      righe.forEach(r2=>{ y=chY(y,6); doc.text(r2,20,y); y+=5.5; });
+
+      // Riga risposta
+      y=chY(y,14);
+      doc.setFontSize(8); doc.setTextColor(130,130,130);
+      doc.text('Risposta:',20,y+5);
+      doc.setDrawColor(120,120,120); doc.line(44,y+5,190,y+5);
+      y+=12;
+      doc.setDrawColor(220,220,220); doc.line(15,y,195,y); y+=6;
+
+      numEs++;
+    });
+  });
+
+  // FOOTER su ogni pagina
+  const pp=doc.internal.getNumberOfPages();
+  for(let p=1;p<=pp;p++){
+    doc.setPage(p);
+    doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(160,160,160);
+    doc.text(`I.C. Pasquale Sottocorno · Esercizi di recupero INVALSI · ${S.stud} · Pag. ${p}/${pp}`,105,292,{align:'center'});
+  }
+
+  // Filename sicuro: nessun riferimento alle risposte
+  const fn=`Esercizi_INVALSI_${S.stud}_${S.classe}_${new Date().toLocaleDateString('it-IT').replace(/\//g,'-')}.pdf`;
+  doc.save(fn);
+}
 function scaricaPDF(){
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
@@ -1994,6 +2420,7 @@ function popolaDocente(){
   $('sel-prova-new').innerHTML=PROVE.map(p=>`<option value="${p.id}">${p.id}. ${p.titolo}</option>`).join('');
   aggSelSessioni();
   aggiornaTabellaSessioni();
+  popolaSelImport();
 }
 
 function aggSelSessioni(){
@@ -2099,11 +2526,108 @@ function confermaDel(){
   $('ov-del').classList.add('hidden');
   S.delTarget=null;
   popolaDocente();
-  // Chiudi eventuale dettaglio aperto
   $('doc-ris-wrap').classList.add('hidden');
 }
 
+// ELIMINA SINGOLO RISULTATO STUDENTE
+function chiediDelStudente(codice, sessione){
+  S.delStudTarget={codice, sessione};
+  $('del-stud-cod').textContent=codice;
+  $('del-stud-sess').textContent=sessione;
+  $('ov-del-stud').classList.remove('hidden');
+}
+
+function confermaDelStudente(){
+  const t=S.delStudTarget; if(!t) return;
+  DB.risultati=DB.risultati.filter(r=>!(r.codice===t.codice && r.sessione===t.sessione));
+  // Aggiorna conteggio studenti nella sessione
+  if(DB.sessioni[t.sessione])
+    DB.sessioni[t.sessione].studenti=DB.risultati.filter(r=>r.sessione===t.sessione).length;
+  saveDB();
+  $('ov-del-stud').classList.add('hidden');
+  S.delStudTarget=null;
+  // Ricarica l'analisi
+  caricaAnalisi();
+  aggiornaTabellaSessioni();
+}
+
 // RISULTATI
+// ── IMPORTA DA GOOGLE SHEET ───────────────────────────
+function popolaSelImport(){
+  const sel = $('sel-import-sess');
+  if(!sel) return;
+  const sessClasse = Object.entries(DB.sessioni).filter(([,s])=>s.classe===S.classe);
+  sel.innerHTML = '<option value="">-- Seleziona sessione --</option>' +
+    sessClasse.map(([cod,s])=>{
+      const p = PROVE.find(x=>x.id===s.provaId);
+      return `<option value="${cod}">${cod} – ${p?p.titolo:''}</option>`;
+    }).join('');
+}
+
+async function importaDaSheet(){
+  const sessione = $('sel-import-sess').value;
+  const status   = $('import-status');
+  const preview  = $('import-preview');
+  if(!sessione){
+    status.textContent='⚠️ Seleziona prima una sessione.';
+    status.style.display='block'; return;
+  }
+  status.innerHTML='⏳ Connessione al Google Sheet…';
+  status.style.color='#555'; status.style.display='block';
+  preview.innerHTML='';
+  try{
+    const url=`${SCRIPT_URL}?action=leggi&sessione=${encodeURIComponent(sessione)}`;
+    const resp=await fetch(url,{method:'GET'});
+    if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data=await resp.json();
+    if(!data||!data.risultati||!data.risultati.length){
+      status.innerHTML=`⚠️ Nessun risultato sul Sheet per la sessione <strong>${sessione}</strong>.`;
+      status.style.color='#b45309'; return;
+    }
+    let nuovi=0,agg=0;
+    data.risultati.forEach(r=>{
+      const idx=DB.risultati.findIndex(x=>x.codice===r.codice&&x.sessione===r.sessione);
+      const entry={codice:r.codice,sessione:r.sessione,classe:r.classe||S.classe,
+        totale:Number(r.totale)||0,su:Number(r.su)||0,pct:Number(r.pct)||0,
+        sezioni:r.sezioni||[{c:0,t:0},{c:0,t:0},{c:0,t:0}],
+        errori:r.errori||{},data:r.data||new Date().toISOString(),det:r.det||[]};
+      if(idx>=0){DB.risultati[idx]=entry;agg++;}
+      else{DB.risultati.push(entry);nuovi++;}
+    });
+    if(DB.sessioni[sessione])
+      DB.sessioni[sessione].studenti=DB.risultati.filter(r=>r.sessione===sessione).length;
+    saveDB();
+    status.innerHTML=`✅ Importati: <strong>${nuovi} nuovi</strong>, ${agg} aggiornati.`;
+    status.style.color='var(--verde)';
+    const importati=DB.risultati.filter(r=>r.sessione===sessione);
+    let tH=`<div class="table-wrap" style="margin-top:12px"><table>
+      <thead><tr><th>Studente</th><th>Punteggio</th><th>%</th><th>Data</th></tr></thead><tbody>`;
+    importati.forEach(r=>{
+      const cls=r.pct>=70?'v-h':r.pct>=40?'v-m':'v-l';
+      tH+=`<tr><td><strong>${r.codice}</strong></td>
+        <td><span class="badge-v ${cls}">${r.totale}/${r.su}</span></td>
+        <td>${r.pct}%</td><td>${new Date(r.data).toLocaleDateString('it-IT')}</td></tr>`;
+    });
+    preview.innerHTML=tH+`</tbody></table></div>`;
+    aggiornaTabellaSessioni(); aggSelSessioni();
+  } catch(err){
+    status.innerHTML=`
+      <div style="background:#fce4e4;border:1px solid #ef9a9a;padding:14px;border-radius:8px;color:var(--rosso)">
+        <strong>⚠️ Lettura automatica non riuscita</strong><br><br>
+        Il browser blocca la lettura diretta del Sheet per motivi di sicurezza (CORS).<br><br>
+        <strong>Per vedere i risultati ora:</strong><br>
+        • Apri <strong>Google Drive</strong> → foglio <em>"INVALSI RISULTATI BEAC"</em><br>
+        • Tutti i dati sono lì in tempo reale, aggiornati automaticamente ad ogni consegna
+      </div>
+      <div style="margin-top:10px;background:#e3f2fd;border-left:4px solid var(--az);padding:12px;border-radius:4px;font-size:12px;color:#1565c0">
+        <strong>Vuoi abilitare l'importazione automatica?</strong><br>
+        Devo aggiornare il tuo Apps Script aggiungendo una funzione <code>doGet</code>.<br>
+        Dimmi e lo genero subito.
+      </div>`;
+    status.style.display='block';
+  }
+}
+
 // CAMBIO CLASSE via bottoni nel pannello
 function cambiaClasse(cl){
   S.classe = cl;
@@ -2162,7 +2686,10 @@ function caricaAnalisi(){
       <td>${r.sezioni[1]?.c??'–'}/${r.sezioni[1]?.t??'–'}</td>
       <td>${r.sezioni[2]?.c??'–'}/${r.sezioni[2]?.t??'–'}</td>
       <td>${deb?nC(deb[0]):'–'}</td>
-      <td><button class="btn-link" style="font-size:11px" onclick="mostraDetDoc('${r.codice}','${sessione}')">🔍 Dettaglio</button></td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn-link" style="font-size:11px" onclick="mostraDetDoc('${r.codice}','${sessione}')">🔍 Dettaglio</button>
+        <button class="btn-del" style="font-size:11px" onclick="chiediDelStudente('${r.codice}','${sessione}')">🗑️</button>
+      </td>
     </tr>`;
   }).join('');
 
@@ -2374,6 +2901,60 @@ function inviaARisultatiSheet(entry){
   }).catch(err => console.warn('Sheet non raggiunto:', err));
   // no-cors: non possiamo leggere la risposta, ma i dati arrivano
 }
+
+// ══════════════════════════════════════════════════════
+//  RILEVAMENTO DEVICE E OTTIMIZZAZIONI MOBILE
+// ══════════════════════════════════════════════════════
+const DEVICE = (function(){
+  const ua = navigator.userAgent.toLowerCase();
+  const w  = window.innerWidth;
+  return {
+    isIOS:     /ipad|iphone|ipod/.test(ua) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1),
+    isAndroid: /android/.test(ua),
+    isMobile:  w < 600,
+    isTablet:  w >= 600 && w < 1024,
+    isDesktop: w >= 1024,
+    hasTouch:  ('ontouchstart' in window) || navigator.maxTouchPoints > 0,
+  };
+})();
+
+// Classe body per targeting CSS device-specific
+document.body.classList.add(
+  DEVICE.isMobile ? 'is-mobile' : DEVICE.isTablet ? 'is-tablet' : 'is-desktop'
+);
+if(DEVICE.isIOS)     document.body.classList.add('is-ios');
+if(DEVICE.isAndroid) document.body.classList.add('is-android');
+if(DEVICE.hasTouch)  document.body.classList.add('has-touch');
+
+// iOS: previeni bounce scroll fuori dai container scrollabili
+if(DEVICE.isIOS){
+  document.addEventListener('touchmove', e=>{
+    if(!e.target.closest('.testo-col,.dom-col,.scr-ris,.scr-doc,.acc-card,.istr-card,.doc-ris-body'))
+      e.preventDefault();
+  }, {passive:false});
+}
+
+// Quando la tastiera virtuale si apre, scrolla per tenere il campo visibile
+function gestisciTastieraMobile(){
+  if(!DEVICE.hasTouch) return;
+  document.querySelectorAll('.input-ap,.finp,.comp-select').forEach(el=>{
+    el.addEventListener('focus', ()=>{
+      setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'center'}), 350);
+    });
+  });
+}
+
+// Ridimensionamento: ricalcola altezza su Android (barra browser variabile)
+let _tH = window.innerHeight;
+window.addEventListener('resize', ()=>{
+  const newH = window.innerHeight;
+  if(Math.abs(newH - _tH) > 100){
+    // Tastiera aperta/chiusa su mobile — aggiusta l'altezza dei container
+    const cols = document.querySelectorAll('.testo-col,.dom-col');
+    cols.forEach(c=>{ c.style.maxHeight=''; });
+    _tH = newH;
+  }
+});
 
 // ══════════════════════════════════════════════════════
 //  ANIMAZIONE BENVENUTO
