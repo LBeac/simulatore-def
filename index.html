@@ -646,6 +646,15 @@ tr:hover td{background:var(--grigio-ch)}
     <!-- DOMANDA (colonna destra) -->
     <div class="dom-col" id="col-dom"></div>
   </div>
+
+  <!-- BARRA NAVIGAZIONE MOBILE — sempre visibile, solo su schermi < 1024px -->
+  <div id="mobile-nav-bar" style="display:none;position:fixed;bottom:0;left:0;right:0;
+    background:#fff;border-top:3px solid var(--blu);padding:10px 16px;z-index:1000;
+    box-shadow:0 -4px 16px rgba(0,0,0,.18);gap:10px;align-items:center;justify-content:space-between">
+    <button id="mnb-ind" class="btn btn-s" onclick="indietro()" style="flex:1;padding:12px;font-size:15px">← Indietro</button>
+    <div id="mnb-prog" style="font-size:13px;color:#888;font-weight:700;min-width:60px;text-align:center">1/35</div>
+    <button id="mnb-av"  class="btn btn-p" onclick="avanti()"   style="flex:1;padding:12px;font-size:15px">Avanti →</button>
+  </div>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════
@@ -1637,7 +1646,13 @@ let S = {
 
 // ── UTILS ──────────────────────────────────────────────
 const SCR=['scr-acc','scr-istr','scr-test','scr-ris','scr-doc'];
-function mostraScr(id){ SCR.forEach(s=>$(s).classList.toggle('hidden',s!==id)); S.scr=id; }
+function mostraScr(id){
+  SCR.forEach(s=>$(s).classList.toggle('hidden',s!==id));
+  S.scr=id;
+  // Mostra/nascondi barra mobile
+  const bar=$('mobile-nav-bar');
+  if(bar) bar.style.display = (id==='scr-test' && isMobileLayout()) ? 'flex' : 'none';
+}
 function showErr(id,msg){ const el=$(id); if(!el)return; el.textContent=msg; el.style.display='block'; }
 function hideErr(id){ const el=$(id); if(el) el.style.display='none'; }
 function getDomRis(){ return S.prova.domande.filter(d=>d.tipo!=='testo'); }
@@ -1706,7 +1721,11 @@ function iniziaProva(){
   mostraScr('scr-test');
   S.sec=CFG.durata*60;
   buildSidebar();
-  renderDom(0);
+  // Su mobile: parti dalla prima domanda reale, non dal blocco testo
+  const startIdx = isMobileLayout()
+    ? S.prova.domande.findIndex(d=>d.tipo!=='testo')
+    : 0;
+  renderDom(startIdx >= 0 ? startIdx : 0);
   startTimer();
   attivaSicurezza();
   gestisciTastieraMobile();
@@ -2014,9 +2033,13 @@ function renderDom(idx){
 
   $('col-dom').innerHTML=html;
   aggSidebar();
-  // Scrolla all'inizio della colonna domanda
+
+  // Aggiorna barra navigazione mobile
+  aggMobileNav(idx);
+
+  // Scrolla all'inizio
   if(mobile){
-    window.scrollTo({top: $('col-testo').offsetHeight + 88, behavior:'smooth'});
+    window.scrollTo({top:0, behavior:'smooth'});
   } else {
     $('col-dom').scrollTop=0;
   }
@@ -2027,15 +2050,48 @@ function toggleTestoMobile(){
   const testo = $('col-testo');
   const lbl   = $('lbl-testo-btn');
   if(!testo||!lbl) return;
-  const aperto = testo.style.maxHeight === 'none' || testo.style.maxHeight === '';
-  if(aperto){
-    testo.style.maxHeight='35vh';
-    lbl.textContent='Mostra testo di riferimento ▼';
-  } else {
-    testo.style.maxHeight='none';
-    lbl.textContent='Nascondi testo ▲';
+  const chiuso = testo.style.maxHeight && testo.style.maxHeight !== 'none';
+  testo.style.maxHeight = chiuso ? 'none' : '35vh';
+  lbl.textContent = chiuso ? 'Mostra testo di riferimento ▼' : 'Nascondi testo ▲';
+}
+
+// Aggiorna barra navigazione fissa mobile
+function aggMobileNav(idx){
+  const bar = $('mobile-nav-bar');
+  if(!bar) return;
+  const mobile = isMobileLayout();
+
+  if(!mobile || S.scr !== 'scr-test'){
+    bar.style.display = 'none';
+    return;
   }
-  testo.scrollTop=0;
+
+  bar.style.display = 'flex';
+
+  const domande = S.prova.domande;
+  const dr = getDomRis();
+  const d  = domande[idx];
+  const pos = dr.indexOf(d);
+
+  // Bottone indietro
+  const bInd = $('mnb-ind');
+  bInd.disabled = (idx === 0);
+
+  // Progresso
+  $('mnb-prog').textContent = pos >= 0 ? `${pos+1}/${dr.length}` : '';
+
+  // Bottone avanti / consegna
+  const bAv = $('mnb-av');
+  const isLast = idx >= domande.length - 1;
+  if(isLast){
+    bAv.textContent = '📤 Consegna';
+    bAv.className   = 'btn btn-r';
+    bAv.onclick     = mostraConsegna;
+  } else {
+    bAv.textContent = 'Avanti →';
+    bAv.className   = 'btn btn-p';
+    bAv.onclick     = avanti;
+  }
 }
 
 function trovaRef(domande,idx){
@@ -2093,8 +2149,25 @@ function colSelDx(id,jdx){
   aggSidebar();
   renderDom(S.cur);
 }
-function avanti(){ if(S.cur<S.prova.domande.length-1) renderDom(S.cur+1); }
-function indietro(){ if(S.cur>0) renderDom(S.cur-1); }
+function avanti(){
+  if(S.cur>=S.prova.domande.length-1) return;
+  let next = S.cur+1;
+  // Su mobile: salta i blocchi testo puri, vai diretto alla domanda
+  if(isMobileLayout()){
+    while(next < S.prova.domande.length-1 && S.prova.domande[next].tipo==='testo') next++;
+  }
+  renderDom(next);
+}
+
+function indietro(){
+  if(S.cur<=0) return;
+  let prev = S.cur-1;
+  // Su mobile: salta i blocchi testo puri andando indietro
+  if(isMobileLayout()){
+    while(prev > 0 && S.prova.domande[prev].tipo==='testo') prev--;
+  }
+  renderDom(prev);
+}
 
 // ── CONSEGNA ───────────────────────────────────────────
 function mostraConsegna(){
