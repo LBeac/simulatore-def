@@ -6,6 +6,11 @@
 <title>Simulazione INVALSI – Italiano Terza Media</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
+/* ── BENVENUTO ──────────────────────────────────────────── */
+#scr-benvenuto{font-family:var(--font)}
+.particella{position:absolute;border-radius:50%;background:rgba(255,255,255,.12);animation:flotta linear infinite}
+@keyframes flotta{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:1}90%{opacity:.5}100%{transform:translateY(-100px) scale(1.2);opacity:0}}
+
 /* ── VARIABILI ─────────────────────────────────────────── */
 :root{
   --blu:#003f8a;--blu-s:#001f5c;--blu-m:#1a5fa8;--az:#4a90d9;
@@ -294,6 +299,40 @@ tr:hover td{background:var(--grigio-ch)}
 <!-- ═══════════════════════════════════════════════════════
      SCHERMO ACCESSO
 ════════════════════════════════════════════════════════ -->
+<!-- ═══ SCHERMATA BENVENUTO ANIMATA ══════════════════════ -->
+<div id="scr-benvenuto" style="position:fixed;inset:0;z-index:9998;background:linear-gradient(135deg,#001f5c 0%,#003f8a 50%,#1a5fa8 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;overflow:hidden">
+
+  <!-- Particelle sfondo -->
+  <div id="particelle" style="position:absolute;inset:0;pointer-events:none;overflow:hidden"></div>
+
+  <!-- Logo animato -->
+  <div id="bv-logo" style="width:90px;height:90px;background:rgba(255,255,255,.15);border:3px solid rgba(255,255,255,.4);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;color:#fff;letter-spacing:-2px;margin-bottom:24px;opacity:0;transform:scale(.5) translateY(30px);transition:all .7s cubic-bezier(.34,1.56,.64,1)">INV</div>
+
+  <!-- Testo scuola -->
+  <div id="bv-scuola" style="font-size:13px;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:3px;margin-bottom:10px;opacity:0;transform:translateY(20px);transition:all .6s ease .2s">I.C. Pasquale Sottocorno</div>
+
+  <!-- Titolo principale -->
+  <div id="bv-titolo" style="font-size:clamp(22px,5vw,36px);font-weight:900;color:#fff;text-align:center;line-height:1.2;margin-bottom:10px;opacity:0;transform:translateY(20px);transition:all .6s ease .35s">
+    Simulazioni INVALSI
+  </div>
+  <div id="bv-sottotitolo" style="font-size:clamp(14px,3vw,19px);color:rgba(255,255,255,.85);text-align:center;margin-bottom:32px;opacity:0;transform:translateY(20px);transition:all .6s ease .5s">
+    Italiano · Terza Media
+  </div>
+
+  <!-- Barra di caricamento -->
+  <div id="bv-barra-wrap" style="width:280px;height:4px;background:rgba(255,255,255,.2);border-radius:2px;overflow:hidden;margin-bottom:16px;opacity:0;transition:opacity .4s ease .7s">
+    <div id="bv-barra" style="height:100%;width:0%;background:linear-gradient(90deg,#4a90d9,#fff);border-radius:2px;transition:width 2s ease"></div>
+  </div>
+
+  <!-- Messaggio caricamento -->
+  <div id="bv-loading" style="font-size:12px;color:rgba(255,255,255,.6);letter-spacing:1px;opacity:0;transition:opacity .4s ease .7s">Caricamento prove in corso…</div>
+
+  <!-- Benvenuto finale -->
+  <div id="bv-benvenuto" style="position:absolute;bottom:40px;font-size:13px;color:rgba(255,255,255,.5);opacity:0;transition:opacity .6s ease">
+    Anno scolastico 2025–2026
+  </div>
+</div>
+
 <div id="scr-acc">
 <div class="scr-acc">
   <div class="acc-card">
@@ -2336,8 +2375,78 @@ function inviaARisultatiSheet(entry){
   // no-cors: non possiamo leggere la risposta, ma i dati arrivano
 }
 
+// ══════════════════════════════════════════════════════
+//  ANIMAZIONE BENVENUTO
+// ══════════════════════════════════════════════════════
+function avviaAnimazioneBenvenuto(){
+  const bv = $('scr-benvenuto');
+  if(!bv) return;
+
+  // Crea particelle galleggianti
+  const contenitore = $('particelle');
+  for(let i = 0; i < 18; i++){
+    const p = document.createElement('div');
+    p.className = 'particella';
+    const size = 6 + Math.random() * 18;
+    p.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random()*100}%;
+      animation-duration:${5 + Math.random()*8}s;
+      animation-delay:${Math.random()*4}s;
+    `;
+    contenitore.appendChild(p);
+  }
+
+  // Sequenza animazione elementi
+  setTimeout(()=>{
+    const logo = $('bv-logo');
+    if(logo){ logo.style.opacity='1'; logo.style.transform='scale(1) translateY(0)'; }
+  }, 100);
+
+  setTimeout(()=>{
+    ['bv-scuola','bv-titolo','bv-sottotitolo'].forEach(id=>{
+      const el=$(id);
+      if(el){ el.style.opacity='1'; el.style.transform='translateY(0)'; }
+    });
+  }, 300);
+
+  setTimeout(()=>{
+    const bw = $('bv-barra-wrap'), bl = $('bv-loading');
+    if(bw) bw.style.opacity='1';
+    if(bl) bl.style.opacity='1';
+    // Avvia barra
+    setTimeout(()=>{
+      const bar = $('bv-barra');
+      if(bar) bar.style.width='100%';
+    }, 50);
+  }, 700);
+
+  // Messaggio finale
+  setTimeout(()=>{
+    const bl = $('bv-loading');
+    if(bl) bl.textContent = '✅ Pronto!';
+    const bb = $('bv-benvenuto');
+    if(bb) bb.style.opacity='1';
+  }, 2400);
+
+  // Dissolvenza e rimozione
+  setTimeout(()=>{
+    bv.style.transition = 'opacity .6s ease, transform .6s ease';
+    bv.style.opacity = '0';
+    bv.style.transform = 'scale(1.03)';
+    setTimeout(()=>{
+      bv.style.display = 'none';
+      $('scr-acc').style.opacity='0';
+      $('scr-acc').style.transition='opacity .4s ease';
+      setTimeout(()=>{ $('scr-acc').style.opacity='1'; }, 50);
+    }, 600);
+  }, 3200);
+}
+
 // URL PARAMS – legge ?prova=3 oppure ?prova=3A-MAR26 oppure ?prova=3B-APR26-2
 window.addEventListener('load', () => {
+  // Avvia animazione benvenuto
+  avviaAnimazioneBenvenuto();
   const params  = new URLSearchParams(window.location.search);
   const raw     = params.get('prova');          // es. "3" o "3A-MAR26" o "2"
   const classe  = params.get('classe') || '';   // es. "3A" (opzionale)
