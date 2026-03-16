@@ -93,7 +93,34 @@ body{font-family:var(--font);background:var(--grigio-ch);color:var(--testo);font
 .btn:disabled{opacity:.35;cursor:not-allowed}
 .prog-txt{font-size:12px;color:#888}
 
-/* ── SCHERMATA INTRO ────────────────────────────────────── */
+/* ── TIPI DI DOMANDA AGGIUNTIVI ────────────────────────── */
+/* V/F tabella */
+.vf-table{width:100%;border-collapse:collapse;margin-top:8px}
+.vf-table th{background:var(--blu);color:#fff;padding:8px 12px;font-size:12px;font-weight:700;text-align:left}
+.vf-table td{padding:9px 12px;border-bottom:1px solid var(--grigio);font-size:14px;line-height:1.5;vertical-align:middle}
+.vf-table tr:hover td{background:var(--grigio-ch)}
+.vf-cell{display:flex;gap:6px;justify-content:center}
+.vf-btn{width:36px;height:28px;border:2px solid var(--grigio);border-radius:4px;cursor:pointer;font-size:12px;font-weight:700;background:#fff;transition:all .12s;font-family:var(--font)}
+.vf-btn.sel-v{background:#e8f5e9;border-color:var(--verde);color:var(--verde)}
+.vf-btn.sel-f{background:#fce4e4;border-color:var(--rosso);color:var(--rosso)}
+/* COMP completamento */
+.comp-select{border:none;border-bottom:2px solid var(--az);background:#e8f0fb;padding:2px 6px;font-size:14px;font-family:var(--font);border-radius:3px 3px 0 0;cursor:pointer;min-width:140px}
+.comp-select:focus{outline:none;border-bottom-color:var(--blu)}
+.comp-nota{font-size:11px;color:#888;margin-top:8px;font-style:italic}
+.parole-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;margin-bottom:4px}
+.parola-chip{background:var(--grigio-ch);border:1px solid var(--grigio);border-radius:4px;padding:3px 10px;font-size:13px;color:#555}
+/* COL collegamento colonne */
+.col-wrap{display:grid;grid-template-columns:1fr 40px 1fr;gap:8px;margin-top:8px;align-items:start}
+.col-sx,.col-dx{display:flex;flex-direction:column;gap:6px}
+.col-item{border:2px solid var(--grigio);border-radius:6px;padding:8px 12px;font-size:13px;background:#fff;min-height:40px;display:flex;align-items:center}
+.col-item.linked{border-color:var(--az);background:#e8f0fb}
+.col-sx .col-item{cursor:pointer}
+.col-sx .col-item:hover{border-color:var(--az);background:#e8f0fb}
+.col-sx .col-item.sel{border-color:var(--blu);background:#dce8f8;font-weight:700}
+.col-arrows{display:flex;flex-direction:column;gap:6px;justify-content:flex-start;padding-top:2px}
+.col-arrow{height:40px;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:16px}
+.col-arrow.linked{color:var(--az)}
+.col-nota{font-size:11px;color:#888;margin-top:8px;font-style:italic;grid-column:1/-1}
 .scr-acc{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--blu-s) 0%,var(--blu-m) 100%);padding:20px}
 .acc-card{background:#fff;border-radius:14px;padding:36px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
 .acc-logo{text-align:center;margin-bottom:24px}
@@ -298,16 +325,8 @@ tr:hover td{background:var(--grigio-ch)}
     </div>
     <div id="form-doc" class="hidden">
       <div class="fg">
-        <label class="flbl">Classe</label>
-        <select class="finp" id="sel-cl">
-          <option value="3A">Classe 3A</option>
-          <option value="3B">Classe 3B</option>
-          <option value="3C">Classe 3C</option>
-        </select>
-      </div>
-      <div class="fg">
-        <label class="flbl">Password</label>
-        <input class="finp" type="password" id="pw-doc" placeholder="Password docente" autocomplete="off">
+        <label class="flbl">Password docente</label>
+        <input class="finp" type="password" id="pw-doc" placeholder="Password" autocomplete="off">
       </div>
       <button class="btn-acc" onclick="accDoc()">Accedi al pannello →</button>
     </div>
@@ -435,14 +454,33 @@ tr:hover td{background:var(--grigio-ch)}
   <div class="doc-hdr">
     <div class="doc-hdr-info">
       <h2>Pannello Docente</h2>
-      <p id="doc-cl-lbl">Classe: --</p>
+      <p id="doc-cl-lbl">Seleziona la classe da visualizzare</p>
     </div>
-    <button class="btn btn-s" onclick="logout()" style="font-size:12px">Esci</button>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:13px;opacity:.8;color:#fff">Classe:</span>
+        <select id="sel-cl-panel" class="finp" style="padding:7px 12px;font-size:13px;width:90px;background:#fff"
+          onchange="cambiaClassePanel(this.value)">
+          <option value="3A">3A</option>
+          <option value="3E">3E</option>
+        </select>
+      </div>
+      <button class="btn btn-s" onclick="logout()" style="font-size:12px">Esci</button>
+    </div>
+  </div>
+
+  <!-- SELETTORE CLASSE (visibile dopo login) -->
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;background:#fff;padding:14px 18px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.07)">
+    <span style="font-size:13px;font-weight:700;color:#555">Classe visualizzata:</span>
+    <button id="btn-cl-3A" class="btn btn-p" onclick="cambiaClasse('3A')" style="padding:7px 18px;font-size:13px">3A</button>
+    <button id="btn-cl-3E" class="btn btn-s" onclick="cambiaClasse('3E')" style="padding:7px 18px;font-size:13px">3E</button>
+    <span id="lbl-classe-attiva" style="font-size:12px;color:#888;margin-left:4px"></span>
   </div>
 
   <div class="doc-tabs">
     <button class="tab-btn att" onclick="mostraTab('tab-sess',this)">📋 Sessioni</button>
-    <button class="tab-btn" onclick="mostraTab('tab-ris',this)">📊 Risultati</button>
+    <button class="tab-btn" onclick="mostraTab('tab-analisi',this)">📊 Analisi sessione</button>
+    <button class="tab-btn" onclick="mostraTab('tab-generale',this)">📈 Analisi generale</button>
     <button class="tab-btn" onclick="mostraTab('tab-new',this)">➕ Nuova sessione</button>
     <button class="tab-btn" onclick="mostraTab('tab-pw',this)">🔑 Password</button>
   </div>
@@ -451,38 +489,68 @@ tr:hover td{background:var(--grigio-ch)}
   <div class="panel att" id="tab-sess">
     <div class="table-wrap">
       <table>
-        <thead>
-          <tr>
-            <th>Codice</th><th>Prova</th><th>Data</th><th>Studenti</th><th>Stato</th><th>Azioni</th>
-          </tr>
-        </thead>
+        <thead><tr><th>Codice</th><th>Prova</th><th>Data</th><th>Studenti</th><th>Stato</th><th>Azioni</th></tr></thead>
         <tbody id="tbody-sess"></tbody>
       </table>
     </div>
   </div>
 
-  <!-- TAB: RISULTATI -->
-  <div class="panel" id="tab-ris">
-    <div style="background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.07);margin-bottom:14px">
-      <div style="padding:14px;border-bottom:2px solid var(--grigio);display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <select class="finp" id="sel-sess-ris" style="max-width:300px;padding:9px 12px" onchange="caricaRis()">
-          <option value="">-- Seleziona sessione --</option>
-        </select>
-        <button class="btn btn-s" onclick="esportaCSV()" style="font-size:12px">📥 CSV</button>
+  <!-- TAB: ANALISI SESSIONE -->
+  <div class="panel" id="tab-analisi">
+    <div style="background:#fff;border-radius:10px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.07);margin-bottom:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <select class="finp" id="sel-sess-analisi" style="max-width:320px;padding:9px 12px" onchange="caricaAnalisi()">
+        <option value="">-- Seleziona sessione da analizzare --</option>
+      </select>
+      <button class="btn btn-s" onclick="esportaCSV()" style="font-size:12px">📥 Esporta CSV</button>
+    </div>
+    <div id="analisi-contenuto" class="hidden">
+      <!-- RIEPILOGO NUMERICO -->
+      <div id="analisi-riepilogo" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px"></div>
+      <!-- TABELLA STUDENTI -->
+      <div class="table-wrap" style="margin-bottom:20px">
+        <table><thead><tr><th>Studente</th><th>Punteggio</th><th>Lettura</th><th>Lessico</th><th>Grammatica</th><th>Punto debole</th><th>Dettaglio</th></tr></thead>
+        <tbody id="tbody-ris"></tbody></table>
       </div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Studente</th><th>Punteggio</th><th>Lettura</th><th>Lessico</th><th>Grammatica</th><th>Punto debole</th></tr></thead>
-          <tbody id="tbody-ris"></tbody>
-        </table>
+      <!-- GRAFICI -->
+      <div style="background:#fff;border-radius:10px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.07);margin-bottom:20px">
+        <h3 style="font-size:14px;font-weight:700;color:var(--blu);margin-bottom:16px">📊 % risposte corrette per competenza</h3>
+        <div id="grafico-competenze"></div>
+      </div>
+      <div style="background:#fff;border-radius:10px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.07);margin-bottom:20px">
+        <h3 style="font-size:14px;font-weight:700;color:var(--blu);margin-bottom:16px">📋 Analisi domanda per domanda</h3>
+        <div id="grafico-domande" style="overflow-x:auto"></div>
+      </div>
+      <!-- SUGGERIMENTI DIDATTICI -->
+      <div id="suggerimenti-box" style="background:#fff;border-radius:10px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.07)">
+        <h3 style="font-size:14px;font-weight:700;color:var(--blu);margin-bottom:14px">💡 Suggerimenti didattici per la classe</h3>
+        <div id="suggerimenti-contenuto"></div>
       </div>
     </div>
-    <div id="doc-ris-wrap" class="hidden doc-ris-wrap">
+    <!-- DETTAGLIO SINGOLO STUDENTE -->
+    <div id="doc-ris-wrap" class="hidden doc-ris-wrap" style="margin-top:16px">
       <div class="doc-ris-hdr">
         <span id="doc-det-title" style="font-weight:700;font-size:14px">Dettaglio</span>
         <button class="btn btn-s" style="font-size:11px;padding:4px 10px" onclick="$('doc-ris-wrap').classList.add('hidden')">✕ Chiudi</button>
       </div>
       <div class="doc-ris-body" id="doc-det-body"></div>
+    </div>
+  </div>
+
+  <!-- TAB: ANALISI GENERALE -->
+  <div class="panel" id="tab-generale">
+    <div id="generale-contenuto">
+      <div style="background:#fff;border-radius:10px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.07);margin-bottom:16px">
+        <h3 style="font-size:14px;font-weight:700;color:var(--blu);margin-bottom:14px">📈 Andamento classe nel tempo</h3>
+        <div id="grafico-generale"></div>
+      </div>
+      <div style="background:#fff;border-radius:10px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.07);margin-bottom:16px">
+        <h3 style="font-size:14px;font-weight:700;color:var(--blu);margin-bottom:14px">🎯 Competenze: punti di forza e debolezza</h3>
+        <div id="grafico-competenze-generale"></div>
+      </div>
+      <div style="background:#fff;border-radius:10px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.07)">
+        <h3 style="font-size:14px;font-weight:700;color:var(--blu);margin-bottom:14px">💡 Analisi e suggerimenti generali</h3>
+        <div id="suggerimenti-generali"></div>
+      </div>
     </div>
   </div>
 
@@ -494,14 +562,7 @@ tr:hover td{background:var(--grigio-ch)}
         <label class="flbl">Prova da somministrare</label>
         <select class="finp" id="sel-prova-new" style="padding:9px 12px"></select>
       </div>
-      <div class="fg">
-        <label class="flbl">Codice accesso studenti</label>
-        <div style="display:flex;gap:8px">
-          <input class="finp" type="text" id="new-cod" placeholder="es. 3B-MAR25" style="flex:1;padding:9px 12px" maxlength="20">
-          <button class="btn btn-s" onclick="genCod()" style="padding:9px 14px;white-space:nowrap" title="Genera">🔀</button>
-        </div>
-      </div>
-      <button class="btn btn-g" onclick="creaSessione()" style="width:100%;padding:11px;font-size:14px">✅ Crea sessione</button>
+      <button class="btn btn-g" onclick="creaSessione()" style="width:100%;padding:11px;font-size:14px">✅ Crea sessione e genera link</button>
       <div class="err-msg" id="err-new"></div>
       <div class="succ-msg" id="succ-new"></div>
     </div>
@@ -510,14 +571,24 @@ tr:hover td{background:var(--grigio-ch)}
   <!-- TAB: PASSWORD -->
   <div class="panel" id="tab-pw">
     <div class="panel-card">
-      <h3>🔑 Gestione password docenti</h3>
+      <h3>🔑 Cambia password docente</h3>
       <div class="info-panel">
-        Le password vengono salvate nel browser. Se usi la piattaforma su un nuovo dispositivo, le password ritorneranno a quelle predefinite.<br>
-        <strong>Password predefinite:</strong> docente3A!2025 · docente3B!2025 · docente3C!2025
+        Password unica per accedere al pannello. Dopo il login scegli quale classe visualizzare.
       </div>
-      <div id="pw-rows"></div>
-      <button class="btn btn-g" onclick="salvaPW()" style="width:100%;margin-top:16px;padding:11px">💾 Salva nuove password</button>
+      <div class="fg">
+        <label class="flbl">Nuova password</label>
+        <div style="display:flex;gap:8px">
+          <input class="pw-input finp" type="password" id="pw-nuova" placeholder="Nuova password" style="flex:1">
+          <button class="pw-toggle btn btn-s" onclick="togglePwVis('nuova')" style="padding:8px 12px">👁️</button>
+        </div>
+      </div>
+      <div class="fg">
+        <label class="flbl">Conferma password</label>
+        <input class="pw-input finp" type="password" id="pw-conferma" placeholder="Ripeti la password">
+      </div>
+      <button class="btn btn-g" onclick="salvaPW()" style="width:100%;padding:11px">💾 Salva nuova password</button>
       <div class="succ-msg" id="succ-pw"></div>
+      <div class="err-msg" id="err-pw" style="margin-top:10px"></div>
     </div>
   </div>
 
@@ -1225,8 +1296,14 @@ const nC = c => COMP_NOMI[c]||c||'';
 const $ = id => document.getElementById(id);
 
 // PASSWORD (da localStorage o default)
-function getPW(cl){ return localStorage.getItem('inv_pw_'+cl) || `docente${cl}!2025`; }
-function setPW(cl,pw){ localStorage.setItem('inv_pw_'+cl,pw); }
+// PASSWORD UNICA DOCENTE
+const PW_DEFAULT = 'invalsi2025!';
+function getPW_doc(){ return localStorage.getItem('inv_pw_doc') || PW_DEFAULT; }
+function setPW_doc(pw){ localStorage.setItem('inv_pw_doc', pw); }
+
+// Mantieni getPW per compatibilità (non più usata per accesso)
+function getPW(cl){ return getPW_doc(); }
+function setPW(cl,pw){ setPW_doc(pw); }
 
 // DB
 let DB = {
@@ -1287,11 +1364,11 @@ function accStud(){
 }
 
 function accDoc(){
-  const cl=$('sel-cl').value;
-  const pw=$('pw-doc').value;
-  if(getPW(cl)!==pw){ showErr('err-acc','Password errata.'); return; }
-  S.classe=cl;
-  $('doc-cl-lbl').textContent='Classe: '+cl;
+  const pw = $('pw-doc').value;
+  if(getPW_doc() !== pw){ showErr('err-acc','Password errata.'); return; }
+  // Classe selezionata dentro il pannello, non al login
+  S.classe = '3A'; // default, cambiabile dentro il pannello
+  $('doc-cl-lbl').textContent = 'Benvenuto – seleziona la classe';
   hideErr('err-acc');
   popolaDocente();
   mostraScr('scr-doc');
@@ -1438,9 +1515,64 @@ function renderDom(idx){
       <div class="opzione ${S.risposte[d.id]===i?'sel':''}" onclick="selRisp('${d.id}',${i})">
         <div class="op-lett">${L()[i]}</div><div>${op}</div>
       </div>`).join('')+`</div>`;
+
   } else if(d.tipo==='ap'){
     html+=`<textarea class="input-ap" placeholder="Scrivi qui la risposta..."
-      onchange="salvaAp('${d.id}',this.value)">${S.risposte[d.id]||''}</textarea>`;
+      oninput="salvaAp('${d.id}',this.value)">${S.risposte[d.id]||''}</textarea>`;
+
+  } else if(d.tipo==='vf'){
+    // Vero / Falso a tabella
+    const risp = S.risposte[d.id] || {};
+    html+=`<table class="vf-table"><thead><tr>
+      <th style="width:60%">Affermazione</th><th style="width:20%;text-align:center">Vero</th><th style="width:20%;text-align:center">Falso</th>
+    </tr></thead><tbody>`;
+    d.righe.forEach((r,i)=>{
+      const selV = risp[i]==='V', selF = risp[i]==='F';
+      html+=`<tr>
+        <td>${String.fromCharCode(97+i)}) ${r.t}</td>
+        <td style="text-align:center"><button class="vf-btn ${selV?'sel-v':''}" onclick="salvaVF('${d.id}',${i},'V')">V</button></td>
+        <td style="text-align:center"><button class="vf-btn ${selF?'sel-f':''}" onclick="salvaVF('${d.id}',${i},'F')">F</button></td>
+      </tr>`;
+    });
+    html+=`</tbody></table>`;
+
+  } else if(d.tipo==='comp'){
+    // Completamento con parole
+    html+=`<div class="parole-list">${d.parole.map(p=>`<span class="parola-chip">${p}</span>`).join('')}</div>
+      <div class="comp-nota">Scegli la parola corretta dal menu a tendina per completare ogni frase.</div>
+      <div style="margin-top:14px">`;
+    const risp = S.risposte[d.id] || {};
+    d.gaps.forEach((g,i)=>{
+      html+=`<div style="margin-bottom:16px;line-height:2.2;font-size:15px">${g.prima}
+        <select class="comp-select" onchange="salvaComp('${d.id}',${i},this.value)">
+          <option value="">— scegli —</option>
+          ${d.parole.map((p,pi)=>`<option value="${pi}" ${risp[i]==pi?'selected':''}>${p}</option>`).join('')}
+        </select> ${g.dopo}</div>`;
+    });
+    html+=`</div>`;
+
+  } else if(d.tipo==='col'){
+    // Collegamento colonne
+    const risp = S.risposte[d.id] || {};
+    const selSx = S._colSxSel && S._colSxSel.id===d.id ? S._colSxSel.idx : null;
+    html+=`<div style="font-size:12px;color:#888;margin-bottom:8px">Clicca un elemento a sinistra, poi uno a destra per collegarlo.</div>
+    <div class="col-wrap">
+      <div class="col-sx">`;
+    d.sx.forEach((item,i)=>{
+      const linked = Object.keys(risp).some(k=>parseInt(k)===i);
+      html+=`<div class="col-item ${linked?'linked':''} ${selSx===i?'sel':''}" onclick="colSelSx('${d.id}',${i})">${String.fromCharCode(65+i)}. ${item}</div>`;
+    });
+    html+=`</div><div class="col-arrows">`;
+    d.sx.forEach((_,i)=>{
+      const to = risp[i]; const linked = to!==undefined;
+      html+=`<div class="col-arrow ${linked?'linked':''}">${linked?'→':'·'}</div>`;
+    });
+    html+=`</div><div class="col-dx">`;
+    d.dx.forEach((item,j)=>{
+      const linked = Object.values(risp).some(v=>parseInt(v)===j);
+      html+=`<div class="col-item ${linked?'linked':''}" onclick="colSelDx('${d.id}',${j})">${j+1}. ${item}</div>`;
+    });
+    html+=`</div><div class="col-nota">Elementi collegati: ${Object.keys(risp).length}/${d.sx.length}</div></div>`;
   }
 
   html+=`<div class="nav-bottom">
@@ -1467,6 +1599,49 @@ function trovaRef(domande,idx){
 function selRisp(id,opz){ S.risposte[id]=opz; renderDom(S.cur); }
 function salvaAp(id,val){ S.risposte[id]=val; aggSidebar(); }
 function toggleSeg(id){ S.segnati.has(id)?S.segnati.delete(id):S.segnati.add(id); renderDom(S.cur); }
+
+// Vero/Falso
+function salvaVF(id,idx,val){
+  if(!S.risposte[id]) S.risposte[id]={};
+  S.risposte[id][idx]=val;
+  aggSidebar();
+  // Rirender solo i bottoni
+  const btn_v=document.querySelectorAll(`button[onclick="salvaVF('${id}',${idx},'V')"]`)[0];
+  const btn_f=document.querySelectorAll(`button[onclick="salvaVF('${id}',${idx},'F')"]`)[0];
+  if(btn_v){ btn_v.className='vf-btn '+(val==='V'?'sel-v':''); }
+  if(btn_f){ btn_f.className='vf-btn '+(val==='F'?'sel-f':''); }
+}
+
+// Completamento
+function salvaComp(id,idx,val){
+  if(!S.risposte[id]) S.risposte[id]={};
+  S.risposte[id][idx]=parseInt(val);
+  aggSidebar();
+}
+
+// Collegamento colonne
+function colSelSx(id,idx){
+  if(!S._colSxSel) S._colSxSel={};
+  if(S._colSxSel.id===id && S._colSxSel.idx===idx){
+    S._colSxSel=null; // deseleziona
+  } else {
+    S._colSxSel={id,idx};
+  }
+  renderDom(S.cur);
+}
+function colSelDx(id,jdx){
+  if(!S._colSxSel || S._colSxSel.id!==id) return;
+  if(!S.risposte[id]) S.risposte[id]={};
+  const sxIdx=S._colSxSel.idx;
+  // Rimuovi collegamento precedente dello stesso sx
+  delete S.risposte[id][sxIdx];
+  // Rimuovi collegamento precedente dello stesso dx
+  Object.keys(S.risposte[id]).forEach(k=>{ if(S.risposte[id][k]===jdx) delete S.risposte[id][k]; });
+  S.risposte[id][sxIdx]=jdx;
+  S._colSxSel=null;
+  aggSidebar();
+  renderDom(S.cur);
+}
 function avanti(){ if(S.cur<S.prova.domande.length-1) renderDom(S.cur+1); }
 function indietro(){ if(S.cur>0) renderDom(S.cur-1); }
 
@@ -1494,20 +1669,61 @@ function calcolaRisultati(){
   const det=[];
 
   dr.forEach(d=>{
-    tot++; sez[d.sez].t++;
-    let ok=false, mia=S.risposte[d.id];
-    if(d.tipo==='sm') ok=mia===d.ok;
-    else if(d.tipo==='ap'){
+    let mia=S.risposte[d.id];
+
+    if(d.tipo==='sm'){
+      tot++; sez[d.sez].t++;
+      const ok=mia===d.ok;
+      if(ok){corrette++;sez[d.sez].c++;}
+      else errComp[d.comp]=(errComp[d.comp]||0)+1;
+      det.push({d, ok, mia,
+        miaLbl:mia!==undefined?d.ops[mia]:'— Senza risposta —',
+        okLbl:d.ops[d.ok]});
+
+    } else if(d.tipo==='ap'){
+      tot++; sez[d.sez].t++;
       const v=(mia||'').toLowerCase().trim();
-      ok=d.ok_open&&d.ok_open.some(k=>v.includes(k.toLowerCase()));
+      const ok=d.ok_open&&d.ok_open.some(k=>v.includes(k.toLowerCase()));
+      if(ok){corrette++;sez[d.sez].c++;}
+      else errComp[d.comp]=(errComp[d.comp]||0)+1;
+      det.push({d, ok, mia, miaLbl:mia||'— Senza risposta —', okLbl:d.ok_open?d.ok_open[0]:'–'});
+
+    } else if(d.tipo==='vf'){
+      const risp=mia||{};
+      d.righe.forEach((r,i)=>{
+        tot++; sez[d.sez].t++;
+        const corr=r.ok?'V':'F';
+        const ok=risp[i]===corr;
+        if(ok){corrette++;sez[d.sez].c++;}
+        else errComp[d.comp]=(errComp[d.comp]||0)+1;
+        det.push({d:{...d,id:d.id+'_'+i,testo:r.t},
+          ok, mia:risp[i]||'–', miaLbl:risp[i]||'–', okLbl:corr});
+      });
+
+    } else if(d.tipo==='comp'){
+      const risp=mia||{};
+      d.gaps.forEach((g,i)=>{
+        tot++; sez[d.sez].t++;
+        const ok=parseInt(risp[i])===g.ok_idx;
+        if(ok){corrette++;sez[d.sez].c++;}
+        else errComp[d.comp]=(errComp[d.comp]||0)+1;
+        const ml=risp[i]!==undefined?d.parole[risp[i]]:'–';
+        det.push({d:{...d,id:d.id+'_'+i,testo:`${g.prima}[___]${g.dopo}`},
+          ok, mia:ml, miaLbl:ml, okLbl:d.parole[g.ok_idx]});
+      });
+
+    } else if(d.tipo==='col'){
+      const risp=mia||{};
+      d.sx.forEach((_,i)=>{
+        tot++; sez[d.sez].t++;
+        const ok=parseInt(risp[i])===d.coppie[i];
+        if(ok){corrette++;sez[d.sez].c++;}
+        else errComp[d.comp]=(errComp[d.comp]||0)+1;
+        const ml=risp[i]!==undefined?`${d.sx[i]} → ${d.dx[risp[i]]}`:d.sx[i]+' → –';
+        det.push({d:{...d,id:d.id+'_'+i,testo:`Collega: ${d.sx[i]}`},
+          ok, mia:ml, miaLbl:ml, okLbl:`${d.sx[i]} → ${d.dx[d.coppie[i]]}`});
+      });
     }
-    if(ok){corrette++;sez[d.sez].c++;}
-    else{errComp[d.comp]=(errComp[d.comp]||0)+1;}
-    det.push({
-      d, ok, mia,
-      miaLbl: d.tipo==='sm'&&mia!==undefined ? d.ops[mia] : (mia||'— Senza risposta —'),
-      okLbl:  d.tipo==='sm' ? d.ops[d.ok] : (d.ok_open?d.ok_open[0]:'–'),
-    });
   });
 
   const pct=Math.round(corrette/tot*100);
@@ -1593,6 +1809,9 @@ function calcolaRisultati(){
   DB.risultati.push(entry);
   if(DB.sessioni[S.sessione]) DB.sessioni[S.sessione].studenti=(DB.sessioni[S.sessione].studenti||0)+1;
   saveDB();
+
+  // ── INVIO AUTOMATICO AL GOOGLE SHEET ──────────────────
+  inviaARisultatiSheet(entry);
 }
 
 // ══════════════════════════════════════════════════════
@@ -1728,11 +1947,14 @@ function scaricaPDF(){
 //  PANNELLO DOCENTE
 // ══════════════════════════════════════════════════════
 function popolaDocente(){
+  // Sincronizza classe con il selettore nel pannello
+  const selPanel = $('sel-cl-panel');
+  if(selPanel) selPanel.value = S.classe;
+  $('doc-cl-lbl').textContent = 'Classe: ' + S.classe;
   // Select prove
   $('sel-prova-new').innerHTML=PROVE.map(p=>`<option value="${p.id}">${p.id}. ${p.titolo}</option>`).join('');
   aggSelSessioni();
   aggiornaTabellaSessioni();
-  costruisciPwRows();
 }
 
 function aggSelSessioni(){
@@ -1906,35 +2128,58 @@ function esportaCSV(){
   a.download=`risultati_${sessione}_${S.classe}.csv`; a.click();
 }
 
-// GESTIONE PASSWORD
-function costruisciPwRows(){
-  const classi=['3A','3B','3C'];
-  $('pw-rows').innerHTML=classi.map(cl=>`
-    <div class="pw-row">
-      <span class="pw-classe">${cl}</span>
-      <input class="pw-input" type="password" id="pw-input-${cl}" value="${getPW(cl)}" placeholder="Nuova password">
-      <button class="pw-toggle" onclick="togglePwVis('${cl}')" title="Mostra/Nascondi">👁️</button>
-    </div>`).join('');
-}
+// GESTIONE PASSWORD UNICA
+function costruisciPwRows(){ /* non più usata */ }
 
-function togglePwVis(cl){
-  const inp=$(`pw-input-${cl}`);
-  inp.type = inp.type==='password'?'text':'password';
+function togglePwVis(id){
+  const inp=$(`pw-${id}`);
+  if(inp) inp.type = inp.type==='password'?'text':'password';
 }
 
 function salvaPW(){
-  const classi=['3A','3B','3C'];
-  let errore=false;
-  classi.forEach(cl=>{
-    const val=$(`pw-input-${cl}`).value.trim();
-    if(!val){ errore=true; return; }
-    setPW(cl, val);
-  });
-  if(errore){ alert('Le password non possono essere vuote.'); return; }
-  const el=$('succ-pw');
-  el.textContent='✅ Password aggiornate con successo!';
-  el.style.display='block';
-  setTimeout(()=>el.style.display='none', 3000);
+  const n1 = ($('pw-nuova')||{}).value||'';
+  const n2 = ($('pw-conferma')||{}).value||'';
+  const errEl=$('err-pw'), sucEl=$('succ-pw');
+  if(errEl) errEl.style.display='none';
+  if(!n1){ if(errEl){errEl.textContent='Inserisci la nuova password.';errEl.style.display='block';} return; }
+  if(n1!==n2){ if(errEl){errEl.textContent='Le password non coincidono.';errEl.style.display='block';} return; }
+  if(n1.length<6){ if(errEl){errEl.textContent='La password deve avere almeno 6 caratteri.';errEl.style.display='block';} return; }
+  setPW_doc(n1);
+  if(sucEl){ sucEl.textContent='✅ Password aggiornata!'; sucEl.style.display='block'; }
+  setTimeout(()=>{ if(sucEl) sucEl.style.display='none'; },3000);
+  if($('pw-nuova')) $('pw-nuova').value='';
+  if($('pw-conferma')) $('pw-conferma').value='';
+}
+
+// CAMBIO CLASSE DENTRO IL PANNELLO
+function cambiaClassePanel(cl){
+  S.classe = cl;
+  $('doc-cl-lbl').textContent = 'Classe: ' + cl;
+  aggiornaTabellaSessioni();
+  aggSelSessioni();
+  $('sel-sess-ris').value='';
+  $('tbody-ris').innerHTML='';
+  $('doc-ris-wrap').classList.add('hidden');
+}
+
+// ══════════════════════════════════════════════════════
+//  INVIO AUTOMATICO A GOOGLE SHEET
+// ══════════════════════════════════════════════════════
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyi3j1opanbfed0PuGITdHE4f8BHjPBwWEKuSubnKr4kJjvgfGIXZMUOTfEoXDBvRSu/exec';
+
+function inviaARisultatiSheet(entry){
+  // Aggiunge il titolo della prova
+  const payload = {
+    ...entry,
+    titolo: S.prova ? S.prova.titolo : '',
+  };
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    mode:   'no-cors', // necessario per Apps Script da browser
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(payload)
+  }).catch(err => console.warn('Sheet non raggiunto:', err));
+  // no-cors: non possiamo leggere la risposta, ma i dati arrivano
 }
 
 // URL PARAMS – legge ?prova=3 oppure ?prova=3A-MAR26 oppure ?prova=3B-APR26-2
@@ -1973,5 +2218,9 @@ window.addEventListener('load', () => {
   }
 });
 </script>
+<!-- ═══ PROVE 1-5 COMPLETE (carica dopo il motore principale) ═══ -->
+<script src="prove_1_5.js"></script>
+<!-- ═══ PROVE 6-10 COMPLETE ═══ -->
+<script src="prove_6_10.js"></script>
 </body>
 </html>
