@@ -1958,7 +1958,7 @@ function popolaDocente(){
 }
 
 function aggSelSessioni(){
-  const sel=$('sel-sess-ris');
+  const sel=$('sel-sess-analisi');
   const sessClasse=Object.entries(DB.sessioni).filter(([,s])=>s.classe===S.classe);
   sel.innerHTML='<option value="">-- Seleziona sessione --</option>'+
     sessClasse.map(([cod,s])=>{
@@ -2065,26 +2065,180 @@ function confermaDel(){
 }
 
 // RISULTATI
-function caricaRis(){
-  const sessione=$('sel-sess-ris').value; if(!sessione) return;
+// CAMBIO CLASSE via bottoni nel pannello
+function cambiaClasse(cl){
+  S.classe = cl;
+  // Aggiorna bottoni
+  ['3A','3E'].forEach(c=>{
+    const b=$(`btn-cl-${c}`);
+    if(b) b.className = c===cl ? 'btn btn-p' : 'btn btn-s';
+    b.style.cssText = 'padding:7px 18px;font-size:13px';
+  });
+  $('lbl-classe-attiva').textContent = `Classe selezionata: ${cl}`;
+  cambiaClassePanel(cl);
+}
+
+// CARICA ANALISI SESSIONE (alias di caricaRis)
+function caricaAnalisi(){
+  const sessione=$('sel-sess-analisi').value;
+  if(!sessione){ $('analisi-contenuto').classList.add('hidden'); return; }
+  $('analisi-contenuto').classList.remove('hidden');
+
   const risultati=DB.risultati.filter(r=>r.sessione===sessione);
   const tbody=$('tbody-ris');
+
   if(!risultati.length){
-    tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:#aaa;padding:20px">Nessun risultato per questa sessione.</td></tr>';
-    $('doc-ris-wrap').classList.add('hidden'); return;
+    tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:#aaa;padding:20px">Nessun risultato ancora per questa sessione.</td></tr>';
+    $('analisi-riepilogo').innerHTML='';
+    $('grafico-competenze').innerHTML='<p style="color:#aaa;font-size:13px">Nessun dato disponibile.</p>';
+    $('grafico-domande').innerHTML='';
+    $('suggerimenti-contenuto').innerHTML='<p style="color:#aaa;font-size:13px">Nessun dato disponibile.</p>';
+    return;
   }
+
+  // ── RIEPILOGO NUMERICO ─────────────────────────────
+  const avgPct = Math.round(risultati.reduce((s,r)=>s+r.pct,0)/risultati.length);
+  const avgTot = (risultati.reduce((s,r)=>s+r.totale,0)/risultati.length).toFixed(1);
+  const maxPct = Math.max(...risultati.map(r=>r.pct));
+  const minPct = Math.min(...risultati.map(r=>r.pct));
+  $('analisi-riepilogo').innerHTML=[
+    {ico:'👥',lbl:'Studenti',val:risultati.length},
+    {ico:'📊',lbl:'Media classe',val:`${avgPct}%`},
+    {ico:'🏆',lbl:'Punteggio più alto',val:`${maxPct}%`},
+    {ico:'📉',lbl:'Punteggio più basso',val:`${minPct}%`},
+  ].map(x=>`<div style="background:#fff;border-radius:10px;padding:16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.07)">
+    <div style="font-size:28px">${x.ico}</div>
+    <div style="font-size:22px;font-weight:800;color:var(--blu);margin:4px 0">${x.val}</div>
+    <div style="font-size:12px;color:#888">${x.lbl}</div>
+  </div>`).join('');
+
+  // ── TABELLA STUDENTI ───────────────────────────────
   tbody.innerHTML=risultati.map(r=>{
     const cls=r.pct>=70?'v-h':r.pct>=40?'v-m':'v-l';
     const deb=Object.entries(r.errori||{}).sort((a,b)=>b[1]-a[1])[0];
-    return `<tr onclick="mostraDetDoc('${r.codice}','${sessione}')" style="cursor:pointer" title="Clicca per il dettaglio">
+    return `<tr>
       <td><strong>${r.codice}</strong></td>
       <td><span class="badge-v ${cls}">${r.totale}/${r.su} (${r.pct}%)</span></td>
       <td>${r.sezioni[0]?.c??'–'}/${r.sezioni[0]?.t??'–'}</td>
       <td>${r.sezioni[1]?.c??'–'}/${r.sezioni[1]?.t??'–'}</td>
       <td>${r.sezioni[2]?.c??'–'}/${r.sezioni[2]?.t??'–'}</td>
       <td>${deb?nC(deb[0]):'–'}</td>
+      <td><button class="btn-link" style="font-size:11px" onclick="mostraDetDoc('${r.codice}','${sessione}')">🔍 Dettaglio</button></td>
     </tr>`;
   }).join('');
+
+  // ── GRAFICO COMPETENZE ─────────────────────────────
+  const compTotali={};
+  risultati.forEach(r=>{
+    Object.entries(r.errori||{}).forEach(([c,n])=>{
+      compTotali[c]=(compTotali[c]||0)+n;
+    });
+  });
+  // Calcola % errori per competenza
+  const compData = Object.entries(compTotali)
+    .map(([c,errTot])=>{
+      // Stima domande per comp: usa il numero medio di errori sul numero studenti
+      return {comp:c, errMedio:(errTot/risultati.length).toFixed(1)};
+    })
+    .sort((a,b)=>b.errMedio-a.errMedio);
+
+  let gH='';
+  compData.forEach(({comp,errMedio})=>{
+    const pct=Math.min(100,Math.round(parseFloat(errMedio)*20)); // scala visiva
+    const col=pct>=60?'var(--rosso)':pct>=30?'var(--giallo)':'var(--verde)';
+    gH+=`<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">
+        <span>${nC(comp)}</span><span style="color:${col};font-weight:700">${errMedio} errori medi</span>
+      </div>
+      <div style="height:10px;background:var(--grigio);border-radius:5px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:${col};border-radius:5px;transition:width 1s ease"></div>
+      </div>
+    </div>`;
+  });
+  $('grafico-competenze').innerHTML=gH||'<p style="color:#aaa;font-size:13px">Nessun errore registrato.</p>';
+
+  // ── SUGGERIMENTI DIDATTICI ─────────────────────────
+  const SUGG={
+    comprensione_globale:'Esercitare la sintesi: proporre riassunti e titolazione di testi. Lavorare sulla capacità di distinguere tema principale da dettagli.',
+    comprensione_locale:'Proporre esercizi di ricerca di informazioni esplicite nel testo. Abituare a sottolineare con criteri (chi, cosa, quando, dove).',
+    inferenza:'Allenare il ragionamento implicito: domande aperte su motivazioni dei personaggi, cause non dette, conseguenze logiche. Utili i fumetti e i testi narrativi brevi.',
+    struttura_testo:'Lavorare sui connettivi e sulla struttura dei paragrafi. Esercizi di ricostruzione dell\'ordine dei paragrafi.',
+    lessico:'Costruire mappe semantiche. Esercizi di sinonimi/contrari in contesto. Lettura estensiva per arricchimento spontaneo del lessico.',
+    lessico_contesto:'Lavorare sul significato figurato e sul lessico in contesto: scegliere la definizione giusta in base alla frase, non alla parola isolata.',
+    morfologia:'Ripasso sistematico di modi e tempi verbali con schemi. Esercizi di analisi grammaticale su frasi brevi tratte dai testi letti.',
+    sintassi:'Analisi del periodo: identificare proposizioni principali e subordinate. Lavorare sui connettivi come segnali di tipo di subordinata.',
+    ortografia:'Dettati mirati sulle difficoltà emerse. Schemi riassuntivi su apostrofo, accento, maiuscole.',
+    punteggiatura:'Esercizi di inserimento punteggiatura in testi privi. Analisi di testi letterari per osservare gli effetti stilistici della punteggiatura.',
+    coesione:'Lavorare sui pronomi di ripresa e sui connettivi. Esercizi di sostituzione pronominale e completamento con connettivi appropriati.',
+  };
+  const compDeboli=compData.slice(0,3).map(x=>x.comp);
+  let sH=compDeboli.length
+    ? compDeboli.map(c=>`
+        <div style="background:var(--grigio-ch);border-left:4px solid var(--az);padding:12px 16px;border-radius:4px;margin-bottom:12px">
+          <div style="font-weight:700;font-size:13px;color:var(--blu);margin-bottom:4px">🎯 ${nC(c)}</div>
+          <div style="font-size:13px;color:#444;line-height:1.6">${SUGG[c]||'Consulta il quadro di riferimento INVALSI per questa competenza.'}</div>
+        </div>`).join('')
+    : '<p style="color:var(--verde);font-weight:700">✅ La classe non mostra aree critiche particolari in questa sessione.</p>';
+  $('suggerimenti-contenuto').innerHTML=sH;
+
+  // ── ANALISI GENERALE ──────────────────────────────
+  aggiornaAnalisiGenerale();
+}
+
+function aggiornaAnalisiGenerale(){
+  const tutteSessioni=Object.entries(DB.sessioni).filter(([,s])=>s.classe===S.classe);
+  if(!tutteSessioni.length){
+    $('grafico-generale').innerHTML='<p style="color:#aaa;font-size:13px">Nessuna sessione disponibile.</p>';
+    $('grafico-competenze-generale').innerHTML='';
+    $('suggerimenti-generali').innerHTML='';
+    return;
+  }
+  // Andamento per sessione
+  let gH='';
+  tutteSessioni.forEach(([cod,sess])=>{
+    const risS=DB.risultati.filter(r=>r.sessione===cod);
+    if(!risS.length) return;
+    const avg=Math.round(risS.reduce((s,r)=>s+r.pct,0)/risS.length);
+    const col=avg>=70?'var(--verde)':avg>=40?'var(--giallo)':'var(--rosso)';
+    const p=PROVE.find(x=>x.id===sess.provaId);
+    gH+=`<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">
+        <span>${p?p.titolo:cod}</span>
+        <span style="font-weight:700;color:${col}">${avg}% media (${risS.length} stud.)</span>
+      </div>
+      <div style="height:12px;background:var(--grigio);border-radius:6px;overflow:hidden">
+        <div style="height:100%;width:${avg}%;background:${col};border-radius:6px"></div>
+      </div>
+    </div>`;
+  });
+  $('grafico-generale').innerHTML=gH||'<p style="color:#aaa;font-size:13px">Nessun dato disponibile.</p>';
+
+  // Competenze aggregate
+  const compAgg={};
+  DB.risultati.filter(r=>{
+    const s=DB.sessioni[r.sessione]; return s&&s.classe===S.classe;
+  }).forEach(r=>Object.entries(r.errori||{}).forEach(([c,n])=>{
+    compAgg[c]=(compAgg[c]||0)+n;
+  }));
+  const totStud=DB.risultati.filter(r=>{const s=DB.sessioni[r.sessione];return s&&s.classe===S.classe;}).length;
+  let cH='';
+  Object.entries(compAgg).sort((a,b)=>b[1]-a[1]).slice(0,6).forEach(([c,n])=>{
+    const avg=totStud>0?(n/totStud).toFixed(1):0;
+    const col=parseFloat(avg)>=2?'var(--rosso)':parseFloat(avg)>=1?'var(--giallo)':'var(--verde)';
+    cH+=`<div style="margin-bottom:8px;display:flex;align-items:center;gap:12px">
+      <div style="min-width:180px;font-size:12px">${nC(c)}</div>
+      <div style="flex:1;height:10px;background:var(--grigio);border-radius:5px;overflow:hidden">
+        <div style="height:100%;width:${Math.min(100,parseFloat(avg)*25)}%;background:${col};border-radius:5px"></div>
+      </div>
+      <div style="font-size:12px;font-weight:700;color:${col};min-width:60px">${avg} err/stud</div>
+    </div>`;
+  });
+  $('grafico-competenze-generale').innerHTML=cH||'<p style="color:var(--verde);font-weight:700">✅ Nessuna area critica evidente.</p>';
+  $('suggerimenti-generali').innerHTML=totStud
+    ? `<div style="font-size:13px;color:#444;line-height:1.7">Analisi su <strong>${totStud}</strong> prove completate dalla classe <strong>${S.classe}</strong>.<br>
+       Le aree con più errori medi per studente richiedono interventi sistematici.<br>
+       Si consiglia di affrontare prima le competenze di <strong>comprensione</strong> (fondamento per tutte le altre), poi le competenze di <strong>riflessione grammaticale</strong>.</div>`
+    : '<p style="color:#aaa">Nessun dato disponibile.</p>';
 }
 
 function mostraDetDoc(codice, sessione){
@@ -2111,7 +2265,7 @@ function mostraDetDoc(codice, sessione){
 }
 
 function esportaCSV(){
-  const sessione=$('sel-sess-ris').value;
+  const sessione=$('sel-sess-analisi').value;
   const risultati=DB.risultati.filter(r=>r.sessione===sessione);
   if(!risultati.length){ alert('Nessun risultato da esportare.'); return; }
   const hdr='Codice,Sessione,Classe,Totale,Su,Percentuale,Lettura,Lessico,Grammatica,CompetenzaDebole,Data';
@@ -2157,7 +2311,7 @@ function cambiaClassePanel(cl){
   $('doc-cl-lbl').textContent = 'Classe: ' + cl;
   aggiornaTabellaSessioni();
   aggSelSessioni();
-  $('sel-sess-ris').value='';
+  $('sel-sess-analisi').value='';
   $('tbody-ris').innerHTML='';
   $('doc-ris-wrap').classList.add('hidden');
 }
