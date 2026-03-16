@@ -45,172 +45,84 @@ body{font-family:var(--font);background:var(--grigio-ch);color:var(--testo);font
 /* ── LAYOUT TEST: sidebar | testo | domande ────────────── */
 .layout{display:grid;grid-template-columns:220px 1fr 1fr;min-height:calc(100vh - 88px)}
 /* ══════════════════════════════════════════════════════
-   RESPONSIVO COMPLETO — PC / Tablet / Mobile
-   Breakpoint: ≥1024 desktop | 600-1023 tablet | <600 mobile
+   RESPONSIVO — TABLET E MOBILE (< 1024px)
+   Approccio: pagina unica scorrevole, ZERO sticky/overflow annidati
 ══════════════════════════════════════════════════════ */
-
-/* TABLET (600–1023px): sidebar nascosta, testo sopra domanda */
 @media(max-width:1023px){
-  .layout{display:block}
-  .sidebar{display:none}
+  /* Header non sticky — evita blocchi su mobile */
+  .hdr{ position:relative !important; top:auto !important; }
+  /* Layout colonna singola */
+  .layout{ display:flex !important; flex-direction:column !important; min-height:auto !important; }
+  .sidebar{ display:none !important; }
+  /* Testo: NO sticky, NO max-height, NO overflow interno */
   .testo-col{
-    max-height:40vh; position:relative; top:0;
-    border-right:none; border-bottom:3px solid var(--az);
-    padding:14px 16px; overflow-y:auto;
+    position:relative !important; top:auto !important;
+    max-height:none !important; height:auto !important;
+    overflow:visible !important;
+    border-right:none !important; border-bottom:3px solid var(--az);
+    padding:14px 16px;
   }
+  /* Domanda: stessa cosa */
   .dom-col{
-    max-height:none; padding:16px 18px;
-    padding-bottom:90px; /* spazio barra fissa */
-    overflow-y:visible;
+    position:relative !important; top:auto !important;
+    max-height:none !important; height:auto !important;
+    overflow:visible !important;
+    padding:14px 16px 80px;
   }
-  .brano-body{font-size:15px; line-height:1.9}
-  .d-testo{font-size:16px}
-  .opzione{font-size:15px; padding:12px 16px}
-  .vf-btn{width:46px; height:34px; font-size:13px}
-  .nav-bottom{
-    position:fixed; bottom:0; left:0; right:0;
-    background:#fff; border-top:2px solid var(--grigio);
-    padding:10px 16px; margin:0; z-index:800;
-    box-shadow:0 -4px 12px rgba(0,0,0,.12);
-  }
-  .btn{padding:11px 22px; font-size:14px}
-  .ris-sez-grid{grid-template-columns:repeat(3,1fr)}
+  .brano-body{ font-size:15px; line-height:1.9; }
+  .d-testo{ font-size:16px; }
+  .opzione{ font-size:15px; padding:13px 14px; }
+  .vf-btn{ width:52px; height:38px; font-size:14px; }
+  .nav-bottom{ display:none !important; }
+  .ris-sez-grid{ grid-template-columns:repeat(3,1fr); }
+  .ris-big-btn{ padding:18px 14px; }
 }
 
-/* MOBILE (< 600px): tutto in colonna, font e touch ottimizzati */
 @media(max-width:599px){
-  /* Header compatto */
-  .hdr-top{padding:6px 12px; gap:6px}
-  .logo-box{width:32px; height:32px; font-size:13px}
-  .hdr-title strong{font-size:13px}
-  .hdr-title{font-size:10px}
-  .timer-val{font-size:18px; letter-spacing:0}
-  .timer-wrap{padding:5px 9px; min-width:80px}
-  .hdr-nav{padding:3px 12px; font-size:10px}
-  .sez-badge{font-size:10px; padding:2px 7px}
-
-  /* Layout */
-  .layout{display:block}
-  .sidebar{display:none}
-  .testo-col{
-    max-height:35vh; position:relative; top:0;
-    border-right:none; border-bottom:3px solid var(--az);
-    padding:12px 14px; overflow-y:auto;
-  }
-  .dom-col{padding:12px 14px 90px; max-height:none; overflow-y:visible}
-
-  /* Testo brano */
-  .brano-tit{font-size:10px}
-  .brano-body{font-size:14px; line-height:1.8}
-
-  /* Domanda */
-  .d-testo{font-size:15px; line-height:1.5; margin-bottom:12px}
-  .d-num{font-size:11px}
-  .d-comp{font-size:10px}
-  .btn-seg{font-size:10px; padding:3px 7px}
-
-  /* Opzioni SM: grandi per tocco */
-  .opzione{font-size:14px; padding:12px 12px; gap:10px; border-radius:8px}
-  .op-lett{width:30px; height:30px; font-size:13px; flex-shrink:0}
-
-  /* Risposta aperta */
-  .input-ap{font-size:16px; min-height:80px}
-
-  /* VF: bottoni touch-friendly */
-  .vf-table th{padding:8px 6px; font-size:10px}
-  .vf-table td{padding:10px 6px; font-size:13px; line-height:1.4}
-  .vf-btn{width:50px; height:40px; font-size:13px; font-weight:800}
-
-  /* COMP: select a tutta larghezza su mobile */
-  .comp-select{
-    min-width:0; width:100%; display:block;
-    margin:6px 0; font-size:15px; padding:6px 8px;
-    border:2px solid var(--az); border-radius:6px;
-    background:#e8f0fb;
-  }
-  .comp-nota{font-size:11px}
-  .parole-list{gap:5px}
-  .parola-chip{font-size:12px; padding:3px 8px}
-
-  /* COL: colonne verticali su mobile */
-  .col-wrap{
-    grid-template-columns:1fr 28px 1fr;
-    gap:5px;
-  }
-  .col-item{font-size:12px; padding:8px 8px; min-height:38px}
-  .col-arrow{height:38px; font-size:14px}
-
-  /* Nav bottom fissa */
-  .nav-bottom{
-    position:fixed; bottom:0; left:0; right:0;
-    background:#fff; border-top:2px solid var(--grigio);
-    padding:8px 12px; margin:0; z-index:800;
-    box-shadow:0 -4px 12px rgba(0,0,0,.12);
-    gap:6px;
-  }
-  .btn{padding:10px 16px; font-size:13px}
-  .prog-txt{font-size:11px}
-
-  /* Risultati */
-  .ris-sez-grid{grid-template-columns:1fr; gap:8px}
-  .ris-score{font-size:48px}
-  .ris-hdr{padding:20px 16px}
-  .ris-big-btn{padding:18px 14px}
-
-  /* Istruzioni */
-  .istr-card{padding:20px 16px}
-  .istr-list li{font-size:12px}
-  .avv{font-size:12px}
-
-  /* Accesso */
-  .acc-card{padding:24px 18px}
-  .acc-title{font-size:16px}
-
-  /* Overlay */
-  .ov-card{padding:24px 18px}
-  .ov-title{font-size:16px}
-  .ov-txt{font-size:13px}
+  .hdr-top{ padding:6px 10px; }
+  .logo-box{ width:30px; height:30px; font-size:12px; }
+  .hdr-title strong{ font-size:12px; }
+  .hdr-title{ font-size:10px; }
+  .timer-val{ font-size:17px; }
+  .timer-wrap{ padding:5px 8px; min-width:75px; }
+  .hdr-nav{ padding:3px 10px; font-size:10px; }
+  .sez-badge{ font-size:10px; padding:2px 6px; }
+  .brano-body{ font-size:14px; line-height:1.8; }
+  .d-testo{ font-size:15px; }
+  .opzione{ font-size:14px; padding:12px 12px; }
+  .op-lett{ width:28px; height:28px; font-size:13px; }
+  .input-ap{ font-size:16px; min-height:80px; }
+  .ris-sez-grid{ grid-template-columns:1fr; gap:8px; }
+  .ris-score{ font-size:48px; }
+  .istr-card{ padding:18px 14px; }
+  .istr-list li{ font-size:12px; }
+  .avv{ font-size:12px; }
+  .acc-card{ padding:20px 14px; }
+  .acc-title{ font-size:16px; }
 }
 
-/* MOBILE MOLTO PICCOLO (<380px: iPhone SE, Android compatti) */
 @media(max-width:379px){
-  .testo-col{max-height:28vh}
-  .brano-body{font-size:13px; line-height:1.7}
-  .d-testo{font-size:13px}
-  .opzione{font-size:13px; padding:10px 10px}
-  .vf-btn{width:44px; height:38px; font-size:12px}
-  .btn{padding:9px 12px; font-size:12px}
-  .timer-val{font-size:15px}
-  .col-item{font-size:11px; padding:6px 5px}
-  .col-wrap{grid-template-columns:1fr 22px 1fr; gap:3px}
+  .brano-body{ font-size:13px; }
+  .d-testo{ font-size:14px; }
+  .opzione{ font-size:13px; padding:10px; }
+  .timer-val{ font-size:15px; }
 }
 
-/* TOUCH: rimuovi hover e aumenta aree cliccabili */
-.has-touch .opzione:hover{border-color:var(--grigio); background:#fff}
-.has-touch .opzione:active{border-color:var(--blu); background:#dce8f8}
-.has-touch .btn:hover{opacity:1}
-.has-touch .btn:active{opacity:.8}
-.has-touch .vf-btn:hover{background:#fff; border-color:var(--grigio); color:var(--testo)}
-.has-touch .col-item:hover{border-color:var(--grigio); background:#fff}
-.has-touch .col-item:active{border-color:var(--az); background:#e8f0fb}
+/* Touch: active states visibili, hover disabilitato */
+.has-touch .opzione:hover{ border-color:var(--grigio) !important; background:#fff !important; }
+.has-touch .opzione:active{ border-color:var(--blu) !important; background:#dce8f8 !important; }
+.has-touch .btn:active{ opacity:.8; }
+.has-touch .col-item:active{ border-color:var(--az) !important; background:#e8f0fb !important; }
 
-/* iOS: fix per safe area (iPhone con notch/Dynamic Island) */
-.is-ios .nav-bottom{
-  padding-bottom:calc(10px + env(safe-area-inset-bottom));
-}
-.is-ios .hdr-top{
-  padding-top:calc(6px + env(safe-area-inset-top, 0px));
-}
+/* iOS safe area notch/Dynamic Island */
+.is-ios #mobile-nav-bar{ padding-bottom:calc(12px + env(safe-area-inset-bottom, 0px)); }
+/* iOS: evita zoom automatico input (richiede font >= 16px) */
+.is-ios input, .is-ios select, .is-ios textarea{ font-size:16px !important; }
 
-/* iOS: fix input zoom (iOS zoomma gli input con font < 16px) */
-.is-ios input, .is-ios select, .is-ios textarea{
-  font-size:16px !important;
-}
-
-/* Android: Chrome address bar variable height fix */
-.is-android .testo-col,
-.is-android .dom-col{
-  height: auto;
+/* ANTI pull-to-refresh Android Chrome + anti-bounce iOS */
+html, body{
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* ── SIDEBAR ────────────────────────────────────────────── */
@@ -585,11 +497,11 @@ tr:hover td{background:var(--grigio-ch)}
       <p id="istr-sub">Italiano – Grado 8 · 90 minuti</p>
     </div>
     <ul class="istr-list">
-      <li><span class="istr-ico">📖</span><span>Il <strong>testo</strong> appare nella colonna di sinistra; la <strong>domanda</strong> appare a destra. Puoi scorrere ciascuna colonna in modo indipendente.</span></li>
-      <li><span class="istr-ico">🖱️</span><span>Clicca sull'opzione che ritieni corretta. Puoi cambiare risposta fino alla consegna.</span></li>
-      <li><span class="istr-ico">🔖</span><span>Usa ⭐ per segnare una domanda e tornarci dopo. La barra laterale mostra lo stato di tutte le domande.</span></li>
+      <li><span class="istr-ico">📖</span><span>Il <strong>testo del brano</strong> appare nella parte alta dello schermo. Le <strong>domande</strong> appaiono sotto (su PC: a destra). Puoi rileggere il testo in qualsiasi momento.</span></li>
+      <li><span class="istr-ico">🖱️</span><span>Tocca o clicca la risposta che ritieni corretta. Puoi cambiarla fino alla consegna.</span></li>
+      <li><span class="istr-ico">➡️</span><span>Usa i tasti <strong>Avanti</strong> e <strong>Indietro</strong> in fondo allo schermo per navigare tra le domande.</span></li>
       <li><span class="istr-ico">⏱️</span><span>Il timer in alto diventa giallo a 10 minuti e rosso a 5 minuti.</span></li>
-      <li><span class="istr-ico">📊</span><span>A fine prova scarichi il PDF con risultati, revisione completa e scheda di recupero.</span></li>
+      <li><span class="istr-ico">📊</span><span>A fine prova vedi il punteggio e puoi aprire le soluzioni o scaricare gli esercizi di recupero.</span></li>
     </ul>
     <div class="avv">⚠️ Non chiudere né minimizzare questa finestra. Prima uscita = avviso. Seconda uscita = prova consegnata automaticamente.</div>
     <div class="istr-footer">
@@ -1682,21 +1594,18 @@ function accStud(){
   const prova   = PROVE.find(p => p.id === provaId);
   if(!prova){ showErr('err-acc','Prova non trovata. Usa il link corretto fornito dal docente su Classroom.'); return; }
 
-  // Controlla se esiste una sessione docente attiva per questa prova+classe
-  const classeURL  = S.classeDaURL || '';
-  const sessKey    = `prova-${provaId}`;
-  const sessReale  = DB.sessioni[sessKey] && !DB.sessioni[sessKey].chiusa;
-  S.modoTest       = !sessReale;   // true se nessuna sessione docente attiva
+  // Nessuna modalità demo — la validazione avviene lato server (Google Sheet)
+  S.modoTest = false;
 
   Object.assign(S, {
     stud: cod, prova,
-    sessione: sessKey,
-    classe: classeURL,
+    sessione: `prova-${provaId}`,
+    classe: S.classeDaURL || '',
     risposte:{}, segnati: new Set(), cur:0, uscite:0, calcolo:null
   });
   $('istr-title').textContent = prova.titolo;
   $('istr-sub').textContent   = `Italiano – Grado 8 · ${CFG.durata} minuti`;
-  $('istr-stud').textContent  = cod + (S.modoTest ? ' (modalità demo)' : '');
+  $('istr-stud').textContent  = cod;
   hideErr('err-acc');
   mostraScr('scr-istr');
 }
