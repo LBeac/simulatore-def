@@ -1027,7 +1027,7 @@ VF("10_24",2,"morfologia","Indica se le seguenti analisi grammaticali sono corre
 [{t:"'muto e ostinato' sono due aggettivi qualificativi coordinati.",ok:true},
  {t:"'stigmatizzata' in 'troppo spesso stigmatizzata' è un avverbio.",ok:false},
  {t:"'sottodimensionati' contiene il prefisso 'sotto-' con valore di insufficienza.",ok:true},
- {t:"'espiare' è un verbo della prima coniugazione.",ok:false}]),
+ {t:"'espiare' è un verbo della prima coniugazione.",ok:true}]),
 
 SM("10_25",2,"sintassi","In 'molti ragazzi che soffrono non chiedono aiuto perché hanno paura di essere giudicati', le proposizioni subordinate sono:",
 ["Una relativa e una causale.",
