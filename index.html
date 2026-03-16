@@ -280,13 +280,18 @@ tr:hover td{background:var(--grigio-ch)}
       <button class="tab-acc-btn" onclick="setTipoAcc('docente',this)">👩‍🏫 Docente</button>
     </div>
     <div id="form-stud">
-      <div class="fg">
-        <label class="flbl">Codice studente</label>
-        <input class="finp" type="text" id="cod-stud" placeholder="es. 3B-07" autocomplete="off" maxlength="20">
+      <!-- Banner prova caricata dall'URL (visibile solo se link corretto) -->
+      <div id="banner-prova" class="hidden" style="background:#e8f5e9;border:2px solid var(--verde);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#1b5e20">
+        <div style="font-weight:700;margin-bottom:2px">📋 Prova assegnata:</div>
+        <div id="banner-prova-nome" style="font-size:15px;font-weight:800"></div>
+      </div>
+      <!-- Messaggio se accesso diretto senza link -->
+      <div id="banner-no-prova" style="background:#fff8e1;border:2px solid var(--giallo);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#7a5800">
+        ⚠️ Accesso diretto. Usa il link fornito dal docente su Classroom per accedere alla prova corretta.
       </div>
       <div class="fg">
-        <label class="flbl">Codice prova</label>
-        <input class="finp" type="text" id="cod-prova" placeholder="Fornito dal docente" autocomplete="off" maxlength="20">
+        <label class="flbl">Codice studente</label>
+        <input class="finp" type="text" id="cod-stud" placeholder="es. 3A-07" autocomplete="off" maxlength="20">
       </div>
       <button class="btn-acc" onclick="accStud()">Accedi alla prova →</button>
       <div class="info-nota">⚠️ Non chiudere questa finestra. Alla seconda uscita la prova viene consegnata automaticamente.</div>
@@ -1260,17 +1265,20 @@ function setTipoAcc(tipo, btn){
 }
 
 function accStud(){
-  const cod=$('cod-stud').value.trim().toUpperCase();
-  const cp=$('cod-prova').value.trim().toUpperCase();
-  if(!cod){ showErr('err-acc','Inserisci il tuo codice studente.'); return; }
-  if(!cp) { showErr('err-acc','Inserisci il codice della prova.'); return; }
-  const sess=DB.sessioni[cp];
-  if(!sess){ showErr('err-acc','Codice prova non valido. Chiedi al docente.'); return; }
-  if(sess.chiusa){ showErr('err-acc','Questa sessione è chiusa. Chiedi al docente.'); return; }
-  const prova=PROVE.find(p=>p.id===sess.provaId);
-  if(!prova){ showErr('err-acc','Prova non trovata.'); return; }
-  Object.assign(S,{stud:cod, prova, sessione:cp, classe:sess.classe,
-    risposte:{}, segnati:new Set(), cur:0, uscite:0, calcolo:null});
+  const cod = $('cod-stud').value.trim().toUpperCase();
+  if(!cod){ showErr('err-acc','Inserisci il tuo codice studente (es. 3A-07).'); return; }
+
+  // Prova determinata dall'URL (?prova=3 oppure ?prova=3A-MAR26 → estrae il numero)
+  const provaId = S.provaIdDaURL || 1;
+  const prova   = PROVE.find(p => p.id === provaId);
+  if(!prova){ showErr('err-acc','Prova non trovata. Usa il link corretto fornito dal docente su Classroom.'); return; }
+
+  Object.assign(S, {
+    stud: cod, prova,
+    sessione: `prova-${provaId}`,
+    classe: S.classeDaURL || '',
+    risposte:{}, segnati: new Set(), cur:0, uscite:0, calcolo:null
+  });
   $('istr-title').textContent = prova.titolo;
   $('istr-sub').textContent   = `Italiano – Grado 8 · ${CFG.durata} minuti`;
   $('istr-stud').textContent  = cod;
@@ -1778,23 +1786,34 @@ function genCod(){
 }
 
 function creaSessione(){
-  const provaId=Number($('sel-prova-new').value);
-  const codice=$('new-cod').value.trim().toUpperCase();
+  const provaId = Number($('sel-prova-new').value);
+  const classe  = S.classe;
   hideErr('err-new'); $('succ-new').style.display='none';
-  if(!codice){ showErr('err-new','Inserisci un codice.'); return; }
-  if(DB.sessioni[codice]){ showErr('err-new','Codice già esistente. Scegline un altro.'); return; }
-  DB.sessioni[codice]={provaId, classe:S.classe, data:new Date().toISOString(), studenti:0};
-  saveDB();
-  const link=`${window.location.href.split('?')[0]}?prova=${codice}`;
-  const el=$('succ-new');
-  el.innerHTML=`✅ Sessione creata!<br>Codice: <strong>${codice}</strong><br>
-    Link: <code style="font-size:11px;word-break:break-all">${link}</code>`;
+
+  // Genera link diretto con numero prova e classe
+  const base = window.location.href.split('?')[0];
+  const link = `${base}?prova=${provaId}&classe=${classe}`;
+
+  const el = $('succ-new');
+  const prova = PROVE.find(p => p.id === provaId);
+  el.innerHTML = `✅ Link pronto da copiare su Classroom:<br>
+    <div style="margin-top:8px;padding:8px 12px;background:#fff;border:1px solid var(--verde);border-radius:6px;word-break:break-all;font-size:12px;font-family:monospace">${link}</div>
+    <button onclick="navigator.clipboard.writeText('${link}').then(()=>alert('✅ Link copiato!'))" 
+      class="btn btn-g" style="margin-top:10px;width:100%;padding:9px">📋 Copia link</button>
+    <div style="margin-top:8px;font-size:11px;color:#555">
+      Gli studenti aprono questo link e inseriscono solo il loro codice anonimo.<br>
+      La prova <strong>${prova?.titolo||''}</strong> parte automaticamente.
+    </div>`;
   el.style.display='block';
-  popolaDocente();
 }
 
 function copiaLink(codice){
-  const link=`${window.location.href.split('?')[0]}?prova=${codice}`;
+  // Recupera la sessione per sapere provaId e classe
+  const sess = DB.sessioni[codice];
+  const base  = window.location.href.split('?')[0];
+  const link  = sess
+    ? `${base}?prova=${sess.provaId}&classe=${sess.classe}`
+    : `${base}?prova=1`;
   navigator.clipboard.writeText(link).then(()=>alert('✅ Link copiato negli appunti:\n\n'+link));
 }
 
@@ -1918,11 +1937,40 @@ function salvaPW(){
   setTimeout(()=>el.style.display='none', 3000);
 }
 
-// URL PARAMS
-window.addEventListener('load',()=>{
-  const params=new URLSearchParams(window.location.search);
-  const prova=params.get('prova');
-  if(prova){ $('cod-prova').value=prova.toUpperCase(); }
+// URL PARAMS – legge ?prova=3 oppure ?prova=3A-MAR26 oppure ?prova=3B-APR26-2
+window.addEventListener('load', () => {
+  const params  = new URLSearchParams(window.location.search);
+  const raw     = params.get('prova');          // es. "3" o "3A-MAR26" o "2"
+  const classe  = params.get('classe') || '';   // es. "3A" (opzionale)
+
+  // Estrae numero prova: se è un numero puro usa quello, altrimenti
+  // prende il primo numero presente nella stringa (es. "3A-MAR26" → cerca param separato)
+  let provaId = 1; // fallback: prova 1
+  if(raw){
+    const soloNumero = parseInt(raw, 10);
+    if(!isNaN(soloNumero) && soloNumero >= 1 && soloNumero <= 50){
+      provaId = soloNumero;
+    } else {
+      // Parametro separato ?n=3 come alternativa
+      const n = parseInt(params.get('n'), 10);
+      if(!isNaN(n)) provaId = n;
+    }
+  }
+
+  S.provaIdDaURL = provaId;
+  S.classeDaURL  = classe;
+
+  // Mostra banner con nome della prova
+  const prova = PROVE.find(p => p.id === provaId);
+  if(raw && prova){
+    $('banner-prova-nome').textContent = `${provaId}. ${prova.titolo}`;
+    $('banner-prova').classList.remove('hidden');
+    $('banner-no-prova').style.display = 'none';
+  } else {
+    // Nessun link valido: mostra avviso
+    $('banner-prova').classList.add('hidden');
+    $('banner-no-prova').style.display = 'block';
+  }
 });
 </script>
 </body>
