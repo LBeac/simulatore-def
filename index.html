@@ -1942,16 +1942,8 @@ function renderDom(idx){
 
   $('col-dom').innerHTML=html;
   aggSidebar();
-
-  // Aggiorna barra navigazione mobile
   aggMobileNav(idx);
-
-  // Scrolla all'inizio
-  if(mobile){
-    window.scrollTo({top:0, behavior:'smooth'});
-  } else {
-    $('col-dom').scrollTop=0;
-  }
+  // NON scrollare automaticamente — lo scroll avviene solo su avanti/indietro
 }
 
 // Toggle testo di riferimento su mobile
@@ -2016,16 +2008,45 @@ function selRisp(id,opz){ S.risposte[id]=opz; renderDom(S.cur); }
 function salvaAp(id,val){ S.risposte[id]=val; aggSidebar(); }
 function toggleSeg(id){ S.segnati.has(id)?S.segnati.delete(id):S.segnati.add(id); renderDom(S.cur); }
 
-// Vero/Falso
 function salvaVF(id,idx,val){
   if(!S.risposte[id]) S.risposte[id]={};
   S.risposte[id][idx]=val;
   aggSidebar();
-  // Rirender solo i bottoni
-  const btn_v=document.querySelectorAll(`button[onclick="salvaVF('${id}',${idx},'V')"]`)[0];
-  const btn_f=document.querySelectorAll(`button[onclick="salvaVF('${id}',${idx},'F')"]`)[0];
-  if(btn_v){ btn_v.className='vf-btn '+(val==='V'?'sel-v':''); }
-  if(btn_f){ btn_f.className='vf-btn '+(val==='F'?'sel-f':''); }
+
+  if(isMobileLayout()){
+    // Mobile: aggiorna visivamente i bottoni senza re-render completo
+    // Cerca i due bottoni di questa riga (V e F) tramite attributo onclick
+    const btns = document.querySelectorAll(`button[onclick*="salvaVF('${id}',${idx},"]`);
+    btns.forEach(btn=>{
+      const isV = btn.getAttribute('onclick').includes("'V'");
+      const scelto = (isV && val==='V') || (!isV && val==='F');
+      if(scelto){
+        btn.style.background = isV ? '#e8f5e9' : '#fce4e4';
+        btn.style.borderColor = isV ? 'var(--verde)' : 'var(--rosso)';
+        btn.style.color = isV ? 'var(--verde)' : 'var(--rosso)';
+        btn.style.fontWeight = '800';
+        btn.style.transform = 'scale(1.05)';
+      } else {
+        btn.style.background = '#fff';
+        btn.style.borderColor = 'var(--grigio)';
+        btn.style.color = '#555';
+        btn.style.fontWeight = '700';
+        btn.style.transform = '';
+      }
+    });
+    // Aggiorna anche il bordo del container della riga
+    const firstBtn = document.querySelector(`button[onclick*="salvaVF('${id}',${idx},"]`);
+    if(firstBtn){
+      const row = firstBtn.closest('div[style]');
+      if(row){ row.style.borderColor='var(--az)'; row.style.background='#e8f0fb'; }
+    }
+  } else {
+    // Desktop: aggiorna solo i bottoni della tabella
+    const btn_v=document.querySelectorAll(`button[onclick="salvaVF('${id}',${idx},'V')"]`)[0];
+    const btn_f=document.querySelectorAll(`button[onclick="salvaVF('${id}',${idx},'F')"]`)[0];
+    if(btn_v){ btn_v.className='vf-btn '+(val==='V'?'sel-v':''); }
+    if(btn_f){ btn_f.className='vf-btn '+(val==='F'?'sel-f':''); }
+  }
 }
 
 // Completamento
@@ -2061,21 +2082,21 @@ function colSelDx(id,jdx){
 function avanti(){
   if(S.cur>=S.prova.domande.length-1) return;
   let next = S.cur+1;
-  // Su mobile: salta i blocchi testo puri, vai diretto alla domanda
   if(isMobileLayout()){
     while(next < S.prova.domande.length-1 && S.prova.domande[next].tipo==='testo') next++;
   }
   renderDom(next);
+  window.scrollTo({top:0, behavior:'smooth'});
 }
 
 function indietro(){
   if(S.cur<=0) return;
   let prev = S.cur-1;
-  // Su mobile: salta i blocchi testo puri andando indietro
   if(isMobileLayout()){
     while(prev > 0 && S.prova.domande[prev].tipo==='testo') prev--;
   }
   renderDom(prev);
+  window.scrollTo({top:0, behavior:'smooth'});
 }
 
 // ── CONSEGNA ───────────────────────────────────────────
@@ -2572,21 +2593,36 @@ function creaSessione(){
   const classe  = S.classe;
   hideErr('err-new'); $('succ-new').style.display='none';
 
-  // Genera link diretto con numero prova e classe
+  // SALVA la sessione nel DB locale
+  const sessKey = `prova-${provaId}`;
+  DB.sessioni[sessKey] = {
+    provaId, classe,
+    data: new Date().toISOString(),
+    studenti: 0,
+    chiusa: false
+  };
+  saveDB();
+
   const base = window.location.href.split('?')[0];
   const link = `${base}?prova=${provaId}&classe=${classe}`;
+  const prova = PROVE.find(p => p.id === provaId);
 
   const el = $('succ-new');
-  const prova = PROVE.find(p => p.id === provaId);
-  el.innerHTML = `✅ Link pronto da copiare su Classroom:<br>
+  el.innerHTML = `✅ Sessione creata e link pronto:<br>
     <div style="margin-top:8px;padding:8px 12px;background:#fff;border:1px solid var(--verde);border-radius:6px;word-break:break-all;font-size:12px;font-family:monospace">${link}</div>
-    <button onclick="navigator.clipboard.writeText('${link}').then(()=>alert('✅ Link copiato!'))" 
+    <button onclick="navigator.clipboard.writeText('${link}').then(()=>alert('✅ Link copiato!'))"
       class="btn btn-g" style="margin-top:10px;width:100%;padding:9px">📋 Copia link</button>
     <div style="margin-top:8px;font-size:11px;color:#555">
-      Gli studenti aprono questo link e inseriscono solo il loro codice anonimo.<br>
+      Codice sessione: <strong>${sessKey}</strong><br>
+      Gli studenti aprono questo link e inseriscono il loro nome o codice.<br>
       La prova <strong>${prova?.titolo||''}</strong> parte automaticamente.
     </div>`;
   el.style.display='block';
+
+  // Aggiorna tabella sessioni e menu importa
+  aggiornaTabellaSessioni();
+  aggSelSessioni();
+  popolaSelImport();
 }
 
 function copiaLink(codice){
