@@ -2086,7 +2086,11 @@ function avanti(){
     while(next < S.prova.domande.length-1 && S.prova.domande[next].tipo==='testo') next++;
   }
   renderDom(next);
-  window.scrollTo({top:0, behavior:'smooth'});
+  // Scrolla alla colonna domanda (non all'inizio della pagina)
+  setTimeout(()=>{
+    const domCol = $('col-dom');
+    if(domCol) domCol.scrollIntoView({behavior:'smooth', block:'start'});
+  }, 50);
 }
 
 function indietro(){
@@ -2096,7 +2100,11 @@ function indietro(){
     while(prev > 0 && S.prova.domande[prev].tipo==='testo') prev--;
   }
   renderDom(prev);
-  window.scrollTo({top:0, behavior:'smooth'});
+  // Scrolla alla colonna domanda
+  setTimeout(()=>{
+    const domCol = $('col-dom');
+    if(domCol) domCol.scrollIntoView({behavior:'smooth', block:'start'});
+  }, 50);
 }
 
 // ── CONSEGNA ───────────────────────────────────────────
