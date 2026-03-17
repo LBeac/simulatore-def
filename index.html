@@ -832,9 +832,15 @@ tr:hover td{background:var(--grigio-ch)}
 
   <!-- TAB: SESSIONI -->
   <div class="panel att" id="tab-sess">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <button class="btn btn-s" onclick="caricaSessioniDaSheet()" style="font-size:12px;padding:7px 14px">
+        ☁️ Sincronizza sessioni da Sheet
+      </button>
+      <span id="sync-status" style="font-size:12px;color:var(--verde);font-weight:700"></span>
+    </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Codice</th><th>Prova</th><th>Data</th><th>Studenti</th><th>Stato</th><th>Azioni</th></tr></thead>
+        <thead><tr><th>Codice</th><th>Prova</th><th>Classe</th><th>Data</th><th>Studenti</th><th>Stato</th><th>Azioni</th></tr></thead>
         <tbody id="tbody-sess"></tbody>
       </table>
     </div>
@@ -2678,165 +2684,6 @@ function scaricaPDF(){
   doc.save(`INVALSI_${S.stud}_${S.classe}_${new Date().toLocaleDateString('it-IT').replace(/\//g,'-')}.pdf`);
 }
 
-// ══════════════════════════════════════════════════════
-//  PANNELLO DOCENTE
-// ══════════════════════════════════════════════════════
-function popolaDocente(){
-  // Sincronizza classe con il selettore nel pannello
-  const selPanel = $('sel-cl-panel');
-  if(selPanel) selPanel.value = S.classe;
-  $('doc-cl-lbl').textContent = 'Classe: ' + S.classe;
-  // Select prove
-  $('sel-prova-new').innerHTML=PROVE.map(p=>`<option value="${p.id}">${p.id}. ${p.titolo}</option>`).join('');
-  aggSelSessioni();
-  aggiornaTabellaSessioni();
-  popolaSelImport();
-}
-
-function aggSelSessioni(){
-  const sel=$('sel-sess-analisi');
-  const sessClasse=Object.entries(DB.sessioni).filter(([,s])=>s.classe===S.classe);
-  sel.innerHTML='<option value="">-- Seleziona sessione --</option>'+
-    sessClasse.map(([cod,s])=>{
-      const p=PROVE.find(x=>x.id===s.provaId);
-      return `<option value="${cod}">${cod} – ${p?p.titolo:''}</option>`;
-    }).join('');
-}
-
-function aggiornaTabellaSessioni(){
-  const tbody=$('tbody-sess');
-  const sessClasse=Object.entries(DB.sessioni).filter(([,s])=>s.classe===S.classe);
-  if(!sessClasse.length){
-    tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:#aaa;padding:20px">Nessuna sessione. Usa "+ Nuova sessione".</td></tr>';
-    return;
-  }
-  tbody.innerHTML=sessClasse.map(([cod,s])=>{
-    const p=PROVE.find(x=>x.id===s.provaId);
-    const chiusa=!!s.chiusa;
-    const statoHTML=chiusa
-      ? `<span class="sessione-status status-chiusa"><span class="status-dot"></span>Chiusa</span>`
-      : `<span class="sessione-status status-attiva"><span class="status-dot"></span>Attiva</span>`;
-    return `<tr>
-      <td><strong>${cod}</strong></td>
-      <td>${p?p.titolo:'–'}</td>
-      <td>${new Date(s.data).toLocaleDateString('it-IT')}</td>
-      <td>${s.studenti||0}</td>
-      <td>${statoHTML}</td>
-      <td style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn-link" onclick="copiaLink('${cod}')">📋 Link</button>
-        ${!chiusa?`<button class="btn-link" style="background:#fff8e1;color:#b45309;border-color:#f9a825" onclick="chiudiSessione('${cod}')">🔒 Chiudi</button>`:''}
-        <button class="btn-del" onclick="chiediDel('${cod}')">🗑️ Elimina</button>
-      </td>
-    </tr>`;
-  }).join('');
-}
-
-function mostraTab(id,btn){
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('att'));
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('att'));
-  $(id).classList.add('att'); btn.classList.add('att');
-}
-
-function genCod(){
-  const mesi=['GEN','FEB','MAR','APR','MAG','GIU','LUG','AGO','SET','OTT','NOV','DIC'];
-  const m=mesi[new Date().getMonth()], y=String(new Date().getFullYear()).slice(-2);
-  $('new-cod').value=`${S.classe}-${m}${y}`;
-}
-
-function creaSessione(){
-  const provaId = Number($('sel-prova-new').value);
-  const classe  = S.classe;
-  hideErr('err-new'); $('succ-new').style.display='none';
-
-  // SALVA la sessione nel DB locale
-  const sessKey = `prova-${provaId}`;
-  DB.sessioni[sessKey] = {
-    provaId, classe,
-    data: new Date().toISOString(),
-    studenti: 0,
-    chiusa: false
-  };
-  saveDB();
-
-  const base = window.location.href.split('?')[0];
-  const link = `${base}?prova=${provaId}&classe=${classe}`;
-  const prova = PROVE.find(p => p.id === provaId);
-
-  const el = $('succ-new');
-  el.innerHTML = `✅ Sessione creata e link pronto:<br>
-    <div style="margin-top:8px;padding:8px 12px;background:#fff;border:1px solid var(--verde);border-radius:6px;word-break:break-all;font-size:12px;font-family:monospace">${link}</div>
-    <button onclick="navigator.clipboard.writeText('${link}').then(()=>alert('✅ Link copiato!'))"
-      class="btn btn-g" style="margin-top:10px;width:100%;padding:9px">📋 Copia link</button>
-    <div style="margin-top:8px;font-size:11px;color:#555">
-      Codice sessione: <strong>${sessKey}</strong><br>
-      Gli studenti aprono questo link e inseriscono il loro nome o codice.<br>
-      La prova <strong>${prova?.titolo||''}</strong> parte automaticamente.
-    </div>`;
-  el.style.display='block';
-
-  // Aggiorna tabella sessioni e menu importa
-  aggiornaTabellaSessioni();
-  aggSelSessioni();
-  popolaSelImport();
-}
-
-function copiaLink(codice){
-  // Recupera la sessione per sapere provaId e classe
-  const sess = DB.sessioni[codice];
-  const base  = window.location.href.split('?')[0];
-  const link  = sess
-    ? `${base}?prova=${sess.provaId}&classe=${sess.classe}`
-    : `${base}?prova=1`;
-  navigator.clipboard.writeText(link).then(()=>alert('✅ Link copiato negli appunti:\n\n'+link));
-}
-
-function chiudiSessione(codice){
-  if(!confirm(`Chiudere la sessione ${codice}? Gli studenti non potranno più accedervi.`)) return;
-  DB.sessioni[codice].chiusa=true;
-  saveDB(); aggiornaTabellaSessioni();
-}
-
-// ELIMINA SESSIONE
-function chiediDel(codice){
-  S.delTarget=codice;
-  $('del-cod').textContent=codice;
-  $('ov-del').classList.remove('hidden');
-}
-
-function confermaDel(){
-  const cod=S.delTarget; if(!cod) return;
-  delete DB.sessioni[cod];
-  DB.risultati=DB.risultati.filter(r=>r.sessione!==cod);
-  saveDB();
-  $('ov-del').classList.add('hidden');
-  S.delTarget=null;
-  popolaDocente();
-  $('doc-ris-wrap').classList.add('hidden');
-}
-
-// ELIMINA SINGOLO RISULTATO STUDENTE
-function chiediDelStudente(codice, sessione){
-  S.delStudTarget={codice, sessione};
-  $('del-stud-cod').textContent=codice;
-  $('del-stud-sess').textContent=sessione;
-  $('ov-del-stud').classList.remove('hidden');
-}
-
-function confermaDelStudente(){
-  const t=S.delStudTarget; if(!t) return;
-  DB.risultati=DB.risultati.filter(r=>!(r.codice===t.codice && r.sessione===t.sessione));
-  // Aggiorna conteggio studenti nella sessione
-  if(DB.sessioni[t.sessione])
-    DB.sessioni[t.sessione].studenti=DB.risultati.filter(r=>r.sessione===t.sessione).length;
-  saveDB();
-  $('ov-del-stud').classList.add('hidden');
-  S.delStudTarget=null;
-  // Ricarica l'analisi
-  caricaAnalisi();
-  aggiornaTabellaSessioni();
-}
-
-// RISULTATI
 // ══════════════════════════════════════════════════════════════
 //  ANALISI PANNELLO DOCENTE — versione completa
 //  3 livelli: sessione singola | per prova | andamento generale
@@ -2910,12 +2757,228 @@ function cambiaClassePanel(cl){
 }
 
 // ── SESSIONI ─────────────────────────────────────────────────
+// ── CREA SESSIONE (salva locale + Sheet) ─────────────────────
+function creaSessione(){
+  const provaId = Number($('sel-prova-new').value);
+  const classe  = S.classe === 'ALL' ? '' : S.classe;
+  hideErr('err-new'); $('succ-new').style.display='none';
+
+  if(!classe){
+    showErr('err-new','Seleziona prima una classe (3A o 3E) dal selettore in alto.');
+    return;
+  }
+
+  const sessKey = `prova-${provaId}`;
+  const sessData = {
+    provaId, classe,
+    data: new Date().toISOString(),
+    studenti: 0,
+    chiusa: false
+  };
+
+  // 1. Salva in localStorage (per uso offline/locale)
+  DB.sessioni[sessKey] = sessData;
+  saveDB();
+
+  // 2. Salva anche su Google Sheet (per accesso da qualsiasi browser)
+  salvaSessOnSheet(sessKey, sessData);
+
+  const base = window.location.href.split('?')[0];
+  const link = `${base}?prova=${provaId}&classe=${classe}`;
+  const prova = PROVE.find(p => p.id === provaId);
+
+  const el = $('succ-new');
+  el.innerHTML = `✅ Sessione creata — link pronto:<br>
+    <div style="margin-top:8px;padding:8px 12px;background:#fff;border:1px solid var(--verde);
+      border-radius:6px;word-break:break-all;font-size:12px;font-family:monospace">${link}</div>
+    <button onclick="navigator.clipboard.writeText('${link}').then(()=>alert('✅ Link copiato!'))"
+      class="btn btn-g" style="margin-top:10px;width:100%;padding:9px">📋 Copia link</button>
+    <div style="margin-top:8px;font-size:11px;color:#555">
+      Codice sessione: <strong>${sessKey}</strong> · Classe: <strong>${classe}</strong><br>
+      Prova: <strong>${prova?.titolo||''}</strong>
+    </div>`;
+  el.style.display='block';
+
+  aggiornaTabellaSessioni();
+  aggSelSessioni();
+  popolaSelImport();
+  popolaSelProvaAnalisi();
+}
+
+// Salva sessione su Google Sheet (tab "Sessioni")
+function salvaSessOnSheet(sessKey, sessData){
+  const prova = PROVE.find(p=>p.id===sessData.provaId);
+  fetch(SCRIPT_URL, {
+    method:'POST', mode:'no-cors',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      action: 'salvaSessione',
+      sessione: sessKey,
+      classe: sessData.classe,
+      provaId: sessData.provaId,
+      provaTitolo: prova?.titolo||'',
+      data: sessData.data
+    })
+  }).catch(()=>{}); // silenzioso se offline
+}
+
+// Carica sessioni dallo Sheet nel localStorage (sync cross-browser)
+async function caricaSessioniDaSheet(){
+  try{
+    const url = `${SCRIPT_URL}?action=leggiSessioni`;
+    const res  = await fetch(url);
+    const data = await res.json();
+    if(data.ok && data.sessioni){
+      data.sessioni.forEach(s=>{
+        const key = s.sessione || `prova-${s.provaId}`;
+        if(!DB.sessioni[key]){
+          DB.sessioni[key] = {
+            provaId: parseInt(s.provaId)||1,
+            classe: s.classe||'',
+            data: s.data || new Date().toISOString(),
+            studenti: 0,
+            chiusa: false
+          };
+        }
+      });
+      saveDB();
+      aggiornaTabellaSessioni();
+      aggSelSessioni();
+      $('sync-status').textContent = '✅ Sessioni sincronizzate';
+      setTimeout(()=>{ $('sync-status').textContent=''; }, 3000);
+    }
+  } catch(e){
+    // Sheet non raggiungibile - usa solo localStorage
+  }
+}
+
+function copiaLink(codice){
+  const sess = DB.sessioni[codice];
+  const base  = window.location.href.split('?')[0];
+  const link  = sess
+    ? `${base}?prova=${sess.provaId}&classe=${sess.classe}`
+    : `${base}?prova=1`;
+  navigator.clipboard.writeText(link).then(()=>alert('✅ Link copiato:\n\n'+link));
+}
+
+function chiudiSessione(codice){
+  if(!DB.sessioni[codice]) return;
+  DB.sessioni[codice].chiusa = true;
+  saveDB();
+  aggiornaTabellaSessioni();
+}
+
+function chiediDel(cod){
+  $('del-cod').textContent = cod;
+  $('ov-del').dataset.cod = cod;
+  $('ov-del').classList.remove('hidden');
+}
+
+function confermaDel(){
+  const cod = $('ov-del').dataset.cod;
+  delete DB.sessioni[cod];
+  DB.risultati = DB.risultati.filter(r=>r.sessione!==cod);
+  saveDB();
+  $('ov-del').classList.add('hidden');
+  aggiornaTabellaSessioni();
+  aggSelSessioni();
+  aggiornaGenerale();
+}
+
+function chiediDelStudente(codice, sessione){
+  $('del-stud-cod').textContent = codice;
+  $('del-stud-sess').textContent = sessione;
+  $('ov-del-stud').dataset.codice = codice;
+  $('ov-del-stud').dataset.sessione = sessione;
+  $('ov-del-stud').classList.remove('hidden');
+}
+
+function confermaDelStudente(){
+  const codice   = $('ov-del-stud').dataset.codice;
+  const sessione = $('ov-del-stud').dataset.sessione;
+  DB.risultati = DB.risultati.filter(r=>!(r.codice===codice && r.sessione===sessione));
+  if(DB.sessioni[sessione])
+    DB.sessioni[sessione].studenti = DB.risultati.filter(r=>r.sessione===sessione).length;
+  saveDB();
+  $('ov-del-stud').classList.add('hidden');
+  caricaAnalisi();
+}
+
+function mostraDetDoc(codice, sessione){
+  const r = DB.risultati.find(x=>x.codice===codice && x.sessione===sessione);
+  if(!r) return;
+  $('doc-det-title').textContent = `${r.codice} · ${r.classe} · ${r.pct}%`;
+  const deb = Object.entries(r.errori||{}).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([c])=>c);
+  $('doc-det-body').innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+      ${[['Totale',`${r.totale}/${r.su}`],['Lettura',`${r.sezioni[0]?.c||0}/${r.sezioni[0]?.t||0}`],
+         ['Lessico',`${r.sezioni[1]?.c||0}/${r.sezioni[1]?.t||0}`],
+         ['Grammatica',`${r.sezioni[2]?.c||0}/${r.sezioni[2]?.t||0}`]]
+        .map(([l,v])=>`<div style="text-align:center;background:var(--grigio-ch);border-radius:8px;padding:10px">
+          <div style="font-size:11px;color:#888">${l}</div>
+          <div style="font-size:18px;font-weight:800;color:var(--blu)">${v}</div>
+        </div>`).join('')}
+    </div>
+    <div style="font-size:12px;font-weight:700;color:var(--blu);margin-bottom:8px">Aree deboli:</div>
+    ${deb.map(c=>`<div style="background:var(--grigio-ch);border-left:3px solid var(--az);
+      padding:8px 12px;border-radius:4px;margin-bottom:6px;font-size:13px">${nC(c)}</div>`).join('')
+      ||'<p style="color:var(--verde);font-size:13px">Nessuna area critica.</p>'}
+    <button class="btn btn-s" onclick="stampaSchedaStudente('${codice}','${sessione}')"
+      style="width:100%;margin-top:12px;padding:9px;font-size:13px">🖨️ Stampa scheda</button>`;
+  $('doc-ris-wrap').classList.remove('hidden');
+}
+
+function esportaCSV(){
+  const sess = $('sel-sess-analisi').value;
+  if(!sess) return;
+  const ris = DB.risultati.filter(r=>r.sessione===sess);
+  if(!ris.length){ alert('Nessun risultato da esportare.'); return; }
+  const header = 'Studente,Classe,Punteggio,Su,Percentuale,Lettura,Lessico,Grammatica,Data';
+  const rows = ris.map(r=>`${r.codice},${r.classe},${r.totale},${r.su},${r.pct}%,`+
+    `${r.sezioni[0]?.c||0}/${r.sezioni[0]?.t||0},${r.sezioni[1]?.c||0}/${r.sezioni[1]?.t||0},`+
+    `${r.sezioni[2]?.c||0}/${r.sezioni[2]?.t||0},${new Date(r.data).toLocaleDateString('it-IT')}`);
+  const csv = [header,...rows].join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
+  a.download = `INVALSI_${sess}_${new Date().toLocaleDateString('it-IT').replace(/\//g,'-')}.csv`;
+  a.click();
+}
+
+function salvaPW(){
+  const n=$('pw-nuova').value, c=$('pw-conferma').value;
+  if(!n||n.length<6){ showErr('err-pw','Password troppo corta (minimo 6 caratteri).'); return; }
+  if(n!==c){ showErr('err-pw','Le password non coincidono.'); return; }
+  setPW_doc(n);
+  $('succ-pw').textContent='✅ Password aggiornata.';
+  $('succ-pw').style.display='block';
+  hideErr('err-pw');
+  setTimeout(()=>{ $('succ-pw').style.display='none'; },3000);
+}
+
+function togglePwVis(id){
+  const inp=$(`pw-${id}`);
+  if(inp) inp.type = inp.type==='password'?'text':'password';
+}
+
+function popolaSelImport(){
+  const sel=$('sel-import-sess');
+  if(!sel) return;
+  const tutteSessioni=Object.entries(DB.sessioni).filter(([,s])=>{
+    if(S.classe==='ALL') return true;
+    return s.classe===S.classe;
+  });
+  sel.innerHTML='<option value="">-- Seleziona sessione --</option>'+
+    tutteSessioni.map(([cod,s])=>{
+      const p=PROVE.find(x=>x.id===s.provaId);
+      return `<option value="${cod}">${cod} – ${p?p.titolo:''} (${s.classe||'?'})</option>`;
+    }).join('');
+}
+
 function aggSelSessioni(){
   const sel = $('sel-sess-analisi');
   if(!sel) return;
   const ris = getRisultatiClasse();
   const sessiIds = [...new Set(ris.map(r=>r.sessione))];
-  // Aggiungi anche sessioni nel DB anche senza risultati
   const tutteSessioni = Object.entries(DB.sessioni).filter(([,s])=>{
     if(S.classe === 'ALL') return true;
     return s.classe === S.classe;
