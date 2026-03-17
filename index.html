@@ -820,12 +820,13 @@ tr:hover td{background:var(--grigio-ch)}
     </div>
   </div>
 
-  <!-- SELETTORE CLASSE (visibile dopo login) -->
+  <!-- SELETTORE CLASSE -->
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;background:#fff;padding:14px 18px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.07)">
     <span style="font-size:13px;font-weight:700;color:#555">Classe visualizzata:</span>
     <button id="btn-cl-3A" class="btn btn-p" onclick="cambiaClasse('3A')" style="padding:7px 18px;font-size:13px">3A</button>
     <button id="btn-cl-3E" class="btn btn-s" onclick="cambiaClasse('3E')" style="padding:7px 18px;font-size:13px">3E</button>
-    <span id="lbl-classe-attiva" style="font-size:12px;color:#888;margin-left:4px"></span>
+    <button id="btn-cl-ALL" class="btn btn-s" onclick="cambiaClasse('ALL')" style="padding:7px 18px;font-size:13px;opacity:.7">Tutte</button>
+    <span id="lbl-classe-attiva" style="font-size:12px;color:#888;margin-left:4px">Classe selezionata: 3A</span>
   </div>
 
   <div class="doc-tabs">
@@ -2719,8 +2720,8 @@ function scaricaPDF(){
 
 // ── HELPERS ANALISI ───────────────────────────────────────────
 function getRisultatiClasse(){
-  // Ritorna i risultati filtrati per la classe attiva (o tutti se ALL)
   if(S.classe === 'ALL') return DB.risultati;
+  // Filtra SOLO per classe — esclude risultati senza classe o di altra classe
   return DB.risultati.filter(r => r.classe === S.classe);
 }
 
@@ -3004,13 +3005,24 @@ function aggSelSessioni(){
 function aggiornaTabellaSessioni(){
   const tbody = $('tbody-sess');
   if(!tbody) return;
-  // Mostra SEMPRE tutte le sessioni — filtra solo visivamente
-  const tutteSessioni = Object.entries(DB.sessioni);
+
+  // Rimuovi sessioni legacy senza classe se esiste già la versione con classe
+  const tutteSessioni = Object.entries(DB.sessioni).filter(([cod, s])=>{
+    if(!cod || cod==='undefined') return false;
+    // Nascondi prova-N legacy se esiste prova-N-3A o prova-N-3E
+    if(/^prova-\d+$/.test(cod)){
+      const provaNum = cod.replace('prova-','');
+      if(DB.sessioni[`prova-${provaNum}-3A`] || DB.sessioni[`prova-${provaNum}-3E`]) return false;
+    }
+    return true;
+  });
+
   if(!tutteSessioni.length){
     tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:#aaa;padding:20px">Nessuna sessione. Usa "+ Nuova sessione".</td></tr>';
     return;
   }
-  // Ordina: prima quelle della classe attiva, poi le altre
+
+  // Ordina: prima classe attiva poi le altre
   tutteSessioni.sort(([,a],[,b])=>{
     const aAtt = S.classe==='ALL' || a.classe===S.classe;
     const bAtt = S.classe==='ALL' || b.classe===S.classe;
@@ -3018,19 +3030,23 @@ function aggiornaTabellaSessioni(){
     if(!aAtt && bAtt) return 1;
     return 0;
   });
+
   tbody.innerHTML = tutteSessioni.map(([cod,s])=>{
-    const p = PROVE.find(x=>x.id===s.provaId);
+    const p = PROVE ? PROVE.find(x=>x.id===s.provaId) : null;
     const chiusa = !!s.chiusa;
     const nStud = DB.risultati.filter(r=>r.sessione===cod).length;
-    const isAltClasse = S.classe!=='ALL' && s.classe!==S.classe;
+    const isAltClasse = S.classe!=='ALL' && s.classe && s.classe!==S.classe;
+    const data = s.data ? new Date(s.data) : null;
+    const dataStr = data && !isNaN(data) ? data.toLocaleDateString('it-IT') : '—';
+    const colCl = s.classe==='3A' ? '#dce8f8' : s.classe==='3E' ? '#e8f5e9' : '#f5f5f5';
     const statoH = chiusa
       ? `<span class="sessione-status status-chiusa"><span class="status-dot"></span>Chiusa</span>`
       : `<span class="sessione-status status-attiva"><span class="status-dot"></span>Attiva</span>`;
-    return `<tr style="${isAltClasse?'opacity:.45;':''}">
+    return `<tr style="${isAltClasse?'opacity:.4;':''}">
       <td><strong>${cod}</strong></td>
       <td>${p?p.titolo:'–'}</td>
-      <td><span style="font-weight:800;color:var(--blu);background:${s.classe==='3A'?'#dce8f8':s.classe==='3E'?'#e8f5e9':'#f5f5f5'};padding:2px 8px;border-radius:4px">${s.classe||'–'}</span></td>
-      <td>${new Date(s.data).toLocaleDateString('it-IT')}</td>
+      <td><span style="font-weight:800;background:${colCl};padding:2px 8px;border-radius:4px;color:var(--blu)">${s.classe||'–'}</span></td>
+      <td>${dataStr}</td>
       <td>${nStud}</td>
       <td>${statoH}</td>
       <td style="display:flex;gap:6px;flex-wrap:wrap">
