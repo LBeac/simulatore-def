@@ -2732,30 +2732,6 @@ function studenteCard(r, rank, tipo){
 }
 
 // ── CAMBIO CLASSE ────────────────────────────────────────────
-function cambiaClasse(cl){
-  S.classe = cl;
-  ['3A','3E','ALL'].forEach(c=>{
-    const b = $(`btn-cl-${c}`);
-    if(b) b.className = c === cl ? 'btn btn-p' : 'btn btn-s';
-    if(b) b.style.cssText = 'padding:7px 18px;font-size:14px';
-  });
-  $('lbl-classe-attiva').textContent = cl === 'ALL' ? 'Visualizzando tutte le classi' : `Classe selezionata: ${cl}`;
-  $('doc-cl-lbl').textContent = cl === 'ALL' ? 'Tutte le classi' : `Classe: ${cl}`;
-  cambiaClassePanel(cl);
-  // Aggiorna tab generale automaticamente
-  aggiornaGenerale();
-}
-
-function cambiaClassePanel(cl){
-  aggiornaTabellaSessioni();
-  aggSelSessioni();
-  popolaSelImport();
-  popolaSelProvaAnalisi();
-  // Reset analisi aperta
-  $('analisi-contenuto').classList.add('hidden');
-  $('analisi-prova-contenuto').classList.add('hidden');
-}
-
 // ── SESSIONI ─────────────────────────────────────────────────
 // ── CREA SESSIONE (salva locale + Sheet) ─────────────────────
 function creaSessione(){
@@ -3383,6 +3359,23 @@ async function importaDaSheet(){
 }
 
 // CAMBIO CLASSE via bottoni nel pannello
+
+// ── TAB DOCENTE ───────────────────────────────────────────────
+function mostraTab(id, btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('att'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('att'));
+  const panel = $(id);
+  if(panel) panel.classList.add('att');
+  if(btn) btn.classList.add('att');
+  // Aggiorna contenuti al cambio tab
+  if(id==='tab-generale') aggiornaGenerale();
+  if(id==='tab-analisi') aggSelSessioni();
+  if(id==='tab-sess') aggiornaTabellaSessioni();
+  if(id==='tab-import') popolaSelImport();
+}
+
+function mostraTab2(id, btn){ mostraTab(id, btn); }
+
 function cambiaClasse(cl){
   S.classe = cl;
   // Aggiorna bottoni
