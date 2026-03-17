@@ -2971,13 +2971,15 @@ function togglePwVis(id){
 function popolaSelImport(){
   const sel=$('sel-import-sess');
   if(!sel) return;
-  const tutteSessioni = Object.entries(DB.sessioni).filter(([cod])=>{
+  const tutteSessioni = Object.entries(DB.sessioni).filter(([cod,s])=>{
     if(!cod || cod==='undefined') return false;
     // Nascondi legacy prova-N se esiste prova-N-3A o prova-N-3E
     if(/^prova-\d+$/.test(cod)){
       const n = cod.replace('prova-','');
       if(DB.sessioni[`prova-${n}-3A`] || DB.sessioni[`prova-${n}-3E`]) return false;
     }
+    // Filtra per classe attiva
+    if(S.classe !== 'ALL' && s.classe && s.classe !== S.classe) return false;
     return true;
   });
   sel.innerHTML='<option value="">-- Seleziona sessione --</option>'+
@@ -2992,12 +2994,13 @@ function aggSelSessioni(){
   const sel = $('sel-sess-analisi');
   if(!sel) return;
   const ris = getRisultatiClasse();
-  const sessiIds = [...new Set(ris.map(r=>r.sessione))];
-  const tutteSessioni = Object.entries(DB.sessioni).filter(([,s])=>{
+  // Mostra solo sessioni della classe attiva (o tutte se ALL)
+  const tutteSessioni = Object.entries(DB.sessioni).filter(([cod,s])=>{
+    if(!cod || cod==='undefined') return false;
     if(S.classe === 'ALL') return true;
     return s.classe === S.classe;
   });
-  const tutteKeys = [...new Set([...sessiIds, ...tutteSessioni.map(([k])=>k)])];
+  const tutteKeys = [...new Set(tutteSessioni.map(([k])=>k))];
   sel.innerHTML = '<option value="">-- Seleziona sessione --</option>' +
     tutteKeys.map(cod=>{
       const s = DB.sessioni[cod];
@@ -3011,15 +3014,16 @@ function aggiornaTabellaSessioni(){
   const tbody = $('tbody-sess');
   if(!tbody) return;
 
-  // Rimuovi sessioni legacy senza classe se esiste già la versione con classe
+  // Mostra solo sessioni della classe attiva (niente grigio)
   const tutteSessioni = Object.entries(DB.sessioni).filter(([cod, s])=>{
     if(!cod || cod==='undefined') return false;
-    // Nascondi prova-N legacy se esiste prova-N-3A o prova-N-3E
+    // Nascondi legacy prova-N se esiste versione con classe
     if(/^prova-\d+$/.test(cod)){
-      const provaNum = cod.replace('prova-','');
-      if(DB.sessioni[`prova-${provaNum}-3A`] || DB.sessioni[`prova-${provaNum}-3E`]) return false;
+      const n = cod.replace('prova-','');
+      if(DB.sessioni[`prova-${n}-3A`] || DB.sessioni[`prova-${n}-3E`]) return false;
     }
-    return true;
+    if(S.classe === 'ALL') return true;
+    return s.classe === S.classe;
   });
 
   if(!tutteSessioni.length){
@@ -3040,7 +3044,7 @@ function aggiornaTabellaSessioni(){
     const p = PROVE ? PROVE.find(x=>x.id===s.provaId) : null;
     const chiusa = !!s.chiusa;
     const nStud = DB.risultati.filter(r=>r.sessione===cod).length;
-    const isAltClasse = S.classe!=='ALL' && s.classe && s.classe!==S.classe;
+    const isAltClasse = false; // ogni classe vede solo le sue sessioni
     const data = s.data ? new Date(s.data) : null;
     const dataStr = data && !isNaN(data) ? data.toLocaleDateString('it-IT') : '—';
     const colCl = s.classe==='3A' ? '#dce8f8' : s.classe==='3E' ? '#e8f5e9' : '#f5f5f5';
