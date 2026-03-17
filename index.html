@@ -2991,25 +2991,32 @@ function aggSelSessioni(){
 function aggiornaTabellaSessioni(){
   const tbody = $('tbody-sess');
   if(!tbody) return;
-  const tutteSessioni = Object.entries(DB.sessioni).filter(([,s])=>{
-    if(S.classe === 'ALL') return true;
-    return s.classe === S.classe;
-  });
+  // Mostra SEMPRE tutte le sessioni — filtra solo visivamente
+  const tutteSessioni = Object.entries(DB.sessioni);
   if(!tutteSessioni.length){
     tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:#aaa;padding:20px">Nessuna sessione. Usa "+ Nuova sessione".</td></tr>';
     return;
   }
+  // Ordina: prima quelle della classe attiva, poi le altre
+  tutteSessioni.sort(([,a],[,b])=>{
+    const aAtt = S.classe==='ALL' || a.classe===S.classe;
+    const bAtt = S.classe==='ALL' || b.classe===S.classe;
+    if(aAtt && !bAtt) return -1;
+    if(!aAtt && bAtt) return 1;
+    return 0;
+  });
   tbody.innerHTML = tutteSessioni.map(([cod,s])=>{
     const p = PROVE.find(x=>x.id===s.provaId);
     const chiusa = !!s.chiusa;
     const nStud = DB.risultati.filter(r=>r.sessione===cod).length;
+    const isAltClasse = S.classe!=='ALL' && s.classe!==S.classe;
     const statoH = chiusa
       ? `<span class="sessione-status status-chiusa"><span class="status-dot"></span>Chiusa</span>`
       : `<span class="sessione-status status-attiva"><span class="status-dot"></span>Attiva</span>`;
-    return `<tr>
+    return `<tr style="${isAltClasse?'opacity:.45;':''}">
       <td><strong>${cod}</strong></td>
       <td>${p?p.titolo:'–'}</td>
-      <td><span style="font-weight:700;color:var(--blu)">${s.classe||'–'}</span></td>
+      <td><span style="font-weight:800;color:var(--blu);background:${s.classe==='3A'?'#dce8f8':s.classe==='3E'?'#e8f5e9':'#f5f5f5'};padding:2px 8px;border-radius:4px">${s.classe||'–'}</span></td>
       <td>${new Date(s.data).toLocaleDateString('it-IT')}</td>
       <td>${nStud}</td>
       <td>${statoH}</td>
