@@ -1776,8 +1776,13 @@ function accDoc(){
   const pw = $('pw-doc').value;
   const pwSalvata = getPW_doc();
   if(pwSalvata !== pw){
-    const hint = localStorage.getItem('inv_pw_doc') ? '(hai una password personalizzata su questo browser)' : '(prova: invalsi2025!)';
-    showErr('err-acc',`Password errata. ${hint}`);
+    const hint = localStorage.getItem('inv_pw_doc') ? '— hai una password personalizzata su questo browser, usa "Ripristina default"' : '— prova: invalsi2025!';
+    showErr('err-acc',`Password errata ${hint}`);
+    return;
+  }
+  // Controlla che le prove siano caricate
+  if(typeof PROVE === 'undefined' || !PROVE || !PROVE.length){
+    showErr('err-acc','⏳ Pagina ancora in caricamento. Attendi 2 secondi e riprova.');
     return;
   }
   S.classe = '3A';
@@ -3296,16 +3301,15 @@ function renderSuggerimenti(elId, compDeboli, globale=false){
 
 // ── POPOLADOCENTE ─────────────────────────────────────────────
 function popolaDocente(){
-  const selPanel = $('sel-cl-panel');
-  if(selPanel) selPanel.value = S.classe;
-  $('doc-cl-lbl').textContent = S.classe === 'ALL' ? 'Tutte le classi' : 'Classe: ' + S.classe;
-  $('sel-prova-new').innerHTML = PROVE.map(p=>`<option value="${p.id}">${p.id}. ${p.titolo}</option>`).join('');
-  aggiornaTabellaSessioni();
-  aggSelSessioni();
-  popolaSelImport();
-  popolaSelProvaAnalisi();
-  aggiornaGenerale();
-  // Aggiorna bottoni classe
+  if($('doc-cl-lbl')) $('doc-cl-lbl').textContent = S.classe === 'ALL' ? 'Tutte le classi' : 'Classe: ' + S.classe;
+  const selNew = $('sel-prova-new');
+  if(selNew && typeof PROVE !== 'undefined')
+    selNew.innerHTML = PROVE.map(p=>`<option value="${p.id}">${p.id}. ${p.titolo}</option>`).join('');
+  try{ aggiornaTabellaSessioni(); }catch(e){}
+  try{ aggSelSessioni(); }catch(e){}
+  try{ popolaSelImport(); }catch(e){}
+  try{ popolaSelProvaAnalisi(); }catch(e){}
+  try{ aggiornaGenerale(); }catch(e){}
   ['3A','3E','ALL'].forEach(c=>{
     const b = $(`btn-cl-${c}`);
     if(b){
