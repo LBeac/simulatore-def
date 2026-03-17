@@ -1774,9 +1774,14 @@ function accStud(){
 
 function accDoc(){
   const pw = $('pw-doc').value;
-  if(getPW_doc() !== pw){ showErr('err-acc','Password errata.'); return; }
+  const pwSalvata = getPW_doc();
+  if(pwSalvata !== pw){
+    const hint = localStorage.getItem('inv_pw_doc') ? '(hai una password personalizzata su questo browser)' : '(prova: invalsi2025!)';
+    showErr('err-acc',`Password errata. ${hint}`);
+    return;
+  }
   S.classe = '3A';
-  $('doc-cl-lbl').textContent = 'Classe: 3A';
+  if($('doc-cl-lbl')) $('doc-cl-lbl').textContent = 'Classe: 3A';
   hideErr('err-acc');
   popolaDocente();
   mostraScr('scr-doc');
@@ -1785,9 +1790,9 @@ function accDoc(){
 function resetPW(){
   if(!confirm('Ripristinare la password al valore default "invalsi2025!"?')) return;
   localStorage.removeItem('inv_pw_doc');
-  alert('✅ Password ripristinata. Usa "invalsi2025!" per accedere.');
-  $('pw-doc').value = '';
+  $('pw-doc').value = 'invalsi2025!';
   hideErr('err-acc');
+  alert('✅ Password ripristinata a "invalsi2025!". Ora premi Accedi.');
 }
 
 function logout(){
@@ -2955,17 +2960,20 @@ function togglePwVis(id){
   if(inp) inp.type = inp.type==='password'?'text':'password';
 }
 
+
+
 function popolaSelImport(){
   const sel=$('sel-import-sess');
   if(!sel) return;
-  const tutteSessioni=Object.entries(DB.sessioni).filter(([,s])=>{
-    if(S.classe==='ALL') return true;
-    return s.classe===S.classe;
+  // Mostra TUTTE le sessioni incluse legacy senza classe
+  const tutteSessioni = Object.entries(DB.sessioni).filter(([cod])=>{
+    return cod && cod!=='undefined';
   });
   sel.innerHTML='<option value="">-- Seleziona sessione --</option>'+
     tutteSessioni.map(([cod,s])=>{
       const p=PROVE.find(x=>x.id===s.provaId);
-      return `<option value="${cod}">${cod} – ${p?p.titolo:''} (${s.classe||'?'})</option>`;
+      const cl = s.classe ? ` (${s.classe})` : '';
+      return `<option value="${cod}">${cod} – ${p?p.titolo:''}${cl}</option>`;
     }).join('');
 }
 
@@ -3309,16 +3317,7 @@ function popolaDocente(){
 
 
 // ── IMPORTA DA GOOGLE SHEET ───────────────────────────
-function popolaSelImport(){
-  const sel = $('sel-import-sess');
-  if(!sel) return;
-  const sessClasse = Object.entries(DB.sessioni).filter(([,s])=>s.classe===S.classe);
-  sel.innerHTML = '<option value="">-- Seleziona sessione --</option>' +
-    sessClasse.map(([cod,s])=>{
-      const p = PROVE.find(x=>x.id===s.provaId);
-      return `<option value="${cod}">${cod} – ${p?p.titolo:''}</option>`;
-    }).join('');
-}
+
 
 async function importaDaSheet(){
   const sessione = $('sel-import-sess').value;
@@ -3332,37 +3331,57 @@ async function importaDaSheet(){
   status.style.color='#555'; status.style.display='block';
   preview.innerHTML='';
   try{
-    const url=`${SCRIPT_URL}?action=leggi&sessione=${encodeURIComponent(sessione)}`;
+    // Prova a leggere con la chiave esatta, poi con la versione senza classe
+    const sessBase = sessione.replace(/-3[AE]$/,''); // es. prova-1-3A → prova-1
+    const url=`${SCRIPT_URL}?action=leggi&sessione=${encodeURIComponent(sessBase)}`;
     const resp=await fetch(url,{method:'GET'});
     if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data=await resp.json();
     if(!data||!data.risultati||!data.risultati.length){
-      status.innerHTML=`⚠️ Nessun risultato sul Sheet per la sessione <strong>${sessione}</strong>.`;
+      status.innerHTML=`⚠️ Nessun risultato sul Sheet per la sessione <strong>${sessBase}</strong>.`;
       status.style.color='#b45309'; return;
     }
     let nuovi=0,agg=0;
     data.risultati.forEach(r=>{
-      const idx=DB.risultati.findIndex(x=>x.codice===r.codice&&x.sessione===r.sessione);
-      const entry={codice:r.codice,sessione:r.sessione,classe:r.classe||S.classe,
-        totale:Number(r.totale)||0,su:Number(r.su)||0,pct:Number(r.pct)||0,
-        sezioni:r.sezioni||[{c:0,t:0},{c:0,t:0},{c:0,t:0}],
-        errori:r.errori||{},data:r.data||new Date().toISOString(),det:r.det||[]};
+      // Normalizza la chiave sessione includendo la classe
+      const classeR = r.classe || S.classe || '';
+      const sessKey  = classeR ? `prova-${r.sessione.replace(/^prova-/,'').replace(/-3[AE]$/,'')}-${classeR}`
+                               : r.sessione;
+      // Crea/aggiorna la sessione nel DB se non esiste
+      if(!DB.sessioni[sessKey]){
+        const provaId = parseInt(sessKey.replace(/prova-(\d+).*/,'$1'))||1;
+        DB.sessioni[sessKey]={provaId, classe:classeR,
+          data:r.data||new Date().toISOString(), studenti:0, chiusa:false};
+      }
+      const entry={codice:r.Codice||r.codice, sessione:sessKey,
+        classe:classeR,
+        totale:Number(r.Totale||r.totale)||0,
+        su:Number(r.Su||r.su)||0,
+        pct:Number(r.Percentuale||r.pct)||0,
+        sezioni:[
+          {c:Number(r.Lettura_c)||0, t:Number(r.Lettura_t)||0},
+          {c:Number(r.Lessico_c)||0, t:Number(r.Lessico_t)||0},
+          {c:Number(r.Grammatica_c)||0, t:Number(r.Grammatica_t)||0}
+        ],
+        errori:{}, data:r.Data||r.data||new Date().toISOString(), det:[]};
+      const idx=DB.risultati.findIndex(x=>x.codice===entry.codice&&x.sessione===sessKey);
       if(idx>=0){DB.risultati[idx]=entry;agg++;}
       else{DB.risultati.push(entry);nuovi++;}
     });
-    if(DB.sessioni[sessione])
-      DB.sessioni[sessione].studenti=DB.risultati.filter(r=>r.sessione===sessione).length;
     saveDB();
     status.innerHTML=`✅ Importati: <strong>${nuovi} nuovi</strong>, ${agg} aggiornati.`;
     status.style.color='var(--verde)';
-    const importati=DB.risultati.filter(r=>r.sessione===sessione);
+    // Mostra anteprima
+    const importati=DB.risultati.filter(r=>r.sessione===sessione||r.sessione.startsWith(sessBase));
     let tH=`<div class="table-wrap" style="margin-top:12px"><table>
-      <thead><tr><th>Studente</th><th>Punteggio</th><th>%</th><th>Data</th></tr></thead><tbody>`;
+      <thead><tr><th>Studente</th><th>Classe</th><th>Punteggio</th><th>%</th><th>Data</th></tr></thead><tbody>`;
     importati.forEach(r=>{
       const cls=r.pct>=70?'v-h':r.pct>=40?'v-m':'v-l';
       tH+=`<tr><td><strong>${r.codice}</strong></td>
+        <td>${r.classe||'–'}</td>
         <td><span class="badge-v ${cls}">${r.totale}/${r.su}</span></td>
-        <td>${r.pct}%</td><td>${new Date(r.data).toLocaleDateString('it-IT')}</td></tr>`;
+        <td>${r.pct}%</td>
+        <td>${new Date(r.data).toLocaleDateString('it-IT')}</td></tr>`;
     });
     preview.innerHTML=tH+`</tbody></table></div>`;
     aggiornaTabellaSessioni(); aggSelSessioni();
@@ -3404,14 +3423,18 @@ function mostraTab2(id, btn){ mostraTab(id, btn); }
 
 function cambiaClasse(cl){
   S.classe = cl;
-  // Aggiorna bottoni
-  ['3A','3E'].forEach(c=>{
+  ['3A','3E','ALL'].forEach(c=>{
     const b=$(`btn-cl-${c}`);
-    if(b) b.className = c===cl ? 'btn btn-p' : 'btn btn-s';
+    if(!b) return;
+    b.className = c===cl ? 'btn btn-p' : 'btn btn-s';
     b.style.cssText = 'padding:7px 18px;font-size:13px';
   });
-  $('lbl-classe-attiva').textContent = `Classe selezionata: ${cl}`;
-  cambiaClassePanel(cl);
+  $('lbl-classe-attiva').textContent = cl==='ALL' ? 'Tutte le classi' : `Classe selezionata: ${cl}`;
+  if($('doc-cl-lbl')) $('doc-cl-lbl').textContent = cl==='ALL' ? 'Tutte le classi' : `Classe: ${cl}`;
+  try{ aggiornaTabellaSessioni(); }catch(e){}
+  try{ aggSelSessioni(); }catch(e){}
+  try{ popolaSelImport(); }catch(e){}
+  try{ popolaSelProvaAnalisi(); }catch(e){}
 }
 
 // CARICA ANALISI SESSIONE (alias di caricaRis)
