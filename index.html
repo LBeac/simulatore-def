@@ -3338,7 +3338,7 @@ async function importaDaSheet(){
     // Prova a leggere con la chiave esatta, poi con la versione senza classe
     const sessBase = sessione.replace(/-3[AE]$/,''); // es. prova-1-3A → prova-1
     const url=`${SCRIPT_URL}?action=leggi&sessione=${encodeURIComponent(sessBase)}`;
-    const resp=await fetch(url,{method:'GET'});
+    const resp=await fetch(url);
     if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data=await resp.json();
     if(!data||!data.risultati||!data.risultati.length){
@@ -3346,28 +3346,34 @@ async function importaDaSheet(){
       status.style.color='#b45309'; return;
     }
     let nuovi=0,agg=0;
+    // Determina la classe dalla sessione selezionata (non dalla vista corrente)
+    const classeSessione = DB.sessioni[sessione]?.classe || '';
     data.risultati.forEach(r=>{
-      // Normalizza la chiave sessione includendo la classe
-      const classeR = r.classe || S.classe || '';
-      const sessKey  = classeR ? `prova-${r.sessione.replace(/^prova-/,'').replace(/-3[AE]$/,'')}-${classeR}`
-                               : r.sessione;
-      // Crea/aggiorna la sessione nel DB se non esiste
+      // Classe: prima dal dato del risultato, poi dalla sessione, mai da S.classe
+      const classeR = r.Classe || r.classe || classeSessione || '';
+      const numProva = sessBase.replace(/^prova-/,'').replace(/-3[AE]$/,'');
+      const sessKey  = classeR ? `prova-${numProva}-${classeR}` : sessBase;
+      // Crea sessione nel DB se non esiste
       if(!DB.sessioni[sessKey]){
-        const provaId = parseInt(sessKey.replace(/prova-(\d+).*/,'$1'))||1;
+        const provaId = parseInt(numProva)||1;
         DB.sessioni[sessKey]={provaId, classe:classeR,
-          data:r.data||new Date().toISOString(), studenti:0, chiusa:false};
+          data:r.Data||r.data||new Date().toISOString(), studenti:0, chiusa:false};
       }
-      const entry={codice:r.Codice||r.codice, sessione:sessKey,
-        classe:classeR,
-        totale:Number(r.Totale||r.totale)||0,
-        su:Number(r.Su||r.su)||0,
-        pct:Number(r.Percentuale||r.pct)||0,
+      const entry={
+        codice:   r.Codice||r.codice||'',
+        sessione: sessKey,
+        classe:   classeR,
+        totale:   Number(r.Totale||r.totale)||0,
+        su:       Number(r.Su||r.su)||0,
+        pct:      Number(r.Percentuale||r.pct)||0,
         sezioni:[
-          {c:Number(r.Lettura_c)||0, t:Number(r.Lettura_t)||0},
-          {c:Number(r.Lessico_c)||0, t:Number(r.Lessico_t)||0},
+          {c:Number(r.Lettura_c)||0,  t:Number(r.Lettura_t)||0},
+          {c:Number(r.Lessico_c)||0,  t:Number(r.Lessico_t)||0},
           {c:Number(r.Grammatica_c)||0, t:Number(r.Grammatica_t)||0}
         ],
-        errori:{}, data:r.Data||r.data||new Date().toISOString(), det:[]};
+        errori:{}, data:r.Data||r.data||new Date().toISOString(), det:[]
+      };
+      if(!entry.codice) return; // salta righe senza nome
       const idx=DB.risultati.findIndex(x=>x.codice===entry.codice&&x.sessione===sessKey);
       if(idx>=0){DB.risultati[idx]=entry;agg++;}
       else{DB.risultati.push(entry);nuovi++;}
