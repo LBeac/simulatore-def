@@ -589,7 +589,8 @@ tr:hover td{background:var(--grigio-ch)}
 
       <div class="fg">
         <label class="flbl">Il tuo nome</label>
-        <input class="finp" type="text" id="cod-stud" placeholder="es. Mario Rossi" autocomplete="off" maxlength="30">
+        <input class="finp" type="text" id="cod-stud" placeholder="es. Mario R." autocomplete="off" maxlength="30"
+          onkeydown="if(event.key==='Enter') accStud()">
       </div>
       <button class="btn-acc" onclick="accStud()">Accedi alla prova →</button>
       <div class="info-nota">⚠️ Non chiudere questa finestra. Alla seconda uscita la prova viene consegnata automaticamente.</div>
@@ -597,9 +598,15 @@ tr:hover td{background:var(--grigio-ch)}
     <div id="form-doc" class="hidden">
       <div class="fg">
         <label class="flbl">Password docente</label>
-        <input class="finp" type="password" id="pw-doc" placeholder="Password" autocomplete="off">
+        <input class="finp" type="password" id="pw-doc" placeholder="Password" autocomplete="off"
+          onkeydown="if(event.key==='Enter') accDoc()">
       </div>
       <button class="btn-acc" onclick="accDoc()">Accedi al pannello →</button>
+      <div style="text-align:center;margin-top:10px">
+        <button onclick="resetPW()" style="background:none;border:none;color:#aaa;font-size:11px;cursor:pointer;text-decoration:underline;font-family:var(--font)">
+          Password dimenticata? Ripristina default
+        </button>
+      </div>
     </div>
     <div class="err-msg" id="err-acc"></div>
   </div>
@@ -1764,12 +1771,19 @@ function accStud(){
 function accDoc(){
   const pw = $('pw-doc').value;
   if(getPW_doc() !== pw){ showErr('err-acc','Password errata.'); return; }
-  // Classe selezionata dentro il pannello, non al login
-  S.classe = '3A'; // default, cambiabile dentro il pannello
-  $('doc-cl-lbl').textContent = 'Benvenuto – seleziona la classe';
+  S.classe = '3A';
+  $('doc-cl-lbl').textContent = 'Classe: 3A';
   hideErr('err-acc');
   popolaDocente();
   mostraScr('scr-doc');
+}
+
+function resetPW(){
+  if(!confirm('Ripristinare la password al valore default "invalsi2025!"?')) return;
+  localStorage.removeItem('inv_pw_doc');
+  alert('✅ Password ripristinata. Usa "invalsi2025!" per accedere.');
+  $('pw-doc').value = '';
+  hideErr('err-acc');
 }
 
 function logout(){
@@ -3367,11 +3381,11 @@ function mostraTab(id, btn){
   const panel = $(id);
   if(panel) panel.classList.add('att');
   if(btn) btn.classList.add('att');
-  // Aggiorna contenuti al cambio tab
-  if(id==='tab-generale') aggiornaGenerale();
-  if(id==='tab-analisi') aggSelSessioni();
-  if(id==='tab-sess') aggiornaTabellaSessioni();
-  if(id==='tab-import') popolaSelImport();
+  // Aggiorna contenuti al cambio tab — con protezione errori
+  try{ if(id==='tab-generale') aggiornaGenerale(); }catch(e){}
+  try{ if(id==='tab-analisi') { aggSelSessioni(); popolaSelProvaAnalisi(); } }catch(e){}
+  try{ if(id==='tab-sess') aggiornaTabellaSessioni(); }catch(e){}
+  try{ if(id==='tab-import') popolaSelImport(); }catch(e){}
 }
 
 function mostraTab2(id, btn){ mostraTab(id, btn); }
