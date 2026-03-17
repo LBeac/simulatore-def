@@ -1739,12 +1739,18 @@ function setTipoAcc(tipo, btn){
 }
 
 function accStud(){
-  const cod = $('cod-stud').value.trim().toUpperCase();
-  if(!cod){ showErr('err-acc','Inserisci il tuo codice studente (es. 3A-07).'); return; }
+  const cod    = $('cod-stud').value.trim().toUpperCase();
+  if(!cod || cod.length < 2){
+    showErr('err-acc','Inserisci il tuo nome (almeno 2 caratteri, es. Mario R.).');
+    return;
+  }
 
-  // Accetta qualsiasi codice/nome non vuoto (minimo 2 caratteri)
-  if(cod.length < 2){
-    showErr('err-acc','Inserisci almeno 2 caratteri (es. il tuo nome o codice).');
+  // Classe: dal link (?classe=3A) oppure dal menu a tendina
+  const classeMenu = $('sel-classe-stud') ? $('sel-classe-stud').value : '';
+  const classe = S.classeDaURL || classeMenu;
+
+  if(!classe){
+    showErr('err-acc','Seleziona la tua classe.');
     return;
   }
 
@@ -1752,18 +1758,16 @@ function accStud(){
   const prova   = PROVE.find(p => p.id === provaId);
   if(!prova){ showErr('err-acc','Prova non trovata. Usa il link corretto fornito dal docente su Classroom.'); return; }
 
-  // Nessuna modalità demo — la validazione avviene lato server (Google Sheet)
   S.modoTest = false;
-
   Object.assign(S, {
     stud: cod, prova,
-    sessione: `prova-${provaId}`,
-    classe: S.classeDaURL || '',
+    sessione: `prova-${provaId}-${classe}`,
+    classe: classe,
     risposte:{}, segnati: new Set(), cur:0, uscite:0, calcolo:null
   });
   $('istr-title').textContent = prova.titolo;
   $('istr-sub').textContent   = `Italiano – Grado 8 · ${CFG.durata} minuti`;
-  $('istr-stud').textContent  = cod;
+  $('istr-stud').textContent  = `${cod} · Classe ${classe}`;
   hideErr('err-acc');
   mostraScr('scr-istr');
 }
@@ -2758,7 +2762,8 @@ function creaSessione(){
     return;
   }
 
-  const sessKey = `prova-${provaId}`;
+  // Chiave UNIVOCA per prova + classe (evita sovrascritture)
+  const sessKey = `prova-${provaId}-${classe}`;
   const sessData = {
     provaId, classe,
     data: new Date().toISOString(),
