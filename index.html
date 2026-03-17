@@ -2971,13 +2971,18 @@ function togglePwVis(id){
 function popolaSelImport(){
   const sel=$('sel-import-sess');
   if(!sel) return;
-  // Mostra TUTTE le sessioni incluse legacy senza classe
   const tutteSessioni = Object.entries(DB.sessioni).filter(([cod])=>{
-    return cod && cod!=='undefined';
+    if(!cod || cod==='undefined') return false;
+    // Nascondi legacy prova-N se esiste prova-N-3A o prova-N-3E
+    if(/^prova-\d+$/.test(cod)){
+      const n = cod.replace('prova-','');
+      if(DB.sessioni[`prova-${n}-3A`] || DB.sessioni[`prova-${n}-3E`]) return false;
+    }
+    return true;
   });
   sel.innerHTML='<option value="">-- Seleziona sessione --</option>'+
     tutteSessioni.map(([cod,s])=>{
-      const p=PROVE.find(x=>x.id===s.provaId);
+      const p=PROVE ? PROVE.find(x=>x.id===s.provaId) : null;
       const cl = s.classe ? ` (${s.classe})` : '';
       return `<option value="${cod}">${cod} – ${p?p.titolo:''}${cl}</option>`;
     }).join('');
@@ -3350,83 +3355,105 @@ async function importaDaSheet(){
   status.innerHTML='⏳ Connessione al Google Sheet…';
   status.style.color='#555'; status.style.display='block';
   preview.innerHTML='';
+
+  const sessBase = sessione.replace(/-3[AE]$/,'');
+  const url = `${SCRIPT_URL}?action=leggi&sessione=${encodeURIComponent(sessBase)}`;
+
+  // Prova prima con fetch normale
   try{
-    // Prova a leggere con la chiave esatta, poi con la versione senza classe
-    const sessBase = sessione.replace(/-3[AE]$/,''); // es. prova-1-3A → prova-1
-    const url=`${SCRIPT_URL}?action=leggi&sessione=${encodeURIComponent(sessBase)}`;
-    const resp=await fetch(url);
-    if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const data=await resp.json();
-    if(!data||!data.risultati||!data.risultati.length){
-      status.innerHTML=`⚠️ Nessun risultato sul Sheet per la sessione <strong>${sessBase}</strong>.`;
-      status.style.color='#b45309'; return;
-    }
-    let nuovi=0,agg=0;
-    // Determina la classe dalla sessione selezionata (non dalla vista corrente)
-    const classeSessione = DB.sessioni[sessione]?.classe || '';
-    data.risultati.forEach(r=>{
-      // Classe: prima dal dato del risultato, poi dalla sessione, mai da S.classe
-      const classeR = r.Classe || r.classe || classeSessione || '';
-      const numProva = sessBase.replace(/^prova-/,'').replace(/-3[AE]$/,'');
-      const sessKey  = classeR ? `prova-${numProva}-${classeR}` : sessBase;
-      // Crea sessione nel DB se non esiste
-      if(!DB.sessioni[sessKey]){
-        const provaId = parseInt(numProva)||1;
-        DB.sessioni[sessKey]={provaId, classe:classeR,
-          data:r.Data||r.data||new Date().toISOString(), studenti:0, chiusa:false};
+    const resp = await fetch(url);
+    if(resp.ok){
+      const data = await resp.json();
+      if(data && data.risultati){
+        _elaboraImport(data.risultati, sessione, sessBase, status, preview);
+        return;
       }
-      const entry={
-        codice:   r.Codice||r.codice||'',
-        sessione: sessKey,
-        classe:   classeR,
-        totale:   Number(r.Totale||r.totale)||0,
-        su:       Number(r.Su||r.su)||0,
-        pct:      Number(r.Percentuale||r.pct)||0,
-        sezioni:[
-          {c:Number(r.Lettura_c)||0,  t:Number(r.Lettura_t)||0},
-          {c:Number(r.Lessico_c)||0,  t:Number(r.Lessico_t)||0},
-          {c:Number(r.Grammatica_c)||0, t:Number(r.Grammatica_t)||0}
-        ],
-        errori:{}, data:r.Data||r.data||new Date().toISOString(), det:[]
+    }
+  } catch(e){}
+
+  // Se fetch fallisce (CORS), usa JSONP tramite script tag
+  try{
+    const risultati = await new Promise((resolve, reject)=>{
+      const cbName = '_inv_cb_' + Date.now();
+      const script = document.createElement('script');
+      const timeout = setTimeout(()=>{
+        delete window[cbName];
+        document.body.removeChild(script);
+        reject(new Error('timeout'));
+      }, 10000);
+      window[cbName] = (data)=>{
+        clearTimeout(timeout);
+        delete window[cbName];
+        document.body.removeChild(script);
+        resolve(data.risultati || []);
       };
-      if(!entry.codice) return; // salta righe senza nome
-      const idx=DB.risultati.findIndex(x=>x.codice===entry.codice&&x.sessione===sessKey);
-      if(idx>=0){DB.risultati[idx]=entry;agg++;}
-      else{DB.risultati.push(entry);nuovi++;}
+      script.src = `${url}&callback=${cbName}`;
+      script.onerror = ()=>{ clearTimeout(timeout); reject(new Error('script error')); };
+      document.body.appendChild(script);
     });
-    saveDB();
-    status.innerHTML=`✅ Importati: <strong>${nuovi} nuovi</strong>, ${agg} aggiornati.`;
-    status.style.color='var(--verde)';
-    // Mostra anteprima
-    const importati=DB.risultati.filter(r=>r.sessione===sessione||r.sessione.startsWith(sessBase));
-    let tH=`<div class="table-wrap" style="margin-top:12px"><table>
-      <thead><tr><th>Studente</th><th>Classe</th><th>Punteggio</th><th>%</th><th>Data</th></tr></thead><tbody>`;
-    importati.forEach(r=>{
-      const cls=r.pct>=70?'v-h':r.pct>=40?'v-m':'v-l';
-      tH+=`<tr><td><strong>${r.codice}</strong></td>
-        <td>${r.classe||'–'}</td>
-        <td><span class="badge-v ${cls}">${r.totale}/${r.su}</span></td>
-        <td>${r.pct}%</td>
-        <td>${new Date(r.data).toLocaleDateString('it-IT')}</td></tr>`;
-    });
-    preview.innerHTML=tH+`</tbody></table></div>`;
-    aggiornaTabellaSessioni(); aggSelSessioni();
-  } catch(err){
-    status.innerHTML=`
-      <div style="background:#fce4e4;border:1px solid #ef9a9a;padding:14px;border-radius:8px;color:var(--rosso)">
-        <strong>⚠️ Lettura automatica non riuscita</strong><br><br>
-        Il browser blocca la lettura diretta del Sheet per motivi di sicurezza (CORS).<br><br>
-        <strong>Per vedere i risultati ora:</strong><br>
-        • Apri <strong>Google Drive</strong> → foglio <em>"INVALSI RISULTATI BEAC"</em><br>
-        • Tutti i dati sono lì in tempo reale, aggiornati automaticamente ad ogni consegna
-      </div>
-      <div style="margin-top:10px;background:#e3f2fd;border-left:4px solid var(--az);padding:12px;border-radius:4px;font-size:12px;color:#1565c0">
-        <strong>Vuoi abilitare l'importazione automatica?</strong><br>
-        Devo aggiornare il tuo Apps Script aggiungendo una funzione <code>doGet</code>.<br>
-        Dimmi e lo genero subito.
-      </div>`;
-    status.style.display='block';
-  }
+    _elaboraImport(risultati, sessione, sessBase, status, preview);
+    return;
+  } catch(e){}
+
+  // Se tutto fallisce, mostra istruzioni chiare
+  status.innerHTML=`
+    <div style="background:#fff8e1;border:2px solid var(--giallo);padding:16px;border-radius:8px;color:#5d4037">
+      <strong>⚠️ Questo browser non permette la lettura automatica</strong><br><br>
+      È una restrizione del browser scolastico, non un errore della piattaforma.<br><br>
+      <strong>Soluzioni:</strong><br>
+      <strong>1.</strong> Usa il <strong>browser personale</strong> (Chrome con account Gmail personale) — lì funziona ✅<br>
+      <strong>2.</strong> Oppure apri direttamente il foglio nel Drive:
+      <a href="https://drive.google.com" target="_blank" style="color:var(--blu);font-weight:700">
+        → Apri Google Drive → "INVALSI RISULTATI BEAC"
+      </a>
+    </div>`;
+  status.style.display='block';
+}
+
+function _elaboraImport(risultati, sessione, sessBase, status, preview){
+  const classeSessione = DB.sessioni[sessione]?.classe || '';
+  let nuovi=0, agg=0;
+  risultati.forEach(r=>{
+    const classeR = r.Classe||r.classe||classeSessione||'';
+    const numProva = sessBase.replace(/^prova-/,'').replace(/-3[AE]$/,'');
+    const sessKey  = classeR ? `prova-${numProva}-${classeR}` : sessBase;
+    if(!DB.sessioni[sessKey]){
+      DB.sessioni[sessKey]={provaId:parseInt(numProva)||1, classe:classeR,
+        data:r.Data||r.data||new Date().toISOString(), studenti:0, chiusa:false};
+    }
+    const entry={
+      codice:  r.Codice||r.codice||'',
+      sessione:sessKey, classe:classeR,
+      totale:  Number(r.Totale||r.totale)||0,
+      su:      Number(r.Su||r.su)||0,
+      pct:     Number(r.Percentuale||r.pct)||0,
+      sezioni:[
+        {c:Number(r.Lettura_c)||0,  t:Number(r.Lettura_t)||0},
+        {c:Number(r.Lessico_c)||0,  t:Number(r.Lessico_t)||0},
+        {c:Number(r.Grammatica_c)||0,t:Number(r.Grammatica_t)||0}
+      ],
+      errori:{}, data:r.Data||r.data||new Date().toISOString(), det:[]
+    };
+    if(!entry.codice) return;
+    const idx=DB.risultati.findIndex(x=>x.codice===entry.codice&&x.sessione===sessKey);
+    if(idx>=0){DB.risultati[idx]=entry;agg++;}
+    else{DB.risultati.push(entry);nuovi++;}
+  });
+  saveDB();
+  status.innerHTML=`✅ Importati: <strong>${nuovi} nuovi</strong>, ${agg} aggiornati.`;
+  status.style.color='var(--verde)';
+  const importati=DB.risultati.filter(r=>r.sessione===sessione||r.sessione.startsWith(sessBase));
+  let tH=`<div class="table-wrap" style="margin-top:12px"><table>
+    <thead><tr><th>Studente</th><th>Classe</th><th>Punteggio</th><th>%</th></tr></thead><tbody>`;
+  importati.forEach(r=>{
+    const cls=r.pct>=70?'v-h':r.pct>=40?'v-m':'v-l';
+    tH+=`<tr><td><strong>${r.codice}</strong></td><td>${r.classe||'–'}</td>
+      <td><span class="badge-v ${cls}">${r.totale}/${r.su}</span></td>
+      <td>${r.pct}%</td></tr>`;
+  });
+  preview.innerHTML=tH+`</tbody></table></div>`;
+  aggiornaTabellaSessioni();
+  aggSelSessioni();
 }
 
 // CAMBIO CLASSE via bottoni nel pannello
