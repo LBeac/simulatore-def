@@ -534,7 +534,7 @@ tr:hover td{background:var(--grigio-ch)}
   <div id="bv-logo" style="width:90px;height:90px;background:rgba(255,255,255,.15);border:3px solid rgba(255,255,255,.4);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;color:#fff;letter-spacing:-2px;margin-bottom:24px;opacity:0;transform:scale(.5) translateY(30px);transition:all .7s cubic-bezier(.34,1.56,.64,1)">G8</div>
 
   <!-- Testo scuola -->
-  <div id="bv-scuola" style="font-size:13px;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:3px;margin-bottom:10px;opacity:0;transform:translateY(20px);transition:all .6s ease .2s">I.C. Pasquale Sottocorno</div>
+  <div id="bv-scuola" style="font-size:13px;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:3px;margin-bottom:10px;opacity:0;transform:translateY(20px);transition:all .6s ease .2s"></div>
 
   <!-- Titolo principale -->
   <div id="bv-titolo" style="font-size:clamp(22px,5vw,36px);font-weight:900;color:#fff;text-align:center;line-height:1.2;margin-bottom:10px;opacity:0;transform:translateY(20px);transition:all .6s ease .35s">Grado 8</div>
@@ -2523,7 +2523,7 @@ function scaricaEserciziPDF(){
   doc.setFontSize(16); doc.setFont('helvetica','bold');
   doc.text('ESERCIZI DI STUDIO MIRATO',20,13);
   doc.setFontSize(10); doc.setFont('helvetica','normal');
-  doc.text('I.C. Pasquale Sottocorno · Grado 8 – Simulazione INVALSI',20,22);
+  doc.text('Grado 8 – Simulazione INVALSI',20,22);
   doc.setFontSize(9);
   doc.text(`Studente: ${S.stud}  |  Classe: ${S.classe}  |  Prova: ${S.prova.titolo}  |  Data: ${new Date().toLocaleDateString('it-IT')}`,20,30);
 
@@ -2580,7 +2580,7 @@ function scaricaEserciziPDF(){
   for(let p=1;p<=pp;p++){
     doc.setPage(p);
     doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(160,160,160);
-    doc.text(`I.C. Pasquale Sottocorno · Esercizi di recupero INVALSI · ${S.stud} · Pag. ${p}/${pp}`,105,292,{align:'center'});
+    doc.text(`Esercizi di recupero INVALSI · ${S.stud} · Pag. ${p}/${pp}`,105,292,{align:'center'});
   }
 
   // Filename sicuro: nessun riferimento alle risposte
@@ -3964,7 +3964,7 @@ function stampaSchedaStudente(codice, sessione){
           Scheda individuale studente
         </div>
         <div style="font-size:13px;opacity:.85">
-          I.C. Pasquale Sottocorno · Simulatore INVALSI · Italiano Grado 8
+          Simulatore INVALSI · Italiano Grado 8
         </div>
       </div>
 
@@ -4011,7 +4011,7 @@ function stampaSchedaStudente(codice, sessione){
       </div>
 
       <div style="font-size:11px;color:#999;text-align:center;border-top:1px solid #ddd;padding-top:10px">
-        Generato il ${new Date().toLocaleString('it-IT')} · Simulatore INVALSI · I.C. Pasquale Sottocorno
+        Generato il ${new Date().toLocaleString('it-IT')} · Simulatore INVALSI · 
       </div>
     </div>`;
 
