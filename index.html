@@ -2932,6 +2932,7 @@ function mostraDetDoc(codice, sessione){
     <button class="btn btn-s" onclick="stampaSchedaStudente('${codice}','${sessione}')"
       style="width:100%;margin-top:12px;padding:9px;font-size:13px">🖨️ Stampa scheda</button>`;
   $('doc-ris-wrap').classList.remove('hidden');
+  setTimeout(()=>$('doc-ris-wrap').scrollIntoView({behavior:'smooth', block:'nearest'}), 100);
 }
 
 function esportaCSV(){
