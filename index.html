@@ -3426,25 +3426,44 @@ function _elaboraImport(risultati, sessione, sessBase, status, preview){
   const classeSessione = DB.sessioni[sessione]?.classe || '';
   let nuovi=0, agg=0;
   risultati.forEach(r=>{
-    const classeR = r.Classe||r.classe||classeSessione||'';
+    // Mapping reale dallo Sheet (verificato dalle intestazioni riga 1):
+    // A=Data(=nome studente), B=Ora(=sessione), C=Classe, D=Codice studente(=titolo prova)
+    // E=Sessione(=punteggio), F=Prova(=Su/totale), G=Punteggio(=percentuale%), H=Su(=lettura corr)
+    // I=Percentuale(=lettura tot), J=Lettura corr.(=lessico corr), K=Lettura tot.(=lessico tot)
+    // L=Lessico corr.(=gramm corr), M=Lessico tot.(=gramm tot)
+    const codice   = (r['Data']  || '').toString().trim();
+    const sessSheet = (r['Ora']   || '').toString().trim();
+    const classeR  = (r['Classe'] || classeSessione || '').toString().trim();
+
     const numProva = sessBase.replace(/^prova-/,'').replace(/-3[AE]$/,'');
-    const sessKey  = classeR ? `prova-${numProva}-${classeR}` : sessBase;
+    // Usa sessSheet se è una chiave valida, altrimenti costruisci
+    let sessKey;
+    if(sessSheet.startsWith('prova-') && sessSheet.match(/-3[AE]$/)){
+      sessKey = sessSheet;
+    } else if(sessSheet.startsWith('prova-')){
+      sessKey = classeR ? `${sessSheet}-${classeR}` : sessSheet;
+    } else {
+      sessKey = classeR ? `prova-${numProva}-${classeR}` : sessBase;
+    }
+
     if(!DB.sessioni[sessKey]){
       DB.sessioni[sessKey]={provaId:parseInt(numProva)||1, classe:classeR,
-        data:r.Data||r.data||new Date().toISOString(), studenti:0, chiusa:false};
+        data:new Date().toISOString(), studenti:0, chiusa:false};
     }
+
     const entry={
-      codice:  r.Codice||r.codice||'',
-      sessione:sessKey, classe:classeR,
-      totale:  Number(r.Totale||r.totale)||0,
-      su:      Number(r.Su||r.su)||0,
-      pct:     Number(r.Percentuale||r.pct)||0,
+      codice:  codice,
+      sessione:sessKey,
+      classe:  classeR,
+      totale:  Number(r['Sessione'])||0,
+      su:      Number(r['Prova'])||0,
+      pct:     Number(r['Punteggio'])||0,
       sezioni:[
-        {c:Number(r.Lettura_c)||0,  t:Number(r.Lettura_t)||0},
-        {c:Number(r.Lessico_c)||0,  t:Number(r.Lessico_t)||0},
-        {c:Number(r.Grammatica_c)||0,t:Number(r.Grammatica_t)||0}
+        {c:Number(r['Su'])||0,           t:Number(r['Percentuale'])||0},
+        {c:Number(r['Lettura corr.'])||0, t:Number(r['Lettura tot.'])||0},
+        {c:Number(r['Lessico corr.'])||0, t:Number(r['Lessico tot.'])||0}
       ],
-      errori:{}, data:r.Data||r.data||new Date().toISOString(), det:[]
+      errori:{}, data:new Date().toISOString(), det:[]
     };
     if(!entry.codice) return;
     const idx=DB.risultati.findIndex(x=>x.codice===entry.codice&&x.sessione===sessKey);
