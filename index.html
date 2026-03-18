@@ -3368,7 +3368,8 @@ async function importaDaSheet(){
   preview.innerHTML='';
 
   const sessBase = sessione.replace(/-3[AE]$/,'');
-  const url = `${SCRIPT_URL}?action=leggi&sessione=${encodeURIComponent(sessBase)}`;
+  // Cerca sia "prova-1" che "prova-1-3E" nello Sheet (Irene potrebbe avere l'una o l'altra)
+  const url = `${SCRIPT_URL}?action=leggi&sessione=${encodeURIComponent(sessBase)}&sessione2=${encodeURIComponent(sessione)}`;
 
   // Prova prima con fetch normale
   try{
