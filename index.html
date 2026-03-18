@@ -3073,7 +3073,14 @@ function caricaAnalisi(){
   if(!sessione){ $('analisi-contenuto').classList.add('hidden'); return; }
   $('analisi-contenuto').classList.remove('hidden');
 
-  const risultati = DB.risultati.filter(r=>r.sessione===sessione);
+  // Cerca con chiave esatta OPPURE con chiave legacy (prova-N senza classe)
+  const sessBase = sessione.replace(/-3[AE]$/,'');
+  const classeSessione = DB.sessioni[sessione]?.classe || '';
+  const risultati = DB.risultati.filter(r=>
+    r.sessione === sessione ||
+    (r.sessione === sessBase && r.classe === classeSessione) ||
+    (r.sessione === sessBase && !r.classe)
+  );
   const tbody = $('tbody-ris');
 
   if(!risultati.length){
@@ -3442,6 +3449,11 @@ function _elaboraImport(risultati, sessione, sessBase, status, preview){
     const idx=DB.risultati.findIndex(x=>x.codice===entry.codice&&x.sessione===sessKey);
     if(idx>=0){DB.risultati[idx]=entry;agg++;}
     else{DB.risultati.push(entry);nuovi++;}
+  });
+  saveDB();
+  // Aggiorna contatori studenti per tutte le sessioni coinvolte
+  Object.keys(DB.sessioni).forEach(sk=>{
+    DB.sessioni[sk].studenti = DB.risultati.filter(r=>r.sessione===sk).length;
   });
   saveDB();
   status.innerHTML=`✅ Importati: <strong>${nuovi} nuovi</strong>, ${agg} aggiornati.`;
