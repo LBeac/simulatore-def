@@ -465,7 +465,7 @@ tr:hover td{background:var(--grigio-ch)}
 /* Dettaglio risultati docente */
 .doc-ris-wrap{background:#fff;border-radius:10px;margin-top:16px;box-shadow:0 2px 8px rgba(0,0,0,.07);overflow:hidden}
 .doc-ris-hdr{background:var(--blu-s);color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between}
-.doc-ris-body{padding:18px;max-height:400px;overflow-y:auto}
+.doc-ris-body{padding:18px;max-height:400px;overflow-y:auto;min-height:60px}
 </style>
 </head>
 <body>
@@ -3460,12 +3460,17 @@ function _elaboraImport(risultati, sessione, sessBase, status, preview){
       su:      Number(r['Prova'])||0,
       pct:     Number(r['Punteggio'])||0,
       sezioni:[
-        {c:Number(r['Su'])||0,           t:Number(r['Percentuale'])||0},
-        {c:Number(r['Lettura corr.'])||0, t:Number(r['Lettura tot.'])||0},
-        {c:Number(r['Lessico corr.'])||0, t:Number(r['Lessico tot.'])||0}
+        {c:Number(r['Su'])||0,              t:Number(r['Percentuale'])||0},
+        {c:Number(r['Lettura corr.'])||0,   t:Number(r['Lettura tot.'])||0},
+        {c:Number(r['Lessico corr.'])||0,   t:Number(r['Lessico tot.'])||0}
       ],
       errori:{}, data:new Date().toISOString(), det:[]
     };
+    // Leggi le competenze deboli dalle colonne P/Q/R
+    ['Competenza debole 1','Competenza debole 2','Competenza debole 3'].forEach((col,i)=>{
+      const val = (r[col]||'').toString().trim();
+      if(val && val !== 'undefined') entry.errori[val] = 3 - i;
+    });
     if(!entry.codice) return;
     const idx=DB.risultati.findIndex(x=>x.codice===entry.codice&&x.sessione===sessKey);
     if(idx>=0){DB.risultati[idx]=entry;agg++;}
