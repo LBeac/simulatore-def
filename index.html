@@ -3118,7 +3118,6 @@ function caricaAnalisi(){
         <td>${r.sezioni[2]?.c??'–'}/${r.sezioni[2]?.t??'–'}</td>
         <td>${deb?nC(deb[0]):'–'}</td>
         <td style="display:flex;gap:4px">
-          <button class="btn-link" style="font-size:11px" onclick="mostraDetDoc('${r.codice}','${sessione}')">🔍</button>
           <button class="btn-del" style="font-size:11px" onclick="chiediDelStudente('${r.codice}','${sessione}')">🗑️</button>
         </td>
       </tr>`;
@@ -3427,64 +3426,72 @@ function _elaboraImport(risultati, sessione, sessBase, status, preview){
   const classeSessione = DB.sessioni[sessione]?.classe || '';
   let nuovi=0, agg=0;
   risultati.forEach(r=>{
-    // Mapping reale dallo Sheet (verificato dalle intestazioni riga 1):
-    // A=Data(=nome studente), B=Ora(=sessione), C=Classe, D=Codice studente(=titolo prova)
-    // E=Sessione(=punteggio), F=Prova(=Su/totale), G=Punteggio(=percentuale%), H=Su(=lettura corr)
-    // I=Percentuale(=lettura tot), J=Lettura corr.(=lessico corr), K=Lettura tot.(=lessico tot)
-    // L=Lessico corr.(=gramm corr), M=Lessico tot.(=gramm tot)
-    const codice   = (r['Data']  || '').toString().trim();
-    const sessSheet = (r['Ora']   || '').toString().trim();
-    const classeR  = (r['Classe'] || classeSessione || '').toString().trim();
+    // Mapping DEFINITIVO verificato dalle intestazioni reali dello Sheet:
+    // A=Data, B=Ora, C=Classe, D=Codice studente (nome), E=Sessione (es. prova-1-3A)
+    // F=Prova (titolo), G=Punteggio (totale corr.), H=Su (tot domande), I=Percentuale
+    // J=Lettura corr., K=Lettura tot., L=Lessico corr., M=Lessico tot.
+    // N=Grammatica corr., O=Grammatica tot.
+    // P=Competenza debole 1, Q=Competenza debole 2, R=Competenza debole 3
+
+    const codice    = (r['Codice studente'] || '').toString().trim();
+    const sessSheet = (r['Sessione']        || '').toString().trim();
+    const classeR   = (r['Classe']          || classeSessione || '').toString().trim();
+
+    if(!codice) return; // salta righe senza nome studente
 
     const numProva = sessBase.replace(/^prova-/,'').replace(/-3[AE]$/,'');
-    // Usa sessSheet se è una chiave valida, altrimenti costruisci
+
+    // Usa la sessione dallo Sheet se è valida, altrimenti costruisci
     let sessKey;
-    if(sessSheet.startsWith('prova-') && sessSheet.match(/-3[AE]$/)){
-      sessKey = sessSheet;
-    } else if(sessSheet.startsWith('prova-')){
-      sessKey = classeR ? `${sessSheet}-${classeR}` : sessSheet;
+    if(sessSheet.startsWith('prova-')){
+      sessKey = sessSheet; // usa direttamente (es. prova-1-3A)
     } else {
       sessKey = classeR ? `prova-${numProva}-${classeR}` : sessBase;
     }
 
     if(!DB.sessioni[sessKey]){
-      DB.sessioni[sessKey]={provaId:parseInt(numProva)||1, classe:classeR,
-        data:new Date().toISOString(), studenti:0, chiusa:false};
+      DB.sessioni[sessKey] = {
+        provaId:parseInt(numProva)||1, classe:classeR,
+        data:new Date().toISOString(), studenti:0, chiusa:false
+      };
     }
 
-    const entry={
+    const entry = {
       codice:  codice,
       sessione:sessKey,
       classe:  classeR,
-      totale:  Number(r['Sessione'])||0,
-      su:      Number(r['Prova'])||0,
-      pct:     Number(r['Punteggio'])||0,
+      totale:  Number(r['Punteggio'])  || 0,
+      su:      Number(r['Su'])         || 0,
+      pct:     Number(r['Percentuale'])|| 0,
       sezioni:[
-        {c:Number(r['Su'])||0,              t:Number(r['Percentuale'])||0},
-        {c:Number(r['Lettura corr.'])||0,   t:Number(r['Lettura tot.'])||0},
-        {c:Number(r['Lessico corr.'])||0,   t:Number(r['Lessico tot.'])||0}
+        {c:Number(r['Lettura corr.']) ||0, t:Number(r['Lettura tot.']) ||0},
+        {c:Number(r['Lessico corr.']) ||0, t:Number(r['Lessico tot.']) ||0},
+        {c:Number(r['Grammatica corr.'])||0, t:Number(r['Grammatica tot.'])||0}
       ],
       errori:{}, data:new Date().toISOString(), det:[]
     };
-    // Leggi le competenze deboli dalle colonne P/Q/R
+
+    // Competenze deboli da colonne P/Q/R
     ['Competenza debole 1','Competenza debole 2','Competenza debole 3'].forEach((col,i)=>{
       const val = (r[col]||'').toString().trim();
-      if(val && val !== 'undefined') entry.errori[val] = 3 - i;
+      if(val && val !== 'undefined' && val !== 'null') entry.errori[val] = 3 - i;
     });
-    if(!entry.codice) return;
-    const idx=DB.risultati.findIndex(x=>x.codice===entry.codice&&x.sessione===sessKey);
-    if(idx>=0){DB.risultati[idx]=entry;agg++;}
-    else{DB.risultati.push(entry);nuovi++;}
+
+    const idx = DB.risultati.findIndex(x=>x.codice===entry.codice && x.sessione===sessKey);
+    if(idx>=0){ DB.risultati[idx]=entry; agg++; }
+    else      { DB.risultati.push(entry); nuovi++; }
   });
+
   saveDB();
-  // Aggiorna contatori studenti per tutte le sessioni coinvolte
   Object.keys(DB.sessioni).forEach(sk=>{
     DB.sessioni[sk].studenti = DB.risultati.filter(r=>r.sessione===sk).length;
   });
   saveDB();
+
   status.innerHTML=`✅ Importati: <strong>${nuovi} nuovi</strong>, ${agg} aggiornati.`;
   status.style.color='var(--verde)';
-  const importati=DB.risultati.filter(r=>r.sessione===sessione||r.sessione.startsWith(sessBase));
+
+  const importati = DB.risultati.filter(r=>r.sessione===sessione||r.sessione===sessBase);
   let tH=`<div class="table-wrap" style="margin-top:12px"><table>
     <thead><tr><th>Studente</th><th>Classe</th><th>Punteggio</th><th>%</th></tr></thead><tbody>`;
   importati.forEach(r=>{
@@ -3578,7 +3585,6 @@ function caricaAnalisi(){
       <td>${r.sezioni[2]?.c??'–'}/${r.sezioni[2]?.t??'–'}</td>
       <td>${deb?nC(deb[0]):'–'}</td>
       <td style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn-link" style="font-size:11px" onclick="mostraDetDoc('${r.codice}','${sessione}')">🔍 Dettaglio</button>
         <button class="btn-del" style="font-size:11px" onclick="chiediDelStudente('${r.codice}','${sessione}')">🗑️</button>
       </td>
     </tr>`;
