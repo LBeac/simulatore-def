@@ -311,15 +311,26 @@ html, body{
 /* COL collegamento colonne */
 .col-wrap{display:grid;grid-template-columns:1fr 40px 1fr;gap:8px;margin-top:8px;align-items:start}
 .col-sx,.col-dx{display:flex;flex-direction:column;gap:6px}
-.col-item{border:2px solid var(--grigio);border-radius:6px;padding:8px 12px;font-size:13px;background:#fff;min-height:40px;display:flex;align-items:center}
-.col-item.linked{border-color:var(--az);background:#e8f0fb}
+.col-item{border:2px solid var(--grigio);border-radius:6px;padding:8px 12px;font-size:13px;background:#fff;min-height:40px;display:flex;align-items:center;transition:border-color .15s,background .15s}
 .col-sx .col-item{cursor:pointer}
 .col-sx .col-item:hover{border-color:var(--az);background:#e8f0fb}
 .col-sx .col-item.sel{border-color:var(--blu);background:#dce8f8;font-weight:700}
 .col-arrows{display:flex;flex-direction:column;gap:6px;justify-content:flex-start;padding-top:2px}
-.col-arrow{height:40px;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:16px}
-.col-arrow.linked{color:var(--az)}
+.col-arrow{height:40px;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:16px;font-weight:700}
 .col-nota{font-size:11px;color:#888;margin-top:8px;font-style:italic;grid-column:1/-1}
+.col-reset{font-size:11px;margin-top:6px;grid-column:1/-1;background:none;border:1px solid #ccc;border-radius:4px;padding:4px 10px;cursor:pointer;color:#888}
+.col-reset:hover{background:#fce4e4;border-color:var(--rosso);color:var(--rosso)}
+/* Colori abbinamento */
+.col-c0{border-color:#e53935!important;background:#ffebee!important}
+.col-c1{border-color:#8e24aa!important;background:#f3e5f5!important}
+.col-c2{border-color:#1e88e5!important;background:#e3f2fd!important}
+.col-c3{border-color:#43a047!important;background:#e8f5e9!important}
+.col-c4{border-color:#fb8c00!important;background:#fff3e0!important}
+.col-arrow.col-c0{color:#e53935}
+.col-arrow.col-c1{color:#8e24aa}
+.col-arrow.col-c2{color:#1e88e5}
+.col-arrow.col-c3{color:#43a047}
+.col-arrow.col-c4{color:#fb8c00}
 .scr-acc{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--blu-s) 0%,var(--blu-m) 100%);padding:20px}
 .acc-card{background:#fff;border-radius:14px;padding:36px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
 .acc-logo{text-align:center;margin-bottom:24px}
@@ -1839,7 +1850,8 @@ function aggTimer(){
 // ── SICUREZZA FINESTRA ─────────────────────────────────
 function attivaSicurezza(){
   document.addEventListener('visibilitychange',()=>{
-    if(S.scr!=='scr-test'||!document.hidden) return;
+    // Attivo solo durante la prova, non sul report
+    if(S.scr!=='scr-test' || !document.hidden || !S.timer) return;
     S.uscite++;
     const ov=$('ov-fin'); ov.classList.remove('hidden');
     if(S.uscite>=2){
@@ -2062,43 +2074,53 @@ function renderDom(idx){
         <div>
           <div style="font-size:11px;font-weight:700;color:var(--blu);text-transform:uppercase;margin-bottom:6px;text-align:center">Elementi</div>`;
       d.sx.forEach((item,i)=>{
-        const linked=Object.keys(risp).some(k=>parseInt(k)===i);
+        const col=risp[i]!==undefined?` col-c${risp[i]%5}`:'';
         const sel=selSx===i;
         html+=`<div onclick="colSelSx('${d.id}',${i})"
-          style="padding:10px 8px;margin-bottom:6px;border:2px solid ${sel?'var(--blu)':linked?'var(--az)':'var(--grigio)'};background:${sel?'#dce8f8':linked?'#e8f0fb':'#fff'};border-radius:8px;font-size:13px;cursor:pointer;font-weight:${sel?'700':'400'}">
-          ${String.fromCharCode(65+i)}. ${item}${linked?` <span style="color:var(--az);font-size:11px">→${risp[i]!==undefined?risp[i]+1:''}</span>`:''}
+          style="padding:10px 8px;margin-bottom:6px;border:2px solid ${sel?'var(--blu)':'var(--grigio)'};background:${sel?'#dce8f8':'#fff'};border-radius:8px;font-size:13px;cursor:pointer;font-weight:${sel?'700':'400'}"
+          class="${col}">
+          ${String.fromCharCode(65+i)}. ${item}${risp[i]!==undefined?` <span style="font-size:11px">→${risp[i]+1}</span>`:''}
         </div>`;
       });
       html+=`</div><div>
         <div style="font-size:11px;font-weight:700;color:var(--verde);text-transform:uppercase;margin-bottom:6px;text-align:center">Definizioni</div>`;
       d.dx.forEach((item,j)=>{
-        const linked=Object.values(risp).some(v=>parseInt(v)===j);
+        const sxKey=Object.keys(risp).find(k=>parseInt(risp[k])===j);
+        const col=sxKey!==undefined?` col-c${j%5}`:'';
         html+=`<div onclick="colSelDx('${d.id}',${j})"
-          style="padding:10px 8px;margin-bottom:6px;border:2px solid ${linked?'var(--verde)':'var(--grigio)'};background:${linked?'#e8f5e9':'#fff'};border-radius:8px;font-size:13px;cursor:pointer">
+          style="padding:10px 8px;margin-bottom:6px;border:2px solid var(--grigio);background:#fff;border-radius:8px;font-size:13px;cursor:pointer"
+          class="${col}">
           ${j+1}. ${item}
         </div>`;
       });
       html+=`</div></div>
-      <div style="font-size:12px;color:#888;margin-top:6px;text-align:right">Collegati: ${Object.keys(risp).length}/${d.sx.length}</div>`;
+      <div style="font-size:12px;color:#888;margin-top:6px;text-align:right">Collegati: ${Object.keys(risp).length}/${d.sx.length}</div>
+      <button class="col-reset" onclick="colReset('${d.id}')" style="width:100%;margin-top:8px">🔄 Pulisci tutti i collegamenti</button>`;
     } else {
       html+=`<div style="font-size:12px;color:#888;margin-bottom:8px">Clicca un elemento a sinistra, poi uno a destra per collegarlo.</div>
       <div class="col-wrap">
         <div class="col-sx">`;
       d.sx.forEach((item,i)=>{
-        const linked=Object.keys(risp).some(k=>parseInt(k)===i);
-        html+=`<div class="col-item ${linked?'linked':''} ${selSx===i?'sel':''}" onclick="colSelSx('${d.id}',${i})">${String.fromCharCode(65+i)}. ${item}</div>`;
+        const col=risp[i]!==undefined?` col-c${risp[i]%5}`:'';
+        const sel=selSx===i?' sel':'';
+        html+=`<div class="col-item${col}${sel}" onclick="colSelSx('${d.id}',${i})">${String.fromCharCode(65+i)}. ${item}</div>`;
       });
       html+=`</div><div class="col-arrows">`;
       d.sx.forEach((_,i)=>{
-        const to=risp[i]; const linked=to!==undefined;
-        html+=`<div class="col-arrow ${linked?'linked':''}">${linked?'→':'·'}</div>`;
+        const to=risp[i];
+        const col=to!==undefined?` col-c${to%5}`:'';
+        html+=`<div class="col-arrow${col}">${to!==undefined?'→':'·'}</div>`;
       });
       html+=`</div><div class="col-dx">`;
       d.dx.forEach((item,j)=>{
-        const linked=Object.values(risp).some(v=>parseInt(v)===j);
-        html+=`<div class="col-item ${linked?'linked':''}" onclick="colSelDx('${d.id}',${j})">${j+1}. ${item}</div>`;
+        const sxKey=Object.keys(risp).find(k=>parseInt(risp[k])===j);
+        const col=sxKey!==undefined?` col-c${j%5}`:'';
+        html+=`<div class="col-item${col}" onclick="colSelDx('${d.id}',${j})">${j+1}. ${item}</div>`;
       });
-      html+=`</div><div class="col-nota">Elementi collegati: ${Object.keys(risp).length}/${d.sx.length}</div></div>`;
+      html+=`</div>
+        <div class="col-nota">Collegati: ${Object.keys(risp).length}/${d.sx.length}</div>
+        <button class="col-reset" onclick="colReset('${d.id}')">🔄 Pulisci tutti i collegamenti</button>
+      </div>`;
     }
   }
 
@@ -2261,6 +2283,12 @@ function colSelDx(id,jdx){
   aggSidebar();
   renderDom(S.cur);
 }
+function colReset(id){
+  if(S.risposte[id]) delete S.risposte[id];
+  S._colSxSel = null;
+  aggSidebar();
+  renderDom(S.cur);
+}
 function avanti(){
   if(S.cur>=S.prova.domande.length-1) return;
   let next = S.cur+1;
@@ -2298,6 +2326,7 @@ function mostraConsegna(){
 }
 function consegna(){
   clearInterval(S.timer);
+  S.timer = null; // impedisce che il timer riprenda
   $('ov-cons').classList.add('hidden');
   calcolaRisultati();
   mostraScr('scr-ris');
@@ -2322,7 +2351,7 @@ function calcolaRisultati(){
       else errComp[d.comp]=(errComp[d.comp]||0)+1;
       det.push({d, ok, mia,
         miaLbl:mia!==undefined?d.ops[mia]:'— Senza risposta —',
-        okLbl:d.ops[d.ok]});
+        okLbl:d.ops[d.ok]||'–'});
 
     } else if(d.tipo==='ap'){
       tot++; sez[d.sez].t++;
@@ -2438,12 +2467,17 @@ function calcolaRisultati(){
   });
   $('ris-detail').innerHTML = rH;
 
-  // ESERCIZI DI RECUPERO (15, aree più deboli)
+  // ESERCIZI DI RECUPERO (15, aree più deboli) — variati per prova
   const ordinate=Object.entries(errComp).sort((a,b)=>b[1]-a[1]);
-  const compDeboli=ordinate.slice(0,4).map(x=>x[0]); // prendi top 4 aree deboli
+  const compDeboli=ordinate.slice(0,4).map(x=>x[0]);
   let eH='', num=0; const usati=new Set();
+  // Usa provaId come seed per variare gli esercizi tra prove diverse
+  const seed = (S.provaIdDaURL || 1) - 1;
   function addE(comp){
-    (ESERC[comp]||[]).forEach((txt,pi)=>{
+    const lista = ESERC[comp]||[];
+    // Ruota la lista in base alla prova — ogni prova parte da un esercizio diverso
+    const rotated = [...lista.slice(seed % lista.length), ...lista.slice(0, seed % lista.length)];
+    rotated.forEach((txt,pi)=>{
       if(num>=15) return;
       const key=`${comp}_${pi}`; if(usati.has(key)) return; usati.add(key);
       eH+=`<div class="eserc-item">
@@ -2457,7 +2491,6 @@ function calcolaRisultati(){
     });
   }
   compDeboli.forEach(addE);
-  // Completa fino a 15 con altre competenze
   Object.keys(ESERC).forEach(c=>{
     if(num>=15||compDeboli.includes(c)) return;
     addE(c);
@@ -4244,6 +4277,9 @@ window.addEventListener('load', () => {
     $('banner-prova-nome').textContent = `${provaId}. ${prova.titolo}`;
     $('banner-prova').classList.remove('hidden');
     $('banner-no-prova').style.display = 'none';
+    // Link studente: nasconde il tasto Docente
+    const tabDoc = document.querySelector('.tab-acc-btn[onclick*="docente"]');
+    if(tabDoc) tabDoc.style.display = 'none';
   } else {
     $('banner-prova').classList.add('hidden');
     $('banner-no-prova').style.display = 'block';
