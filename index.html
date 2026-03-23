@@ -926,7 +926,16 @@ tr:hover td{background:var(--grigio-ch)}
         <label class="flbl">Prova da somministrare</label>
         <select class="finp" id="sel-prova-new" style="padding:9px 12px"></select>
       </div>
-      <button class="btn btn-g" onclick="creaSessione()" style="width:100%;padding:11px;font-size:14px">✅ Crea sessione e genera link</button>
+      <div class="fg" style="margin-top:10px">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;font-weight:600;color:var(--blu)">
+          <input type="checkbox" id="chk-bes-new" style="width:18px;height:18px;cursor:pointer">
+          Sessione BES/DSA — tempo +30%, player audio (se disponibile)
+        </label>
+        <div style="font-size:11px;color:#888;margin-top:4px;padding-left:28px">
+          Genera un link separato con 117 minuti e accesso al lettore audio del testo
+        </div>
+      </div>
+      <button class="btn btn-g" onclick="creaSessione()" style="width:100%;padding:11px;font-size:14px;margin-top:12px">✅ Crea sessione e genera link</button>
       <div class="err-msg" id="err-new"></div>
       <div class="succ-msg" id="succ-new"></div>
     </div>
@@ -1691,6 +1700,33 @@ const COMP_NOMI = {
 };
 const nC = c => COMP_NOMI[c]||c||'';
 const $ = id => document.getElementById(id);
+
+// ── BES AUDIO PLAYER ───────────────────────────────────
+function besTogglePlay(){
+  const audio = document.getElementById('bes-audio');
+  const btn   = $('bes-btn-play');
+  if(!audio) return;
+  if(audio.paused){ audio.play(); btn.textContent='⏸ Pausa'; }
+  else             { audio.pause(); btn.textContent='▶ Play'; }
+}
+function besSeek(val){
+  const audio = document.getElementById('bes-audio');
+  if(audio) audio.currentTime = Number(val);
+}
+function besSaltaA(sec){
+  const audio = document.getElementById('bes-audio');
+  if(!audio) return;
+  audio.currentTime = sec;
+  audio.play();
+  $('bes-btn-play').textContent='⏸ Pausa';
+}
+function besAggTime(){
+  const audio = document.getElementById('bes-audio');
+  const el    = $('bes-time');
+  if(!audio||!el) return;
+  const fmt = s=>{ const m=Math.floor(s/60); return `${m}:${String(Math.floor(s%60)).padStart(2,'0')}`; };
+  el.textContent = `${fmt(audio.currentTime)} / ${fmt(audio.duration||0)}`;
+}
 
 // PASSWORD (da localStorage o default)
 // PASSWORD UNICA DOCENTE
@@ -2793,6 +2829,7 @@ function studenteCard(r, rank, tipo){
 function creaSessione(){
   const provaId = Number($('sel-prova-new').value);
   const classe  = S.classe === 'ALL' ? '' : S.classe;
+  const isBES   = $('chk-bes-new')?.checked || false;
   hideErr('err-new'); $('succ-new').style.display='none';
 
   if(!classe){
@@ -2800,34 +2837,32 @@ function creaSessione(){
     return;
   }
 
-  // Chiave UNIVOCA per prova + classe (evita sovrascritture)
-  const sessKey = `prova-${provaId}-${classe}`;
+  const sessKey = isBES ? `prova-${provaId}-${classe}-bes` : `prova-${provaId}-${classe}`;
   const sessData = {
-    provaId, classe,
+    provaId, classe, bes: isBES,
     data: new Date().toISOString(),
     studenti: 0,
     chiusa: false
   };
 
-  // 1. Salva in localStorage (per uso offline/locale)
   DB.sessioni[sessKey] = sessData;
   saveDB();
-
-  // 2. Salva anche su Google Sheet (per accesso da qualsiasi browser)
   salvaSessOnSheet(sessKey, sessData);
 
   const base = window.location.href.split('?')[0];
-  const link = `${base}?prova=${provaId}&classe=${classe}`;
+  const link = isBES
+    ? `${base}?prova=${provaId}&classe=${classe}&bes=1`
+    : `${base}?prova=${provaId}&classe=${classe}`;
   const prova = PROVE.find(p => p.id === provaId);
 
   const el = $('succ-new');
-  el.innerHTML = `✅ Sessione creata — link pronto:<br>
+  el.innerHTML = `✅ Sessione ${isBES?'<strong style="color:var(--az)">BES/DSA</strong> ':''} creata — link pronto:<br>
     <div style="margin-top:8px;padding:8px 12px;background:#fff;border:1px solid var(--verde);
       border-radius:6px;word-break:break-all;font-size:12px;font-family:monospace">${link}</div>
     <button onclick="navigator.clipboard.writeText('${link}').then(()=>alert('✅ Link copiato!'))"
       class="btn btn-g" style="margin-top:10px;width:100%;padding:9px">📋 Copia link</button>
     <div style="margin-top:8px;font-size:11px;color:#555">
-      Codice sessione: <strong>${sessKey}</strong> · Classe: <strong>${classe}</strong><br>
+      Codice sessione: <strong>${sessKey}</strong> · Classe: <strong>${classe}</strong>${isBES?' · <strong style="color:var(--az)">BES 117 min</strong>':''}<br>
       Prova: <strong>${prova?.titolo||''}</strong>
     </div>`;
   el.style.display='block';
@@ -4245,18 +4280,16 @@ window.addEventListener('load', () => {
   // Avvia animazione benvenuto
   avviaAnimazioneBenvenuto();
   const params  = new URLSearchParams(window.location.search);
-  const raw     = params.get('prova');          // es. "3" o "3A-MAR26" o "2"
-  const classe  = params.get('classe') || '';   // es. "3A" (opzionale)
+  const raw     = params.get('prova');
+  const classe  = params.get('classe') || '';
+  const isBES   = params.get('bes') === '1';
 
-  // Estrae numero prova: se è un numero puro usa quello, altrimenti
-  // prende il primo numero presente nella stringa (es. "3A-MAR26" → cerca param separato)
-  let provaId = 1; // fallback: prova 1
+  let provaId = 1;
   if(raw){
     const soloNumero = parseInt(raw, 10);
     if(!isNaN(soloNumero) && soloNumero >= 1 && soloNumero <= 50){
       provaId = soloNumero;
     } else {
-      // Parametro separato ?n=3 come alternativa
       const n = parseInt(params.get('n'), 10);
       if(!isNaN(n)) provaId = n;
     }
@@ -4264,6 +4297,10 @@ window.addEventListener('load', () => {
 
   S.provaIdDaURL = provaId;
   S.classeDaURL  = classe;
+  S.isBES        = isBES;
+
+  // Timer BES: 117 minuti invece di 90
+  if(isBES) CFG.durata = 117;
 
   // Mostra banner con nome della prova
   const prova = PROVE.find(p => p.id === provaId);
@@ -4274,6 +4311,14 @@ window.addEventListener('load', () => {
     // Link studente: nasconde il tasto Docente
     const tabDoc = document.querySelector('.tab-acc-btn[onclick*="docente"]');
     if(tabDoc) tabDoc.style.display = 'none';
+    // Badge BES
+    if(isBES){
+      const besBadge = document.createElement('div');
+      besBadge.innerHTML = `<div style="background:#e3f2fd;border:2px solid var(--az);border-radius:8px;
+        padding:6px 12px;margin-top:8px;font-size:13px;color:var(--blu);font-weight:700;text-align:center">
+        ♿ Modalità BES/DSA · 117 minuti · Lettore audio attivo</div>`;
+      $('banner-prova').appendChild(besBadge);
+    }
   } else {
     $('banner-prova').classList.add('hidden');
     $('banner-no-prova').style.display = 'block';
@@ -4284,7 +4329,6 @@ window.addEventListener('load', () => {
   const fgClasse  = $('fg-classe');
   if(classe && selClasse){
     selClasse.value = classe;
-    // Sostituisce il menu con un badge classe visibile ma non modificabile
     if(fgClasse){
       fgClasse.innerHTML = `
         <label class="flbl">La tua classe</label>
@@ -4295,6 +4339,74 @@ window.addEventListener('load', () => {
           <span style="font-size:12px;font-weight:400;color:#555;margin-left:4px">(dal link del docente)</span>
         </div>`;
     }
+  }
+
+  // Player audio BES — visibile solo se bes=1 e audio disponibile per questa prova
+  const AUDIO_PROVE = { 3: 'audio_3.mp3' };
+  if(isBES && AUDIO_PROVE[provaId]){
+    // Paragrafi con timestamp (secondi)
+    const AUDIO_PARAGRAFI = {
+      3: [
+        { label: 'Testo A – Il tamburino sardo', sec: 0 },
+        { label: 'Testo B – Il diritto all\'istruzione', sec: 172 } // 2:52
+      ]
+    };
+    const paragrafi = AUDIO_PARAGRAFI[provaId] || [];
+    const audioSrc  = AUDIO_PROVE[provaId];
+
+    // Crea player
+    const playerDiv = document.createElement('div');
+    playerDiv.id = 'bes-player';
+    playerDiv.style.cssText = `
+      position:fixed;bottom:0;left:0;right:0;z-index:9000;
+      background:#1a237e;color:#fff;padding:10px 16px;
+      box-shadow:0 -4px 20px rgba(0,0,0,.3);font-family:inherit;
+    `;
+    playerDiv.innerHTML = `
+      <audio id="bes-audio" src="${audioSrc}" preload="auto"></audio>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span style="font-size:12px;font-weight:700;opacity:.8">🎧 Lettore audio</span>
+        <button id="bes-btn-play" onclick="besTogglePlay()"
+          style="background:#fff;color:#1a237e;border:none;border-radius:6px;padding:6px 14px;font-weight:700;cursor:pointer;font-size:14px">▶ Play</button>
+        <div style="flex:1;min-width:150px">
+          <input type="range" id="bes-seekbar" value="0" min="0" step="1"
+            style="width:100%;accent-color:#64b5f6;cursor:pointer"
+            oninput="besSeek(this.value)">
+        </div>
+        <span id="bes-time" style="font-size:12px;min-width:90px;text-align:right">0:00 / 0:00</span>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
+        ${paragrafi.map((p,i)=>`
+          <button onclick="besSaltaA(${p.sec})"
+            id="bes-para-${i}"
+            style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.4);
+              border-radius:4px;padding:4px 10px;font-size:11px;cursor:pointer;transition:background .2s">
+            ${p.label}
+          </button>`).join('')}
+      </div>`;
+    document.body.appendChild(playerDiv);
+
+    // Setup audio events
+    const audio = document.getElementById('bes-audio');
+    audio.addEventListener('loadedmetadata', ()=>{
+      $('bes-seekbar').max = Math.floor(audio.duration);
+      besAggTime();
+    });
+    audio.addEventListener('timeupdate', ()=>{
+      $('bes-seekbar').value = Math.floor(audio.currentTime);
+      besAggTime();
+      // Evidenzia paragrafo attivo
+      paragrafi.forEach((p,i)=>{
+        const btn = $(`bes-para-${i}`);
+        if(!btn) return;
+        const isActive = i === paragrafi.filter(x=>x.sec <= audio.currentTime).length - 1;
+        btn.style.background = isActive ? 'rgba(255,255,255,.35)' : 'rgba(255,255,255,.15)';
+        btn.style.fontWeight  = isActive ? '700' : '400';
+      });
+    });
+    audio.addEventListener('ended', ()=>{
+      $('bes-btn-play').textContent = '▶ Play';
+    });
   }
 });
 </script>
