@@ -772,21 +772,28 @@ tr:hover td{background:var(--grigio-ch)}
     <div style="padding:0 22px 22px" id="ris-macro-bars"></div>
   </div>
 
-  <!-- BLOCCO 2: DUE BOTTONI -->
-  <div style="max-width:820px;width:100%;display:grid;grid-template-columns:1fr 1fr;gap:16px">
+  <!-- BLOCCO 2: TRE BOTTONI -->
+  <div style="max-width:820px;width:100%;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
 
     <!-- Bottone 1: Soluzioni -->
     <button onclick="toggleSoluzioni()" class="ris-big-btn" id="btn-soluzioni" style="background:#fff;border:2px solid var(--blu);color:var(--blu)">
-      <div style="font-size:28px;margin-bottom:8px">📋</div>
-      <div style="font-size:16px;font-weight:800">Soluzioni della prova</div>
-      <div style="font-size:12px;margin-top:4px;opacity:.7">Vedi tutte le risposte corrette</div>
+      <div style="font-size:24px;margin-bottom:6px">📋</div>
+      <div style="font-size:14px;font-weight:800">Soluzioni della prova</div>
+      <div style="font-size:11px;margin-top:4px;opacity:.7">Vedi tutte le risposte corrette</div>
     </button>
 
     <!-- Bottone 2: Esercizi -->
     <button onclick="toggleEsercizi()" class="ris-big-btn" id="btn-esercizi" style="background:#fff;border:2px solid var(--verde);color:var(--verde)">
-      <div style="font-size:28px;margin-bottom:8px">✏️</div>
-      <div style="font-size:16px;font-weight:800">Esercizi di recupero</div>
-      <div style="font-size:12px;margin-top:4px;opacity:.7">15 esercizi mirati · scaricabili</div>
+      <div style="font-size:24px;margin-bottom:6px">✏️</div>
+      <div style="font-size:14px;font-weight:800">Esercizi di recupero</div>
+      <div style="font-size:11px;margin-top:4px;opacity:.7">15 esercizi mirati · scaricabili</div>
+    </button>
+
+    <!-- Bottone 3: Scarica report -->
+    <button onclick="scaricaPDF()" class="ris-big-btn" style="background:#fff;border:2px solid #7b1fa2;color:#7b1fa2">
+      <div style="font-size:24px;margin-bottom:6px">⬇️</div>
+      <div style="font-size:14px;font-weight:800">Scarica il tuo report</div>
+      <div style="font-size:11px;margin-top:4px;opacity:.7">PDF completo · invia al docente</div>
     </button>
   </div>
 
