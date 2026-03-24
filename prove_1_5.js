@@ -946,11 +946,7 @@ SM("5_10",0,"lessico_contesto","'Mastice' (quarto paragrafo) si riferisce a:",
  "Un attrezzo del falegname.",
  "Il compenso pagato a zì Dima."],1),
 
-T("5_t2",0,"Testo B – Il linguaggio del cinema","Il cinema è un linguaggio. Come ogni linguaggio, ha le sue regole, le sue convenzioni, la sua grammatica. Quando guardiamo un film, non riceviamo semplicemente delle immagini in movimento: decodifichiamo un sistema di segni che il regista ha costruito per comunicare qualcosa.
-Il piano sequenza, il campo lungo, il primo piano, il montaggio: ogni scelta tecnica produce un effetto sul pubblico. Un campo lungo comunica solitudine o grandiosità; un primo piano avvicina il volto di un personaggio e crea empatia o tensione; il montaggio veloce crea agitazione, quello lento malinconia.
-Il famoso esperimento di Kulešov, realizzato negli anni Venti del Novecento in Unione Sovietica, dimostrò che lo stesso volto di un attore appariva di volta in volta triste, affamato o spaventato a seconda dell'inquadratura che lo precedeva. Il significato, insomma, nasce dal montaggio: non dalle immagini singole, ma dalle relazioni tra esse.
-Conoscere il linguaggio cinematografico non trasforma lo spettatore in un critico freddo e distaccato: al contrario, ne arricchisce il godimento. Capire come un regista costruisce la tensione, come sceglie la musica, come usa il colore come metafora, ci rende spettatori più consapevoli e, come si dice, più difficili da manipolare.
-Il cinema è anche uno specchio della società. Un film non è mai neutro: riflette i valori, le paure, le speranze di un'epoca. Sapere leggere un film, perciò, significa anche capire meglio il mondo in cui viviamo.","Testo originale a fini didattici"),
+T("5_t2",0,"Testo B – Il linguaggio del cinema","Il cinema è un linguaggio. Come ogni linguaggio, ha le sue regole, le sue convenzioni, la sua grammatica. Quando guardiamo un film, non riceviamo semplicemente delle immagini in movimento: decodifichiamo un sistema di segni che il regista ha costruito per comunicare qualcosa.\nIl piano sequenza, il campo lungo, il primo piano, il montaggio: ogni scelta tecnica produce un effetto sul pubblico. Un campo lungo comunica solitudine o grandiosità; un primo piano avvicina il volto di un personaggio e crea empatia o tensione; il montaggio veloce crea agitazione, quello lento malinconia.\nIl famoso esperimento di Kulešov, realizzato negli anni Venti del Novecento in Unione Sovietica, dimostrò che lo stesso volto di un attore appariva di volta in volta triste, affamato o spaventato a seconda dell'inquadratura che lo precedeva. Il significato, insomma, nasce dal montaggio: non dalle immagini singole, ma dalle relazioni tra esse.\nConoscere il linguaggio cinematografico non trasforma lo spettatore in un critico freddo e distaccato: al contrario, ne arricchisce il godimento. Capire come un regista costruisce la tensione, come sceglie la musica, come usa il colore come metafora, ci rende spettatori più consapevoli e, come si dice, più difficili da manipolare.\nIl cinema è anche uno specchio della società. Un film non è mai neutro: riflette i valori, le paure, le speranze di un'epoca. Sapere leggere un film, perciò, significa anche capire meglio il mondo in cui viviamo.","Testo originale a fini didattici"),
 
 SM("5_11",0,"comprensione_globale","Il testo B tratta principalmente:",
 ["La storia del cinema dalle origini a oggi.",
@@ -1019,22 +1015,13 @@ SM("5_17",1,"lessico_contesto","In quale frase 'inquadratura' è usata in senso 
  "Il campo lungo è un tipo di inquadratura cinematografica."],1),
 
 SM("5_18_0",1,"lessico_contesto","Completa: 'Il cinema è un linguaggio con una propria ___, cioè un insieme di regole.'",
-["vocabolario",
- "grammatica",
- "sintassi",
- "punteggiatura"],1),
+["vocabolario","grammatica","sintassi","punteggiatura"],1),
 
 SM("5_18_1",1,"lessico_contesto","Completa: 'Il montaggio ___ crea tensione e agitazione.'",
-["lento",
- "sonoro",
- "veloce",
- "visivo"],2),
+["lento","sonoro","veloce","visivo"],2),
 
 SM("5_18_2",1,"lessico_contesto","Completa: 'Conoscere il linguaggio cinematografico ci rende spettatori più ___.'",
-["ingenui",
- "passivi",
- "emotivi",
- "consapevoli"],3),
+["ingenui","passivi","emotivi","consapevoli"],3),
 
 SM("5_19",1,"lessico","'Malinconia' appartiene alla stessa area semantica di:",
 ["Allegria e gioia.","Tristezza e nostalgia.","Agitazione e tensione.","Sorpresa e meraviglia."],1),
@@ -1095,10 +1082,7 @@ SM("5_27",2,"morfologia","'Aggiustata' nella frase 'la giara era aggiustata che 
  "Aggettivo qualificativo."],0),
 
 SM("5_28_0",2,"morfologia","Discorso indiretto: 'Don Lollò gridò: Rompila!' → Don Lollò gridò che ___.",
-["la rompa.",
- "la rompesse.",
- "la romperà.",
- "la rompeva."],1),
+["la rompa.","la rompesse.","la romperà.","la rompeva."],1),
 
 SM("5_28_1",2,"morfologia","Discorso indiretto: 'Zì Dima rispose: Ho aggiustato la giara dall'interno.' → Zì Dima rispose che ___.",
 ["ha aggiustato la giara dall'interno.",
@@ -1130,7 +1114,7 @@ SM("5_32",2,"sintassi","In quale delle seguenti frasi c'è una proposizione conc
 SM("5_33",2,"ortografia","Quale forma è scritta correttamente?",
 ["Zì Dima aveva portato con sé i suoi attrezzi.",
  "Zì Dima aveva portato con se i suoi attrezzi.",
- "Zì Dima aveva portatto con sé i suoi attrezzi.",
+ "Zì Dima aveva portato con sé i suoi attrezzi.",
  "Zì Dima aveva portato con sé i suoi attrezi."],0),
 
 SM("5_34",2,"morfologia","In 'come se l'una e l'altro fossero ugualmente importanti', il modo di 'fossero' è:",
