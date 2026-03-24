@@ -1081,7 +1081,7 @@ const P  = (id,titolo,domande) => ({id,titolo,domande});
 const PROVE = [
 
 // ══════════════════════════════════════════════════════
-// PROVA 1 – Rosso Malpelo
+// PROVA 1 – Il viaggio di un'idea (Scienza e scoperta)
 // ══════════════════════════════════════════════════════
 P(1,"Rosso Malpelo",[
 T("1_t1",0,"Testo A – Come nasce una scoperta",
@@ -4473,6 +4473,17 @@ window.addEventListener('load', () => {
   if(isBES) CFG.durata = 117;
   // Timer DSA +30%
   if(params.get('tempo')==='dsa' && !isBES) CFG.durata = Math.round(90 * 1.3);
+
+  // Applica classi CSS per personalizzazioni accessibilità
+  if(params.get('large')==='1')      document.body.classList.add('acc-large');
+  if(params.get('contrasto')==='1')  document.body.classList.add('acc-contrasto');
+  if(params.get('font')==='1')       document.body.classList.add('acc-font-dys');
+  if(params.get('spaziatura')==='1') document.body.classList.add('acc-spaziatura');
+  if(params.get('maiuscolo')==='1')  document.body.classList.add('acc-maiuscolo');
+  if(isBES){
+    document.body.classList.add('bes-mode');
+    document.body.classList.add('acc-large');
+  }
 
   // Mostra banner con nome della prova
   const prova = PROVE.find(p => p.id === provaId);
