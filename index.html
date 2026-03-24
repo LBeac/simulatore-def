@@ -8,6 +8,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <title>Grado 8 – Simulazione INVALSI</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 /* ── BENVENUTO ──────────────────────────────────────────── */
 #scr-benvenuto{font-family:var(--font)}
@@ -62,6 +64,30 @@ body.bes-mode .brano-wrap{
   padding:16px !important;
 }
 body.bes-mode .vf-table td{ font-size:16px !important; line-height:1.8 !important; }
+
+/* ── TIC: STAMPATO MAIUSCOLO ────────────────────────────── */
+body.acc-maiuscolo .brano-body,
+body.acc-maiuscolo .d-testo,
+body.acc-maiuscolo .opzione,
+body.acc-maiuscolo .vf-table td,
+body.acc-maiuscolo .comp-select { text-transform:uppercase !important; }
+
+/* ── TIC: FONT DISLESSIA (Lexend) ───────────────────────── */
+body.acc-font-dys .brano-body,
+body.acc-font-dys .d-testo,
+body.acc-font-dys .opzione,
+body.acc-font-dys .vf-table td,
+body.acc-font-dys .comp-select,
+body.acc-font-dys .col-item { font-family:'Lexend',sans-serif !important; }
+
+/* ── TIC: SPAZIATURA AUMENTATA ──────────────────────────── */
+body.acc-spaziatura .brano-body,
+body.acc-spaziatura .d-testo,
+body.acc-spaziatura .opzione {
+  line-height:2.6 !important;
+  letter-spacing:0.09em !important;
+  word-spacing:0.2em !important;
+}
 
 /* ── BARRA ACCESSIBILITÀ ────────────────────────────────── */
 #acc-bar{
@@ -926,6 +952,49 @@ tr:hover td{background:var(--grigio-ch)}
         <label class="flbl">Prova da somministrare</label>
         <select class="finp" id="sel-prova-new" style="padding:9px 12px"></select>
       </div>
+
+      <!-- TIC DSA -->
+      <div style="margin-top:14px;border:2px solid #e3eaf7;border-radius:8px;padding:12px 14px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--blu);margin-bottom:10px">
+          Personalizzazione DSA
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px;cursor:pointer">
+          <input type="checkbox" id="tic-large" style="width:16px;height:16px">
+          Testo grande
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px;cursor:pointer">
+          <input type="checkbox" id="tic-contrasto" style="width:16px;height:16px">
+          Alto contrasto
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px;cursor:pointer">
+          <input type="checkbox" id="tic-font" style="width:16px;height:16px">
+          Font per dislessia (Lexend)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px;cursor:pointer">
+          <input type="checkbox" id="tic-spaziatura" style="width:16px;height:16px">
+          Spaziatura aumentata
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+          <input type="checkbox" id="tic-tempo" style="width:16px;height:16px">
+          Tempo esteso +30% <span style="font-size:11px;color:#888;margin-left:4px">(117 min)</span>
+        </label>
+      </div>
+
+      <!-- TIC Avanzate -->
+      <div style="margin-top:10px;border:2px solid #fce8c3;border-radius:8px;padding:12px 14px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#b86000;margin-bottom:10px">
+          Personalizzazioni avanzate
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px;cursor:pointer">
+          <input type="checkbox" id="tic-bes" style="width:16px;height:16px">
+          Modalità BES (testo grande + spaziatura)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+          <input type="checkbox" id="tic-maiuscolo" style="width:16px;height:16px">
+          Testo in STAMPATO MAIUSCOLO
+        </label>
+      </div>
+
       <button class="btn btn-g" onclick="creaSessione()" style="width:100%;padding:11px;font-size:14px;margin-top:12px">✅ Crea sessione e genera link</button>
       <div class="err-msg" id="err-new"></div>
       <div class="succ-msg" id="succ-new"></div>
@@ -2872,9 +2941,20 @@ function creaSessione(){
     return;
   }
 
+  // Legge i TIC selezionati dai checkbox
+  const TIC = {
+    large:     $('tic-large')     ? $('tic-large').checked     : false,
+    contrasto: $('tic-contrasto') ? $('tic-contrasto').checked : false,
+    font:      $('tic-font')      ? $('tic-font').checked      : false,
+    spaziatura:$('tic-spaziatura')? $('tic-spaziatura').checked: false,
+    tempo:     $('tic-tempo')     ? $('tic-tempo').checked     : false,
+    bes:       isBES || ($('tic-bes') ? $('tic-bes').checked : false),
+    maiuscolo: $('tic-maiuscolo') ? $('tic-maiuscolo').checked : false,
+  };
+
   const sessKey  = isBES ? `prova-3-${classe}-bes` : `prova-${provaId}-${classe}`;
   const sessData = {
-    provaId, classe, bes: isBES,
+    provaId, classe, bes: TIC.bes, tic: TIC,
     data: new Date().toISOString(),
     studenti: 0,
     chiusa: false
@@ -2884,12 +2964,33 @@ function creaSessione(){
   saveDB();
   salvaSessOnSheet(sessKey, sessData);
 
+  // Costruisce URL con i TIC attivi
   const base = window.location.href.split('?')[0];
-  const link = isBES
-    ? `${base}?prova=3&classe=${classe}&bes=1`
-    : `${base}?prova=${provaId}&classe=${classe}`;
+  const params = new URLSearchParams();
+  params.set('prova', provaId);
+  params.set('classe', classe);
+  if(TIC.bes)        params.set('bes','1');
+  if(TIC.large)      params.set('large','1');
+  if(TIC.contrasto)  params.set('contrasto','1');
+  if(TIC.font)       params.set('font','1');
+  if(TIC.spaziatura) params.set('spaziatura','1');
+  if(TIC.tempo)      params.set('tempo','dsa');
+  if(TIC.maiuscolo)  params.set('maiuscolo','1');
+
+  const link = `${base}?${params.toString()}`;
   const prova = PROVE.find(p => p.id === provaId);
-  const titoloDisplay = isBES ? `${prova?.titolo||''} (BES)` : prova?.titolo||'';
+
+  // Etichette TIC attivi per la visualizzazione
+  const ticAttivi = [];
+  if(TIC.bes)        ticAttivi.push('BES');
+  if(TIC.large)      ticAttivi.push('Testo grande');
+  if(TIC.contrasto)  ticAttivi.push('Alto contrasto');
+  if(TIC.font)       ticAttivi.push('Font dislessia');
+  if(TIC.spaziatura) ticAttivi.push('Spaziatura +');
+  if(TIC.tempo)      ticAttivi.push('Tempo +30%');
+  if(TIC.maiuscolo)  ticAttivi.push('MAIUSCOLO');
+  const ticLabel = ticAttivi.length ? ticAttivi.join(' · ') : 'Standard';
+  const titoloDisplay = prova?.titolo||'';
 
   const el = $('succ-new');
   el.innerHTML = `✅ Sessione creata — link pronto:<br>
@@ -2899,7 +3000,8 @@ function creaSessione(){
       class="btn btn-g" style="margin-top:10px;width:100%;padding:9px">📋 Copia link</button>
     <div style="margin-top:8px;font-size:11px;color:#555">
       Codice sessione: <strong>${sessKey}</strong> · Classe: <strong>${classe}</strong><br>
-      Prova: <strong>${titoloDisplay}</strong>
+      Prova: <strong>${titoloDisplay}</strong><br>
+      Personalizzazione: <strong>${ticLabel}</strong>
     </div>`;
   el.style.display='block';
 
@@ -3999,14 +4101,36 @@ function aggBarraAcc(){
 }
 
 // ══════════════════════════════════════════════════════════════
-//  MODALITÀ BES dal link (?bes=1)
+//  MODALITÀ TIC dal link (?bes=1 &large=1 &contrasto=1 ecc.)
 // ══════════════════════════════════════════════════════════════
 function applicaBESDaURL(){
   const params = new URLSearchParams(window.location.search);
+
   if(params.get('bes')==='1'){
     document.body.classList.add('bes-mode');
     document.body.classList.add('acc-large');
     S.besDaURL = true;
+  }
+  if(params.get('large')==='1'){
+    document.body.classList.add('acc-large');
+    const b=$('btn-acc-large'); if(b) b.classList.add('attivo');
+  }
+  if(params.get('contrasto')==='1'){
+    document.body.classList.add('acc-contrasto');
+    const b=$('btn-acc-contrasto'); if(b) b.classList.add('attivo');
+  }
+  if(params.get('font')==='1'){
+    document.body.classList.add('acc-font-dys');
+  }
+  if(params.get('spaziatura')==='1'){
+    document.body.classList.add('acc-spaziatura');
+  }
+  if(params.get('maiuscolo')==='1'){
+    document.body.classList.add('acc-maiuscolo');
+  }
+  if(params.get('tempo')==='dsa'){
+    CFG.durata = Math.round(CFG.durata * 1.3); // +30%
+    S.sec = CFG.durata * 60;
   }
 }
 
@@ -4340,6 +4464,8 @@ window.addEventListener('load', () => {
 
   // Timer BES: 117 minuti invece di 90
   if(isBES) CFG.durata = 117;
+  // Timer DSA +30%
+  if(params.get('tempo')==='dsa' && !isBES) CFG.durata = Math.round(90 * 1.3);
 
   // Mostra banner con nome della prova
   const prova = PROVE.find(p => p.id === provaId);
