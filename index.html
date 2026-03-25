@@ -2716,20 +2716,38 @@ function scaricaEserciziPDF(){
   doc.text('Completa gli esercizi a mano nello spazio indicato. Poi consegna questo foglio al docente.',20,y); y+=10;
 
   // ESERCIZI (senza soluzioni)
-  let numEs=0; const usatiP=new Set();
+  let numEs=0;
   const COMP_ORDER=[...r.compDeboli, ...Object.keys(ESERC).filter(c=>!r.compDeboli.includes(c))];
 
-  COMP_ORDER.forEach(comp=>{
-    (ESERC[comp]||[]).forEach((txt,pi)=>{
-      if(numEs>=15) return;
-      const key=`${comp}_${pi}`; if(usatiP.has(key)) return; usatiP.add(key);
+  // Shuffle helper — Fisher-Yates
+  const shuffle = arr => { const a=[...arr]; for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]; } return a; };
+
+  // Per ogni competenza debole: 3-4 esercizi scelti a caso
+  // Per le altre competenze: 1-2 esercizi scelti a caso (varietà)
+  const esercizi_scelti = [];
+  const perDebole = Math.ceil(15 / Math.max(r.compDeboli.length, 1));
+  COMP_ORDER.forEach((comp, idx) => {
+    const pool = shuffle(ESERC[comp] || []);
+    const quanti = idx < r.compDeboli.length
+      ? Math.min(perDebole, pool.length)      // competenze deboli: più esercizi
+      : Math.min(2, pool.length);             // altre: max 2 per varietà
+    pool.slice(0, quanti).forEach(txt => esercizi_scelti.push({comp, txt}));
+  });
+
+  // Shuffle finale per mescolare le competenze e non avere blocchi monotematici
+  const esercizi_finali = shuffle(esercizi_scelti).slice(0, 15);
+
+  esercizi_finali.forEach(({comp: comp, txt: txt}, pi) => {
+    const numEs_cur = pi;
+    (() => {
+      if(true) {
 
       y=chY(y,42);
 
       // Numero e area
       doc.setFillColor(232,245,233); doc.rect(15,y-4,180,8,'F');
       doc.setTextColor(27,94,32); doc.setFontSize(9); doc.setFont('helvetica','bold');
-      doc.text(`Esercizio ${numEs+1}  ·  ${nC(comp)}`,20,y); y+=9;
+      doc.text(`Esercizio ${pi+1}  ·  ${nC(comp)}`,20,y); y+=9;
 
       // Testo esercizio
       doc.setTextColor(30,30,30); doc.setFont('helvetica','normal'); doc.setFontSize(9);
@@ -2745,7 +2763,7 @@ function scaricaEserciziPDF(){
       doc.setDrawColor(220,220,220); doc.line(15,y,195,y); y+=6;
 
       numEs++;
-    });
+    })();
   });
 
   // FOOTER su ogni pagina
