@@ -1786,7 +1786,19 @@ function besTogglePlay(){
 }
 function besSeek(val){
   const audio = document.getElementById('bes-audio');
-  if(audio) audio.currentTime = Number(val);
+  if(!audio) return;
+  const start = window._besStartSec || 0;
+  const end   = window._besEndSec   || 99999;
+  // Clamp: non può uscire dai confini del testo corrente
+  audio.currentTime = Math.max(start, Math.min(end - 1, Number(val)));
+}
+function besSkip(delta){
+  const audio = document.getElementById('bes-audio');
+  if(!audio) return;
+  const start = window._besStartSec || 0;
+  const end   = window._besEndSec   || 99999;
+  const newT  = audio.currentTime + delta;
+  audio.currentTime = Math.max(start, Math.min(end - 1, newT));
 }
 function besSaltaA(sec){
   const audio = document.getElementById('bes-audio');
@@ -1799,8 +1811,13 @@ function besAggTime(){
   const audio = document.getElementById('bes-audio');
   const el    = $('bes-time');
   if(!audio||!el) return;
-  const fmt = s=>{ const m=Math.floor(s/60); return `${m}:${String(Math.floor(s%60)).padStart(2,'0')}`; };
-  el.textContent = `${fmt(audio.currentTime)} / ${fmt(audio.duration||0)}`;
+  const fmt = s=>{ const m=Math.floor(Math.max(0,s)/60); return `${m}:${String(Math.floor(Math.max(0,s)%60)).padStart(2,'0')}`; };
+  const start = window._besStartSec || 0;
+  const end   = window._besEndSec   || audio.duration || 0;
+  // Mostra tempo relativo al testo (es. 0:32 / 2:17 invece di 34:55 / 37:12)
+  const rel  = audio.currentTime - start;
+  const tot  = end - start;
+  el.textContent = `${fmt(rel)} / ${fmt(tot)}`;
 }
 
 // PASSWORD (da localStorage o default)
@@ -1938,18 +1955,19 @@ function iniziaProva(){
   aggBarraAcc();
 
   // Player audio — solo per DSA/BES/personalizzazioni accessibilità
-  // Secondi corretti per browser (fattore 1.048 applicato ai timestamp manuali)
+  // Secondi corretti per browser (regressione lineare su 8 punti confermati, scarto max ±1s)
+  // endA = fine testo A (= inizio B), endB = fine testo B (= inizio prova successiva / fine file)
   const AUDIO_TESTI = {
-    1: {A:0,    B:221},  // 1A 0:00 / 1B 3:41
-    2: {A:366,  B:544},  // 2A 6:06 / 2B 9:04
-    3: {A:663,  B:837},  // 3A 11:03 / 3B 13:57
-    4: {A:974,  B:1118}, // 4A 16:14 / 4B 18:38
-    5: {A:1241, B:1418}, // 5A 20:41 / 5B 23:38
-    6: {A:1531, B:1671}, // 6A 25:31 / 6B 27:51
-    7: {A:1814, B:1960}, // 7A 30:14 / 7B 32:40
-    8: {A:2092, B:2228}, // 8A 34:52 / 8B 37:08
-    9: {A:2353, B:2481}, // 9A 39:13 / 9B 41:21
-    10:{A:2616, B:2743}, // 10A 43:36 / 10B 45:43
+    1: {A:0,    endA:221,  B:221,  endB:366},  // 1A 00:00→03:41 / 1B 03:41→06:06
+    2: {A:366,  endA:545,  B:545,  endB:664},  // 2A 06:06→09:05 / 2B 09:05→11:04
+    3: {A:664,  endA:839,  B:839,  endB:975},  // 3A 11:04→13:59 / 3B 13:59→16:15
+    4: {A:975,  endA:1120, B:1120, endB:1243}, // 4A 16:15→18:40 / 4B 18:40→20:43
+    5: {A:1243, endA:1420, B:1420, endB:1534}, // 5A 20:43→23:40 / 5B 23:40→25:34
+    6: {A:1534, endA:1673, B:1673, endB:1817}, // 6A 25:34→27:53 / 6B 27:53→30:17
+    7: {A:1817, endA:1963, B:1963, endB:2095}, // 7A 30:17→32:43 / 7B 32:43→34:55
+    8: {A:2095, endA:2232, B:2232, endB:2357}, // 8A 34:55→37:12 / 8B 37:12→39:17
+    9: {A:2357, endA:2485, B:2485, endB:2620}, // 9A 39:17→41:25 / 9B 41:25→43:40
+    10:{A:2620, endA:2747, B:2747, endB:99999},// 10A 43:40→45:47 / 10B 45:47→fine
   };
   const AUDIO_MASTER = 'GRADO 8.mp3';
   const _up = new URLSearchParams(window.location.search);
@@ -1961,24 +1979,26 @@ function iniziaProva(){
     pd.id='bes-player';
     pd.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:9000;background:#1a237e;color:#fff;padding:8px 14px;box-shadow:0 -4px 20px rgba(0,0,0,.3);font-family:inherit';
     pd.innerHTML=`<audio id="bes-audio" src="${AUDIO_MASTER}" preload="auto"></audio>
-      <div id="bes-full" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <div id="bes-full" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
         <span style="font-size:11px;font-weight:700;opacity:.7;white-space:nowrap">🎧 Testo audio</span>
         <button id="bes-btn-A" onclick="besCambiaAudio('A')" style="background:#fff;color:#1a237e;border:none;border-radius:5px;padding:4px 10px;font-weight:700;cursor:pointer;font-size:12px">📖 Testo A</button>
         <button id="bes-btn-B" onclick="besCambiaAudio('B')" style="background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.5);border-radius:5px;padding:4px 10px;font-weight:700;cursor:pointer;font-size:12px">📖 Testo B</button>
         <button id="bes-btn-play" onclick="besTogglePlay()" style="background:#4fc3f7;color:#0d47a1;border:none;border-radius:5px;padding:4px 12px;font-weight:700;cursor:pointer;font-size:13px">▶ Play</button>
+        <button onclick="besSkip(-10)" title="Indietro 10 secondi" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:5px;padding:4px 9px;font-weight:700;cursor:pointer;font-size:13px">« 10s</button>
+        <button onclick="besSkip(+10)" title="Avanti 10 secondi" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:5px;padding:4px 9px;font-weight:700;cursor:pointer;font-size:13px">10s »</button>
         <button id="bes-btn-stop" onclick="besStop()" title="Stop: torna all'inizio del testo" style="background:rgba(255,100,80,.8);color:#fff;border:none;border-radius:5px;padding:4px 10px;font-weight:700;cursor:pointer;font-size:13px">⏹ Stop</button>
-        <div style="flex:1;min-width:100px"><input type="range" id="bes-seekbar" value="0" min="0" step="1" style="width:100%;accent-color:#64b5f6;cursor:pointer" oninput="besSeek(this.value)"></div>
+        <div style="flex:1;min-width:100px"><input type="range" id="bes-seekbar" value="0" min="0" max="100" step="1" style="width:100%;accent-color:#64b5f6;cursor:pointer" oninput="besSeek(this.value)"></div>
         <span id="bes-time" style="font-size:11px;min-width:78px;text-align:right;white-space:nowrap">0:00 / 0:00</span>
         <button onclick="besRiduci()" title="Riduci la barra (audio continua)" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:5px;padding:4px 8px;cursor:pointer;font-size:12px">⬇ Riduci</button>
-
       </div>
-      <div id="bes-mini" style="display:none;align-items:center;gap:8px">
+      <div id="bes-mini" style="display:none;align-items:center;gap:6px">
         <span style="font-size:11px;font-weight:700;opacity:.7">🎧</span>
         <span id="bes-mini-time" style="font-size:11px;min-width:50px">0:00</span>
+        <button onclick="besSkip(-10)" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:5px;padding:3px 7px;font-weight:700;cursor:pointer;font-size:12px">«10</button>
         <button id="bes-mini-play" onclick="besTogglePlay()" style="background:#4fc3f7;color:#0d47a1;border:none;border-radius:5px;padding:4px 10px;font-weight:700;cursor:pointer;font-size:12px">▶ Play</button>
+        <button onclick="besSkip(+10)" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:5px;padding:3px 7px;font-weight:700;cursor:pointer;font-size:12px">10»</button>
         <button onclick="besStop()" style="background:rgba(255,100,80,.8);color:#fff;border:none;border-radius:5px;padding:4px 8px;font-weight:700;cursor:pointer;font-size:12px">⏹</button>
         <button onclick="besEspandi()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:5px;padding:4px 8px;cursor:pointer;font-size:12px">⬆ Espandi</button>
-
       </div>`;
     document.body.appendChild(pd);
     document.body.style.paddingBottom='56px';
@@ -2017,10 +2037,14 @@ function iniziaProva(){
     };
     window.besCambiaAudio=function(t){
       const startSec = testi[t];
+      const endSec   = testi['end'+t]; // endA o endB
       window._besStartSec = startSec;
-      window._besCurText = t;
+      window._besEndSec   = endSec;
+      window._besCurText  = t;
       audio.pause();
-      // Seek al punto esatto del testo nel file unico
+      // Aggiorna seekbar ai confini del testo
+      const sb = $('bes-seekbar');
+      if(sb){ sb.min = startSec; sb.max = endSec - 1; }
       audio.currentTime = startSec;
       $('bes-btn-play').textContent='⏸ Pausa';
       const mp=$('bes-mini-play'); if(mp) mp.textContent='⏸ Pausa';
@@ -2028,22 +2052,37 @@ function iniziaProva(){
         b.style.background=t===x?'#fff':'rgba(255,255,255,.2)';
         b.style.color=t===x?'#1a237e':'#fff';
         b.style.border=t===x?'none':'1px solid rgba(255,255,255,.5)'; });
-      // Aspetta che il seek sia pronto poi avvia
       const playOnSeek = function(){
         audio.play().catch(()=>{});
         audio.removeEventListener('seeked', playOnSeek);
       };
       audio.addEventListener('seeked', playOnSeek);
     };
-    audio.addEventListener('loadedmetadata',()=>{ $('bes-seekbar').max=Math.floor(audio.duration); besAggTime(); });
+    audio.addEventListener('loadedmetadata',()=>{ besAggTime(); });
     audio.addEventListener('timeupdate',()=>{
-      $('bes-seekbar').value=Math.floor(audio.currentTime); besAggTime();
-      const mt=$('bes-mini-time'); if(mt){ const s=Math.floor(audio.currentTime); mt.textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
+      const start = window._besStartSec || 0;
+      const end   = window._besEndSec   || 99999;
+      // Blocca automaticamente alla fine del testo: non si può sconfinare
+      if(audio.currentTime >= end){
+        audio.pause();
+        audio.currentTime = start;
+        $('bes-btn-play').textContent='▶ Play';
+        const mp=$('bes-mini-play'); if(mp) mp.textContent='▶ Play';
+      }
+      const sb=$('bes-seekbar'); if(sb) sb.value=Math.floor(audio.currentTime);
+      besAggTime();
+      const mt=$('bes-mini-time'); if(mt){
+        const rel = Math.max(0, Math.floor(audio.currentTime - start));
+        mt.textContent = Math.floor(rel/60)+':'+String(rel%60).padStart(2,'0');
+      }
     });
     audio.addEventListener('ended',()=>{ $('bes-btn-play').textContent='▶ Play'; const mp=$('bes-mini-play'); if(mp) mp.textContent='▶ Play'; });
     // Inizializzazione: posiziona sull'inizio del testo A della prova corrente
     window._besStartSec = testi.A;
-    window._besCurText = 'A';
+    window._besEndSec   = testi.endA;
+    window._besCurText  = 'A';
+    const sbInit = $('bes-seekbar');
+    if(sbInit){ sbInit.min = testi.A; sbInit.max = testi.endA - 1; }
     audio.addEventListener('canplay', function initPos(){
       audio.currentTime = testi.A;
       audio.removeEventListener('canplay', initPos);
