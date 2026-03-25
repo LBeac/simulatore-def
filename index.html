@@ -1787,18 +1787,18 @@ function besTogglePlay(){
 function besSeek(val){
   const audio = document.getElementById('bes-audio');
   if(!audio) return;
-  const start = window._besStartSec || 0;
-  const end   = window._besEndSec   || 99999;
-  // Clamp: non può uscire dai confini del testo corrente
+  const start  = window._besStartSec || 0;
+  const endRaw = window._besEndSec;
+  const end    = (!endRaw) ? (audio.duration || 999999) : endRaw;
   audio.currentTime = Math.max(start, Math.min(end - 1, Number(val)));
 }
 function besSkip(delta){
   const audio = document.getElementById('bes-audio');
   if(!audio) return;
-  const start = window._besStartSec || 0;
-  const end   = window._besEndSec   || 99999;
-  const newT  = audio.currentTime + delta;
-  audio.currentTime = Math.max(start, Math.min(end - 1, newT));
+  const start  = window._besStartSec || 0;
+  const endRaw = window._besEndSec;
+  const end    = (!endRaw) ? (audio.duration || 999999) : endRaw;
+  audio.currentTime = Math.max(start, Math.min(end - 1, audio.currentTime + delta));
 }
 function besSaltaA(sec){
   const audio = document.getElementById('bes-audio');
@@ -1813,10 +1813,11 @@ function besAggTime(){
   if(!audio||!el) return;
   const fmt = s=>{ const m=Math.floor(Math.max(0,s)/60); return `${m}:${String(Math.floor(Math.max(0,s)%60)).padStart(2,'0')}`; };
   const start = window._besStartSec || 0;
-  const end   = window._besEndSec   || audio.duration || 0;
-  // Mostra tempo relativo al testo (es. 0:32 / 2:17 invece di 34:55 / 37:12)
-  const rel  = audio.currentTime - start;
-  const tot  = end - start;
+  // endSec=0 significa "usa la durata reale del file" (solo per ultima traccia)
+  const endRaw = window._besEndSec;
+  const end   = (!endRaw) ? (audio.duration || start) : endRaw;
+  const rel   = audio.currentTime - start;
+  const tot   = end - start;
   el.textContent = `${fmt(rel)} / ${fmt(tot)}`;
 }
 
@@ -1955,19 +1956,19 @@ function iniziaProva(){
   aggBarraAcc();
 
   // Player audio — solo per DSA/BES/personalizzazioni accessibilità
-  // Secondi corretti per browser (regressione lineare su 8 punti confermati, scarto max ±1s)
-  // endA = fine testo A (= inizio B), endB = fine testo B (= inizio prova successiva / fine file)
+  // Secondi corretti per browser (regressione lineare su 8 punti, scarto max ±1s)
+  // endA/endB = inizio testo successivo +10s di buffer per non troncare la lettura
   const AUDIO_TESTI = {
-    1: {A:0,    endA:221,  B:221,  endB:366},  // 1A 00:00→03:41 / 1B 03:41→06:06
-    2: {A:366,  endA:545,  B:545,  endB:664},  // 2A 06:06→09:05 / 2B 09:05→11:04
-    3: {A:664,  endA:839,  B:839,  endB:975},  // 3A 11:04→13:59 / 3B 13:59→16:15
-    4: {A:975,  endA:1120, B:1120, endB:1243}, // 4A 16:15→18:40 / 4B 18:40→20:43
-    5: {A:1243, endA:1420, B:1420, endB:1534}, // 5A 20:43→23:40 / 5B 23:40→25:34
-    6: {A:1534, endA:1673, B:1673, endB:1817}, // 6A 25:34→27:53 / 6B 27:53→30:17
-    7: {A:1817, endA:1963, B:1963, endB:2095}, // 7A 30:17→32:43 / 7B 32:43→34:55
-    8: {A:2095, endA:2232, B:2232, endB:2357}, // 8A 34:55→37:12 / 8B 37:12→39:17
-    9: {A:2357, endA:2485, B:2485, endB:2620}, // 9A 39:17→41:25 / 9B 41:25→43:40
-    10:{A:2620, endA:2747, B:2747, endB:99999},// 10A 43:40→45:47 / 10B 45:47→fine
+    1: {A:0,    endA:231,  B:221,  endB:376},  // 1A 00:00 / 1B 03:41
+    2: {A:366,  endA:555,  B:545,  endB:674},  // 2A 06:06 / 2B 09:05
+    3: {A:664,  endA:849,  B:839,  endB:985},  // 3A 11:04 / 3B 13:59
+    4: {A:975,  endA:1130, B:1120, endB:1253}, // 4A 16:15 / 4B 18:40
+    5: {A:1243, endA:1430, B:1420, endB:1544}, // 5A 20:43 / 5B 23:40
+    6: {A:1534, endA:1683, B:1673, endB:1827}, // 6A 25:34 / 6B 27:53
+    7: {A:1817, endA:1973, B:1963, endB:2105}, // 7A 30:17 / 7B 32:43
+    8: {A:2095, endA:2242, B:2232, endB:2367}, // 8A 34:55 / 8B 37:12
+    9: {A:2357, endA:2495, B:2485, endB:2630}, // 9A 39:17 / 9B 41:25
+    10:{A:2620, endA:2757, B:2747, endB:0},    // 10A 43:40 / 10B 45:47→fine file (0=usa duration)
   };
   const AUDIO_MASTER = 'GRADO 8.mp3';
   const _up = new URLSearchParams(window.location.search);
@@ -2037,14 +2038,15 @@ function iniziaProva(){
     };
     window.besCambiaAudio=function(t){
       const startSec = testi[t];
-      const endSec   = testi['end'+t]; // endA o endB
+      const endSec   = testi['end'+t]; // endA o endB (0 = usa audio.duration)
       window._besStartSec = startSec;
       window._besEndSec   = endSec;
       window._besCurText  = t;
       audio.pause();
       // Aggiorna seekbar ai confini del testo
       const sb = $('bes-seekbar');
-      if(sb){ sb.min = startSec; sb.max = endSec - 1; }
+      const realEnd = (!endSec) ? (audio.duration || 999999) : endSec;
+      if(sb){ sb.min = startSec; sb.max = realEnd - 1; }
       audio.currentTime = startSec;
       $('bes-btn-play').textContent='⏸ Pausa';
       const mp=$('bes-mini-play'); if(mp) mp.textContent='⏸ Pausa';
@@ -2060,9 +2062,10 @@ function iniziaProva(){
     };
     audio.addEventListener('loadedmetadata',()=>{ besAggTime(); });
     audio.addEventListener('timeupdate',()=>{
-      const start = window._besStartSec || 0;
-      const end   = window._besEndSec   || 99999;
-      // Blocca automaticamente alla fine del testo: non si può sconfinare
+      const start  = window._besStartSec || 0;
+      const endRaw = window._besEndSec;
+      const end    = (!endRaw) ? (audio.duration || 999999) : endRaw;
+      // Blocca automaticamente alla fine del testo
       if(audio.currentTime >= end){
         audio.pause();
         audio.currentTime = start;
@@ -2082,7 +2085,11 @@ function iniziaProva(){
     window._besEndSec   = testi.endA;
     window._besCurText  = 'A';
     const sbInit = $('bes-seekbar');
-    if(sbInit){ sbInit.min = testi.A; sbInit.max = testi.endA - 1; }
+    if(sbInit){
+      sbInit.min = testi.A;
+      const realEndInit = (!testi.endA) ? (audio.duration || 999999) : testi.endA;
+      sbInit.max = realEndInit - 1;
+    }
     audio.addEventListener('canplay', function initPos(){
       audio.currentTime = testi.A;
       audio.removeEventListener('canplay', initPos);
