@@ -1938,18 +1938,18 @@ function iniziaProva(){
   aggBarraAcc();
 
   // Player audio — solo per DSA/BES/personalizzazioni accessibilità
-  // ⚠️ I valori sono SECONDI di inizio nel file unico audio_letture.mp3
+  // Secondi corretti per browser (fattore 1.048 applicato ai timestamp manuali)
   const AUDIO_TESTI = {
-    1:{A:0,    B:211},   // 1A 0:00 / 1B 3:31
-    2:{A:349,  B:519},   // 2A 5:49 / 2B 8:39
-    3:{A:633,  B:799},   // 3A 10:33 / 3B 13:19
-    4:{A:929,  B:1067},  // 4A 15:29 / 4B 17:47
-    5:{A:1184, B:1353},  // 5A 19:44 / 5B 22:33
-    6:{A:1461, B:1594},  // 6A 24:21 / 6B 26:34
-    7:{A:1731, B:1870},  // 7A 28:51 / 7B 31:10
-    8:{A:1996, B:2126},  // 8A 33:16 / 8B 35:26
-    9:{A:2245, B:2367},  // 9A 37:25 / 9B 39:27
-    10:{A:2496,B:2617},  // 10A 41:36 / 10B 43:37
+    1: {A:0,    B:221},  // 1A 0:00 / 1B 3:41
+    2: {A:366,  B:544},  // 2A 6:06 / 2B 9:04
+    3: {A:663,  B:837},  // 3A 11:03 / 3B 13:57
+    4: {A:974,  B:1118}, // 4A 16:14 / 4B 18:38
+    5: {A:1241, B:1418}, // 5A 20:41 / 5B 23:38
+    6: {A:1531, B:1671}, // 6A 25:31 / 6B 27:51
+    7: {A:1814, B:1960}, // 7A 30:14 / 7B 32:40
+    8: {A:2092, B:2228}, // 8A 34:52 / 8B 37:08
+    9: {A:2353, B:2481}, // 9A 39:13 / 9B 41:21
+    10:{A:2616, B:2743}, // 10A 43:36 / 10B 45:43
   };
   const AUDIO_MASTER = 'GRADO 8.mp3';
   const _up = new URLSearchParams(window.location.search);
