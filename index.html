@@ -1939,11 +1939,11 @@ function iniziaProva(){
 
   // Player audio — solo per DSA/BES/personalizzazioni accessibilità
   const AUDIO_TESTI = {
-    1:{A:'audio_1A.mp3',B:'audio_1B.mp3'}, 2:{A:'audio_2A.mp3',B:'audio_2B.mp3'},
-    3:{A:'audio_3A.mp3',B:'audio_3B.mp3'}, 4:{A:'audio_4A.mp3',B:'audio_4B.mp3'},
-    5:{A:'audio_5A.mp3',B:'audio_5B.mp3'}, 6:{A:'audio_6A.mp3',B:'audio_6B.mp3'},
-    7:{A:'audio_7A.mp3',B:'audio_7B.mp3'}, 8:{A:'audio_8A.mp3',B:'audio_8B.mp3'},
-    9:{A:'audio_9A.mp3',B:'audio_9B.mp3'}, 10:{A:'audio_10A.mp3',B:'audio_10B.mp3'},
+    1:{A:'audio_1A.mp3?v=3',B:'audio_1B.mp3?v=3'}, 2:{A:'audio_2A.mp3?v=3',B:'audio_2B.mp3?v=3'},
+    3:{A:'audio_3A.mp3?v=3',B:'audio_3B.mp3?v=3'}, 4:{A:'audio_4A.mp3?v=3',B:'audio_4B.mp3?v=3'},
+    5:{A:'audio_5A.mp3?v=3',B:'audio_5B.mp3?v=3'}, 6:{A:'audio_6A.mp3?v=3',B:'audio_6B.mp3?v=3'},
+    7:{A:'audio_7A.mp3?v=3',B:'audio_7B.mp3?v=3'}, 8:{A:'audio_8A.mp3?v=3',B:'audio_8B.mp3?v=3'},
+    9:{A:'audio_9A.mp3?v=3',B:'audio_9B.mp3?v=3'}, 10:{A:'audio_10A.mp3?v=3',B:'audio_10B.mp3?v=3'},
   };
   const _up = new URLSearchParams(window.location.search);
   const needsAudio = S.isBES || _up.get('font')==='1' || _up.get('large')==='1'
@@ -1961,24 +1961,38 @@ function iniziaProva(){
         <button id="bes-btn-play" onclick="besTogglePlay()" style="background:#4fc3f7;color:#0d47a1;border:none;border-radius:5px;padding:4px 12px;font-weight:700;cursor:pointer;font-size:13px">▶ Play</button>
         <div style="flex:1;min-width:100px"><input type="range" id="bes-seekbar" value="0" min="0" step="1" style="width:100%;accent-color:#64b5f6;cursor:pointer" oninput="besSeek(this.value)"></div>
         <span id="bes-time" style="font-size:11px;min-width:78px;text-align:right;white-space:nowrap">0:00 / 0:00</span>
-        <button onclick="besRiduci()" title="Riduci" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:5px;padding:4px 8px;cursor:pointer;font-size:12px">⬇ Riduci</button>
-        <button onclick="besStop()" title="Ferma e chiudi" style="background:transparent;color:rgba(255,255,255,.6);border:none;cursor:pointer;font-size:18px;line-height:1;padding:0 4px">✕</button>
+        <button onclick="besRiduci()" title="Riduci la barra (audio continua)" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:5px;padding:4px 8px;cursor:pointer;font-size:12px">⬇ Riduci</button>
+
       </div>
       <div id="bes-mini" style="display:none;align-items:center;gap:8px">
         <span style="font-size:11px;font-weight:700;opacity:.7">🎧</span>
         <span id="bes-mini-time" style="font-size:11px;min-width:50px">0:00</span>
         <button id="bes-mini-play" onclick="besTogglePlay()" style="background:#4fc3f7;color:#0d47a1;border:none;border-radius:5px;padding:4px 10px;font-weight:700;cursor:pointer;font-size:12px">▶ Play</button>
         <button onclick="besEspandi()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:5px;padding:4px 8px;cursor:pointer;font-size:12px">⬆ Espandi</button>
-        <button onclick="besStop()" style="background:transparent;color:rgba(255,255,255,.6);border:none;cursor:pointer;font-size:16px;line-height:1;padding:0 4px">⏹</button>
+
       </div>`;
     document.body.appendChild(pd);
     document.body.style.paddingBottom='56px';
+    // Pulsante fisso per riaprire il player se minimizzato
+    const reopenBtn = document.createElement('button');
+    reopenBtn.id = 'bes-reopen';
+    reopenBtn.textContent = '🎧';
+    reopenBtn.title = 'Riapri player audio';
+    reopenBtn.style.cssText = 'display:none;position:fixed;bottom:8px;right:8px;z-index:9001;background:#1a237e;color:#fff;border:none;border-radius:50%;width:40px;height:40px;font-size:18px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3)';
+    reopenBtn.onclick = function(){ pd.style.display='block'; document.body.style.paddingBottom='56px'; reopenBtn.style.display='none'; besEspandi(); };
+    document.body.appendChild(reopenBtn);
     const audio=document.getElementById('bes-audio');
     window.besRiduci=function(){
       document.getElementById('bes-full').style.display='none';
       document.getElementById('bes-mini').style.display='flex';
       document.getElementById('bes-player').style.padding='6px 14px';
       document.body.style.paddingBottom='40px';
+    };
+    window.besMinimizza=function(){
+      document.getElementById('bes-player').style.display='none';
+      document.body.style.paddingBottom='0';
+      const rb=document.getElementById('bes-reopen'); if(rb) rb.style.display='flex';
+      rb.style.cssText=rb.style.cssText.replace('display:none','display:flex');
     };
     window.besEspandi=function(){
       document.getElementById('bes-mini').style.display='none';
