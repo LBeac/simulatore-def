@@ -3064,8 +3064,7 @@ function studenteCard(r, rank, tipo){
 // ── CREA SESSIONE (salva locale + Sheet) ─────────────────────
 function creaSessione(){
   const valSel  = $('sel-prova-new').value;
-  const isBES   = valSel === '3b';
-  const provaId = isBES ? 3 : Number(valSel);
+  const provaId = Number(valSel);
   const classe  = S.classe === 'ALL' ? '' : S.classe;
   hideErr('err-new'); $('succ-new').style.display='none';
 
@@ -3081,11 +3080,13 @@ function creaSessione(){
     font:      $('tic-font')      ? $('tic-font').checked      : false,
     spaziatura:$('tic-spaziatura')? $('tic-spaziatura').checked: false,
     tempo:     $('tic-tempo')     ? $('tic-tempo').checked     : false,
-    bes:       isBES || ($('tic-bes') ? $('tic-bes').checked : false),
+    bes:       $('tic-bes')       ? $('tic-bes').checked       : false,
     maiuscolo: $('tic-maiuscolo') ? $('tic-maiuscolo').checked : false,
   };
 
-  const sessKey  = isBES ? `prova-3-${classe}-bes` : `prova-${provaId}-${classe}`;
+  // sessKey: aggiunge suffisso -bes solo se la modalità BES è attiva
+  const besSuffix = TIC.bes ? '-bes' : '';
+  const sessKey  = `prova-${provaId}-${classe}${besSuffix}`;
   const sessData = {
     provaId, classe, bes: TIC.bes, tic: TIC,
     data: new Date().toISOString(),
@@ -3107,7 +3108,7 @@ function creaSessione(){
   if(TIC.contrasto)  params.set('contrasto','1');
   if(TIC.font)       params.set('font','1');
   if(TIC.spaziatura) params.set('spaziatura','1');
-  if(TIC.tempo)      params.set('tempo','dsa');
+  if(TIC.tempo)      params.set('tempo','1');
   if(TIC.maiuscolo)  params.set('maiuscolo','1');
 
   const link = `${base}?${params.toString()}`;
@@ -3194,12 +3195,24 @@ async function caricaSessioniDaSheet(){
 function copiaLink(codice){
   const sess = DB.sessioni[codice];
   const base  = window.location.href.split('?')[0];
-  const link  = sess
-    ? `${base}?prova=${sess.provaId}&classe=${sess.classe}`
-    : `${base}?prova=1`;
-  navigator.clipboard.writeText(link).then(()=>alert('✅ Link copiato:\n\n'+link));
+  if(!sess){
+    navigator.clipboard.writeText(base+'?prova=1').then(()=>alert('\u2705 Link copiato:\n\n'+base+'?prova=1'));
+    return;
+  }
+  const p = new URLSearchParams();
+  p.set('prova', sess.provaId);
+  p.set('classe', sess.classe);
+  const t = sess.tic || {};
+  if(t.bes  || sess.bes)  p.set('bes','1');
+  if(t.large)             p.set('large','1');
+  if(t.contrasto)         p.set('contrasto','1');
+  if(t.font)              p.set('font','1');
+  if(t.spaziatura)        p.set('spaziatura','1');
+  if(t.tempo)             p.set('tempo','1');
+  if(t.maiuscolo)         p.set('maiuscolo','1');
+  const link = base+'?'+p.toString();
+  navigator.clipboard.writeText(link).then(()=>alert('\u2705 Link copiato:\n\n'+link));
 }
-
 function chiudiSessione(codice){
   if(!DB.sessioni[codice]) return;
   DB.sessioni[codice].chiusa = true;
@@ -3670,8 +3683,7 @@ function popolaDocente(){
   const selNew = $('sel-prova-new');
   if(selNew && typeof PROVE !== 'undefined'){
     selNew.innerHTML = PROVE.map(p=>`<option value="${p.id}">${p.id}. ${p.titolo}</option>`).join('');
-    // Aggiungi opzione BES per prova 3
-    selNew.innerHTML += `<option value="3b">3b. Il tamburino sardo (BES)</option>`;
+    // opzione BES rimossa: la personalizzazione si applica a qualsiasi prova via checkbox TIC
   }
   try{ aggiornaTabellaSessioni(); }catch(e){}
   try{ aggSelSessioni(); }catch(e){}
@@ -4599,6 +4611,7 @@ window.addEventListener('load', () => {
   if(isBES) CFG.durata = 117;
   // Timer DSA +30%
   if(params.get('tempo')==='dsa' && !isBES) CFG.durata = Math.round(90 * 1.3);
+  if(params.get('tempo')==='1'   && !isBES) CFG.durata = Math.round(90 * 1.3);
   // Classi CSS accessibilità da URL (applicate subito per il login screen)
   if(params.get('large')==='1')      document.body.classList.add('acc-large');
   if(params.get('contrasto')==='1')  document.body.classList.add('acc-contrasto');
