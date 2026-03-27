@@ -874,6 +874,7 @@ tr:hover td{background:var(--grigio-ch)}
     <button class="tab-btn" onclick="mostraTab('tab-new',this)">➕ Nuova sessione</button>
     <button class="tab-btn" onclick="mostraTab('tab-pw',this)">🔑 Password</button>
     <button class="tab-btn" onclick="mostraTab('tab-import',this)">☁️ Importa da Sheet</button>
+    <button class="tab-btn" onclick="mostraTab('tab-dis',this)">🎯 Sessione personalizzata</button>
   </div>
 
   <!-- TAB: SESSIONI -->
@@ -1064,6 +1065,100 @@ tr:hover td{background:var(--grigio-ch)}
       </div>
     </div>
   </div>
+
+  <!-- TAB: SESSIONE PERSONALIZZATA DISABILITÀ ─────────────────── -->
+  <div class="panel" id="tab-dis">
+
+    <div class="info-panel">
+      ✏️ <strong>Sessioni personalizzate per alunni con disabilità</strong><br>
+      Crea un link a <strong>grado8_dis.html</strong> — 10 testi narrativi originali,
+      15 domande per prova, struttura a paragrafi con illuminazione automatica,
+      glossario integrato e tutti i TIC selezionabili.
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start">
+
+      <div class="panel-card" style="max-width:none">
+        <h3>📋 Dati sessione</h3>
+
+        <div class="fg" style="margin-bottom:14px">
+          <label class="flbl">Prova</label>
+          <select id="dis-sel-prova" class="finp" style="padding:9px 12px">
+            <option value="1">1 — Il cane di Lorenzo</option>
+            <option value="2">2 — La torta di Giulia</option>
+            <option value="3">3 — La gita al lago</option>
+            <option value="4">4 — Il nuovo compagno</option>
+            <option value="5">5 — La casa sull'albero</option>
+            <option value="6">6 — Il gatto di Miriam</option>
+            <option value="7">7 — Il quaderno di Ahmed</option>
+            <option value="8">8 — La bicicletta rossa</option>
+            <option value="9">9 — La nonna di Chiara</option>
+            <option value="10">10 — L'aquilone di Tommaso</option>
+          </select>
+        </div>
+
+        <div class="fg" style="margin-bottom:14px">
+          <label class="flbl">Classe</label>
+          <select id="dis-classe" class="finp" style="padding:9px 12px">
+            <option value="">— Nessuna (link generico) —</option>
+            <option value="3A">3A</option>
+            <option value="3B">3B</option>
+            <option value="3C">3C</option>
+            <option value="3D">3D</option>
+            <option value="3E">3E</option>
+          </select>
+        </div>
+
+        <div class="fg" style="margin-bottom:14px">
+          <label class="flbl">Nome alunno (opzionale)</label>
+          <input type="text" id="dis-nome" placeholder="es. Mario R." maxlength="40"
+            class="finp" style="padding:9px 12px">
+        </div>
+      </div>
+
+      <div class="panel-card" style="max-width:none">
+        <h3>⚙️ Personalizzazioni TIC</h3>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+            <input type="checkbox" id="dis-tic-grande" style="width:16px;height:16px;accent-color:var(--verde)">
+            🔍 <strong>Testo grande</strong> — corpo aumentato, interlinea 2.2
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+            <input type="checkbox" id="dis-tic-maiuscolo" style="width:16px;height:16px;accent-color:var(--verde)">
+            🔠 <strong>Stampato maiuscolo</strong> — tutto in MAIUSCOLO
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+            <input type="checkbox" id="dis-tic-contrasto" style="width:16px;height:16px;accent-color:var(--verde)">
+            🌗 <strong>Alto contrasto</strong> — sfondo scuro, testo chiaro
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+            <input type="checkbox" id="dis-tic-spaziatura" style="width:16px;height:16px;accent-color:var(--verde)">
+            ↔️ <strong>Spaziatura aumentata</strong> — tra lettere e parole
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+            <input type="checkbox" id="dis-tic-font" style="width:16px;height:16px;accent-color:var(--verde)">
+            ✒️ <strong>Font dislessia</strong> — Lexend
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+            <input type="checkbox" id="dis-tic-bes" style="width:16px;height:16px;accent-color:var(--verde)">
+            📘 <strong>Modalità BES</strong> — interlinea massima + corpo ++
+          </label>
+        </div>
+        <div style="margin-top:12px;padding:10px 12px;background:#e8f5e9;border-radius:6px;font-size:11px;color:var(--verde)">
+          ✓ <strong>Sempre attivi</strong> in grado8_dis.html: illuminazione paragrafi, glossario, audio TTS, ingrandimento manuale ⚙️.
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:18px">
+      <button onclick="creaSessDisabilita()"
+        style="width:100%;padding:13px;background:var(--verde);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:800;cursor:pointer;font-family:var(--font)">
+        🔗 Genera link prova personalizzata
+      </button>
+      <div id="dis-succ" class="succ-msg" style="display:none;margin-top:12px"></div>
+    </div>
+
+  </div><!-- fine #tab-dis -->
 
 </div>
 </div>
@@ -4664,6 +4759,67 @@ window.addEventListener('load', () => {
 
   // Player audio BES — creato in iniziaProva() quando la prova inizia
 });
+
+// ══════════════════════════════════════════════════════════════
+//  SESSIONE PERSONALIZZATA DISABILITÀ → grado8_dis.html
+// ══════════════════════════════════════════════════════════════
+function creaSessDisabilita(){
+  const provaId = document.getElementById('dis-sel-prova').value;
+  const classe  = document.getElementById('dis-classe').value;
+  const nome    = document.getElementById('dis-nome').value.trim();
+
+  const ticMap = {
+    grande:    document.getElementById('dis-tic-grande').checked,
+    maiuscolo: document.getElementById('dis-tic-maiuscolo').checked,
+    contrasto: document.getElementById('dis-tic-contrasto').checked,
+    spaziatura:document.getElementById('dis-tic-spaziatura').checked,
+    font:      document.getElementById('dis-tic-font').checked,
+    bes:       document.getElementById('dis-tic-bes').checked,
+  };
+  const ticAttivi = Object.keys(ticMap).filter(k => ticMap[k]);
+
+  const base = window.location.href.replace(/[^/]*$/, '') + 'grado8_dis.html';
+  const params = new URLSearchParams();
+  params.set('prova', provaId);
+  if(classe) params.set('classe', classe);
+  if(nome)   params.set('nome', nome);
+  if(ticAttivi.length) params.set('tic', ticAttivi.join(','));
+
+  const link = base + '?' + params.toString();
+
+  const ticLabels = {
+    grande:'Testo grande', maiuscolo:'Maiuscolo', contrasto:'Alto contrasto',
+    spaziatura:'Spaziatura+', font:'Font dislessia', bes:'BES'
+  };
+  const ticLabel = ticAttivi.length
+    ? ticAttivi.map(t => ticLabels[t]).join(' · ')
+    : 'Nessuna personalizzazione TIC aggiuntiva';
+
+  const nomiProve = {
+    '1':'Il cane di Lorenzo','2':'La torta di Giulia','3':'La gita al lago',
+    '4':'Il nuovo compagno','5':'La casa sull\'albero','6':'Il gatto di Miriam',
+    '7':'Il quaderno di Ahmed','8':'La bicicletta rossa','9':'La nonna di Chiara',
+    '10':'L\'aquilone di Tommaso'
+  };
+
+  const el = document.getElementById('dis-succ');
+  el.innerHTML = `✅ Link prova personalizzata generato:<br>
+    <div style="margin-top:8px;padding:8px 12px;background:#fff;border:1px solid var(--verde);
+      border-radius:6px;word-break:break-all;font-size:12px;font-family:monospace">${link}</div>
+    <button onclick="navigator.clipboard.writeText('${link.replace(/'/g,"\\'")}').then(()=>alert('✅ Link copiato!'))"
+      class="btn btn-g" style="margin-top:10px;width:100%;padding:9px;font-family:var(--font);
+      font-weight:700;font-size:13px;border:none;border-radius:6px;cursor:pointer;
+      background:var(--verde);color:#fff">
+      📋 Copia link
+    </button>
+    <div style="margin-top:8px;font-size:11px;color:#555">
+      Prova: <strong>${nomiProve[provaId]||provaId}</strong><br>
+      ${classe ? 'Classe: <strong>'+classe+'</strong><br>' : ''}
+      ${nome   ? 'Alunno: <strong>'+nome+'</strong><br>' : ''}
+      TIC attivi: <strong>${ticLabel}</strong>
+    </div>`;
+  el.style.display='block';
+}
 </script>
 <!-- ═══ PROVE 1-5 COMPLETE (carica dopo il motore principale) ═══ -->
 <script src="prove_1_5.js"></script>
