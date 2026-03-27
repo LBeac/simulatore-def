@@ -872,9 +872,9 @@ tr:hover td{background:var(--grigio-ch)}
     <button class="tab-btn" onclick="mostraTab('tab-analisi',this)">📊 Analisi sessione</button>
     <button class="tab-btn" onclick="mostraTab('tab-generale',this)">📈 Analisi generale</button>
     <button class="tab-btn" onclick="mostraTab('tab-new',this)">➕ Nuova sessione</button>
+    <button class="tab-btn" onclick="mostraTab('tab-dis',this)">🎯 Sessione personalizzata</button>
     <button class="tab-btn" onclick="mostraTab('tab-pw',this)">🔑 Password</button>
     <button class="tab-btn" onclick="mostraTab('tab-import',this)">☁️ Importa da Sheet</button>
-    <button class="tab-btn" onclick="mostraTab('tab-dis',this)">🎯 Sessione personalizzata</button>
   </div>
 
   <!-- TAB: SESSIONI -->
@@ -1009,63 +1009,6 @@ tr:hover td{background:var(--grigio-ch)}
     </div>
   </div>
 
-  <!-- TAB: PASSWORD -->
-  <div class="panel" id="tab-pw">
-    <div class="panel-card">
-      <h3>🔑 Cambia password docente</h3>
-      <div class="info-panel">
-        Password unica per accedere al pannello. Dopo il login scegli quale classe visualizzare.
-      </div>
-      <div class="fg">
-        <label class="flbl">Nuova password</label>
-        <div style="display:flex;gap:8px">
-          <input class="pw-input finp" type="password" id="pw-nuova" placeholder="Nuova password" style="flex:1">
-          <button class="pw-toggle btn btn-s" onclick="togglePwVis('nuova')" style="padding:8px 12px">👁️</button>
-        </div>
-      </div>
-      <div class="fg">
-        <label class="flbl">Conferma password</label>
-        <input class="pw-input finp" type="password" id="pw-conferma" placeholder="Ripeti la password">
-      </div>
-      <button class="btn btn-g" onclick="salvaPW()" style="width:100%;padding:11px">💾 Salva nuova password</button>
-      <div class="succ-msg" id="succ-pw"></div>
-      <div class="err-msg" id="err-pw" style="margin-top:10px"></div>
-    </div>
-  </div>
-
-  <!-- TAB: IMPORTA DA SHEET -->
-  <div class="panel" id="tab-import">
-    <div class="panel-card" style="max-width:640px">
-      <h3>☁️ Importa risultati dal Google Sheet</h3>
-      <div class="info-panel" style="margin-bottom:16px">
-        I risultati degli studenti vengono salvati automaticamente sul Google Sheet quando consegnano la prova,
-        anche da browser o dispositivi diversi dal tuo. Usa questa funzione per importarli nel pannello docente
-        sul tuo computer.
-      </div>
-
-      <div class="fg">
-        <label class="flbl">Sessione da importare</label>
-        <select class="finp" id="sel-import-sess" style="padding:9px 12px">
-          <option value="">-- Seleziona sessione --</option>
-        </select>
-      </div>
-
-      <button class="btn btn-p" onclick="importaDaSheet()" style="width:100%;padding:11px;font-size:14px;margin-bottom:12px">
-        ☁️ Leggi risultati dal Google Sheet
-      </button>
-
-      <div id="import-status" style="font-size:13px;color:#555;line-height:1.6;display:none"></div>
-      <div id="import-preview" style="margin-top:14px"></div>
-
-      <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--grigio)">
-        <div style="font-size:11px;color:#aaa;line-height:1.6">
-          💡 Suggerimento: puoi anche aprire direttamente il Google Sheet dal tuo Drive per vedere tutti i risultati in tempo reale,
-          anche senza importarli qui.
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- TAB: SESSIONE PERSONALIZZATA DISABILITÀ ─────────────────── -->
   <div class="panel" id="tab-dis">
 
@@ -1143,8 +1086,15 @@ tr:hover td{background:var(--grigio-ch)}
             <input type="checkbox" id="dis-tic-bes" style="width:16px;height:16px;accent-color:var(--verde)">
             📘 <strong>Modalità BES</strong> — interlinea massima + corpo ++
           </label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+            <input type="checkbox" id="dis-tic-caa" style="width:16px;height:16px;accent-color:#9c27b0">
+            🖼️ <strong>CAA — Pittogrammi ARASAAC</strong> — immagini accanto alle risposte
+          </label>
         </div>
-        <div style="margin-top:12px;padding:10px 12px;background:#e8f5e9;border-radius:6px;font-size:11px;color:var(--verde)">
+        <div style="margin-top:12px;padding:10px 12px;background:#f3e5f5;border-radius:6px;font-size:11px;color:#6a1b9a">
+          🖼️ <strong>CAA attiva</strong>: ogni risposta mostra il pittogramma ARASAAC della parola chiave. Richiede connessione internet.
+        </div>
+        <div style="margin-top:8px;padding:10px 12px;background:#e8f5e9;border-radius:6px;font-size:11px;color:var(--verde)">
           ✓ <strong>Sempre attivi</strong> in grado8_dis.html: illuminazione paragrafi, glossario, audio TTS, ingrandimento manuale ⚙️.
         </div>
       </div>
@@ -1160,6 +1110,65 @@ tr:hover td{background:var(--grigio-ch)}
 
   </div><!-- fine #tab-dis -->
 
+  <!-- TAB: PASSWORD -->
+  <div class="panel" id="tab-pw">
+    <div class="panel-card">
+      <h3>🔑 Cambia password docente</h3>
+      <div class="info-panel">
+        Password unica per accedere al pannello. Dopo il login scegli quale classe visualizzare.
+      </div>
+      <div class="fg">
+        <label class="flbl">Nuova password</label>
+        <div style="display:flex;gap:8px">
+          <input class="pw-input finp" type="password" id="pw-nuova" placeholder="Nuova password" style="flex:1">
+          <button class="pw-toggle btn btn-s" onclick="togglePwVis('nuova')" style="padding:8px 12px">👁️</button>
+        </div>
+      </div>
+      <div class="fg">
+        <label class="flbl">Conferma password</label>
+        <input class="pw-input finp" type="password" id="pw-conferma" placeholder="Ripeti la password">
+      </div>
+      <button class="btn btn-g" onclick="salvaPW()" style="width:100%;padding:11px">💾 Salva nuova password</button>
+      <div class="succ-msg" id="succ-pw"></div>
+      <div class="err-msg" id="err-pw" style="margin-top:10px"></div>
+    </div>
+  </div>
+
+  <!-- TAB: IMPORTA DA SHEET -->
+  <div class="panel" id="tab-import">
+    <div class="panel-card" style="max-width:640px">
+      <h3>☁️ Importa risultati dal Google Sheet</h3>
+      <div class="info-panel" style="margin-bottom:16px">
+        I risultati degli studenti vengono salvati automaticamente sul Google Sheet quando consegnano la prova,
+        anche da browser o dispositivi diversi dal tuo. Usa questa funzione per importarli nel pannello docente
+        sul tuo computer.
+      </div>
+
+      <div class="fg">
+        <label class="flbl">Sessione da importare</label>
+        <select class="finp" id="sel-import-sess" style="padding:9px 12px">
+          <option value="">-- Seleziona sessione --</option>
+        </select>
+      </div>
+
+      <button class="btn btn-p" onclick="importaDaSheet()" style="width:100%;padding:11px;font-size:14px;margin-bottom:12px">
+        ☁️ Leggi risultati dal Google Sheet
+      </button>
+
+      <div id="import-status" style="font-size:13px;color:#555;line-height:1.6;display:none"></div>
+      <div id="import-preview" style="margin-top:14px"></div>
+
+      <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--grigio)">
+        <div style="font-size:11px;color:#aaa;line-height:1.6">
+          💡 Suggerimento: puoi anche aprire direttamente il Google Sheet dal tuo Drive per vedere tutti i risultati in tempo reale,
+          anche senza importarli qui.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
 </div>
 </div>
 
@@ -4775,6 +4784,7 @@ function creaSessDisabilita(){
     spaziatura:document.getElementById('dis-tic-spaziatura').checked,
     font:      document.getElementById('dis-tic-font').checked,
     bes:       document.getElementById('dis-tic-bes').checked,
+    caa:       document.getElementById('dis-tic-caa').checked,
   };
   const ticAttivi = Object.keys(ticMap).filter(k => ticMap[k]);
 
@@ -4789,7 +4799,7 @@ function creaSessDisabilita(){
 
   const ticLabels = {
     grande:'Testo grande', maiuscolo:'Maiuscolo', contrasto:'Alto contrasto',
-    spaziatura:'Spaziatura+', font:'Font dislessia', bes:'BES'
+    spaziatura:'Spaziatura+', font:'Font dislessia', bes:'BES', caa:'CAA pittogrammi'
   };
   const ticLabel = ticAttivi.length
     ? ticAttivi.map(t => ticLabels[t]).join(' · ')
