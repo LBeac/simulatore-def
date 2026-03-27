@@ -873,6 +873,7 @@ tr:hover td{background:var(--grigio-ch)}
     <button class="tab-btn" onclick="mostraTab('tab-generale',this)">📈 Analisi generale</button>
     <button class="tab-btn" onclick="mostraTab('tab-new',this)">➕ Nuova sessione</button>
     <button class="tab-btn" onclick="mostraTab('tab-dis',this)">🎯 Sessione personalizzata</button>
+    <button class="tab-btn" onclick="mostraTab('tab-carica',this)">📎 Carica prova</button>
     <button class="tab-btn" onclick="mostraTab('tab-pw',this)">🔑 Password</button>
     <button class="tab-btn" onclick="mostraTab('tab-import',this)">☁️ Importa da Sheet</button>
   </div>
@@ -1108,7 +1109,138 @@ tr:hover td{background:var(--grigio-ch)}
       <div id="dis-succ" class="succ-msg" style="display:none;margin-top:12px"></div>
     </div>
 
+    <!-- ALLEGA PROVA PERSONALIZZATA ─────────────────────────── -->
+    <div style="margin-top:24px;border-top:2px dashed #b0c4de;padding-top:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none"
+           onclick="toggleAllegaProva(this)">
+        <div>
+          <div style="font-size:13px;font-weight:800;color:var(--blu)">📎 Crea prova personalizzata</div>
+          <div style="font-size:11px;color:#888;margin-top:2px">Scrivi un testo e domande su misura → genera il link</div>
+        </div>
+        <span id="allega-arrow" style="font-size:18px;color:var(--blu);transition:transform .2s">▸</span>
+      </div>
+
+      <div id="allega-form" style="display:none;margin-top:16px">
+
+        <div class="info-panel" style="margin-bottom:14px;background:#f0f4ff;border-color:#b3c6f7">
+          📌 Calibra la prova sugli <strong>Obiettivi Minimi</strong>: comprensione del testo, lessico, soggetto/predicato/complemento oggetto.
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div>
+            <div class="fg" style="margin-bottom:10px">
+              <label class="flbl">Titolo del testo</label>
+              <input type="text" id="ap-titolo" class="finp" placeholder="es. La passeggiata di Luca" style="padding:9px 12px">
+            </div>
+
+            <div class="fg" style="margin-bottom:10px">
+              <label class="flbl">Paragrafo 1 <span style="color:#888;font-weight:400">(obbligatorio)</span></label>
+              <textarea id="ap-par1" class="finp" rows="4" placeholder="Scrivi il primo paragrafo del testo..." style="padding:9px 12px;resize:vertical;font-family:inherit;font-size:13px"></textarea>
+            </div>
+            <div class="fg" style="margin-bottom:10px">
+              <label class="flbl">Paragrafo 2 <span style="color:#888;font-weight:400">(opzionale)</span></label>
+              <textarea id="ap-par2" class="finp" rows="4" placeholder="Secondo paragrafo..." style="padding:9px 12px;resize:vertical;font-family:inherit;font-size:13px"></textarea>
+            </div>
+            <div class="fg">
+              <label class="flbl">Paragrafo 3 <span style="color:#888;font-weight:400">(opzionale)</span></label>
+              <textarea id="ap-par3" class="finp" rows="4" placeholder="Terzo paragrafo..." style="padding:9px 12px;resize:vertical;font-family:inherit;font-size:13px"></textarea>
+            </div>
+          </div>
+
+          <div>
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--blu);margin-bottom:10px">
+              Domande (max 6) &nbsp;<span style="font-weight:400;font-size:10px;color:#888">— compila quelle che ti servono</span>
+            </div>
+
+            <div id="ap-domande-wrap" style="display:flex;flex-direction:column;gap:12px"></div>
+
+            <button onclick="addDomandaForm()"
+              style="margin-top:10px;width:100%;padding:8px;border:2px dashed #b0c4de;border-radius:6px;background:#f7f9ff;color:var(--blu);cursor:pointer;font-size:12px;font-weight:700;font-family:var(--font)">
+              ➕ Aggiungi domanda
+            </button>
+          </div>
+        </div>
+
+        <button onclick="generaProvaCustom()"
+          style="margin-top:16px;width:100%;padding:12px;background:#5c35be;color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:800;cursor:pointer;font-family:var(--font)">
+          📎 Genera link prova personalizzata
+        </button>
+        <div id="ap-err" class="err-msg" style="display:none;margin-top:8px"></div>
+        <div id="ap-succ" class="succ-msg" style="display:none;margin-top:10px"></div>
+      </div>
+    </div>
+
   </div><!-- fine #tab-dis -->
+
+  <!-- TAB: CARICA PROVA PERSONALIZZATA ─────────────────────── -->
+  <div class="panel" id="tab-carica">
+    <div class="info-panel">
+      📎 <strong>Crea una prova su misura</strong><br>
+      Scrivi testo e domande per un alunno specifico. Il link generato funziona su qualsiasi dispositivo, senza bisogno di caricare file.
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
+      <div class="panel-card" style="max-width:none">
+        <h3>📋 Dati prova</h3>
+        <div class="fg" style="margin-bottom:10px">
+          <label class="flbl">Titolo</label>
+          <input id="cp-titolo" class="finp" placeholder="es. Il lago di Como" style="padding:9px 12px">
+        </div>
+        <div class="fg" style="margin-bottom:10px">
+          <label class="flbl">Tipo testo</label>
+          <input id="cp-sottotitolo" class="finp" placeholder="es. Testo descrittivo" value="Testo narrativo" style="padding:9px 12px">
+        </div>
+        <div class="fg" style="margin-bottom:10px">
+          <label class="flbl">Classe</label>
+          <select id="cp-classe" class="finp" style="padding:9px 12px">
+            <option value="">— Nessuna —</option>
+            <option value="3A">3A</option><option value="3B">3B</option>
+            <option value="3C">3C</option><option value="3D">3D</option><option value="3E">3E</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="flbl">Nome alunno (opzionale)</label>
+          <input id="cp-nome" class="finp" placeholder="es. Mario R." maxlength="40" style="padding:9px 12px">
+        </div>
+      </div>
+
+      <div class="panel-card" style="max-width:none">
+        <h3>⚙️ TIC per questo link</h3>
+        <div style="display:flex;flex-direction:column;gap:9px">
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="cp-tic-grande" style="width:15px;height:15px">🔍 Testo grande</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="cp-tic-maiuscolo" style="width:15px;height:15px">🔠 Stampato maiuscolo</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="cp-tic-contrasto" style="width:15px;height:15px">🌗 Alto contrasto</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="cp-tic-spaziatura" style="width:15px;height:15px">↔️ Spaziatura aumentata</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="cp-tic-font" style="width:15px;height:15px">✒️ Font dislessia</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="cp-tic-bes" style="width:15px;height:15px">📘 Modalità BES</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="cp-tic-caa" style="width:15px;height:15px;accent-color:#9c27b0">🖼️ CAA pittogrammi</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- TESTO -->
+    <div class="panel-card" style="max-width:none;margin-bottom:14px">
+      <h3>📄 Testo della prova</h3>
+      <div style="font-size:11px;color:#888;margin-bottom:8px">Separa i paragrafi con una <strong>riga vuota</strong>. Ogni paragrafo diventa numerato automaticamente.</div>
+      <textarea id="cp-testo" class="finp" rows="7"
+        style="padding:10px 12px;font-size:13px;line-height:1.7;resize:vertical"
+        placeholder="Scrivi il primo paragrafo del testo.&#10;&#10;Scrivi il secondo paragrafo qui.&#10;&#10;Ogni riga vuota crea un nuovo paragrafo numerato."></textarea>
+    </div>
+
+    <!-- DOMANDE -->
+    <div class="panel-card" style="max-width:none;margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h3 style="margin-bottom:0">❓ Domande</h3>
+        <button onclick="aggiungiDomandaCP()" class="btn btn-s" style="font-size:12px;padding:6px 14px">+ Aggiungi domanda</button>
+      </div>
+      <div id="cp-domande">
+        <div style="text-align:center;color:#bbb;font-size:13px;padding:20px">Clicca "+ Aggiungi domanda" per iniziare</div>
+      </div>
+    </div>
+
+    <button onclick="generaLinkCP()" class="btn btn-g" style="width:100%;padding:13px;font-size:14px;font-weight:800">🔗 Genera link prova personalizzata</button>
+    <div id="cp-succ" class="succ-msg" style="display:none;margin-top:14px"></div>
+  </div><!-- fine #tab-carica -->
 
   <!-- TAB: PASSWORD -->
   <div class="panel" id="tab-pw">
@@ -3975,6 +4107,122 @@ function mostraTab(id, btn){
 
 function mostraTab2(id, btn){ mostraTab(id, btn); }
 
+// ── ALLEGA PROVA PERSONALIZZATA ──────────────────────────────────
+let _apDomN = 0;
+function toggleAllegaProva(header){
+  const form = document.getElementById('allega-form');
+  const arrow = document.getElementById('allega-arrow');
+  const open = form.style.display==='none';
+  form.style.display = open ? 'block' : 'none';
+  arrow.style.transform = open ? 'rotate(90deg)' : '';
+  if(open && _apDomN===0){ addDomandaForm(); addDomandaForm(); addDomandaForm(); }
+}
+
+function addDomandaForm(){
+  const wrap = document.getElementById('ap-domande-wrap');
+  if(!wrap) return;
+  const existing = wrap.querySelectorAll('.ap-dom').length;
+  if(existing >= 6){ alert('Massimo 6 domande.'); return; }
+  _apDomN++;
+  const n = _apDomN;
+  const div = document.createElement('div');
+  div.className='ap-dom';
+  div.dataset.n=n;
+  div.style.cssText='background:#f7f9ff;border:1.5px solid #d0d9f0;border-radius:8px;padding:12px';
+  div.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <span style="font-size:11px;font-weight:800;color:var(--blu)">Domanda ${existing+1}</span>
+      <button onclick="this.closest('.ap-dom').remove()"
+        style="background:none;border:none;color:#c62828;cursor:pointer;font-size:12px">✕ Rimuovi</button>
+    </div>
+    <div class="fg" style="margin-bottom:8px">
+      <label class="flbl" style="font-size:11px">Testo domanda</label>
+      <input type="text" class="finp ap-tdom" placeholder="es. Chi è il protagonista?" style="padding:8px 10px;font-size:13px">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
+      <div><label class="flbl" style="font-size:10px">Opzione A</label><input type="text" class="finp ap-opA" placeholder="Risposta A" style="padding:7px 10px;font-size:12px"></div>
+      <div><label class="flbl" style="font-size:10px">Opzione B</label><input type="text" class="finp ap-opB" placeholder="Risposta B" style="padding:7px 10px;font-size:12px"></div>
+      <div><label class="flbl" style="font-size:10px">Opzione C</label><input type="text" class="finp ap-opC" placeholder="Risposta C" style="padding:7px 10px;font-size:12px"></div>
+      <div><label class="flbl" style="font-size:10px">Opzione D</label><input type="text" class="finp ap-opD" placeholder="Risposta D" style="padding:7px 10px;font-size:12px"></div>
+    </div>
+    <div class="fg">
+      <label class="flbl" style="font-size:11px">Risposta corretta</label>
+      <select class="finp ap-ok" style="padding:7px 10px;font-size:12px">
+        <option value="0">A</option><option value="1">B</option>
+        <option value="2">C</option><option value="3">D</option>
+      </select>
+    </div>`;
+  wrap.appendChild(div);
+}
+
+function generaProvaCustom(){
+  const err = document.getElementById('ap-err');
+  const succ = document.getElementById('ap-succ');
+  err.style.display='none'; succ.style.display='none';
+
+  const titolo = document.getElementById('ap-titolo').value.trim();
+  if(!titolo){ err.textContent='⚠️ Inserisci il titolo del testo.'; err.style.display='block'; return; }
+
+  const par1 = document.getElementById('ap-par1').value.trim();
+  if(!par1){ err.textContent='⚠️ Inserisci almeno il primo paragrafo.'; err.style.display='block'; return; }
+
+  const paragrafi = [];
+  [par1, document.getElementById('ap-par2').value.trim(), document.getElementById('ap-par3').value.trim()]
+    .forEach((t,i)=>{ if(t) paragrafi.push({n:i+1, testo:t}); });
+
+  const domande = [];
+  let idx=1;
+  document.querySelectorAll('#ap-domande-wrap .ap-dom').forEach(div=>{
+    const tdom = div.querySelector('.ap-tdom')?.value.trim();
+    const A = div.querySelector('.ap-opA')?.value.trim();
+    const B = div.querySelector('.ap-opB')?.value.trim();
+    const C = div.querySelector('.ap-opC')?.value.trim();
+    const D = div.querySelector('.ap-opD')?.value.trim();
+    const ok = parseInt(div.querySelector('.ap-ok')?.value||'0');
+    if(!tdom||!A||!B){ return; } // salta vuote
+    const opts=[A,B];
+    if(C) opts.push(C); if(D) opts.push(D);
+    domande.push({n:idx++,par:1,tipo:'sm',sez:0,testo:tdom,opts,ok});
+  });
+
+  if(!domande.length){ err.textContent='⚠️ Inserisci almeno una domanda completa (testo + A + B).'; err.style.display='block'; return; }
+
+  const provaObj = { titolo, sottotitolo:'Testo personalizzato', glossario:[], paragrafi, domande };
+  const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(provaObj))));
+
+  // Costruisci link con TIC attivi
+  const ticMap = {
+    grande: document.getElementById('dis-tic-grande')?.checked,
+    maiuscolo: document.getElementById('dis-tic-maiuscolo')?.checked,
+    contrasto: document.getElementById('dis-tic-contrasto')?.checked,
+    spaziatura: document.getElementById('dis-tic-spaziatura')?.checked,
+    font: document.getElementById('dis-tic-font')?.checked,
+    bes: document.getElementById('dis-tic-bes')?.checked,
+    caa: document.getElementById('dis-tic-caa')?.checked,
+  };
+  const ticAttivi = Object.keys(ticMap).filter(k=>ticMap[k]);
+  const base = window.location.href.replace(/[^/]*$/,'') + 'grado8_dis.html';
+  const params = new URLSearchParams();
+  params.set('prova','custom');
+  params.set('data',b64);
+  const classe = document.getElementById('dis-classe')?.value;
+  const nome = document.getElementById('dis-nome')?.value.trim();
+  if(classe) params.set('classe',classe);
+  if(nome)   params.set('nome',nome);
+  if(ticAttivi.length) params.set('tic',ticAttivi.join(','));
+  const link = base+'?'+params.toString();
+
+  window._linkCustom = link;
+  succ.innerHTML=`✅ Link prova personalizzata:<br>
+    <div style="margin-top:8px;padding:8px 12px;background:#fff;border:1px solid var(--verde);border-radius:6px;word-break:break-all;font-size:11px;font-family:monospace">${link.substring(0,120)}…</div>
+    <button onclick="navigator.clipboard.writeText(window._linkCustom).then(()=>alert('✅ Link copiato!'))"
+      class="btn btn-g" style="margin-top:10px;width:100%;padding:9px;font-family:var(--font);font-size:13px;font-weight:700;border:none;border-radius:6px;cursor:pointer;background:var(--verde);color:#fff">
+      📋 Copia link
+    </button>
+    <div style="margin-top:6px;font-size:11px;color:#555">Prova: <strong>${titolo}</strong> — ${domande.length} domande — ${ticAttivi.length?'TIC: '+ticAttivi.join(', '):'nessun TIC'}</div>`;
+  succ.style.display='block';
+}
+
 function cambiaClasse(cl){
   S.classe = cl;
   ['3A','3E','ALL'].forEach(c=>{
@@ -4829,6 +5077,129 @@ function creaSessDisabilita(){
       TIC attivi: <strong>${ticLabel}</strong>
     </div>`;
   el.style.display='block';
+}
+
+// ══════════════════════════════════════════════════════════════
+//  CARICA PROVA PERSONALIZZATA
+// ══════════════════════════════════════════════════════════════
+let _cpN = 0;
+
+function aggiungiDomandaCP(){
+  _cpN++;
+  const n = _cpN;
+  const container = document.getElementById('cp-domande');
+  const placeholder = container.querySelector('div[style*="Clicca"]');
+  if(placeholder) placeholder.remove();
+
+  const div = document.createElement('div');
+  div.id = `cpd-${n}`;
+  div.style.cssText = 'border:1px solid #d0dff5;border-radius:8px;padding:12px 14px;margin-bottom:12px;background:#f8faff';
+  div.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div style="font-size:12px;font-weight:800;color:var(--blu)">Domanda ${n}</div>
+      <button onclick="this.closest('[id^=cpd-]').remove()" style="background:none;border:none;cursor:pointer;color:#aaa;font-size:18px;line-height:1" title="Elimina">✕</button>
+    </div>
+    <div class="fg" style="margin-bottom:8px">
+      <input class="finp" id="cpd${n}-testo" placeholder="Testo della domanda" style="padding:8px 11px;font-size:13px">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+      <input class="finp" id="cpd${n}-a" placeholder="A — prima risposta" style="padding:7px 11px;font-size:13px">
+      <input class="finp" id="cpd${n}-b" placeholder="B — seconda risposta" style="padding:7px 11px;font-size:13px">
+      <input class="finp" id="cpd${n}-c" placeholder="C — terza risposta" style="padding:7px 11px;font-size:13px">
+      <input class="finp" id="cpd${n}-d" placeholder="D — quarta risposta (opzionale)" style="padding:7px 11px;font-size:13px">
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <select class="finp" id="cpd${n}-ok" style="flex:1;min-width:130px;padding:7px 11px;font-size:13px">
+        <option value="0">✅ Corretta: A</option>
+        <option value="1">✅ Corretta: B</option>
+        <option value="2">✅ Corretta: C</option>
+        <option value="3">✅ Corretta: D</option>
+      </select>
+      <select class="finp" id="cpd${n}-sez" style="flex:1;min-width:130px;padding:7px 11px;font-size:13px">
+        <option value="0">Comprensione</option>
+        <option value="1">Lessico</option>
+        <option value="2">Grammatica</option>
+      </select>
+      <input class="finp" id="cpd${n}-par" type="number" min="0" max="20" value="1"
+        title="Numero paragrafo di riferimento"
+        style="flex:0 0 80px;padding:7px 11px;font-size:13px">
+    </div>`;
+  container.appendChild(div);
+}
+
+function generaLinkCP(){
+  const titolo   = document.getElementById('cp-titolo').value.trim();
+  const sottotit = document.getElementById('cp-sottotitolo').value.trim() || 'Testo narrativo';
+  const classe   = document.getElementById('cp-classe').value;
+  const nome     = document.getElementById('cp-nome').value.trim();
+  const testoRaw = document.getElementById('cp-testo').value.trim();
+
+  if(!titolo)   { alert('Inserisci un titolo per la prova.'); return; }
+  if(!testoRaw) { alert('Inserisci il testo della prova.'); return; }
+
+  const paragrafi = testoRaw.split(/\n\s*\n/).filter(t=>t.trim())
+    .map((t, i) => ({ n: i+1, testo: t.trim().replace(/\n/g,' ') }));
+
+  const domande = [];
+  let domN = 0;
+  document.querySelectorAll('#cp-domande > [id^="cpd-"]').forEach(div => {
+    const n = div.id.split('-')[1];
+    const testo = document.getElementById(`cpd${n}-testo`)?.value.trim();
+    if(!testo) return;
+    const opts = [
+      document.getElementById(`cpd${n}-a`)?.value.trim(),
+      document.getElementById(`cpd${n}-b`)?.value.trim(),
+      document.getElementById(`cpd${n}-c`)?.value.trim(),
+      document.getElementById(`cpd${n}-d`)?.value.trim(),
+    ].filter(o=>o);
+    if(opts.length < 2) return;
+    domN++;
+    domande.push({
+      n: domN,
+      par: parseInt(document.getElementById(`cpd${n}-par`)?.value || '1'),
+      tipo: 'sm', sez: parseInt(document.getElementById(`cpd${n}-sez`)?.value || '0'),
+      testo, opts,
+      ok: parseInt(document.getElementById(`cpd${n}-ok`)?.value || '0')
+    });
+  });
+
+  if(!domande.length) { alert('Aggiungi almeno una domanda.'); return; }
+
+  const ticCP = ['grande','maiuscolo','contrasto','spaziatura','font','bes','caa']
+    .filter(t => document.getElementById(`cp-tic-${t}`)?.checked);
+
+  const prova = { id:'custom', titolo, sottotitolo: sottotit, paragrafi, glossario:[], domande };
+  let encoded;
+  try { encoded = btoa(unescape(encodeURIComponent(JSON.stringify(prova)))); }
+  catch(e){ alert('Errore nella codifica della prova. Controlla che non ci siano caratteri speciali.'); return; }
+
+  const base = window.location.href.replace(/[^/]*$/, '') + 'grado8_dis.html';
+  const params = new URLSearchParams();
+  params.set('prova', 'custom');
+  params.set('data', encoded);
+  if(classe) params.set('classe', classe);
+  if(nome)   params.set('nome', nome);
+  if(ticCP.length) params.set('tic', ticCP.join(','));
+  const link = base + '?' + params.toString();
+
+  const el = document.getElementById('cp-succ');
+  el.style.display = 'block';
+  const preview = link.substring(0,100) + (link.length>100?'…':'');
+  el.innerHTML = `✅ Prova personalizzata pronta!<br>
+    <div style="margin-top:8px;padding:8px 12px;background:#fff;border:1px solid var(--verde);
+      border-radius:6px;word-break:break-all;font-size:11px;font-family:monospace;color:#333">${preview}</div>
+    <button onclick="navigator.clipboard.writeText(this.dataset.link).then(()=>alert('✅ Link copiato!'))"
+      data-link="${link.replace(/"/g,'&quot;')}"
+      class="btn btn-g" style="margin-top:10px;width:100%;padding:9px;font-size:13px;font-family:var(--font);
+        font-weight:700;border:none;border-radius:6px;cursor:pointer;background:var(--verde);color:#fff">
+      📋 Copia link
+    </button>
+    <div style="margin-top:8px;font-size:11px;color:#555;line-height:1.7">
+      📄 ${paragrafi.length} paragraf${paragrafi.length===1?'o':'i'} &nbsp;·&nbsp; ❓ ${domande.length} domand${domande.length===1?'a':'e'}
+      ${ticCP.length ? ' &nbsp;·&nbsp; ⚙️ TIC: <strong>'+ticCP.join(', ')+'</strong>' : ''}
+      ${nome ? '<br>👤 Alunno: <strong>'+nome+'</strong>' : ''}
+      ${classe ? (nome?'':' &nbsp;·&nbsp;') + ' 🏫 Classe: <strong>'+classe+'</strong>' : ''}
+    </div>`;
 }
 </script>
 <!-- ═══ PROVE 1-5 COMPLETE (carica dopo il motore principale) ═══ -->
