@@ -110,6 +110,23 @@ body.tic-caa .opt-testo{font-size:.82rem;font-weight:700;text-align:center;
 .par.att .dot{background:var(--ob)}
 .par.att .plbl{color:#7a5000}
 .tpar{font-size:.93rem;line-height:1.9}
+
+/* ── TESTO CAA: ogni parola = simbolo + scritta ───────────────── */
+body.tic-caa .tpar{line-height:1!important;display:flex;flex-wrap:wrap;
+  align-items:flex-end;gap:6px 4px;padding-bottom:4px}
+/* token = simbolo sopra + parola sotto */
+.caa-tok{display:inline-flex;flex-direction:column;align-items:center;
+  gap:3px;margin:2px 1px}
+.caa-tok img{width:58px;height:58px;object-fit:contain;
+  border:1.5px solid #90caf9;border-radius:7px;background:#f0f7ff;padding:2px;
+  display:block}
+.caa-tok img[src=""]{background:#e3f2fd;border-color:#b3d4f0}
+.caa-tok span{font-size:.6rem;font-weight:800;text-transform:uppercase;
+  color:#01579b;text-align:center;max-width:62px;word-break:break-word;
+  line-height:1.1}
+/* parole funzione (preposizioni, articoli): solo testo, niente immagine */
+.caa-fn{display:inline-flex;align-items:flex-end;padding-bottom:4px;
+  font-size:.88rem;color:#555;font-weight:600;align-self:flex-end}
 .glw{border-bottom:2.5px dashed var(--c2);cursor:help;font-weight:700;color:var(--c1)}
 .gl-p{background:var(--oro);border-top:3px solid var(--ob);padding:11px 16px}
 .glt{font-size:.72rem;font-weight:800;color:#7a5000;margin-bottom:8px}
@@ -906,6 +923,123 @@ function togTicSilent(nome){
 // ══════════════════════════════════════════════════════════════
 //  RENDER PROVA
 // ══════════════════════════════════════════════════════════════
+// ── CAA: converte testo in sequenza simbolo+parola ──────────────────
+const STOP_FN = new Set([
+  'il','lo','la','i','gli','le','un','una','uno',
+  'di','a','da','in','con','su','per','tra','fra',
+  'del','della','dei','degli','delle','al','alla','ai','agli','alle',
+  'dal','dalla','dai','dagli','dalle','nel','nella','nei','negli','nelle',
+  'sul','sulla','sui','sugli','sulle','col','coi',
+  'che','non','si','è','e','o','ma','anche','né',
+  'ha','ho','hai','hanno','era','erano','fu','fu',
+  'sua','suo','suoi','sue','mia','mio','miei','mie',
+  'lui','lei','loro','esso','essa','essi','esse',
+  'ci','ce','ne','mi','ti','vi','li',
+  'già','poi','però','allora','quando','dove','come','così',
+  'ogni','tutto','molto','poco','più','meno','ancora',
+  'questo','questa','questi','queste','quello','quella','quelli','quelle',
+  'c'è','c'erano','l'','d'','dell'','all'','dall'','nell'','sull''
+]);
+
+// Parola → keyword semplificata per ARASAAC
+function semplificaKW(word){
+  const w = word.toLowerCase().replace(/[^a-zàáèéìíòóùú]/g,'');
+  if(w.length < 2) return null;
+  if(STOP_FN.has(w)) return null;
+  // riduci a radice semplice (toglie desinenze comuni)
+  const subs = [
+    [/ando$|endo$/,''],  // gerundi
+    [/ando$|endo$/,''],
+    [/zione$|zioni$/,''],
+    [/amente$/,''],
+    [/mente$/,''],
+    [/issim[aio]$/,'o'],
+    [/[aeiou]ti$|[aeiou]to$/,''],
+    [/ndo$/,'re'],
+  ];
+  let stem = w;
+  if(stem.length > 6){
+    for(const [pat,rep] of subs){
+      const t = stem.replace(pat,rep);
+      if(t.length>3){ stem=t; break; }
+    }
+  }
+  return stem || w;
+}
+
+function tokenizzaCAA(htmlTesto){
+  // Splitta preservando tag HTML (<span class="glw"...>PAROLA</span>)
+  const tokens = [];
+  // parse grossolano: separa tag da testo
+  const parts = htmlTesto.split(/(<[^>]+>)/);
+  let inTag = false; let tagBuf = ''; let insideGlw = false; let glwKW = '';
+  for(const part of parts){
+    if(part.startsWith('<')){
+      if(part.toLowerCase().includes('class="glw"')){
+        insideGlw=true;
+        // estrai keyword dal title
+        const m = part.match(/title="([^"]+)"/);
+        glwKW = m ? m[1].split(':')[0].toLowerCase().replace(/[^a-zàáèéìíòóùú]/g,'') : '';
+      } else if(part==='</span>' && insideGlw){
+        insideGlw=false; glwKW='';
+      }
+      continue; // non aggiungiamo i tag all'output
+    }
+    // testo normale
+    const words = part.split(/(\s+)/);
+    for(const w of words){
+      if(/^\s+$/.test(w)){ tokens.push({type:'space'}); continue; }
+      if(!w) continue;
+      const clean = w.replace(/[^a-zàáèéìíòóùúA-ZÀÁÈÉÌÍÒÓÙÚ']/g,'');
+      const kw = insideGlw && glwKW ? glwKW : semplificaKW(clean);
+      if(kw && clean.length>1){
+        tokens.push({type:'word', text:w, kw, glw: insideGlw});
+      } else {
+        tokens.push({type:'fn', text:w});
+      }
+    }
+  }
+  return tokens;
+}
+
+function buildTestoCAA(testo){
+  const toks = tokenizzaCAA(testo);
+  let html = '';
+  for(const tok of toks){
+    if(tok.type==='space'){ html+=' '; continue; }
+    if(tok.type==='fn'){
+      html += `<span class="caa-fn">${tok.text}</span>`;
+    } else {
+      // token con immagine
+      html += `<span class="caa-tok" data-kw="${tok.kw}">
+        <img src="" alt="${tok.kw}" title="${tok.kw}">
+        <span>${tok.text}</span>
+      </span>`;
+    }
+  }
+  return html;
+}
+
+async function caricaTestoCAA(){
+  const toks = document.querySelectorAll('.caa-tok[data-kw]:not([data-loaded])');
+  // carica in batch per non saturare l'API
+  for(const tok of toks){
+    tok.dataset.loaded='1';
+    const kw = tok.dataset.kw;
+    if(!kw) continue;
+    const img = tok.querySelector('img');
+    if(!img) continue;
+    const url = await fetchPic(kw);
+    if(url){
+      img.src = url;
+      img.onerror = ()=>{ img.style.display='none'; };
+    } else {
+      img.style.display='none';
+    }
+    await new Promise(r=>setTimeout(r,30)); // piccolo delay per non martellare l'API
+  }
+}
+
 function renderProva(prova){
   // Header
   let sub = prova.titolo + (NOME_STUD ? ' &nbsp;|&nbsp; ' + NOME_STUD : '') + (CLASSE_STUD ? ' &nbsp;|&nbsp; Classe ' + CLASSE_STUD : '') + ' &nbsp;|&nbsp; A.S. 2025/2026';
@@ -915,11 +1049,15 @@ function renderProva(prova){
 
   // Testo
   const tc = document.getElementById('testo-content');
-  tc.innerHTML = prova.paragrafi.map(par => `
-    <div class="par" id="par${par.n}" data-par="${par.n}">
+  const isCaa = document.body.classList.contains('tic-caa');
+  tc.innerHTML = prova.paragrafi.map(par => {
+    const contenuto = isCaa ? buildTestoCAA(par.testo) : par.testo;
+    return `<div class="par" id="par${par.n}" data-par="${par.n}">
       <div class="plbl"><span class="dot"></span>Paragrafo ${par.n}</div>
-      <div class="tpar">${par.testo}</div>
-    </div>`).join('');
+      <div class="tpar">${contenuto}</div>
+    </div>`;
+  }).join('');
+  if(isCaa) caricaTestoCAA();
 
   // Glossario
   const gi = document.getElementById('glossario-items');
@@ -992,9 +1130,14 @@ function renderDomanda(d, tutte){
     const STOP_OPT = new Set(['il','lo','la','i','gli','le','un','una','uno','di','a','da','in','con','su','per','tra','fra','del','della','dei','degli','delle','al','alla','ai','agli','alle','che','non','si','è','e','ha','ho','ho','fu','sua','suo','loro']);
     inner += `<div class="opts">${d.opts.map((op,i) => {
       const opText = op.replace(/<[^>]+>/g,'').trim();
-      // Parola chiave per CAA: prima parola significativa dell'opzione
-      const kwArr = opText.split(/\s+/).filter(w=>w.length>2&&!STOP_OPT.has(w.toLowerCase()));
-      const kw = (kwArr[0]||opText.split(/\s+/)[0]||'').toLowerCase().replace(/[^a-zàáèéìíòóùú]/g,'');
+      // Keyword per ARASAAC: prima parola concreta dell'opzione (evita aggettivi lunghi)
+      const kwArr = opText.split(/\s+/).filter(w=>{
+        const wl = w.toLowerCase().replace(/[^a-zàáèéìíòóùú]/g,'');
+        return wl.length>2 && !STOP_OPT.has(wl);
+      });
+      // preferisci parole brevi e concrete (nomi > aggettivi)
+      const kw = (kwArr.find(w=>w.replace(/[^a-z]/gi,'').length<=8) || kwArr[0] || opText.split(/\s+/)[0] || '')
+                 .toLowerCase().replace(/[^a-zàáèéìíòóùú]/g,'');
       // Lettera per etichetta
       const shortLabel = opText.length > 22 ? opText.substring(0,20)+'…' : opText;
       return `<label class="opt" id="optlbl_${d.n}_${i}">
@@ -1197,8 +1340,9 @@ function togTicCAA(){
   const btn = document.getElementById('ticb-caa');
   if(btn) btn.classList.toggle('on', document.body.classList.contains('tic-caa'));
   if(document.body.classList.contains('tic-caa')){
+    // Ricarica la prova con la modalità CAA attiva (rifà il rendering del testo)
+    if(PROVA_ATTUALE) renderProva(PROVA_ATTUALE);
     caricaPittogrammi();
-    addCAAToText();
   }
 }
 
@@ -1231,22 +1375,21 @@ async function fetchPic(kw){
   return _caaCache[kw];
 }
 
-// Carica pittogrammi nei box .caa-opt-pic (risposte) e .caa-card (barra testo)
+// Carica pittogrammi nelle risposte (.caa-opt-pic)
 async function caricaPittogrammi(){
-  // 1. Risposte — .caa-opt-pic
-  document.querySelectorAll('.caa-opt-pic[data-kw]:not([data-loaded])').forEach(async box=>{
+  const boxes = document.querySelectorAll('.caa-opt-pic[data-kw]:not([data-loaded])');
+  for(const box of boxes){
     box.dataset.loaded='1';
     const kw = box.dataset.kw;
-    if(!kw) return;
+    if(!kw) continue;
     const img = box.querySelector('img');
-    if(!img) return;
+    if(!img) continue;
     const url = await fetchPic(kw);
     if(url){
       img.src = url;
       img.onerror = ()=>{ img.removeAttribute('src'); };
     }
-    // senza URL: rimane il placeholder SVG via CSS [src=""]
-  });
+  }
 }
 
 // ── Barra pittogrammi paragrafo attivo ──────────────────────────
