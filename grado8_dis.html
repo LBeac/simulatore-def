@@ -910,7 +910,11 @@ window.addEventListener('load', () => {
     document.body.classList.add('tic-caa');
     const btn = document.getElementById('ticb-caa');
     if(btn) btn.classList.add('on');
-    setTimeout(() => { caricaPittogrammi(); addCAAToText(); aggiornaCAABar(1); }, 200);
+    setTimeout(async () => {
+      const ok = await testAPIArasaac();
+      if(ok){ caricaPittogrammi(); addCAAToText(); aggiornaCAABar(1); }
+      else { mostraAvvisoAPIOffline(); }
+    }, 200);
   }
 });
 
@@ -1335,14 +1339,37 @@ function togTic(nome, btnId){
   if(btn) btn.classList.toggle('on', document.body.classList.contains('tic-'+nome));
 }
 
+// ── Test connessione ARASAAC ─────────────────────────────────────
+async function testAPIArasaac(){
+  try {
+    const r = await fetchConTimeout('https://api.arasaac.org/api/pictograms/it/search/cane', 6000);
+    if(!r.ok) return false;
+    const d = await r.json();
+    return Array.isArray(d) && d.length > 0;
+  } catch(e){ return false; }
+}
+
+function mostraAvvisoAPIOffline(){
+  const bar = document.getElementById('caa-bar');
+  if(bar) bar.innerHTML = `<div style="padding:8px 12px;background:#fff3cd;border:2px solid #ffc107;border-radius:8px;font-size:.8rem;color:#856404;width:100%">
+    ⚠️ <strong>Pittogrammi non disponibili</strong> — L'API ARASAAC non risponde. 
+    Controlla la connessione internet e ricarica la pagina.
+  </div>`;
+  // Nei box risposte metti solo la parola
+  document.querySelectorAll('.caa-opt-pic').forEach(box=>{
+    const img = box.querySelector('img');
+    if(img){ img.style.display='none'; }
+    box.style.background='#f0f4ff';
+  });
+}
+
 function togTicCAA(){
   document.body.classList.toggle('tic-caa');
   const btn = document.getElementById('ticb-caa');
   if(btn) btn.classList.toggle('on', document.body.classList.contains('tic-caa'));
   if(document.body.classList.contains('tic-caa')){
-    // Ricarica la prova con la modalità CAA attiva (rifà il rendering del testo)
     if(PROVA_ATTUALE) renderProva(PROVA_ATTUALE);
-    caricaPittogrammi();
+    setTimeout(()=>{ caricaPittogrammi(); addCAAToText(); aggiornaCAABar(1); }, 150);
   }
 }
 
@@ -1351,28 +1378,43 @@ function togTicCAA(){
 // Pittogrammi © Governo di Aragona — Sergio Palao — ARASAAC (arasaac.org) — CC BY-NC-SA
 function picUrl(id){ return `https://static.arasaac.org/pictograms/${id}/${id}_500.png`; }
 
+// Timeout semplice compatibile con tutti i browser
+function fetchConTimeout(url, ms){
+  return new Promise((res,rej)=>{
+    const t = setTimeout(()=>rej(new Error('timeout')), ms);
+    fetch(url).then(r=>{ clearTimeout(t); res(r); }).catch(e=>{ clearTimeout(t); rej(e); });
+  });
+}
+
 // Cache per sessione: evita chiamate ripetute
 const _caaCache = {};
 
 async function fetchPic(kw){
   if(!kw || kw.length < 2) return null;
   if(_caaCache[kw] !== undefined) return _caaCache[kw];
-  _caaCache[kw] = null; // segna "in corso"
-  try {
-    const r = await fetch(
-      `https://api.arasaac.org/api/pictograms/it/search/${encodeURIComponent(kw)}`,
-      {signal: AbortSignal.timeout(4000)}
-    );
-    if(!r.ok) throw new Error('http '+r.status);
-    const data = await r.json();
-    if(Array.isArray(data) && data.length > 0){
-      _caaCache[kw] = picUrl(data[0]._id);
-    }
-  } catch(e){
-    // API non raggiungibile o parola non trovata: nessuna immagine
-    _caaCache[kw] = null;
+  _caaCache[kw] = null;
+  // Prova prima la parola intera, poi il lemma senza desinenza
+  const varianti = [kw];
+  if(kw.endsWith('ando')||kw.endsWith('endo')) varianti.push(kw.slice(0,-4)+'are');
+  if(kw.endsWith('ato')||kw.endsWith('uto')||kw.endsWith('ito')) varianti.push(kw.slice(0,-3)+'are');
+  if(kw.endsWith('i')&&kw.length>4) varianti.push(kw.slice(0,-1)+'o');
+  if(kw.endsWith('e')&&kw.length>4) varianti.push(kw.slice(0,-1)+'a');
+
+  for(const v of varianti){
+    try {
+      const r = await fetchConTimeout(
+        `https://api.arasaac.org/api/pictograms/it/search/${encodeURIComponent(v)}`,
+        5000
+      );
+      if(!r.ok) continue;
+      const data = await r.json();
+      if(Array.isArray(data) && data.length > 0){
+        _caaCache[kw] = picUrl(data[0]._id);
+        return _caaCache[kw];
+      }
+    } catch(e){ /* continua con variante successiva */ }
   }
-  return _caaCache[kw];
+  return null;
 }
 
 // Carica pittogrammi nelle risposte (.caa-opt-pic)
