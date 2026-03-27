@@ -37,6 +37,31 @@ body.tic-font .tpar, body.tic-font .tdom, body.tic-font .opt, body.tic-font .sez
 body.tic-bes .tpar{font-size:1.1rem!important;line-height:2.4!important;letter-spacing:.06em!important;word-spacing:.15em!important}
 body.tic-bes .opt{font-size:1rem!important;line-height:1.9!important;padding:12px 14px!important}
 
+/* ── CAA PITTOGRAMMI ───────────────────────────────────────── */
+/* Barra pittogrammi paragrafo */
+#caa-bar{display:none;gap:8px;padding:10px 14px;background:#e8f4fd;border-bottom:2px solid var(--cb);overflow-x:auto;flex-wrap:nowrap;align-items:flex-start;min-height:0}
+body.tic-caa #caa-bar{display:flex}
+.caa-card{display:inline-flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0;width:72px}
+.caa-card img{width:62px;height:62px;object-fit:contain;border-radius:8px;background:#fff;border:1.5px solid var(--cb);padding:2px}
+.caa-card img.err{display:none}
+.caa-card span{font-size:.6rem;font-weight:700;color:var(--c1);text-align:center;max-width:72px;word-break:break-word;line-height:1.2}
+/* Pittogrammi inline nel testo (glossario) */
+.caa-glw-wrap{display:inline-flex;flex-direction:column;align-items:center;vertical-align:bottom;margin:0 3px 2px}
+.caa-glw-pic{display:none;width:44px;height:44px;object-fit:contain;border-radius:6px;background:#f0f7ff;border:1px solid #b3d4f0}
+body.tic-caa .caa-glw-pic{display:block}
+body.tic-caa .glw{font-weight:700;color:#01579b;border-bottom:2px dotted #01579b}
+/* Opzioni risposta in modalità CAA - card con immagine grande */
+.caa-wrap{display:none}
+body.tic-caa .caa-wrap{display:flex;justify-content:center;width:100%}
+body.tic-caa .caa-wrap img{width:80px;height:80px;object-fit:contain;border-radius:10px;background:#f0f7ff;border:1.5px solid var(--cb);padding:3px}
+body.tic-caa .caa-wrap img.err{display:none}
+body.tic-caa .caa-wrap img[src=""]{display:none}
+/* Card verticale CAA */
+body.tic-caa .opt{display:flex!important;flex-direction:column!important;align-items:center!important;text-align:center;gap:8px;padding:12px 10px!important;min-width:120px}
+body.tic-caa .opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+body.tic-caa .opt-testo{font-size:.88rem;line-height:1.4;text-align:center;width:100%}
+body.tic-caa .opt input{align-self:center;width:20px;height:20px}
+
 /* ── HEADER ────────────────────────────────────────────────── */
 .hdr{background:var(--c1);color:#fff;text-align:center;padding:14px 20px 10px;border-bottom:5px solid var(--ob);position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,.28)}
 .hdr h1{font-size:1.05rem;font-weight:800}
@@ -174,6 +199,7 @@ body.tic-bes .opt{font-size:1rem!important;line-height:1.9!important;padding:12p
         <button class="btool" id="blente" onclick="toggleLente()">🔍 Ingrandisci</button>
       </div>
     </div>
+    <div id="caa-bar" role="complementary" aria-label="Pittogrammi parole chiave"></div>
     <div id="testo-content"><!-- Testo renderizzato da JS --></div>
     <div class="gl-p" id="glossario-panel"><div class="glt">📚 Glossario — Parole difficili:</div><div id="glossario-items"></div></div>
   </div>
@@ -203,6 +229,7 @@ body.tic-bes .opt{font-size:1rem!important;line-height:1.9!important;padding:12p
   <div class="tic-btn" id="ticb-contrasto" onclick="togTic('contrasto','ticb-contrasto')" title="Alto contrasto"><span class="tic-lbl">Alto contrasto</span>🌗</div>
   <div class="tic-btn" id="ticb-font" onclick="togTic('font','ticb-font')" title="Font dislessia (Lexend)"><span class="tic-lbl">Font dislessia</span>✒️</div>
   <div class="tic-btn" id="ticb-bes" onclick="togTic('bes','ticb-bes')" title="Modalità BES/DSA"><span class="tic-lbl">BES/DSA</span>📘</div>
+  <div class="tic-btn" id="ticb-caa" onclick="togTicCAA()" title="CAA — Pittogrammi ARASAAC" style="border-color:#9c27b0;color:#6a1b9a"><span class="tic-lbl">CAA pittogrammi</span>🖼️</div>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════
@@ -584,6 +611,212 @@ domande:[
   {n:15,par:4,tipo:"sm",sez:1,testo:'Nel testo l\'aquilone "planava". Cosa significa "planare"?',opts:["Cadere velocemente verso il basso","Girare su sé stesso rapidamente","Scendere lentamente tenendo le ali aperte","Andare avanti in linea retta"],ok:2},
 ]},
 
+
+// ══ PROVA 11 — CAA: La colazione di Marco ═══════════════════
+{id:11, titolo:"La colazione di Marco", sottotitolo:"Testo in CAA",
+paragrafi:[
+  {n:1, testo:`Marco si sveglia la mattina presto. Apre gli <span class="glw" title="occhi: organi con cui si vede">occhi</span> e guarda fuori dalla <span class="glw" title="finestra: apertura nel muro con il vetro">finestra</span>. Il sole è già alto nel cielo azzurro. Marco ha <span class="glw" title="fame: sensazione di voler mangiare">fame</span>. Si alza dal <span class="glw" title="letto: mobile su cui si dorme">letto</span> e mette le ciabatte ai piedi. Va in cucina dalla sua mamma.`},
+  {n:2, testo:`In cucina c'è un bel profumo dolce. Sul <span class="glw" title="tavolo: mobile su cui si mangia">tavolo</span> la mamma ha preparato la colazione. Ci sono il <span class="glw" title="latte: bevanda bianca che viene dalla mucca">latte</span> bianco, i <span class="glw" title="biscotti: dolci secchi che si mangiano a colazione">biscotti</span> al cioccolato e una <span class="glw" title="banana: frutto giallo e dolce">banana</span> gialla. Marco è contento. Si siede sulla sedia. Prende la tazza grande a righe blu.`},
+  {n:3, testo:`La mamma scalda il latte sul <span class="glw" title="fornello: parte della cucina dove si cuoce il cibo con il fuoco">fornello</span>. Il latte è bianco e caldo. Marco lo versa nella <span class="glw" title="tazza: contenitore con il manico per bere">tazza</span> con attenzione. Poi aggiunge i biscotti uno per uno. Mescola tutto con il <span class="glw" title="cucchiaio: posata lunga usata per mescolare e mangiare">cucchiaio</span>. L'odore è buono e dolce.`},
+  {n:4, testo:`Marco mangia la colazione piano piano. I biscotti sono morbidi e buoni nel latte caldo. La <span class="glw" title="banana: frutto giallo e dolce">banana</span> è dolce e profumata. Marco beve tutto il latte con soddisfazione. La mamma lo guarda e sorride. È contenta di vedere suo figlio mangiare bene e con calma.`},
+  {n:5, testo:`Dopo la colazione Marco lava la tazza nell'<span class="glw" title="acquaio: lavandino della cucina dove si lavano i piatti">acquaio</span>. La mette ad asciugare sul ripiano. Poi prende il suo <span class="glw" title="zaino: borsa che si porta in spalla per andare a scuola">zaino</span> rosso. Dentro ci sono i libri, i quaderni e l'astuccio con le matite colorate. Marco controlla che ci sia tutto con cura.`},
+  {n:6, testo:`La mamma aiuta Marco a mettersi il <span class="glw" title="cappotto: giacca lunga e calda per l'inverno">cappotto</span> pesante. Fuori fa freddo e c'è vento forte. Marco mette anche il <span class="glw" title="berretto: copricapo di lana che si mette in testa d'inverno">berretto</span> di lana in testa. La mamma lo bacia sulla guancia con affetto. Marco sorride felice e dice: «Ciao mamma!». Esce di casa e cammina contento verso la scuola.`},
+],
+glossario:[
+  {k:"Fame", v:"La sensazione di voler mangiare qualcosa perché lo stomaco è vuoto."},
+  {k:"Latte", v:"Bevanda bianca che viene dalla mucca. Si beve spesso a colazione."},
+  {k:"Biscotti", v:"Dolci secchi che si mangiano di solito a colazione nel latte."},
+  {k:"Tazza", v:"Contenitore con il manico che si usa per bere il latte o il tè."},
+  {k:"Zaino", v:"Borsa che si porta sulle spalle per portare i libri a scuola."},
+  {k:"Cappotto", v:"Giacca lunga e calda che si mette d'inverno quando fa freddo."},
+  {k:"Berretto", v:"Copricapo di lana che protegge la testa dal freddo."},
+],
+domande:[
+  {n:1,par:1,tipo:"sm",sez:0,testo:"Chi è il protagonista di questo racconto?",opts:["La mamma","Marco","Il papà","La nonna"],pics:[37076,2940,6990,6635],ok:1},
+  {n:2,par:1,tipo:"sm",sez:0,testo:"Perché Marco va in cucina?",opts:["Ha sete","Ha sonno","Ha fame","Ha freddo"],pics:[7618,7684,5003,5165],ok:2},
+  {n:3,par:2,tipo:"sm",sez:0,testo:"Cosa c'è sul tavolo per la colazione?",opts:["Pane e marmellata","Pasta e sugo","Latte, biscotti e banana","Succo e torta"],pics:[5604,7953,3267,3010],ok:2},
+  {n:4,par:3,tipo:"sm",sez:0,testo:"Chi scalda il latte?",opts:["Marco","Il papà","La nonna","La mamma"],pics:[37076,6990,6635,37076],ok:3},
+  {n:5,par:4,tipo:"sm",sez:0,testo:"Come sono i biscotti nel latte?",opts:["Duri e salati","Freddi e acidi","Secchi e amari","Morbidi e buoni"],pics:[5165,3267,7590,2643],ok:3},
+  {n:6,par:0,tipo:"vf",sez:0,testo:"Segna V se vero, F se falso.",righeVF:[
+    {t:"Marco si alza tardi e non fa colazione.",ok:false},
+    {t:"Lo zaino di Marco è rosso.",ok:true},
+    {t:"Fuori fa caldo quando Marco esce.",ok:false}
+  ]},
+  {n:7,par:5,tipo:"sm",sez:0,testo:"Cosa fa Marco dopo aver mangiato?",opts:["Va a dormire","Guarda la televisione","Lava la tazza","Chiama un amico"],pics:[7684,7907,7944,2591],ok:2},
+  {n:8,par:6,tipo:"sm",sez:0,testo:"Perché Marco mette il cappotto?",opts:["Perché è elegante","Perché fa freddo fuori","Perché lo vuole la maestra","Perché fa ginnastica"],pics:[null,5165,5714,null],ok:1},
+  {n:9,par:0,tipo:"sm",sez:0,testo:"Come finisce il racconto?",opts:["Marco torna a letto","Marco va a scuola contento","Marco rimane in cucina","Marco piange"],pics:[7684,5040,5003,7062],ok:1},
+  {n:10,par:2,tipo:"sm",sez:1,testo:"Nel testo si parla di \"biscotti\". I biscotti sono:",opts:["Verdure fresche","Dolci secchi da colazione","Tipo di pasta","Frutta acida"],pics:[4858,3267,null,null],ok:1},
+  {n:11,par:5,tipo:"sm",sez:1,testo:"Lo \"zaino\" serve per:",opts:["Dormire comodi","Cucinare","Portare i libri a scuola","Fare sport"],pics:[8132,null,null,null],ok:2},
+  {n:12,par:6,tipo:"sm",sez:1,testo:"Il \"cappotto\" è:",opts:["Un tipo di cibo","Un mobile di casa","Una giacca calda per l'inverno","Un gioco per bambini"],pics:[3699,4013,5883,5224],ok:2},
+  {n:13,par:3,tipo:"sm",sez:2,tip:"Il soggetto è chi compie l'azione. Chiedi: chi scalda?",testo:"Leggi: «La mamma scalda il latte.» Qual è il soggetto?",opts:["Il latte","Scalda","La mamma","Sul fornello"],pics:[37076,null,7944,null],ok:2},
+  {n:14,par:5,tipo:"sm",sez:2,tip:"Il predicato verbale è il verbo. Chiedi: cosa fa Marco?",testo:"Leggi: «Marco lava la tazza.» Qual è il predicato verbale?",opts:["Marco","La tazza","Lava","Nell'acquaio"],pics:[7684,7944,null,null],ok:2},
+  {n:15,par:6,tipo:"sm",sez:2,tip:"Il complemento oggetto risponde alla domanda: aiuta chi?",testo:"Leggi: «La mamma aiuta Marco.» Qual è il complemento oggetto?",opts:["La mamma","Aiuta","Il cappotto","Marco"],pics:[37076,2560,3699,2940],ok:3},
+]},
+
+// ══ PROVA 12 — CAA: Al parco con Bello ══════════════════════
+{id:12, titolo:"Al parco con Bello", sottotitolo:"Testo in CAA",
+paragrafi:[
+  {n:1, testo:`Sofia ha nove anni e vive in un palazzo in città. Ogni sabato mattina sua mamma la porta al <span class="glw" title="parco: spazio verde con alberi e giochi all'aperto">parco</span> vicino a casa. Sofia aspetta questo momento tutta la settimana. Nel parco può correre libera sull'<span class="glw" title="erba: pianta verde bassa che copre il suolo del parco">erba</span> verde. Può giocare con gli altri bambini. Può stare all'aria aperta.`},
+  {n:2, testo:`Oggi Sofia porta con sé il suo <span class="glw" title="cane: animale domestico fedele all'uomo">cane</span> Bello. Bello è un cane grande con il pelo marrone e gli occhi neri. È molto energico e vuole sempre giocare. Quando arriva al parco tira il <span class="glw" title="guinzaglio: corda che si usa per tenere il cane">guinzaglio</span> forte. Vuole subito correre sul prato. Sofia ride e lo segue di corsa.`},
+  {n:3, testo:`Sofia lancia il <span class="glw" title="pallone: palla gonfiata d'aria usata per giocare">pallone</span> rosso lontano sul prato verde. Bello corre velocissimo con le zampe sul terreno. Lo prende in bocca con cura e delicatezza. Poi corre felice verso Sofia scodinzolando. Glielo porta ai piedi come un bravo cane. Sofia lo <span class="glw" title="accarezza: tocca con dolcezza con la mano">accarezza</span> sulla testa.`},
+  {n:4, testo:`Dopo tanto giocare Bello ha <span class="glw" title="sete: sensazione di voler bere">sete</span>. Sofia gli dà l'acqua dalla sua <span class="glw" title="borraccia: contenitore per portare l'acqua">borraccia</span>. Bello beve con lunghe sorsate rumorose. L'acqua gli cola dal muso sul prato. Poi si sdraia sull'erba fresca a riposare. Ansima piano con la lingua di fuori.`},
+  {n:5, testo:`Nel parco Sofia incontra una bambina che si chiama Anna. Anna ha i capelli biondi e una maglietta azzurra. Ha anche lei un cane piccolo che si chiama Fiocco. I due cani si annusano e diventano subito amici. Sofia e Anna ridono e iniziano a giocare insieme sull'altalena del parco.`},
+  {n:6, testo:`Quando il sole comincia a scendere la mamma chiama Sofia. È ora di tornare a <span class="glw" title="casa: il posto dove si abita con la propria famiglia">casa</span>. Sofia saluta Anna e le dà il suo numero di telefono. Le dice: «Ci vediamo sabato prossimo!». Sofia torna a casa stanca ma molto felice. Bello cammina tranquillo al suo fianco.`},
+],
+glossario:[
+  {k:"Parco", v:"Spazio verde con alberi, prato e giochi dove i bambini vanno a giocare."},
+  {k:"Guinzaglio", v:"Corda o cinghia che si aggancia al collare del cane per tenerlo."},
+  {k:"Pallone", v:"Palla gonfiata d'aria che si usa per giocare."},
+  {k:"Accarezza", v:"Tocca con dolcezza con la mano, di solito un animale che si vuole bene."},
+  {k:"Sete", v:"La sensazione di voler bere qualcosa perché la gola è secca."},
+  {k:"Borraccia", v:"Contenitore di plastica o metallo per portare l'acqua con sé."},
+  {k:"Casa", v:"Il posto dove si abita, dove c'è la propria famiglia."},
+],
+domande:[
+  {n:1,par:1,tipo:"sm",sez:0,testo:"Come si chiama la protagonista?",opts:["Anna","Bello","Sofia","La mamma"],pics:[2939,4884,2939,37076],ok:2},
+  {n:2,par:1,tipo:"sm",sez:0,testo:"Quando va al parco Sofia?",opts:["Ogni domenica","Ogni sabato mattina","Ogni venerdì sera","Ogni lunedì"],pics:[null,null,5165,7684],ok:1},
+  {n:3,par:2,tipo:"sm",sez:0,testo:"Come si chiama il cane di Sofia?",opts:["Fido","Rex","Fiocco","Bello"],pics:[4884,4884,5081,4884],ok:3},
+  {n:4,par:3,tipo:"sm",sez:0,testo:"Cosa fa Bello con il pallone?",opts:["Lo rompe","Lo nasconde","Lo porta a Sofia","Lo mangia"],pics:[null,3267,6956,4013],ok:2},
+  {n:5,par:4,tipo:"sm",sez:0,testo:"Perché Bello beve l'acqua?",opts:["Ha fame","Ha freddo","Ha sete","Ha sonno"],pics:[5003,5165,7618,7684],ok:2},
+  {n:6,par:0,tipo:"vf",sez:0,testo:"Segna V se vero, F se falso.",righeVF:[
+    {t:"Il parco è lontano da casa di Sofia.",ok:false},
+    {t:"Bello è un cane grande con il pelo marrone.",ok:true},
+    {t:"Anna ha i capelli rossi.",ok:false}
+  ]},
+  {n:7,par:5,tipo:"sm",sez:0,testo:"Come si chiama il cane di Anna?",opts:["Bello","Rex","Fiocco","Pallino"],pics:[4884,4884,5081,null],ok:2},
+  {n:8,par:6,tipo:"sm",sez:0,testo:"Come torna a casa Sofia?",opts:["Triste e arrabbiata","Stanca ma molto felice","Delusa e annoiata","Spaventata e confusa"],pics:[7963,5040,4858,null],ok:1},
+  {n:9,par:0,tipo:"sm",sez:0,testo:"Di cosa parla questo racconto?",opts:["Di una gita al mare","Di una giornata a scuola","Di una bambina e il suo cane al parco","Di una festa di compleanno"],pics:[5085,5714,4884,null],ok:2},
+  {n:10,par:2,tipo:"sm",sez:1,testo:"Il \"guinzaglio\" è:",opts:["Un tipo di cibo per cani","Una corda per tenere il cane","Un gioco per bambini","Un tipo di collare"],pics:[null,5303,5224,null],ok:1},
+  {n:11,par:4,tipo:"sm",sez:1,testo:"Cosa significa \"sete\" nel testo?",opts:["Voglia di dormire","Voglia di mangiare","Voglia di correre","Voglia di bere"],pics:[7618,6982,5224,null],ok:3},
+  {n:12,par:3,tipo:"sm",sez:1,testo:"\"Accarezza\" significa:",opts:["Colpire forte","Toccare con dolcezza","Lanciare lontano","Chiamare a voce alta"],pics:[5040,2560,3010,2591],ok:1},
+  {n:13,par:3,tipo:"sm",sez:2,tip:"Il soggetto è chi compie l'azione. Chiedi: chi corre?",testo:"Leggi: «Bello corre velocissimo sul prato.» Qual è il soggetto?",opts:["Velocissimo","Il prato","Corre","Bello"],pics:[4884,null,null,2940],ok:3},
+  {n:14,par:3,tipo:"sm",sez:2,tip:"Il predicato verbale è il verbo. Chiedi: cosa fa Sofia?",testo:"Leggi: «Sofia lancia il pallone.» Qual è il predicato verbale?",opts:["Sofia","Il pallone","Lancia","Sul prato"],pics:[6956,null,5040,4884],ok:2},
+  {n:15,par:6,tipo:"sm",sez:2,tip:"Il complemento oggetto risponde a: saluta chi?",testo:"Leggi: «Sofia saluta Anna.» Qual è il complemento oggetto?",opts:["Sofia","Saluta","Anna","Al parco"],pics:[2939,null,2939,6985],ok:2},
+]},
+
+// ══ PROVA 13 — CAA: La pioggia di Luca ══════════════════════
+{id:13, titolo:"La pioggia di Luca", sottotitolo:"Testo in CAA",
+paragrafi:[
+  {n:1, testo:`Questa mattina il <span class="glw" title="cielo: la parte alta sopra di noi, dove ci sono le nuvole e il sole">cielo</span> è grigio e pesante. Ci sono molte <span class="glw" title="nuvole: masse di vapore d'acqua che si vedono in cielo">nuvole</span> scure che coprono il sole. L'aria fuori è umida e fredda. Luca guarda fuori dalla finestra della sua camera. Vede le prime <span class="glw" title="gocce: piccole quantità di liquido di forma tonda">gocce</span> di pioggia cadere sul vetro. Sta per piovere forte.`},
+  {n:2, testo:`Luca prende il suo <span class="glw" title="impermeabile: giacca speciale che non si bagna con la pioggia">impermeabile</span> giallo dall'attaccapanni. Prende anche gli <span class="glw" title="stivali: scarpe alte che proteggono i piedi dall'acqua e dal fango">stivali</span> rossi di gomma dall'ingresso. Si veste con cura e si abbottona tutto. La mamma lo aiuta ad allacciare bene gli stivali. Fuori la pioggia cade forte e veloce sul marciapiede bagnato. Luca è pronto per uscire.`},
+  {n:3, testo:`Luca esce in <span class="glw" title="giardino: spazio verde vicino a casa con erba e piante">giardino</span> sotto la pioggia fitta. Salta nelle <span class="glw" title="pozzanghere: raccolte d'acqua sul terreno dopo la pioggia">pozzanghere</span> con i suoi stivali rossi. L'acqua schizza dappertutto intorno a lui. Luca ride forte e si diverte tantissimo. La sua mamma lo guarda dalla finestra calda. Scuote la testa sorridendo con affetto.`},
+  {n:4, testo:`Dopo un po' la pioggia smette di colpo. Il sole riappare lentamente tra le nuvole bianche. Nell'aria c'è un bel profumo fresco di terra bagnata. Nel cielo appare un bellissimo <span class="glw" title="arcobaleno: fascia colorata che appare in cielo dopo la pioggia">arcobaleno</span>. Luca lo indica con il dito verso sua mamma. I colori sono rosso, arancione, giallo, verde, blu e viola.`},
+  {n:5, testo:`Luca raccoglie delle <span class="glw" title="foglie: parti piatte e verdi delle piante">foglie</span> bagnate che sono cadute dagli alberi in giardino. Alcune sono gialle, altre arancioni e alcune brune. Le porta dentro casa per mostrarle con orgoglio alla sua mamma. La mamma dice che sono bellissime e colorate. Decidono insieme di usarle per fare un disegno creativo su un foglio grande.`},
+  {n:6, testo:`La sera Luca si siede al suo <span class="glw" title="tavolo: mobile su cui si mangia e si studia">tavolo</span> e disegna sul suo quaderno. Disegna la pioggia, l'arcobaleno colorato e le pozzanghere del giardino. Colora tutto con cura usando le matite colorate. Poi scrive sotto il disegno: «Oggi mi è piaciuta la pioggia!». La mamma legge e lo abbraccia forte. È una bella giornata da ricordare.`},
+],
+glossario:[
+  {k:"Nuvole", v:"Masse di vapore d'acqua che si vedono nel cielo, spesso grigie prima della pioggia."},
+  {k:"Impermeabile", v:"Giacca speciale che non lascia passare l'acqua della pioggia."},
+  {k:"Stivali", v:"Scarpe alte di gomma che proteggono i piedi dall'acqua e dal fango."},
+  {k:"Pozzanghere", v:"Raccolte di acqua che si formano sul terreno dopo che piove."},
+  {k:"Arcobaleno", v:"Fascia di colori che appare nel cielo dopo la pioggia quando c'è il sole."},
+  {k:"Foglie", v:"Le parti piatte e verdi (o colorate in autunno) delle piante e degli alberi."},
+  {k:"Giardino", v:"Spazio verde vicino a una casa con erba, piante e fiori."},
+],
+domande:[
+  {n:1,par:1,tipo:"sm",sez:0,testo:"Com'è il cielo all'inizio del racconto?",opts:["Azzurro e soleggiato","Grigio con nuvole scure","Rosa con nuvole bianche","Verde e nuvoloso"],pics:[7766,7090,7090,5040],ok:1},
+  {n:2,par:2,tipo:"sm",sez:0,testo:"Di che colore è l'impermeabile di Luca?",opts:["Rosso","Blu","Giallo","Verde"],pics:[7349,3305,5185,8037],ok:2},
+  {n:3,par:2,tipo:"sm",sez:0,testo:"Di che colore sono gli stivali di Luca?",opts:["Gialli","Blu","Verdi","Rossi"],pics:[5185,3305,8037,7349],ok:3},
+  {n:4,par:3,tipo:"sm",sez:0,testo:"Cosa fa Luca in giardino?",opts:["Costruisce un pupazzo di neve","Salta nelle pozzanghere","Raccoglie i fiori","Gioca a pallone"],pics:[null,7127,5081,6956],ok:1},
+  {n:5,par:4,tipo:"sm",sez:0,testo:"Cosa appare nel cielo dopo la pioggia?",opts:["Una stella cadente","La luna piena","Un arcobaleno","Un aereo colorato"],pics:[null,2786,7766,null],ok:2},
+  {n:6,par:0,tipo:"vf",sez:0,testo:"Segna V se vero, F se falso.",righeVF:[
+    {t:"Luca ha paura della pioggia.",ok:false},
+    {t:"La mamma guarda Luca dalla finestra.",ok:true},
+    {t:"Luca disegna la pioggia sul quaderno la sera.",ok:true}
+  ]},
+  {n:7,par:5,tipo:"sm",sez:0,testo:"Cosa raccoglie Luca in giardino?",opts:["Fiori profumati","Sassi colorati","Foglie bagnate","Bacche rosse"],pics:[5081,null,5093,null],ok:2},
+  {n:8,par:6,tipo:"sm",sez:0,testo:"Cosa scrive Luca sul quaderno?",opts:["Oggi ho studiato molto","Oggi mi è piaciuta la pioggia!","Non voglio più uscire","La pioggia è brutta"],pics:[5714,7090,null,null],ok:1},
+  {n:9,par:0,tipo:"sm",sez:0,testo:"Come si sente Luca durante la pioggia?",opts:["Triste e spaventato","Si diverte e ride","È annoiato e stanco","È arrabbiato con la mamma"],pics:[7963,5040,7684,2643],ok:1},
+  {n:10,par:2,tipo:"sm",sez:1,testo:"L'\"impermeabile\" è:",opts:["Una scarpa calda","Un cappello di lana","Una giacca che non si bagna","Un tipo di ombrello"],pics:[null,5434,null,null],ok:2},
+  {n:11,par:3,tipo:"sm",sez:1,testo:"Le \"pozzanghere\" sono:",opts:["Piante acquatiche","Raccolte d'acqua sul terreno","Tipi di nuvole","Scarpe di gomma"],pics:[7127,5093,6684,7826],ok:1},
+  {n:12,par:4,tipo:"sm",sez:1,testo:"L'\"arcobaleno\" appare:",opts:["Solo di notte","Solo d'estate","Nel cielo dopo la pioggia","Solo in montagna"],pics:[2786,null,null,null],ok:2},
+  {n:13,par:3,tipo:"sm",sez:2,tip:"Il soggetto è chi compie l'azione. Chiedi: chi salta?",testo:"Leggi: «Luca salta nelle pozzanghere.» Qual è il soggetto?",opts:["Le pozzanghere","Salta","Con gli stivali","Luca"],pics:[7127,null,null,2940],ok:3},
+  {n:14,par:5,tipo:"sm",sez:2,tip:"Il predicato verbale è il verbo. Chiedi: cosa fa Luca?",testo:"Leggi: «Luca raccoglie le foglie.» Qual è il predicato verbale?",opts:["Luca","Le foglie","In giardino","Raccoglie"],pics:[2940,5093,5194,null],ok:3},
+  {n:15,par:6,tipo:"sm",sez:2,tip:"Il complemento oggetto risponde a: disegna cosa?",testo:"Leggi: «Luca disegna l'arcobaleno.» Qual è il complemento oggetto?",opts:["Luca","Disegna","Sul quaderno","L'arcobaleno"],pics:[2940,null,null,2786],ok:3},
+]},
+
+// ══ PROVA 14 — CAA: Il cane e il pallone ════════════════════
+{id:14, titolo:"Il cane e il pallone", sottotitolo:"Testo in CAA",
+paragrafi:[
+  {n:1, testo:`Filippo ha un <span class="glw" title="cane: animale domestico fedele all'uomo">cane</span> che si chiama Bello. Bello è un cane grande e morbido con il pelo marrone scuro. Ha gli occhi neri e lucidi come due piccoli bottoni rotondi. Bello dorme ogni notte nel suo <span class="glw" title="cesto: contenitore morbido dove dorme il cane">cesto</span> vicino al divano del salotto. È il migliore amico di Filippo. Si vogliono tantissimo bene.`},
+  {n:2, testo:`Ogni pomeriggio dopo la scuola Filippo gioca con Bello in <span class="glw" title="giardino: spazio verde vicino a casa">giardino</span>. Il gioco preferito di Bello è prendere il <span class="glw" title="pallone: palla gonfiata d'aria per giocare">pallone</span>. Filippo lancia il pallone rosso molto lontano sul prato verde. Bello corre velocissimo con le quattro zampe sull'erba. Lo prende in <span class="glw" title="bocca: parte del viso con i denti">bocca</span> con tanta cura e delicatezza. Poi lo riporta a Filippo tutto orgoglioso.`},
+  {n:3, testo:`Un giorno il pallone finisce oltre il <span class="glw" title="cancello: porta di metallo o legno che chiude il giardino">cancello</span> del giardino. Va a finire nella strada asfaltata fuori. Bello abbaia forte davanti al cancello chiuso. Non riesce ad aprirlo da solo con le zampe. Filippo corre subito ad aprire il cancello. Prende il pallone dalla strada e lo riporta dentro il giardino al sicuro.`},
+  {n:4, testo:`Dopo tanto correre e giocare Bello ha molta <span class="glw" title="sete: sensazione di voler bere">sete</span>. Va direttamente alla sua <span class="glw" title="ciotola: contenitore basso e rotondo per il cibo o l'acqua del cane">ciotola</span> dell'acqua fresca. Beve lunghe sorsate rumorose e abbondanti. L'acqua gli cola dalla bocca sul pavimento del giardino. Filippo ride vedendo il suo cane bere con tanto entusiasmo. Riempie di nuovo la ciotola con l'acqua fresca del rubinetto.`},
+  {n:5, testo:`Quando comincia a fare buio e fresco Filippo porta Bello dentro casa al caldo. Gli versa le <span class="glw" title="crocchette: cibo secco specifico per i cani">crocchette</span> nella ciotola gialla della cena. Bello mangia tutto in fretta senza lasciare niente. Poi va a bere ancora un po' d'acqua tranquillo. Si lecca le labbra soddisfatto della buona cena. Si sdraia nel suo cesto morbido.`},
+  {n:6, testo:`La sera Bello dorme vicino al letto di Filippo nella sua cameretta. Filippo lo sente respirare piano piano nel buio silenzioso. È molto contento di avere un amico così fedele e affettuoso. Prima di addormentarsi lo accarezza sulla testa morbida. Bello muove la coda contento anche nel sonno profondo. È davvero un cane felice e fortunato.`},
+],
+glossario:[
+  {k:"Cesto", v:"Contenitore morbido e caldo dove dorme il cane come se fosse il suo letto."},
+  {k:"Pallone", v:"Palla gonfiata d'aria che si usa per giocare in giardino o al parco."},
+  {k:"Cancello", v:"Porta di metallo o legno che chiude l'entrata del giardino di casa."},
+  {k:"Sete", v:"La sensazione di voler bere qualcosa perché la gola è secca."},
+  {k:"Ciotola", v:"Contenitore basso e rotondo che si usa per il cibo e l'acqua degli animali."},
+  {k:"Crocchette", v:"Cibo secco a forma di piccoli pezzi specifico per i cani e i gatti."},
+  {k:"Bocca", v:"La parte del viso con i denti e la lingua, usata per mangiare e parlare."},
+],
+domande:[
+  {n:1,par:1,tipo:"sm",sez:0,testo:"Come si chiama il cane di Filippo?",opts:["Rex","Fido","Bello","Luna"],pics:[null,null,4884,null],ok:2},
+  {n:2,par:1,tipo:"sm",sez:0,testo:"Di che colore è il pelo di Bello?",opts:["Bianco","Marrone","Nero","Grigio"],pics:[3214,5754,5965,null],ok:1},
+  {n:3,par:2,tipo:"sm",sez:0,testo:"Qual è il gioco preferito di Bello?",opts:["Nuotare nel fiume","Dormire sul divano","Correre da solo","Prendere il pallone"],pics:[null,7684,null,6956],ok:3},
+  {n:4,par:2,tipo:"sm",sez:0,testo:"Di che colore è il pallone?",opts:["Blu","Verde","Giallo","Rosso"],pics:[7349,8037,5185,3305],ok:3},
+  {n:5,par:3,tipo:"sm",sez:0,testo:"Dove finisce il pallone?",opts:["In casa","Sul tetto","Nella strada","In piscina"],pics:[19268,null,7830,null],ok:2},
+  {n:6,par:0,tipo:"vf",sez:0,testo:"Segna V se vero, F se falso.",righeVF:[
+    {t:"Bello dorme nel cesto vicino al divano.",ok:true},
+    {t:"Bello riesce ad aprire il cancello da solo.",ok:false},
+    {t:"Filippo riempie la ciotola con l'acqua del rubinetto.",ok:true}
+  ]},
+  {n:7,par:4,tipo:"sm",sez:0,testo:"Perché Bello va alla ciotola dell'acqua?",opts:["Ha fame","Ha sete","Ha sonno","Ha freddo"],pics:[7618,5165,5003,7684],ok:1},
+  {n:8,par:5,tipo:"sm",sez:0,testo:"Cosa mangia Bello la sera?",opts:["Pasta e verdure","Biscotti dolci","Crocchette nella ciotola gialla","Carne fresca"],pics:[null,4414,null,null],ok:2},
+  {n:9,par:6,tipo:"sm",sez:0,testo:"Dove dorme Bello la sera?",opts:["Sul letto di Filippo","In giardino","Nel suo cesto vicino al letto","In cucina"],pics:[null,7684,5194,4446],ok:2},
+  {n:10,par:2,tipo:"sm",sez:1,testo:"Il \"pallone\" è:",opts:["Un tipo di cibo","Una palla gonfiata d'aria","Un accessorio per cani","Una scarpa sportiva"],pics:[6956,null,null,null],ok:1},
+  {n:11,par:4,tipo:"sm",sez:1,testo:"La \"ciotola\" è usata per:",opts:["Dormire","Il cibo e l'acqua degli animali","Giocare a palla","Portare i libri"],pics:[4020,null,null,null],ok:1},
+  {n:12,par:5,tipo:"sm",sez:1,testo:"Le \"crocchette\" sono:",opts:["Frutta per cani","Cibo secco per cani","Giocattoli per animali","Scarpe sportive"],pics:[4414,null,null,null],ok:1},
+  {n:13,par:2,tipo:"sm",sez:2,tip:"Il soggetto è chi compie l'azione. Chiedi: chi lancia?",testo:"Leggi: «Filippo lancia il pallone.» Qual è il soggetto?",opts:["Il pallone","Lancia","Filippo","Sul prato"],pics:[6956,null,2940,null],ok:2},
+  {n:14,par:4,tipo:"sm",sez:2,tip:"Il predicato verbale è il verbo. Chiedi: cosa fa Bello?",testo:"Leggi: «Bello beve l'acqua.» Qual è il predicato verbale?",opts:["Bello","L'acqua","Dalla ciotola","Beve"],pics:[4884,7618,4020,null],ok:3},
+  {n:15,par:4,tipo:"sm",sez:2,tip:"Il complemento oggetto risponde a: riempie cosa?",testo:"Leggi: «Filippo riempie la ciotola.» Qual è il complemento oggetto?",opts:["Filippo","Riempie","La ciotola","Con l'acqua"],pics:[2940,null,4020,null],ok:2},
+]},
+
+// ══ PROVA 15 — CAA: La torta del nonno ══════════════════════
+{id:15, titolo:"La torta del nonno", sottotitolo:"Testo in CAA",
+paragrafi:[
+  {n:1, testo:`Il sabato mattina Anna va a trovare il nonno Carlo nella sua casa grande. Il nonno Carlo è anziano ma allegro e pieno di energia. Ha i <span class="glw" title="capelli: i peli che crescono sulla testa">capelli</span> bianchi come la neve e gli occhiali rotondi sul naso. La sua casa ha un grande <span class="glw" title="giardino: spazio verde con alberi e fiori vicino a casa">giardino</span> con tanti fiori colorati. Oggi il nonno Carlo vuole preparare una <span class="glw" title="torta: dolce morbido che si cuoce nel forno">torta</span>. Anna è felicissima di aiutarlo.`},
+  {n:2, testo:`Il nonno e Anna entrano in <span class="glw" title="cucina: stanza della casa dove si prepara il cibo">cucina</span> insieme. Il nonno indossa il suo bel grembiule a righe rosse e bianche. Mette con cura il grembiule anche ad Anna perché non si sporchi i vestiti. Sul tavolo ci sono già tutti gli <span class="glw" title="ingredienti: le cose necessarie per preparare una ricetta">ingredienti</span> preparati. Ci sono le uova, la farina bianca, lo zucchero dolce e il burro morbido. «Cominciamo!» dice il nonno sorridendo felice.`},
+  {n:3, testo:`Il nonno rompe con delicatezza le <span class="glw" title="uova: alimenti con il guscio che si usano in cucina">uova</span> in una ciotola grande. Anna mescola le uova con la <span class="glw" title="forchetta: posata con i denti usata per mangiare e mescolare">forchetta</span> con tanta energia e volontà. Poi il nonno aggiunge la farina, lo zucchero e il burro morbido nella ciotola grande. Anna mescola tutto insieme con forza. Il composto diventa piano piano giallo chiaro e morbido come velluto. L'odore è dolce e delizioso.`},
+  {n:4, testo:`Il nonno accende il <span class="glw" title="forno: elettrodomestico che cuoce il cibo con il calore">forno</span> e aspetta che si scaldi bene. Versa il composto dolce in una <span class="glw" title="teglia: recipiente di metallo per cuocere le torte">teglia</span> rotonda e antiaderente. Anna lo aiuta a lisciare la superficie del composto con il cucchiaio in modo preciso. Il nonno mette con attenzione la teglia nel forno caldo. «Dobbiamo aspettare quaranta minuti buoni» dice il nonno. «Che ne dici di giocare a carte in giardino?»`},
+  {n:5, testo:`Anna e il nonno giocano a carte seduti al tavolo in giardino sotto un bell'albero. Il nonno vince quasi sempre ma ogni tanto lascia vincere Anna apposta. Lei ride felice e batte le mani con entusiasmo. Dopo un po' si sente arrivare dalla cucina un meraviglioso profumo dolce di torta cotta. «È quasi pronta!» dice il nonno annusando soddisfatto l'aria profumata.`},
+  {n:6, testo:`Il nonno tira fuori con cura la torta dal forno caldo. La torta è alta, dorata e profuma di buono in tutta la cucina. Anna la <span class="glw" title="decora: abbellisce con elementi colorati e dolci">decora</span> con delicatezza mettendo sopra le <span class="glw" title="fragole: frutti rossi piccoli e dolci">fragole</span> rosse fresche una per una. Il nonno versa con cura lo <span class="glw" title="zucchero a velo: zucchero bianco finissimo come la neve">zucchero a velo</span> bianco sopra. «Aspettiamo che si raffreddi un pochino» dice il nonno paziente. Quando la torta è pronta la mangiano insieme sorridendo felici.`},
+],
+glossario:[
+  {k:"Torta", v:"Dolce morbido e soffice che si prepara mescolando ingredienti e si cuoce nel forno."},
+  {k:"Cucina", v:"La stanza della casa dove si prepara e si cuoce il cibo per tutta la famiglia."},
+  {k:"Ingredienti", v:"Le cose necessarie per preparare una ricetta, come uova, farina e zucchero."},
+  {k:"Uova", v:"Alimenti con il guscio duro che si usano spesso in cucina per fare dolci e torte."},
+  {k:"Forno", v:"Elettrodomestico che cuoce il cibo usando il calore. Si usa per torte, pane e pizza."},
+  {k:"Teglia", v:"Recipiente di metallo rotondo o rettangolare in cui si mette il composto per cuocerlo."},
+  {k:"Fragole", v:"Frutti rossi, piccoli, dolci e profumati che maturano in primavera e in estate."},
+],
+domande:[
+  {n:1,par:1,tipo:"sm",sez:0,testo:"Come si chiama la protagonista?",opts:["Sofia","Giulia","Anna","Maria"],pics:[2939,2939,2939,null],ok:2},
+  {n:2,par:1,tipo:"sm",sez:0,testo:"Come si chiama il nonno?",opts:["Luigi","Marco","Giuseppe","Carlo"],pics:[null,null,null,6637],ok:3},
+  {n:3,par:2,tipo:"sm",sez:0,testo:"Cosa indossa il nonno per cucinare?",opts:["Un cappotto rosso","Un grembiule a righe rosse","Un cappello da cuoco","Una giacca verde"],pics:[null,3699,null,null],ok:1},
+  {n:4,par:3,tipo:"sm",sez:0,testo:"Con cosa mescola Anna le uova?",opts:["Con il cucchiaio","Con le mani","Con la forchetta","Con il mestolo"],pics:[null,null,5131,null],ok:2},
+  {n:5,par:4,tipo:"sm",sez:0,testo:"Per quanto tempo si cuoce la torta nel forno?",opts:["Dieci minuti","Venti minuti","Un'ora intera","Quaranta minuti"],ok:3},
+  {n:6,par:0,tipo:"vf",sez:0,testo:"Segna V se vero, F se falso.",righeVF:[
+    {t:"Il nonno ha i capelli neri.",ok:false},
+    {t:"Anna e il nonno giocano a carte aspettando la torta.",ok:true},
+    {t:"Anna decora la torta con le fragole rosse.",ok:true}
+  ]},
+  {n:7,par:5,tipo:"sm",sez:0,testo:"Dove giocano a carte Anna e il nonno?",opts:["In cucina","In salotto","In camera da letto","In giardino"],pics:[4446,null,null,5194],ok:3},
+  {n:8,par:6,tipo:"sm",sez:0,testo:"Come è la torta quando esce dal forno?",opts:["Cruda e pallida","Alta, dorata e profumata","Bassa e bruciata","Dura e secca"],pics:[null,7953,null,null],ok:1},
+  {n:9,par:0,tipo:"sm",sez:0,testo:"Cosa mette Anna sopra la torta?",opts:["Cioccolato fuso","Panna montata","Fragole rosse e zucchero a velo","Solo zucchero"],pics:[null,5152,null,null],ok:2},
+  {n:10,par:2,tipo:"sm",sez:1,testo:"Gli \"ingredienti\" sono:",opts:["I piatti da lavare","Le cose per preparare una ricetta","I mobili della cucina","I libri di cucina"],pics:[8022,5451,4446,5568],ok:1},
+  {n:11,par:4,tipo:"sm",sez:1,testo:"La \"teglia\" è:",opts:["Un tipo di forchetta","Un recipiente di metallo per cuocere","Un tipo di dolce","Una pentola per la pasta"],pics:[5131,7878,null,null],ok:1},
+  {n:12,par:6,tipo:"sm",sez:1,testo:"Le \"fragole\" sono:",opts:["Verdure verdi","Frutti rossi dolci e piccoli","Tipo di farina speciale","Cereali per colazione"],pics:[5040,5152,null,null],ok:1},
+  {n:13,par:3,tipo:"sm",sez:2,tip:"Il soggetto è chi compie l'azione. Chiedi: chi rompe?",testo:"Leggi: «Il nonno rompe le uova.» Qual è il soggetto?",opts:["Le uova","Rompe","Il nonno","Nella ciotola"],pics:[8022,null,6637,null],ok:2},
+  {n:14,par:3,tipo:"sm",sez:2,tip:"Il predicato verbale è il verbo. Chiedi: cosa fa Anna?",testo:"Leggi: «Anna mescola tutto.» Qual è il predicato verbale?",opts:["Anna","Tutto","Con forza","Mescola"],pics:[2939,8022,null,null],ok:3},
+  {n:15,par:6,tipo:"sm",sez:2,tip:"Il complemento oggetto risponde a: decora cosa?",testo:"Leggi: «Anna decora la torta.» Qual è il complemento oggetto?",opts:["Anna","Decora","La torta","Con le fragole"],pics:[2939,null,7953,null],ok:2},
+]},
+
 ]; // fine PROVE_DIS
 
 // ══════════════════════════════════════════════════════════════
@@ -596,7 +829,22 @@ let TOT_DOM = 0;
 
 window.addEventListener('load', () => {
   const p = new URLSearchParams(window.location.search);
-  const provaId = parseInt(p.get('prova') || '1');
+
+  // Prova custom via ?prova=custom&data=BASE64
+  if(p.get('prova') === 'custom'){
+    const raw = p.get('data');
+    if(raw){
+      try {
+        const json = decodeURIComponent(escape(atob(raw)));
+        const provaCustom = JSON.parse(json);
+        provaCustom.id = 'custom';
+        PROVE_DIS.push(provaCustom);
+      } catch(e){ console.warn('Prova custom non valida:', e); }
+    }
+  }
+
+  const provaRaw = p.get('prova') || '1';
+  const provaId  = provaRaw === 'custom' ? 'custom' : parseInt(provaRaw);
   NOME_STUD  = p.get('nome')   || '';
   CLASSE_STUD = p.get('classe') || '';
 
@@ -618,6 +866,14 @@ window.addEventListener('load', () => {
   // Carica prova
   PROVA_ATTUALE = PROVE_DIS.find(pr=>pr.id===provaId) || PROVE_DIS[0];
   renderProva(PROVA_ATTUALE);
+
+  // CAA: attiva dopo render (le immagini devono essere nel DOM)
+  if(ticList.includes('caa')){
+    document.body.classList.add('tic-caa');
+    const btn = document.getElementById('ticb-caa');
+    if(btn) btn.classList.add('on');
+    setTimeout(() => { caricaPittogrammi(); addCAAToText(); aggiornaCAABar(1); }, 200);
+  }
 });
 
 function togTicSilent(nome){
@@ -712,9 +968,27 @@ function renderDomanda(d, tutte){
   let inner = '';
   if(d.tipo==='sm'){
     const lett = ['A','B','C','D'];
-    inner += `<div class="opts">${d.opts.map((op,i) =>
-      `<label class="opt"><input type="radio" name="d${d.n}" value="${i}"> ${lett[i]}. &nbsp; ${op}</label>`
-    ).join('')}</div>`;
+    const stop = new Set(['il','lo','la','i','gli','le','un','una','uno','di','a','da','in','con','su','per','tra','fra','del','della','dei','degli','delle','al','alla','ai','agli','alle','che','non','si','è','e']);
+    inner += `<div class="opts">${d.opts.map((op,i) => {
+      // Determina URL pittogramma: usa pics[] se presente, poi dizionario, poi keyword
+      let picSrc = '';
+      if(d.pics && d.pics[i]){
+        picSrc = picUrl(d.pics[i]);
+      } else {
+        const kw = op.replace(/<[^>]+>/g,'').split(/\s+/).find(w => w.length>3 && !stop.has(w.toLowerCase())) || op.replace(/<[^>]+>/g,'').split(/\s+/)[0];
+        const kwClean = kw.toLowerCase().replace(/[^a-zàáèéìíòóùú]/g,'');
+        const dictId = ARASAAC_DICT[kwClean] || ARASAAC_DICT[kwClean.substring(0,5) ? Object.keys(ARASAAC_DICT).find(k=>k.startsWith(kwClean.substring(0,5)))||'' : ''];
+        if(dictId) picSrc = picUrl(dictId);
+      }
+      const imgTag = picSrc
+        ? `<img class="caa-img" src="${picSrc}" alt="" style="display:block" onerror="this.style.display='none';this.parentElement.style.display='none'">`
+        : `<img class="caa-img" src="" alt="" style="display:none">`;
+      return `<label class="opt"><input type="radio" name="d${d.n}" value="${i}">
+        <div class="caa-wrap"${picSrc?'':' data-kw="'+(op.replace(/<[^>]+>/g,'').split(/\s+/).find(w=>w.length>3&&!stop.has(w.toLowerCase()))||'').toLowerCase().replace(/[^a-zàáèéìíòóùú]/g,'')+'"'}>
+          ${imgTag}
+        </div>
+        <span class="opt-testo">${lett[i]}.&nbsp;&nbsp;${op}</span></label>`;
+    }).join('')}</div>`;
     if(d.tip) inner = `<div class="hint">💡 ${d.tip}</div>` + inner;
   } else if(d.tipo==='vf'){
     inner = d.righeVF.map((r,i) =>
@@ -746,6 +1020,7 @@ function attivaDom(dom){
     const p = document.getElementById('par'+par);
     if(p) p.classList.add('att');
   }
+  if(document.body.classList.contains('tic-caa')) aggiornaCAABar(par);
 }
 function click_tag(tag){
   const dom = tag.closest('.dom');
@@ -899,6 +1174,184 @@ function togTic(nome, btnId){
   const btn = document.getElementById(btnId);
   if(btn) btn.classList.toggle('on', document.body.classList.contains('tic-'+nome));
 }
+
+function togTicCAA(){
+  document.body.classList.toggle('tic-caa');
+  const btn = document.getElementById('ticb-caa');
+  if(btn) btn.classList.toggle('on', document.body.classList.contains('tic-caa'));
+  if(document.body.classList.contains('tic-caa')){
+    caricaPittogrammi();
+    addCAAToText();
+  }
+}
+
+// Cache pittogrammi per evitare chiamate ripetute
+// ── ARASAAC dizionario statico ─────────────────────────────────
+// Pittogrammi © Governo di Aragona — Sergio Palao per ARASAAC
+// https://www.arasaac.org — Licenza Creative Commons BY-NC-SA
+const ARASAAC_DICT = {
+  'acqua':2083,'aiutare':2560,'albero':2660,'arancione':2788,
+  'arcobaleno':2786,'ascoltare':2843,'bambina':2939,'bambino':2940,
+  'banana':3010,'bere':3498,'berretto':3160,'bianco':3214,
+  'biscotti':3267,'blu':3305,'borraccia':3329,'caldo':3632,
+  'camminare':3637,'cancello':3652,'cane':4884,'cappotto':3699,
+  'casa':19268,'cesto':3902,'cielo':4025,'ciotola':4020,
+  'città':4058,'classe':4046,'correre':6223,'crocchette':4414,
+  'cucchiaio':4447,'cucina':4446,'disegnare':4725,'dormire':7684,
+  'erba':4899,'fame':5003,'farina':5015,'felice':5040,
+  'fiore':5081,'finestra':5073,'foglie':5093,'forchetta':5131,
+  'forno':5130,'fossato':5142,'fragole':5152,'freddo':5165,
+  'gatto':4917,'giallo':5185,'giardino':5194,'giocare':6224,
+  'grande':5244,'guardare':5305,'guinzaglio':5303,'impermeabile':5434,
+  'ingredienti':5451,'labrador':4884,'lago':5494,'latte':5604,
+  'leggere':5537,'letto':5551,'lievito':5583,'libro':5568,
+  'luna':5662,'maestra':5714,'mangiare':6830,'marrone':5754,
+  'matita':5778,'mela':5809,'montagna':5895,'neve':6017,
+  'nero':5965,'nonno':6637,'nuvole':6684,'occhi':6721,
+  'pallone':6956,'pane':6982,'parco':6985,'paura':6996,
+  'piangere':7062,'pioggia':7090,'piccolo':7055,'porta':7116,
+  'pozzanghere':7127,'quaderno':7220,'ragazzo':7237,'recinzione':7270,
+  'ridere':7330,'rosso':7349,'saltare':7518,'scrivere':7591,
+  'scuola':6054,'sedia':7600,'sete':7618,'sole':7766,
+  'stivali':7826,'strada':7830,'tavolo':7874,'tazza':7944,
+  'teglia':7878,'torta':7953,'triste':7963,'uova':8022,
+  'verde':8037,'vento':8053,'viola':8069,'zucchero':8142,
+  'zaino':8132,'ciotola':4020,'mamma':37076,'bambino':2940,
+  'acqua':2083,'banana':3010,'casa':19268
+};
+
+function picUrl(id){ return `https://static.arasaac.org/pictograms/${id}/${id}_500.png`; }
+
+const _caaCache = {};
+
+async function fetchPic(kw){
+  if(_caaCache[kw] !== undefined) return _caaCache[kw];
+  // 1. dizionario statico — nessuna chiamata di rete
+  const kwBase = kw.replace(/[aeiouàáèéìíòóùú]+$/,'') || kw; // stem grezzo
+  let id = ARASAAC_DICT[kw] || ARASAAC_DICT[kwBase];
+  if(!id){
+    // cerca stem (prime 5 lettere)
+    const prefix = kw.substring(0,5);
+    const match = Object.keys(ARASAAC_DICT).find(k=>k.startsWith(prefix));
+    if(match) id = ARASAAC_DICT[match];
+  }
+  if(id){
+    _caaCache[kw] = picUrl(id);
+    return _caaCache[kw];
+  }
+  // 2. fallback API (solo se non in dizionario)
+  try {
+    const r = await fetch(`https://api.arasaac.org/api/pictograms/it/search/${encodeURIComponent(kw)}`);
+    if(!r.ok) throw new Error('no');
+    const data = await r.json();
+    if(data && data.length > 0){
+      _caaCache[kw] = picUrl(data[0]._id);
+    } else { _caaCache[kw] = null; }
+  } catch(e){ _caaCache[kw] = null; }
+  return _caaCache[kw];
+}
+
+async function caricaPittogrammi(){
+  const wraps = document.querySelectorAll('.caa-wrap[data-kw]:not([data-loaded])');
+  for(const wrap of wraps){
+    wrap.dataset.loaded = '1';
+    const kw = wrap.dataset.kw;
+    if(!kw) continue;
+    const img = wrap.querySelector('.caa-img');
+    if(!img) continue;
+    const url = await fetchPic(kw);
+    if(url){
+      img.onload  = ()=>{ img.style.display=''; wrap.style.display=''; };
+      img.onerror = ()=>{ img.style.display='none'; wrap.style.display='none'; };
+      img.src = url;
+    } else {
+      wrap.style.display='none';
+    }
+  }
+}
+
+// ── Barra pittogrammi paragrafo attivo ──────────────────────────
+const _parKW = {}; // {parNum: ['parola1','parola2',...]}
+const STOP = new Set(['il','lo','la','i','gli','le','un','una','uno','di','a','da','in','con','su','per','tra','fra','del','della','dei','degli','delle','al','alla','ai','agli','alle','che','non','si','è','e','o','ma','anche','era','poi','suo','sua','lui','lei','gli','loro','come','quando','dove','così','tutto','molto','dopo','prima','ogni','ancora','quel','questa','questo','quello','ne','ce','ci','mi','ti','vi','li','le','ha','ho','sei','già','solo','però','anche','bene','male','altri','nuovo','nuova','bello']);
+
+function estraiKW(parNum){
+  if(_parKW[parNum]) return _parKW[parNum];
+  const el = document.getElementById('par'+parNum);
+  if(!el){ _parKW[parNum]=[]; return []; }
+  const txt = el.innerText || el.textContent;
+  const kws = txt.split(/[\s.,;:!?«»""()''\-–]+/)
+    .map(w=>w.toLowerCase().replace(/[^a-zàáèéìíòóùú]/g,''))
+    .filter(w=>w.length>4 && !STOP.has(w));
+  // dedup, max 8
+  const seen=new Set(); const out=[];
+  for(const w of kws){ if(!seen.has(w)){ seen.add(w); out.push(w); if(out.length>=8) break; } }
+  _parKW[parNum]=out;
+  return out;
+}
+
+async function aggiornaCAABar(parNum){
+  const bar = document.getElementById('caa-bar');
+  if(!bar) return;
+  bar.innerHTML = '<span style="font-size:.65rem;color:#555;align-self:center;flex-shrink:0;padding-right:4px">🖼️ Parole:</span>';
+  if(!parNum){ return; }
+  const kws = estraiKW(parNum);
+  if(!kws.length){ bar.innerHTML=''; return; }
+  kws.forEach(kw=>{
+    const card = document.createElement('div');
+    card.className='caa-card';
+    const img = document.createElement('img');
+    img.alt=kw; img.title=kw;
+    img.onerror = ()=>{ img.classList.add('err'); card.style.display='none'; };
+    const lbl = document.createElement('span');
+    lbl.textContent=kw;
+    card.appendChild(img); card.appendChild(lbl);
+    bar.appendChild(card);
+    fetchPic(kw).then(url=>{ if(url) img.src=url; else { img.classList.add('err'); card.style.display='none'; } });
+  });
+}
+
+// Aggiunge pittogrammi alle parole del glossario nel testo (.glw)
+async function addCAAToText(){
+  document.querySelectorAll('.glw:not([data-caa-done])').forEach(async span => {
+    span.dataset.caaDone = '1';
+    // Estrai la parola chiave (prima del ':' nel titolo tooltip)
+    const raw = (span.getAttribute('title') || span.textContent).split(':')[0].trim();
+    const kw  = raw.toLowerCase().replace(/[^a-zàáèéìíòóùú]/g,'');
+    if(!kw || kw.length < 3) return;
+
+    const url = await fetchPic(kw);
+    if(!url) return;
+
+    // Crea wrapper con img sopra la parola
+    const wrapper = document.createElement('span');
+    wrapper.className = 'caa-glw-wrap';
+    const img = document.createElement('img');
+    img.className = 'caa-glw-pic';
+    img.src = url;
+    img.alt = kw;
+    img.title = raw;
+
+    span.parentNode.insertBefore(wrapper, span);
+    wrapper.appendChild(img);
+    wrapper.appendChild(span);
+  });
+}
+</script>
+
+<!-- ═══ ATTRIBUZIONE ARASAAC ════════════════════════════════ -->
+<div id="arasaac-attr" style="display:none;padding:8px 16px;background:#f3e5f5;font-size:10px;color:#6a1b9a;text-align:center;line-height:1.6;border-top:1px solid #ce93d8">
+  🖼️ I pittogrammi CAA utilizzati in questa applicazione appartengono al Governo di Aragona e sono stati creati da <strong>Sergio Palao</strong> per <strong>ARASAAC</strong> (<a href="https://www.arasaac.org" target="_blank" style="color:#6a1b9a">www.arasaac.org</a>), distribuiti con licenza <strong>Creative Commons BY-NC-SA</strong>.
+</div>
+<script>
+// Mostra attribuzione se CAA è attiva
+window.addEventListener('load',()=>{
+  if(document.body.classList.contains('tic-caa'))
+    document.getElementById('arasaac-attr').style.display='block';
+});
+document.body.addEventListener('classchange',()=>{
+  const el=document.getElementById('arasaac-attr');
+  if(el) el.style.display = document.body.classList.contains('tic-caa')?'block':'none';
+});
 </script>
 </body>
 </html>
