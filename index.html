@@ -468,6 +468,13 @@ html, body{
 .doc-tabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
 .tab-btn{padding:8px 16px;border:2px solid var(--blu);border-radius:6px;background:#fff;color:var(--blu);cursor:pointer;font-weight:700;font-size:12px;font-family:var(--font);transition:all .12s}
 .tab-btn.att{background:var(--blu);color:#fff}
+/* Sub-tabs interni a Nuova sessione */
+.sub-nav{display:flex;gap:0;margin-bottom:20px;border-radius:var(--r);overflow:hidden;border:2px solid var(--blu)}
+.sub-nav-btn{flex:1;padding:10px 8px;border:none;background:#fff;color:var(--blu);cursor:pointer;font-weight:700;font-size:12px;font-family:var(--font);transition:all .12s;border-right:1px solid var(--blu)}
+.sub-nav-btn:last-child{border-right:none}
+.sub-nav-btn.att{background:var(--blu);color:#fff}
+.sub-panel{display:none}
+.sub-panel.att{display:block}
 .panel{display:none}.panel.att{display:block}
 .table-wrap{background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.07);overflow-x:auto}
 table{width:100%;border-collapse:collapse;min-width:480px}
@@ -872,8 +879,6 @@ tr:hover td{background:var(--grigio-ch)}
     <button class="tab-btn" onclick="mostraTab('tab-analisi',this)">📊 Analisi sessione</button>
     <button class="tab-btn" onclick="mostraTab('tab-generale',this)">📈 Analisi generale</button>
     <button class="tab-btn" onclick="mostraTab('tab-new',this)">➕ Nuova sessione</button>
-    <button class="tab-btn" onclick="mostraTab('tab-dis',this)">🎯 Sessione personalizzata</button>
-    <button class="tab-btn" onclick="mostraTab('tab-carica',this)">📎 Carica prova</button>
     <button class="tab-btn" onclick="mostraTab('tab-pw',this)">🔑 Password</button>
     <button class="tab-btn" onclick="mostraTab('tab-import',this)">☁️ Importa da Sheet</button>
   </div>
@@ -955,222 +960,196 @@ tr:hover td{background:var(--grigio-ch)}
 
   <!-- TAB: NUOVA SESSIONE -->
   <div class="panel" id="tab-new">
-    <div class="panel-card">
-      <h3>Crea nuova sessione</h3>
-      <div class="fg">
-        <label class="flbl">Prova da somministrare</label>
-        <select class="finp" id="sel-prova-new" style="padding:9px 12px"></select>
-      </div>
 
-      <!-- TIC DSA -->
-      <div style="margin-top:14px;border:2px solid #e3eaf7;border-radius:8px;padding:12px 14px">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--blu);margin-bottom:10px">
-          Personalizzazione DSA
-        </div>
-        <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px;cursor:pointer">
-          <input type="checkbox" id="tic-large" style="width:16px;height:16px">
-          Testo grande
-        </label>
-        <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px;cursor:pointer">
-          <input type="checkbox" id="tic-contrasto" style="width:16px;height:16px">
-          Alto contrasto
-        </label>
-        <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px;cursor:pointer">
-          <input type="checkbox" id="tic-font" style="width:16px;height:16px">
-          Font per dislessia (Lexend)
-        </label>
-        <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px;cursor:pointer">
-          <input type="checkbox" id="tic-spaziatura" style="width:16px;height:16px">
-          Spaziatura aumentata
-        </label>
-        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
-          <input type="checkbox" id="tic-tempo" style="width:16px;height:16px">
-          Tempo esteso +30% <span style="font-size:11px;color:#888;margin-left:4px">(117 min)</span>
-        </label>
-      </div>
-
-      <!-- TIC Avanzate -->
-      <div style="margin-top:10px;border:2px solid #fce8c3;border-radius:8px;padding:12px 14px">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#b86000;margin-bottom:10px">
-          Personalizzazioni avanzate
-        </div>
-        <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px;cursor:pointer">
-          <input type="checkbox" id="tic-bes" style="width:16px;height:16px">
-          Modalità BES (testo grande + spaziatura)
-        </label>
-        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
-          <input type="checkbox" id="tic-maiuscolo" style="width:16px;height:16px">
-          Testo in STAMPATO MAIUSCOLO
-        </label>
-      </div>
-
-      <button class="btn btn-g" onclick="creaSessione()" style="width:100%;padding:11px;font-size:14px;margin-top:12px">✅ Crea sessione e genera link</button>
-      <div class="err-msg" id="err-new"></div>
-      <div class="succ-msg" id="succ-new"></div>
-    </div>
-  </div>
-
-  <!-- TAB: SESSIONE PERSONALIZZATA DISABILITÀ ─────────────────── -->
-  <div class="panel" id="tab-dis">
-
-    <div class="info-panel">
-      ✏️ <strong>Sessioni personalizzate per alunni con disabilità</strong><br>
-      Crea un link a <strong>grado8_dis.html</strong> — 10 testi narrativi originali,
-      15 domande per prova, struttura a paragrafi con illuminazione automatica,
-      glossario integrato e tutti i TIC selezionabili.
+    <!-- Sub-navigazione interna -->
+    <div class="sub-nav">
+      <button class="sub-nav-btn att" onclick="mostraSubTab('st-standard',this)">📋 Prove standard</button>
+      <button class="sub-nav-btn" onclick="mostraSubTab('st-dis',this)">🌟 Per disabilità</button>
+      <button class="sub-nav-btn" onclick="mostraSubTab('st-caa',this)">🖼️ Prove CAA</button>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start">
+    <!-- ══ SOTTO-PANNELLO 1: PROVE STANDARD ══════════════════ -->
+    <div class="sub-panel att" id="st-standard">
+      <div class="panel-card">
+        <h3>📋 Crea sessione — Prove standard</h3>
+        <div class="fg">
+          <label class="flbl">Prova da somministrare</label>
+          <select class="finp" id="sel-prova-new" style="padding:9px 12px"></select>
+        </div>
+        <!-- TIC DSA -->
+        <div style="margin-top:14px;border:2px solid #e3eaf7;border-radius:8px;padding:12px 14px">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--blu);margin-bottom:10px">Personalizzazione DSA</div>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px;cursor:pointer"><input type="checkbox" id="tic-large" style="width:16px;height:16px"> Testo grande</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px;cursor:pointer"><input type="checkbox" id="tic-contrasto" style="width:16px;height:16px"> Alto contrasto</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px;cursor:pointer"><input type="checkbox" id="tic-font" style="width:16px;height:16px"> Font per dislessia (Lexend)</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px;cursor:pointer"><input type="checkbox" id="tic-spaziatura" style="width:16px;height:16px"> Spaziatura aumentata</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="tic-tempo" style="width:16px;height:16px"> Tempo esteso +30% <span style="font-size:11px;color:#888;margin-left:4px">(117 min)</span></label>
+        </div>
+        <!-- TIC Avanzate -->
+        <div style="margin-top:10px;border:2px solid #fce8c3;border-radius:8px;padding:12px 14px">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#b86000;margin-bottom:10px">Personalizzazioni avanzate</div>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px;cursor:pointer"><input type="checkbox" id="tic-bes" style="width:16px;height:16px"> Modalità BES (testo grande + spaziatura)</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="tic-maiuscolo" style="width:16px;height:16px"> Testo in STAMPATO MAIUSCOLO</label>
+        </div>
+        <button class="btn btn-g" onclick="creaSessione()" style="width:100%;padding:11px;font-size:14px;margin-top:12px">✅ Crea sessione e genera link</button>
+        <div class="err-msg" id="err-new"></div>
+        <div class="succ-msg" id="succ-new"></div>
+      </div>
+    </div><!-- fine st-standard -->
 
-      <div class="panel-card" style="max-width:none">
-        <h3>📋 Dati sessione</h3>
+    <!-- ══ SOTTO-PANNELLO 2: PER DISABILITÀ ══════════════════ -->
+    <div class="sub-panel" id="st-dis">
+      <div class="info-panel">
+        🌟 <strong>Prove adattate per alunni con disabilità</strong><br>
+        10 testi narrativi originali con paragrafi estesi, glossario integrato, illuminazione automatica, audio TTS e tutti gli strumenti TIC selezionabili.
+      </div>
 
-        <div class="fg" style="margin-bottom:14px">
-          <label class="flbl">Prova</label>
-          <select id="dis-sel-prova" class="finp" style="padding:9px 12px">
-            <option value="1">1 — Il cane di Lorenzo</option>
-            <option value="2">2 — La torta di Giulia</option>
-            <option value="3">3 — La gita al lago</option>
-            <option value="4">4 — Il nuovo compagno</option>
-            <option value="5">5 — La casa sull'albero</option>
-            <option value="6">6 — Il gatto di Miriam</option>
-            <option value="7">7 — Il quaderno di Ahmed</option>
-            <option value="8">8 — La bicicletta rossa</option>
-            <option value="9">9 — La nonna di Chiara</option>
-            <option value="10">10 — L'aquilone di Tommaso</option>
-          </select>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;margin-top:16px">
+        <div class="panel-card" style="max-width:none">
+          <h3>📋 Dati sessione</h3>
+          <div class="fg" style="margin-bottom:14px">
+            <label class="flbl">Prova</label>
+            <select id="dis-sel-prova" class="finp" style="padding:9px 12px">
+              <option value="1">1 — Il cane di Lorenzo</option>
+              <option value="2">2 — La torta di Giulia</option>
+              <option value="3">3 — La gita al lago</option>
+              <option value="4">4 — Il nuovo compagno</option>
+              <option value="5">5 — La casa sull'albero</option>
+              <option value="6">6 — Il gatto di Miriam</option>
+              <option value="7">7 — Il quaderno di Ahmed</option>
+              <option value="8">8 — La bicicletta rossa</option>
+              <option value="9">9 — La nonna di Chiara</option>
+              <option value="10">10 — L'aquilone di Tommaso</option>
+            </select>
+          </div>
+          <div class="fg" style="margin-bottom:14px">
+            <label class="flbl">Classe</label>
+            <select id="dis-classe" class="finp" style="padding:9px 12px">
+              <option value="">— Nessuna (link generico) —</option>
+              <option value="3A">3A</option><option value="3B">3B</option>
+              <option value="3C">3C</option><option value="3D">3D</option><option value="3E">3E</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label class="flbl">Nome alunno (opzionale)</label>
+            <input type="text" id="dis-nome" placeholder="es. Mario R." maxlength="40" class="finp" style="padding:9px 12px">
+          </div>
         </div>
 
-        <div class="fg" style="margin-bottom:14px">
-          <label class="flbl">Classe</label>
-          <select id="dis-classe" class="finp" style="padding:9px 12px">
-            <option value="">— Nessuna (link generico) —</option>
-            <option value="3A">3A</option>
-            <option value="3B">3B</option>
-            <option value="3C">3C</option>
-            <option value="3D">3D</option>
-            <option value="3E">3E</option>
-          </select>
-        </div>
-
-        <div class="fg" style="margin-bottom:14px">
-          <label class="flbl">Nome alunno (opzionale)</label>
-          <input type="text" id="dis-nome" placeholder="es. Mario R." maxlength="40"
-            class="finp" style="padding:9px 12px">
+        <div class="panel-card" style="max-width:none">
+          <h3>⚙️ Strumenti TIC</h3>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-grande" style="width:16px;height:16px;accent-color:var(--verde)"> 🔍 <strong>Testo grande</strong></label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-maiuscolo" style="width:16px;height:16px;accent-color:var(--verde)"> 🔠 <strong>Stampato maiuscolo</strong></label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-contrasto" style="width:16px;height:16px;accent-color:var(--verde)"> 🌗 <strong>Alto contrasto</strong></label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-spaziatura" style="width:16px;height:16px;accent-color:var(--verde)"> ↔️ <strong>Spaziatura aumentata</strong></label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-font" style="width:16px;height:16px;accent-color:var(--verde)"> ✒️ <strong>Font dislessia</strong> — Lexend</label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-bes" style="width:16px;height:16px;accent-color:var(--verde)"> 📘 <strong>Modalità BES</strong></label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-caa" style="width:16px;height:16px;accent-color:#9c27b0"> 🖼️ <strong>+ Pittogrammi CAA</strong></label>
+          </div>
+          <div style="margin-top:10px;padding:9px 12px;background:#e8f5e9;border-radius:6px;font-size:11px;color:var(--verde)">
+            ✓ Sempre attivi: illuminazione paragrafi, glossario, audio TTS.
+          </div>
         </div>
       </div>
 
-      <div class="panel-card" style="max-width:none">
-        <h3>⚙️ Personalizzazioni TIC</h3>
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
-            <input type="checkbox" id="dis-tic-grande" style="width:16px;height:16px;accent-color:var(--verde)">
-            🔍 <strong>Testo grande</strong> — corpo aumentato, interlinea 2.2
-          </label>
-          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
-            <input type="checkbox" id="dis-tic-maiuscolo" style="width:16px;height:16px;accent-color:var(--verde)">
-            🔠 <strong>Stampato maiuscolo</strong> — tutto in MAIUSCOLO
-          </label>
-          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
-            <input type="checkbox" id="dis-tic-contrasto" style="width:16px;height:16px;accent-color:var(--verde)">
-            🌗 <strong>Alto contrasto</strong> — sfondo scuro, testo chiaro
-          </label>
-          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
-            <input type="checkbox" id="dis-tic-spaziatura" style="width:16px;height:16px;accent-color:var(--verde)">
-            ↔️ <strong>Spaziatura aumentata</strong> — tra lettere e parole
-          </label>
-          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
-            <input type="checkbox" id="dis-tic-font" style="width:16px;height:16px;accent-color:var(--verde)">
-            ✒️ <strong>Font dislessia</strong> — Lexend
-          </label>
-          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
-            <input type="checkbox" id="dis-tic-bes" style="width:16px;height:16px;accent-color:var(--verde)">
-            📘 <strong>Modalità BES</strong> — interlinea massima + corpo ++
-          </label>
-          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
-            <input type="checkbox" id="dis-tic-caa" style="width:16px;height:16px;accent-color:#9c27b0">
-            🖼️ <strong>CAA — Pittogrammi ARASAAC</strong> — immagini accanto alle risposte
-          </label>
-        </div>
-        <div style="margin-top:12px;padding:10px 12px;background:#f3e5f5;border-radius:6px;font-size:11px;color:#6a1b9a">
-          🖼️ <strong>CAA attiva</strong>: ogni risposta mostra il pittogramma ARASAAC della parola chiave. Richiede connessione internet.
-        </div>
-        <div style="margin-top:8px;padding:10px 12px;background:#e8f5e9;border-radius:6px;font-size:11px;color:var(--verde)">
-          ✓ <strong>Sempre attivi</strong> in grado8_dis.html: illuminazione paragrafi, glossario, audio TTS, ingrandimento manuale ⚙️.
-        </div>
-      </div>
-    </div>
-
-    <div style="margin-top:18px">
-      <button onclick="creaSessDisabilita()"
-        style="width:100%;padding:13px;background:var(--verde);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:800;cursor:pointer;font-family:var(--font)">
-        🔗 Genera link prova personalizzata
+      <button onclick="creaSessDisabilita()" style="width:100%;margin-top:16px;padding:13px;background:var(--verde);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:800;cursor:pointer;font-family:var(--font)">
+        🔗 Genera link prova adattata
       </button>
       <div id="dis-succ" class="succ-msg" style="display:none;margin-top:12px"></div>
-    </div>
 
-    <!-- ALLEGA PROVA PERSONALIZZATA ─────────────────────────── -->
-    <div style="margin-top:24px;border-top:2px dashed #b0c4de;padding-top:20px">
-      <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none"
-           onclick="toggleAllegaProva(this)">
-        <div>
-          <div style="font-size:13px;font-weight:800;color:var(--blu)">📎 Crea prova personalizzata</div>
-          <div style="font-size:11px;color:#888;margin-top:2px">Scrivi un testo e domande su misura → genera il link</div>
-        </div>
-        <span id="allega-arrow" style="font-size:18px;color:var(--blu);transition:transform .2s">▸</span>
-      </div>
-
-      <div id="allega-form" style="display:none;margin-top:16px">
-
-        <div class="info-panel" style="margin-bottom:14px;background:#f0f4ff;border-color:#b3c6f7">
-          📌 Calibra la prova sugli <strong>Obiettivi Minimi</strong>: comprensione del testo, lessico, soggetto/predicato/complemento oggetto.
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <!-- Crea prova personalizzata (fisarmonica) -->
+      <div style="margin-top:22px;border-top:2px dashed #b0c4de;padding-top:18px">
+        <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none" onclick="toggleAllegaProva(this)">
           <div>
-            <div class="fg" style="margin-bottom:10px">
-              <label class="flbl">Titolo del testo</label>
-              <input type="text" id="ap-titolo" class="finp" placeholder="es. La passeggiata di Luca" style="padding:9px 12px">
+            <div style="font-size:13px;font-weight:800;color:var(--blu)">📎 Crea prova personalizzata</div>
+            <div style="font-size:11px;color:#888;margin-top:2px">Scrivi un testo e domande su misura → genera il link</div>
+          </div>
+          <span id="allega-arrow" style="font-size:18px;color:var(--blu);transition:transform .2s">▸</span>
+        </div>
+        <div id="allega-form" style="display:none;margin-top:16px">
+          <div class="info-panel" style="margin-bottom:14px;background:#f0f4ff;border-color:#b3c6f7">
+            📌 Calibra sugli <strong>Obiettivi Minimi</strong>: comprensione, lessico, soggetto/predicato/complemento oggetto.
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+            <div>
+              <div class="fg" style="margin-bottom:10px"><label class="flbl">Titolo del testo</label><input type="text" id="ap-titolo" class="finp" placeholder="es. La passeggiata di Luca" style="padding:9px 12px"></div>
+              <div class="fg" style="margin-bottom:10px"><label class="flbl">Paragrafo 1 <span style="color:#888;font-weight:400">(obbligatorio)</span></label><textarea id="ap-par1" class="finp" rows="4" placeholder="Scrivi il primo paragrafo..." style="padding:9px 12px;resize:vertical;font-family:inherit;font-size:13px"></textarea></div>
+              <div class="fg" style="margin-bottom:10px"><label class="flbl">Paragrafo 2 <span style="color:#888;font-weight:400">(opzionale)</span></label><textarea id="ap-par2" class="finp" rows="4" placeholder="Secondo paragrafo..." style="padding:9px 12px;resize:vertical;font-family:inherit;font-size:13px"></textarea></div>
+              <div class="fg"><label class="flbl">Paragrafo 3 <span style="color:#888;font-weight:400">(opzionale)</span></label><textarea id="ap-par3" class="finp" rows="4" placeholder="Terzo paragrafo..." style="padding:9px 12px;resize:vertical;font-family:inherit;font-size:13px"></textarea></div>
             </div>
-
-            <div class="fg" style="margin-bottom:10px">
-              <label class="flbl">Paragrafo 1 <span style="color:#888;font-weight:400">(obbligatorio)</span></label>
-              <textarea id="ap-par1" class="finp" rows="4" placeholder="Scrivi il primo paragrafo del testo..." style="padding:9px 12px;resize:vertical;font-family:inherit;font-size:13px"></textarea>
-            </div>
-            <div class="fg" style="margin-bottom:10px">
-              <label class="flbl">Paragrafo 2 <span style="color:#888;font-weight:400">(opzionale)</span></label>
-              <textarea id="ap-par2" class="finp" rows="4" placeholder="Secondo paragrafo..." style="padding:9px 12px;resize:vertical;font-family:inherit;font-size:13px"></textarea>
-            </div>
-            <div class="fg">
-              <label class="flbl">Paragrafo 3 <span style="color:#888;font-weight:400">(opzionale)</span></label>
-              <textarea id="ap-par3" class="finp" rows="4" placeholder="Terzo paragrafo..." style="padding:9px 12px;resize:vertical;font-family:inherit;font-size:13px"></textarea>
+            <div>
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--blu);margin-bottom:10px">Domande (max 6)</div>
+              <div id="ap-domande-wrap" style="display:flex;flex-direction:column;gap:12px"></div>
+              <button onclick="addDomandaForm()" style="margin-top:10px;width:100%;padding:8px;border:2px dashed #b0c4de;border-radius:6px;background:#f7f9ff;color:var(--blu);cursor:pointer;font-size:12px;font-weight:700;font-family:var(--font)">➕ Aggiungi domanda</button>
             </div>
           </div>
+          <button onclick="generaProvaCustom()" style="margin-top:16px;width:100%;padding:12px;background:#5c35be;color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:800;cursor:pointer;font-family:var(--font)">📎 Genera link prova personalizzata</button>
+          <div id="ap-err" class="err-msg" style="display:none;margin-top:8px"></div>
+          <div id="ap-succ" class="succ-msg" style="display:none;margin-top:10px"></div>
+        </div>
+      </div>
+    </div><!-- fine st-dis -->
 
-          <div>
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--blu);margin-bottom:10px">
-              Domande (max 6) &nbsp;<span style="font-weight:400;font-size:10px;color:#888">— compila quelle che ti servono</span>
-            </div>
+    <!-- ══ SOTTO-PANNELLO 3: PROVE CAA ═══════════════════════ -->
+    <div class="sub-panel" id="st-caa">
+      <div class="info-panel" style="background:#f3e5f5;border-color:#ce93d8;color:#4a148c">
+        🖼️ <strong>Prove in Comunicazione Aumentativa Alternativa (CAA)</strong><br>
+        5 testi narrativi originali con pittogrammi ARASAAC su ogni parola chiave del testo e su ogni risposta. La modalità CAA è sempre attiva. Calibrate sugli Obiettivi Minimi: comprensione, lessico, soggetto/predicato/oggetto.
+      </div>
 
-            <div id="ap-domande-wrap" style="display:flex;flex-direction:column;gap:12px"></div>
-
-            <button onclick="addDomandaForm()"
-              style="margin-top:10px;width:100%;padding:8px;border:2px dashed #b0c4de;border-radius:6px;background:#f7f9ff;color:var(--blu);cursor:pointer;font-size:12px;font-weight:700;font-family:var(--font)">
-              ➕ Aggiungi domanda
-            </button>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;margin-top:16px">
+        <div class="panel-card" style="max-width:none">
+          <h3>📋 Dati sessione</h3>
+          <div class="fg" style="margin-bottom:14px">
+            <label class="flbl">Prova CAA</label>
+            <select id="caa-sel-prova" class="finp" style="padding:9px 12px">
+              <option value="11">1 — La colazione di Marco</option>
+              <option value="12">2 — Al parco con Bello</option>
+              <option value="13">3 — La pioggia di Luca</option>
+              <option value="14">4 — Il cane e il pallone</option>
+              <option value="15">5 — La torta del nonno</option>
+            </select>
+          </div>
+          <div class="fg" style="margin-bottom:14px">
+            <label class="flbl">Classe</label>
+            <select id="caa-classe" class="finp" style="padding:9px 12px">
+              <option value="">— Nessuna —</option>
+              <option value="3A">3A</option><option value="3B">3B</option>
+              <option value="3C">3C</option><option value="3D">3D</option><option value="3E">3E</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label class="flbl">Nome alunno (opzionale)</label>
+            <input type="text" id="caa-nome" placeholder="es. Mario R." maxlength="40" class="finp" style="padding:9px 12px">
           </div>
         </div>
 
-        <button onclick="generaProvaCustom()"
-          style="margin-top:16px;width:100%;padding:12px;background:#5c35be;color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:800;cursor:pointer;font-family:var(--font)">
-          📎 Genera link prova personalizzata
-        </button>
-        <div id="ap-err" class="err-msg" style="display:none;margin-top:8px"></div>
-        <div id="ap-succ" class="succ-msg" style="display:none;margin-top:10px"></div>
+        <div class="panel-card" style="max-width:none">
+          <h3>🖼️ Strumenti aggiuntivi</h3>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="caa-tic-grande" style="width:16px;height:16px;accent-color:#9c27b0"> 🔍 <strong>Testo grande</strong></label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="caa-tic-maiuscolo" style="width:16px;height:16px;accent-color:#9c27b0"> 🔠 <strong>Stampato maiuscolo</strong></label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="caa-tic-spaziatura" style="width:16px;height:16px;accent-color:#9c27b0"> ↔️ <strong>Spaziatura aumentata</strong></label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="caa-tic-bes" style="width:16px;height:16px;accent-color:#9c27b0"> 📘 <strong>Modalità BES</strong></label>
+          </div>
+          <div style="margin-top:12px;padding:10px 12px;background:#f3e5f5;border-radius:6px;font-size:11px;color:#6a1b9a">
+            🖼️ <strong>Pittogrammi ARASAAC sempre attivi</strong> su testo e risposte.<br>
+            <span style="opacity:.8">Richiede connessione internet per caricare le immagini.</span>
+          </div>
+          <div style="margin-top:8px;padding:8px 12px;background:#ede7f6;border-radius:6px;font-size:10px;color:#4a148c;line-height:1.5">
+            Pittogrammi © Governo di Aragona — Sergio Palao per <strong>ARASAAC</strong> (arasaac.org), licenza CC BY-NC-SA.
+          </div>
+        </div>
       </div>
-    </div>
 
-  </div><!-- fine #tab-dis -->
+      <button onclick="creaSessioneCAA()" style="width:100%;margin-top:16px;padding:13px;background:#7b1fa2;color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:800;cursor:pointer;font-family:var(--font)">
+        🖼️ Genera link prova CAA
+      </button>
+      <div id="caa-succ" class="succ-msg" style="display:none;margin-top:12px"></div>
+    </div><!-- fine st-caa -->
+
+  </div><!-- fine tab-new -->
 
   <!-- TAB: CARICA PROVA PERSONALIZZATA ─────────────────────── -->
   <div class="panel" id="tab-carica">
@@ -4106,6 +4085,59 @@ function mostraTab(id, btn){
 }
 
 function mostraTab2(id, btn){ mostraTab(id, btn); }
+
+function mostraSubTab(id, btn){
+  document.querySelectorAll('.sub-panel').forEach(p=>p.classList.remove('att'));
+  document.querySelectorAll('.sub-nav-btn').forEach(b=>b.classList.remove('att'));
+  const el = document.getElementById(id);
+  if(el) el.classList.add('att');
+  if(btn) btn.classList.add('att');
+}
+
+function creaSessioneCAA(){
+  const provaId = document.getElementById('caa-sel-prova').value;
+  const classe  = document.getElementById('caa-classe').value;
+  const nome    = document.getElementById('caa-nome').value.trim();
+
+  const ticExtra = [];
+  if(document.getElementById('caa-tic-grande')?.checked)    ticExtra.push('grande');
+  if(document.getElementById('caa-tic-maiuscolo')?.checked)  ticExtra.push('maiuscolo');
+  if(document.getElementById('caa-tic-spaziatura')?.checked) ticExtra.push('spaziatura');
+  if(document.getElementById('caa-tic-bes')?.checked)        ticExtra.push('bes');
+
+  // CAA sempre inclusa
+  const ticAll = ['caa', ...ticExtra];
+
+  const base = window.location.href.replace(/[^/]*$/, '') + 'grado8_dis.html';
+  const params = new URLSearchParams();
+  params.set('prova', provaId);
+  if(classe) params.set('classe', classe);
+  if(nome)   params.set('nome', nome);
+  params.set('tic', ticAll.join(','));
+
+  const link = base + '?' + params.toString();
+  window._linkCAA = link;
+
+  const nomiProve = {
+    '11':'La colazione di Marco','12':'Al parco con Bello',
+    '13':'La pioggia di Luca','14':'Il cane e il pallone','15':'La torta del nonno'
+  };
+
+  const el = document.getElementById('caa-succ');
+  el.innerHTML = `✅ Link prova CAA generato:<br>
+    <div style="margin-top:8px;padding:8px 12px;background:#fff;border:1px solid #9c27b0;border-radius:6px;word-break:break-all;font-size:12px;font-family:monospace">${link}</div>
+    <button onclick="navigator.clipboard.writeText(window._linkCAA).then(()=>alert('✅ Link copiato!'))"
+      style="margin-top:10px;width:100%;padding:9px;font-family:var(--font);font-weight:700;font-size:13px;border:none;border-radius:6px;cursor:pointer;background:#7b1fa2;color:#fff">
+      📋 Copia link
+    </button>
+    <div style="margin-top:8px;font-size:11px;color:#555">
+      Prova: <strong>${nomiProve[provaId]||provaId}</strong>
+      ${classe ? ' &nbsp;|&nbsp; Classe: <strong>'+classe+'</strong>' : ''}
+      ${nome   ? ' &nbsp;|&nbsp; Alunno: <strong>'+nome+'</strong>' : ''}<br>
+      TIC: <strong>${ticAll.join(', ')}</strong>
+    </div>`;
+  el.style.display='block';
+}
 
 // ── ALLEGA PROVA PERSONALIZZATA ──────────────────────────────────
 let _apDomN = 0;
