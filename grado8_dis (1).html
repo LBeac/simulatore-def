@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700;800&display=swap" rel="stylesheet">
+<title id="page-title">Grado 8 — Prova personalizzata</title>
+<style>
+/* ══ VARIABILI ════════════════════════════════════════════════ */
+:root{
+  --c1:#01579b;--c2:#0277bd;--cl:#e1f5fe;--cb:#81d4fa;
+  --hi:#fff9c4;--hi2:rgba(251,192,45,.85);--oro:#fff8e1;--ob:#f9a825;
+  --gok:#e8f5e9;--gbord:#2e7d32;--rc:#fdecea;
+  --bi:#fff;--tx:#1a1a1a;--gr:#f5f5f5;
+  --font:'Lexend',Verdana,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);font-size:15px;line-height:1.85;background:#e8f4fd;color:var(--tx);overflow-x:hidden}
+
+/* ── TIC CLASSES ───────────────────────────────────────────── */
+body.tic-maiuscolo .tpar, body.tic-maiuscolo .tdom, body.tic-maiuscolo .opt{text-transform:uppercase!important}
+body.tic-grande .tpar{font-size:1.25rem!important;line-height:2.2!important}
+body.tic-grande .tdom{font-size:1.1rem!important}
+body.tic-grande .opt{font-size:1rem!important;padding:11px 14px!important}
+body.tic-spaziatura .tpar, body.tic-spaziatura .tdom, body.tic-spaziatura .opt{
+  letter-spacing:.08em!important;word-spacing:.18em!important;line-height:2.6!important}
+body.tic-contrasto{background:#111!important}
+body.tic-contrasto .pt{background:#000!important}
+body.tic-contrasto .tpar{color:#fff!important}
+body.tic-contrasto .par{background:#111!important;border-bottom-color:#333!important}
+body.tic-contrasto .par.att{background:#1a1500!important;border-left-color:#fdd835!important}
+body.tic-contrasto .pd{background:#111!important}
+body.tic-contrasto .sez{background:#1a1a1a!important}
+body.tic-contrasto .tdom{color:#fff!important}
+body.tic-contrasto .opt{background:#222!important;color:#fff!important;border-color:#555!important}
+body.tic-font .tpar, body.tic-font .tdom, body.tic-font .opt, body.tic-font .sezt{font-family:'Lexend',sans-serif!important}
+body.tic-bes .tpar{font-size:1.1rem!important;line-height:2.4!important;letter-spacing:.06em!important;word-spacing:.15em!important}
+body.tic-bes .opt{font-size:1rem!important;line-height:1.9!important;padding:12px 14px!important}
+
+/* ── HEADER ────────────────────────────────────────────────── */
+.hdr{background:var(--c1);color:#fff;text-align:center;padding:14px 20px 10px;border-bottom:5px solid var(--ob);position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,.28)}
+.hdr h1{font-size:1.05rem;font-weight:800}
+.hdr p{font-size:.75rem;margin-top:3px;opacity:.88}
+.barra-wrap{background:var(--c1);padding:0 20px 8px;position:sticky;top:56px;z-index:199}
+.bfg{background:rgba(255,255,255,.25);border-radius:99px;height:8px;overflow:hidden}
+.bff{background:var(--ob);height:100%;border-radius:99px;transition:width .4s;width:0%}
+.blbl{font-size:.68rem;font-weight:800;color:rgba(255,255,255,.85);margin-top:3px;text-align:right}
+.istr{background:var(--oro);border-bottom:3px solid var(--ob);padding:9px 22px;font-size:.82rem;font-weight:700;color:#5a3a00}
+.istr ul{padding-left:18px;margin-top:3px}
+.istr li{margin-bottom:2px}
+
+/* ── SPLIT LAYOUT ─────────────────────────────────────────── */
+.split{display:flex;height:calc(100vh - 106px);overflow:hidden}
+.pt{width:44%;flex-shrink:0;background:var(--bi);border-right:3px solid var(--cb);overflow-y:auto}
+.pt-hdr{background:var(--c1);color:#fff;font-size:.74rem;font-weight:800;padding:7px 14px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10}
+.twrap{display:flex;gap:6px}
+.btool{font-family:var(--font);font-size:.7rem;font-weight:800;background:rgba(255,255,255,.16);color:#fff;border:2px solid rgba(255,255,255,.35);border-radius:18px;padding:3px 11px;cursor:pointer;transition:background .2s;display:flex;align-items:center;gap:4px}
+.btool:hover{background:rgba(255,255,255,.28)}
+.btool.on{background:var(--ob);color:#5a3a00;border-color:var(--ob)}
+.par{padding:13px 16px 11px;border-bottom:2px solid #e1f5fe;transition:background .3s,border-left .22s;border-left:5px solid transparent}
+.par.att{background:var(--hi);border-left:5px solid var(--ob)}
+.plbl{font-size:.64rem;font-weight:800;color:var(--c2);margin-bottom:5px;display:flex;align-items:center;gap:5px}
+.plbl .dot{width:8px;height:8px;border-radius:50%;background:var(--cb);flex-shrink:0;transition:background .3s}
+.par.att .dot{background:var(--ob)}
+.par.att .plbl{color:#7a5000}
+.tpar{font-size:.93rem;line-height:1.9}
+.glw{border-bottom:2.5px dashed var(--c2);cursor:help;font-weight:700;color:var(--c1)}
+.gl-p{background:var(--oro);border-top:3px solid var(--ob);padding:11px 16px}
+.glt{font-size:.72rem;font-weight:800;color:#7a5000;margin-bottom:8px}
+.gli{display:flex;gap:6px;margin-bottom:5px;font-size:.74rem;align-items:flex-start}
+.gli .glk{font-weight:800;color:var(--c1);min-width:110px;flex-shrink:0}
+
+/* ── INGRANDITO ─────────────────────────────────────────────── */
+.pt.ing .tpar{font-size:1.22rem!important;line-height:2.1!important}
+
+/* ── DOMANDE PANEL ─────────────────────────────────────────── */
+.pd{flex:1;overflow-y:auto;padding:16px 18px 60px;background:#e8f4fd}
+.sez{background:var(--bi);border-radius:12px;padding:16px 18px;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,.06);border-top:5px solid var(--c2)}
+.sez.lex{border-top-color:var(--ob)}
+.sez.gram{border-top-color:#c62828}
+.sezt{font-size:.9rem;font-weight:800;color:var(--c1);margin-bottom:12px;padding-bottom:7px;border-bottom:2px solid var(--cl);display:flex;align-items:center;gap:7px}
+.sez.lex .sezt{color:#7a5000}
+.sez.gram .sezt{color:#c62828}
+.dom{background:var(--gr);border-radius:9px;padding:12px 14px;margin-bottom:12px;border-left:4px solid var(--c2);scroll-margin-top:14px}
+.dom.li{border-left-color:var(--ob)}
+.dom.gi{border-left-color:#c62828}
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:.63rem;font-weight:800;padding:3px 9px;border-radius:18px;margin-bottom:5px;cursor:pointer;transition:opacity .2s;color:#fff;background:var(--c2)}
+.tag:hover{opacity:.75}
+.tag.oro{background:var(--ob);color:#5a3a00}
+.tag.ros{background:#c62828}
+.tag.gri{background:#757575}
+.ndom{font-size:.7rem;font-weight:800;color:var(--c2);margin-bottom:3px;opacity:.82}
+.dom.li .ndom{color:#7a5000}
+.dom.gi .ndom{color:#c62828}
+.tdom{font-size:.92rem;font-weight:700;margin-bottom:10px;line-height:1.52}
+.hint{font-size:.78rem;font-weight:700;background:#fff3e0;border:1.5px solid #ffb74d;border-radius:7px;padding:7px 11px;margin-bottom:10px;color:#7a4000;line-height:1.55}
+.opts{display:flex;flex-direction:column;gap:7px}
+.opt{display:flex;align-items:flex-start;gap:9px;background:var(--bi);border:2.5px solid var(--cb);border-radius:8px;padding:9px 12px;cursor:pointer;transition:all .15s;font-size:.9rem;line-height:1.48}
+.opt:hover{border-color:var(--c2);background:var(--cl)}
+.opt.sel{border-color:var(--c2);background:var(--cl)}
+.opt.ok{border-color:var(--gbord);background:var(--gok)}
+.opt.no{border-color:#c62828;background:var(--rc)}
+.opt input{margin-top:3px;width:17px;height:17px;flex-shrink:0;accent-color:var(--c2);cursor:pointer}
+.vfr{display:flex;align-items:center;gap:8px;background:var(--bi);border:2px solid var(--cb);border-radius:8px;padding:9px 12px;margin-bottom:7px;font-size:.88rem;font-weight:600;line-height:1.45}
+.vfr span{flex:1}
+.vfr label{display:flex;align-items:center;gap:4px;cursor:pointer;font-weight:800;background:var(--cl);border-radius:6px;padding:4px 10px;font-size:.82rem;border:2px solid transparent;transition:all .13s;white-space:nowrap}
+.vfr label:hover{border-color:var(--c2)}
+.vfr input{accent-color:var(--c2)}
+.vfr label.ok{background:var(--gok)!important;border-color:var(--gbord)!important;color:var(--gbord)}
+.vfr label.no{background:var(--rc)!important;border-color:#c62828!important;color:#c62828}
+.fb{font-size:.78rem;font-weight:800;margin-top:7px;padding:6px 11px;border-radius:6px;display:none}
+.fb.ok{background:var(--gok);color:var(--gbord)}
+.fb.no{background:var(--rc);color:#c62828}
+.sst{font-size:.74rem;font-weight:800;color:#fff;display:inline-block;padding:4px 12px;border-radius:18px;margin:10px 0 8px}
+.btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:20px;padding-bottom:24px}
+.btn{font-family:var(--font);font-size:.9rem;font-weight:800;padding:12px 26px;border:none;border-radius:10px;cursor:pointer;transition:all .2s}
+.btnp{background:var(--c2);color:#fff;box-shadow:0 4px 12px rgba(2,119,189,.28)}
+.btnp:hover{background:var(--c1);transform:translateY(-2px)}
+.btnr{background:#fff;color:var(--c2);border:2.5px solid var(--c2)}
+.btnr:hover{background:var(--cl)}
+
+/* ── RISULTATI ─────────────────────────────────────────────── */
+.risbox{display:none;background:var(--bi);border-radius:12px;padding:24px 18px;margin-top:18px;text-align:center;box-shadow:0 4px 18px rgba(0,0,0,.09);border-top:7px solid var(--c2)}
+.risbox h2{font-size:1.15rem;color:var(--c1);margin-bottom:7px}
+.risbox .pts{font-size:2.6rem;font-weight:900;color:var(--c1);margin:10px 0 4px;line-height:1}
+.risbox .sub{font-size:.82rem;color:#555;margin-bottom:12px}
+.risbox .rmsg{font-size:.9rem;font-weight:700;padding:12px 16px;border-radius:9px;margin-top:9px}
+
+/* ── TIC FLOATING PANEL ────────────────────────────────────── */
+#tic-panel{position:fixed;bottom:70px;right:12px;z-index:990;display:flex;flex-direction:column;gap:5px;align-items:flex-end}
+.tic-btn{width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,.45);background:var(--c1);color:#fff;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(0,0,0,.3);transition:all .15s;font-family:var(--font);position:relative}
+.tic-btn:hover{transform:scale(1.1)}
+.tic-btn.on{background:#2e7d32;border-color:#fff}
+.tic-btn .tic-lbl{position:absolute;right:52px;background:rgba(0,0,0,.75);color:#fff;padding:3px 8px;border-radius:4px;font-size:10px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .2s}
+.tic-btn:hover .tic-lbl{opacity:1}
+#tic-toggle{position:fixed;bottom:18px;right:12px;z-index:990;width:44px;height:44px;border-radius:50%;border:3px solid #fff;background:var(--ob);color:#5a3a00;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 14px rgba(0,0,0,.4);font-family:var(--font)}
+
+/* ── MOBILE ────────────────────────────────────────────────── */
+@media(max-width:768px){
+  .split{flex-direction:column;height:auto;overflow:visible}
+  .pt{width:100%;border-right:none;border-bottom:3px solid var(--cb);max-height:50vh}
+  .pd{padding:13px 13px 38px}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══════════════════════════════════════════════ -->
+<div class="hdr">
+  <h1 id="hdr-titolo">📖 Prova di italiano — Testo narrativo</h1>
+  <p id="hdr-sub">— &nbsp;|&nbsp; A.S. 2025/2026</p>
+</div>
+<div class="barra-wrap">
+  <div class="bfg"><div class="bff" id="bff"></div></div>
+  <div class="blbl" id="blbl">Completate: 0 / — risposte</div>
+</div>
+<div class="istr">
+  ℹ️ Istruzioni:
+  <ul>
+    <li>Leggi il testo a sinistra. I paragrafi si illuminano in giallo 🟡 automaticamente quando scorri le domande.</li>
+    <li>Clicca su <span style="background:var(--c2);color:#fff;padding:1px 8px;border-radius:10px;font-size:.75rem;">📍 Par. N</span> per tornare al punto esatto del testo.</li>
+    <li>🔊 Clicca <strong>Ascolta</strong> per la lettura ad alta voce. &nbsp;|&nbsp; ⚙️ Clicca il pulsante giallo per le opzioni di accessibilità.</li>
+  </ul>
+</div>
+
+<!-- ═══ SPLIT ════════════════════════════════════════════════ -->
+<div class="split">
+  <!-- COLONNA TESTO -->
+  <div class="pt" id="pt">
+    <div class="pt-hdr">
+      <span>📖 Leggi il testo</span>
+      <div class="twrap">
+        <button class="btool" id="baudio" onclick="toggleAudio()">🔊 Ascolta</button>
+        <button class="btool" id="blente" onclick="toggleLente()">🔍 Ingrandisci</button>
+      </div>
+    </div>
+    <div id="testo-content"><!-- Testo renderizzato da JS --></div>
+    <div class="gl-p" id="glossario-panel"><div class="glt">📚 Glossario — Parole difficili:</div><div id="glossario-items"></div></div>
+  </div>
+
+  <!-- COLONNA DOMANDE -->
+  <div class="pd" id="pd">
+    <div id="domande-content"><!-- Domande renderizzate da JS --></div>
+    <div class="btns">
+      <button class="btn btnp" onclick="controlla()">✅ Controlla le risposte</button>
+      <button class="btn btnr" onclick="riazzeramento()">🔄 Ricomincia</button>
+    </div>
+    <div class="risbox" id="risbox">
+      <h2>🎓 Risultato della prova</h2>
+      <div class="pts" id="pts">—</div>
+      <div class="sub" id="sub-ris">risposte corrette</div>
+      <div class="rmsg" id="rmsg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TIC FLOATING PANEL ═══════════════════════════════════ -->
+<button id="tic-toggle" title="Opzioni accessibilità" onclick="toggleTicPanel()">⚙️</button>
+<div id="tic-panel" style="display:none">
+  <div class="tic-btn" id="ticb-maiuscolo" onclick="togTic('maiuscolo','ticb-maiuscolo')" title="Maiuscolo"><span class="tic-lbl">Maiuscolo</span>🔠</div>
+  <div class="tic-btn" id="ticb-grande" onclick="togTic('grande','ticb-grande')" title="Testo grande"><span class="tic-lbl">Testo grande</span>🔍</div>
+  <div class="tic-btn" id="ticb-spaziatura" onclick="togTic('spaziatura','ticb-spaziatura')" title="Spaziatura aumentata"><span class="tic-lbl">Spaziatura+</span>↔️</div>
+  <div class="tic-btn" id="ticb-contrasto" onclick="togTic('contrasto','ticb-contrasto')" title="Alto contrasto"><span class="tic-lbl">Alto contrasto</span>🌗</div>
+  <div class="tic-btn" id="ticb-font" onclick="togTic('font','ticb-font')" title="Font dislessia (Lexend)"><span class="tic-lbl">Font dislessia</span>✒️</div>
+  <div class="tic-btn" id="ticb-bes" onclick="togTic('bes','ticb-bes')" title="Modalità BES/DSA"><span class="tic-lbl">BES/DSA</span>📘</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     DATI — 10 PROVE ADATTATE
+     max 20 domande | testi originali | glossario integrato
+════════════════════════════════════════════════════════════ -->
+<script>
+const PROVE_DIS = [
+
+// ══ PROVA 1 ═══════════════════════════════════════════════
+{id:1, titolo:"Il cane di Lorenzo", sottotitolo:"Testo narrativo",
+paragrafi:[
+  {n:1, testo:`Lorenzo ha undici anni e vive in un piccolo paese vicino al fiume. Il suo cane si chiama <span class="glw" title="Rex: nome proprio di un cane labrador">Rex</span> ed è un <span class="glw" title="labrador: razza di cane di taglia media, dal pelo corto e morbido">labrador</span> color miele. Rex dorme ai piedi del letto di Lorenzo ogni notte e lo aspetta sempre davanti alla porta quando lui torna da scuola.`},
+  {n:2, testo:`Un mattino d'autunno, Lorenzo aprì il cancello del giardino per prendere il giornale. In quel momento Rex scappò via di corsa, infilando il muso sotto la <span class="glw" title="recinzione: barriera che delimita uno spazio, come una rete o una staccionata">recinzione</span> rotta. Lorenzo lo chiamò ad alta voce, ma il cane non si voltò. Il cuore di Lorenzo si riempì di paura.`},
+  {n:3, testo:`Lorenzo girò tutto il paese cercando Rex. Guardò dietro le case, nei <span class="glw" title="vicoli: strade strette tipiche dei vecchi centri abitati">vicoli</span>, nel parco. Chiamò il nome del cane fino a perdere la voce. Nessuno sembrava averlo visto.`},
+  {n:4, testo:`Dopo un'ora, la signora Betti, la vicina di casa, uscì sul balcone e disse: «Ho sentito un cane abbaiare vicino alla <span class="glw" title="rimessa: locale coperto dove si tengono attrezzi e veicoli">rimessa</span> del trattore!» Lorenzo corse subito in quella direzione.`},
+  {n:5, testo:`Vicino alla rimessa c'era un <span class="glw" title="fossato: buca lunga e stretta nel terreno, spesso piena di erba">fossato</span> pieno di erba alta. Là dentro Lorenzo vide due occhi gialli brillare. Era Rex, intrappolato tra due rami caduti. Il cane <span class="glw" title="guaiva: emetteva un suono lamentoso, tipico dei cani spaventati">guaiva</span> piano, ma stava bene.`},
+  {n:6, testo:`Lorenzo liberò Rex con delicatezza e lo abbracciò forte. Quella sera, prima di dormire, il ragazzo riparò la recinzione con il papà. Rex si addormentò ai suoi piedi, come sempre, tranquillo e felice.`},
+],
+glossario:[
+  {k:"Labrador", v:"Razza di cane di taglia media, dal pelo corto e morbido, solitamente color miele o nero."},
+  {k:"Recinzione", v:"Barriera che delimita uno spazio, come una rete, una staccionata o un muro."},
+  {k:"Vicoli", v:"Strade strette tipiche dei vecchi centri abitati."},
+  {k:"Rimessa", v:"Locale coperto dove si tengono attrezzi, macchine o veicoli agricoli."},
+  {k:"Fossato", v:"Buca lunga e stretta scavata nel terreno, spesso piena di erba o acqua."},
+  {k:"Guaiva", v:"Emetteva un suono lamentoso, tipico dei cani quando hanno paura o dolore."},
+],
+domande:[
+  {n:1,par:1,tipo:"sm",sez:0,testo:"Chi è il protagonista di questo racconto?",opts:["Rex, il cane","La signora Betti","Lorenzo, un ragazzo di undici anni","Il papà di Lorenzo"],ok:2},
+  {n:2,par:1,tipo:"sm",sez:0,testo:"Come si chiama il cane di Lorenzo?",opts:["Fido","Rex","Lupo","Pallino"],ok:1},
+  {n:3,par:2,tipo:"sm",sez:0,testo:"Come fece Rex a scappare dal giardino?",opts:["Saltò oltre il cancello","Passò sotto la recinzione rotta","Aprì il cancello da solo","Scappò mentre Lorenzo aveva la porta aperta"],ok:1},
+  {n:4,par:4,tipo:"sm",sez:0,testo:"Chi aiutò Lorenzo a capire dove poteva essere Rex?",opts:["La signora Betti, la vicina di casa","Il papà di Lorenzo","Un ragazzo per strada","Un vigile del fuoco"],ok:0},
+  {n:5,par:5,tipo:"sm",sez:0,testo:"Dove si trovava Rex quando Lorenzo lo trovò?",opts:["Dietro la porta della rimessa","Sotto un albero vicino al fiume","In un fossato tra due rami caduti","Nel parco del paese"],ok:2},
+  {n:6,par:0,tipo:"vf",sez:0,testo:"Segna V se l'affermazione è vera, F se è falsa.",
+    righeVF:[{t:"Lorenzo aprì il cancello per portare Rex a passeggio.",ok:false},{t:"Lorenzo cercò Rex anche nel parco del paese.",ok:true},{t:"Rex era ferito gravemente quando Lorenzo lo trovò.",ok:false}]},
+  {n:7,par:6,tipo:"sm",sez:0,testo:"Cosa fece Lorenzo quella sera insieme al papà?",opts:["Portò Rex dal veterinario","Riparò la recinzione del giardino","Scrisse una lettera alla signora Betti","Comprò un nuovo cancello"],ok:1},
+  {n:8,par:0,tipo:"sm",sez:0,testo:"Di cosa parla questo racconto?",opts:["Una gita in campagna","Un cane che attacca una vicina","Un ragazzo che cerca il suo cane e lo trova","Un ragazzo che compra un cane al mercato"],ok:2},
+  {n:9,par:2,tipo:"sm",sez:1,testo:'Nel testo si legge: «il muso sotto la recinzione rotta». Cosa significa la parola "recinzione"?',opts:["Un tipo di cibo per cani","Una barriera che delimita uno spazio","Un fossato pieno d'acqua","Una strada di campagna"],ok:1},
+  {n:10,par:5,tipo:"sm",sez:1,testo:'Nel testo Rex era "intrappolato". Qual è il contrario di "intrappolato"?',opts:["Stanco","Libero","Silenzioso","Nascosto"],ok:1},
+  {n:11,par:0,tipo:"vf",sez:0,testo:"Segna V se l'affermazione è vera, F se è falsa.",
+    righeVF:[{t:"Rex è un labrador color miele.",ok:true},{t:"Lorenzo trovò Rex vicino alla rimessa del trattore.",ok:true},{t:"Il racconto finisce con Rex ancora scomparso.",ok:false}]},
+  {n:12,par:2,tipo:"sm",sez:1,testo:'Nella frase «Il cuore di Lorenzo si riempì di paura» quale parola indica un\'emozione?',opts:["Paura","Cuore","Lorenzo","Riempì"],ok:0},
+  {n:13,par:6,tipo:"sm",sez:2,tip:"Il soggetto è chi compie l'azione. Chiedi: chi liberò Rex?",testo:'Leggi: «Lorenzo liberò Rex con delicatezza.» Qual è il soggetto?',opts:["Lorenzo","Rex","Con delicatezza","Liberò"],ok:0},
+  {n:14,par:1,tipo:"sm",sez:2,tip:"Il soggetto è chi compie l'azione. Chiedi: chi dorme?",testo:'Leggi: «Rex dorme ai piedi del letto.» Qual è il soggetto?',opts:["Il letto","Rex","Lorenzo","Ai piedi"],ok:1},
+  {n:15,par:2,tipo:"sm",sez:2,tip:"Il predicato verbale è il verbo. Chiedi: cosa fece Lorenzo?",testo:'Leggi: «Lorenzo chiamò il cane ad alta voce.» Qual è il predicato verbale?',opts:["Lorenzo","Chiamò","Il cane","Ad alta voce"],ok:1},
+]},
+
+// ══ PROVA 2 ═══════════════════════════════════════════════
+{id:2, titolo:"La torta di Giulia", sottotitolo:"Testo narrativo",
+paragrafi:[
+  {n:1, testo:`Giulia ha dodici anni e vive con i suoi genitori e il nonno Luigi. Il nonno è il suo migliore amico. Ogni domenica mattina siedono insieme in cucina e Giulia gli racconta della scuola, dei suoi amici e dei suoi sogni.`},
+  {n:2, testo:`Un giorno Giulia scopre che tra due settimane è il compleanno del nonno Luigi. Vuole fargli una sorpresa speciale. Decide di preparare da sola una torta al cioccolato, perché il nonno la ama moltissimo.`},
+  {n:3, testo:`La mattina del compleanno, Giulia si alza presto. Con la mamma va al <span class="glw" title="supermercato: grande negozio dove si vendono alimenti e prodotti per la casa">supermercato</span> a comprare gli <span class="glw" title="ingredienti: le cose necessarie per preparare una ricetta">ingredienti</span>. Comprano farina, zucchero, uova, burro e cacao.`},
+  {n:4, testo:`A casa, Giulia mette gli ingredienti in una <span class="glw" title="ciotola: contenitore tondo e profondo usato in cucina per mescolare ingredienti">ciotola</span> grande. Aggiunge il <span class="glw" title="lievito: sostanza che fa gonfiare l'impasto durante la cottura">lievito</span> e mescola tutto con un cucchiaio di legno. Poi versa l'<span class="glw" title="impasto: il composto morbido ottenuto mescolando gli ingredienti">impasto</span> in una <span class="glw" title="teglia: il recipiente di metallo in cui si cuoce l'impasto nel forno">teglia</span>. La mamma la guarda sorridente senza dire una parola.`},
+  {n:5, testo:`Giulia mette la teglia nel forno e aspetta. In tutta la casa si diffonde un profumo dolce di cioccolato. Dopo quaranta minuti, la torta è pronta. Giulia la lascia raffreddare sul tavolo.`},
+  {n:6, testo:`Quando il nonno Luigi torna a casa, Giulia grida: «Sorpresa! Ho fatto la torta io!» Il nonno assaggia un pezzo e sorride felice. «È la cosa più buona che abbia mai mangiato», dice con gli occhi lucidi. Giulia abbraccia il nonno con tutta la forza che ha.`},
+],
+glossario:[
+  {k:"Ingredienti", v:"Le cose necessarie per preparare una ricetta, come farina, zucchero e uova."},
+  {k:"Ciotola", v:"Contenitore tondo e profondo usato in cucina per mescolare ingredienti."},
+  {k:"Lievito", v:"Sostanza che fa gonfiare l'impasto durante la cottura in forno."},
+  {k:"Impasto", v:"Il composto morbido ottenuto mescolando insieme gli ingredienti."},
+  {k:"Teglia", v:"Il recipiente di metallo in cui si mette l'impasto per cuocerlo nel forno."},
+],
+domande:[
+  {n:1,par:1,tipo:"sm",sez:0,testo:"Chi è la protagonista di questo racconto?",opts:["Il nonno Luigi","La mamma","Giulia, una ragazza di dodici anni","Il papà"],ok:2},
+  {n:2,par:2,tipo:"sm",sez:0,testo:"Cosa decide di fare Giulia per il compleanno del nonno?",opts:["Comprargli un regalo al negozio","Fargli una torta al cioccolato","Organizzare una festa con gli amici","Scrivergli una lettera"],ok:1},
+  {n:3,par:3,tipo:"sm",sez:0,testo:"Con chi va Giulia a fare la spesa?",opts:["Con il nonno Luigi","Con il papà","Con la mamma","Da sola"],ok:2},
+  {n:4,par:4,tipo:"sm",sez:0,testo:"Come mescola Giulia gli ingredienti?",opts:["Con una frusta elettrica","Con un cucchiaio di legno","Con le mani","Con un frullatore"],ok:1},
+  {n:5,par:5,tipo:"sm",sez:0,testo:"Quanto tempo cuoce la torta nel forno?",opts:["Venti minuti","Trenta minuti","Quaranta minuti","Un'ora"],ok:2},
+  {n:6,par:0,tipo:"vf",sez:0,testo:"Segna V se l'affermazione è vera, F se è falsa.",
+    righeVF:[{t:"Il nonno è il migliore amico di Giulia.",ok:true},{t:"Giulia prepara la torta con l'aiuto della mamma.",ok:false},{t:"Il profumo di cioccolato si diffonde in tutta la casa.",ok:true}]},
+  {n:7,par:6,tipo:"sm",sez:0,testo:"Come reagisce il nonno quando vede la torta?",opts:["Si arrabbia perché non gli piace il cioccolato","È indifferente","Sorride felice e dice che è buonissima","Piange di delusione"],ok:2},
+  {n:8,par:0,tipo:"sm",sez:0,testo:"Di cosa parla questo racconto?",opts:["Una gara di cucina a scuola","Una ragazza che prepara una torta per il compleanno del nonno","Una nonna che insegna a cucinare","Un negozio di dolci in città"],ok:1},
+  {n:9,par:4,tipo:"sm",sez:1,testo:'La parola "lievito" indica:',opts:["Un tipo di farina speciale","Una sostanza che fa gonfiare l'impasto durante la cottura","Il nome di un negozio di dolci","Uno strumento da cucina"],ok:1},
+  {n:10,par:6,tipo:"sm",sez:1,testo:'Il nonno aveva "gli occhi lucidi". Cosa significa questa espressione?',opts:["Aveva gli occhi stanchi","Aveva gli occhi luminosi per la commozione","Aveva gli occhi chiusi","Aveva gli occhi di un colore speciale"],ok:1},
+  {n:11,par:0,tipo:"vf",sez:0,testo:"Segna V se l'affermazione è vera, F se è falsa.",
+    righeVF:[{t:"La torta è al cioccolato.",ok:true},{t:"Giulia festeggia il suo compleanno.",ok:false},{t:"Il nonno è sorpreso dalla torta di Giulia.",ok:true}]},
+  {n:12,par:3,tipo:"sm",sez:2,tip:"Il soggetto è chi compie l'azione. Chiedi: chi compra?",testo:'Leggi: «La mamma e Giulia comprano farina e zucchero.» Qual è il soggetto?',opts:["Comprano","Farina e zucchero","La mamma e Giulia","Il supermercato"],ok:2},
+  {n:13,par:4,tipo:"sm",sez:2,tip:"Il predicato verbale è il verbo. Chiedi: cosa fa Giulia?",testo:'Leggi: «Giulia versa l\'impasto nella teglia.» Qual è il predicato verbale?',opts:["Giulia","L'impasto","Versa","La teglia"],ok:2},
+  {n:14,par:4,tipo:"sm",sez:2,tip:"Il complemento oggetto risponde a: Giulia fa l'azione su cosa?",testo:'Leggi: «Giulia mette gli ingredienti nella ciotola.» Qual è il complemento oggetto?',opts:["Giulia","Mette","Gli ingredienti","Nella ciotola"],ok:2},
+  {n:15,par:5,tipo:"sm",sez:1,testo:'Nel testo si dice che la torta "si raffredda". Qual è il contrario di "caldo"?',opts:["Freddo","Morbido","Dolce","Pesante"],ok:0},
+]},
+
+// ══ PROVA 3 ═══════════════════════════════════════════════
+{id:3, titolo:"La gita al lago", sottotitolo:"Testo narrativo",
+paragrafi:[
+  {n:1, testo:`Ogni anno, la classe terza della scuola media di San Rocco organizza una gita di fine anno. Quell'anno la <span class="glw" title="meta: la destinazione, il posto dove si arriva">meta</span> era il lago di Comabbio, a poca distanza dalla città. I ragazzi erano in <span class="glw" title="fermento: grande eccitazione per qualcosa che si aspetta con gioia">fermento</span> da settimane.`},
+  {n:2, testo:`Il mattino della gita, il cielo era grigio e pesante. La professoressa Sala guardò le nuvole con preoccupazione, ma decise di partire lo stesso. «Un po' di pioggerella non ci spaventa!», disse con un sorriso.`},
+  {n:3, testo:`Appena arrivati al lago, la pioggia smise. Sul <span class="glw" title="lungolago: la strada che costeggia le rive del lago">lungolago</span> c'erano panchine di legno e un piccolo <span class="glw" title="pontile: struttura che si estende sull'acqua, dove si attraccano le barche">pontile</span> dal quale si poteva vedere il fondo trasparente dell'acqua. Marco e Giulia si avvicinarono al bordo con cautela.`},
+  {n:4, testo:`La professoressa distribuì delle schede con domande sull'<span class="glw" title="ecosistema: l'insieme degli esseri viventi e dell'ambiente in un certo luogo">ecosistema</span> del lago. I ragazzi dovevano osservare gli animali e le piante presenti. Luca scoprì una rana verde nascosta tra i <span class="glw" title="giunchi: piante acquatiche alte e sottili che crescono vicino all'acqua">giunchi</span> e la mostrò a tutti.`},
+  {n:5, testo:`Dopo il pranzo al sacco, la classe si sedette sull'erba e la professoressa lesse un brano sul ciclo dell'acqua. Poi chiese ai ragazzi di scrivere due righe su quello che avevano visto. Tutti scrissero qualcosa, anche i più pigri.`},
+  {n:6, testo:`Sul pullman del ritorno, i ragazzi erano stanchi ma soddisfatti. Marco disse che quella gita era stata la migliore dell'anno. La professoressa Sala sorrise e <span class="glw" title="annotò: scrisse per ricordare qualcosa di importante">annotò</span> sul registro: «Uscita riuscita. Da ripetere.»`},
+],
+glossario:[
+  {k:"Meta", v:"La destinazione, il posto dove si arriva dopo un viaggio."},
+  {k:"Fermento", v:"Grande eccitazione positiva per qualcosa che si aspetta con gioia."},
+  {k:"Lungolago", v:"La strada o il vialetto che costeggia le rive di un lago."},
+  {k:"Pontile", v:"Struttura di legno o metallo che si estende sull'acqua, dove si attraccano le barche."},
+  {k:"Ecosistema", v:"L'insieme degli esseri viventi (piante, animali) e dell'ambiente naturale in un dato luogo."},
+  {k:"Giunchi", v:"Piante acquatiche alte e sottili che crescono vicino all'acqua."},
+  {k:"Annotò", v:"Scrisse per tenere memoria di qualcosa di importante."},
+],
+domande:[
+  {n:1,par:1,tipo:"sm",sez:0,testo:"Dove era diretta la gita della classe?",opts:["Al mare","In un parco tra le montagne","Al lago di Comabbio","In un museo"],ok:2},
+  {n:2,par:2,tipo:"sm",sez:0,testo:"Com'era il cielo la mattina della gita?",opts:["Grigio e pesante","Sereno e soleggiato","Con poca pioggia ma bello","Coperto di neve"],ok:0},
+  {n:3,par:2,tipo:"sm",sez:0,testo:"Cosa decise di fare la professoressa nonostante il cielo grigio?",opts:["Rimandare la gita","Partire lo stesso","Portare i ragazzi in biblioteca","Tornare a casa"],ok:1},
+  {n:4,par:3,tipo:"sm",sez:0,testo:"Cosa c'era sul lungolago?",opts:["Un ristorante e un negozio","Panchine di legno e un pontile","Un parco giochi e una fontana","Una grande barca a vela"],ok:1},
+  {n:5,par:4,tipo:"sm",sez:0,testo:"Cosa scoprì Luca vicino all'acqua?",opts:["Una tartaruga","Un pesce colorato","Una rana verde tra i giunchi","Un nido di uccelli"],ok:2},
+  {n:6,par:0,tipo:"vf",sez:0,testo:"Segna V se l'affermazione è vera, F se è falsa.",
+    righeVF:[{t:"La gita era per la classe terza della scuola media.",ok:true},{t:"La professoressa si chiamava Sala.",ok:true},{t:"I ragazzi mangiarono al ristorante sul lago.",ok:false}]},
+  {n:7,par:5,tipo:"sm",sez:0,testo:"Cosa chiese la professoressa di fare dopo il pranzo?",opts:["Di disegnare il paesaggio","Di costruire un modellino","Di scrivere due righe su ciò che avevano visto","Di raccogliere piante sul bordo del lago"],ok:2},
+  {n:8,par:6,tipo:"sm",sez:0,testo:"Cosa scrisse la professoressa sul registro?",opts:["«Uscita riuscita. Da ripetere.»","«Gita annullata per pioggia.»","«I ragazzi si sono comportati male.»","«Prossima gita: mare.»"],ok:0},
+  {n:9,par:1,tipo:"sm",sez:1,testo:'La parola "meta" nel testo significa:',opts:["Un tipo di sport","La destinazione del viaggio","Un lago vicino alla città","Il nome di una professoressa"],ok:1},
+  {n:10,par:4,tipo:"sm",sez:1,testo:'La parola "ecosistema" indica:',opts:["Un tipo di sport acquatico","Un lago artificiale","L'insieme degli esseri viventi e dell'ambiente di un luogo","Un tipo di pianta acquatica"],ok:2},
+  {n:11,par:0,tipo:"vf",sez:0,testo:"Segna V se l'affermazione è vera, F se è falsa.",
+    righeVF:[{t:"I ragazzi erano felici di andare in gita.",ok:true},{t:"La pioggia durò per tutta la giornata al lago.",ok:false},{t:"Sul pullman del ritorno i ragazzi erano stanchi ma soddisfatti.",ok:true}]},
+  {n:12,par:3,tipo:"sm",sez:2,tip:"Chiedi: chi si avvicinò?",testo:'Leggi: «Marco e Giulia si avvicinarono al bordo con cautela.» Qual è il soggetto?',opts:["Il bordo","Si avvicinarono","Marco e Giulia","Con cautela"],ok:2},
+  {n:13,par:4,tipo:"sm",sez:2,tip:"Il predicato verbale è il verbo. Chiedi: cosa fece Luca?",testo:'Leggi: «Luca scoprì una rana verde.» Qual è il predicato verbale?',opts:["Luca","Scoprì","Una rana verde","Verde"],ok:1},
+  {n:14,par:4,tipo:"sm",sez:2,tip:"Il complemento oggetto risponde a: Luca scoprì cosa?",testo:'Leggi: «Luca scoprì una rana verde tra i giunchi.» Qual è il complemento oggetto?',opts:["Luca","Scoprì","Una rana verde","Tra i giunchi"],ok:2},
+  {n:15,par:1,tipo:"sm",sez:1,testo:'La parola "fermento" nel testo indica:',opts:["Paura e preoccupazione","Grande eccitazione positiva","Un problema da risolvere","Il rumore del lago"],ok:1},
+]},
+
+// ══ PROVA 4 ═══════════════════════════════════════════════
+{id:4, titolo:"Il nuovo compagno", sottotitolo:"Testo narrativo",
+paragrafi:[
+  {n:1, testo:`Un lunedì mattina, sulla porta della classe 2B, appare un ragazzo che nessuno conosce. Si chiama Omar e ha appena cambiato scuola. Tiene la testa bassa e non dice niente. Sembra molto <span class="glw" title="imbarazzato: a disagio perché non conosce nessuno in un posto nuovo">imbarazzato</span>.`},
+  {n:2, testo:`Durante la mattina, tutti lo guardano con <span class="glw" title="curiosità: grande voglia di conoscere qualcosa di nuovo">curiosità</span>, ma nessuno gli parla. Omar siede al banco vicino alla finestra. Ogni tanto guarda gli altri ragazzi e poi abbassa gli occhi. La mattina passa lentamente.`},
+  {n:3, testo:`Quando suona la campanella dell'<span class="glw" title="intervallo: la pausa tra le ore di lezione">intervallo</span>, Omar rimane seduto al suo posto. Tutti escono a fare merenda, tranne Sara. Sara è una ragazza curiosa e gentile. Decide di avvicinarsi a lui e gli dice: «Ciao, io mi chiamo Sara. Come ti chiami?»`},
+  {n:4, testo:`Omar risponde piano: «Mi chiamo Omar.» Sara vede che nel suo zaino c'è un fumetto di Dragon Ball. «Anche io ho quelli!» dice Sara con gli occhi spalancati. I due iniziano a parlare dei loro personaggi preferiti e dimenticano che era l'ora della merenda.`},
+  {n:5, testo:`Nel pomeriggio, l'insegnante propone un lavoro di gruppo: bisogna preparare un <span class="glw" title="cartellone: un foglio grande su cui si scrivono informazioni su un argomento">cartellone</span> su Roma antica. Sara dice subito: «Io lavoro con Omar!» I due <span class="glw" title="collaborano: lavorano insieme verso lo stesso obiettivo">collaborano</span>: Omar disegna bene, Sara scrive i testi. Il cartellone viene molto bello.`},
+  {n:6, testo:`Alla fine della giornata, mentre escono dalla scuola, Omar dice a Sara: «Grazie. Pensavo che non avrei trovato nessun amico qui.» Sara sorride e risponde: «Domani ti presento anche gli altri.» Omar sorride per la prima volta da quando è arrivato.`},
+],
+glossario:[
+  {k:"Imbarazzato", v:"A disagio, in difficoltà perché non si conosce nessuno in un posto nuovo."},
+  {k:"Curiosità", v:"Grande voglia di conoscere o sapere qualcosa di nuovo."},
+  {k:"Intervallo", v:"La pausa tra le ore di lezione, di solito di dieci o quindici minuti."},
+  {k:"Cartellone", v:"Un foglio grande su cui si scrivono e disegnano informazioni su un argomento."},
+  {k:"Collaborano", v:"Lavorano insieme, ognuno facendo la propria parte per raggiungere lo stesso obiettivo."},
+],
+domande:[
+  {n:1,par:1,tipo:"sm",sez:0,testo:"Chi è il nuovo arrivato in classe?",opts:["Sara","Marco","Omar","La professoressa"],ok:2},
+  {n:2,par:1,tipo:"sm",sez:0,testo:"Come si comporta Omar quando entra in classe?",opts:["Saluta tutti e fa domande","Tiene la testa bassa e non dice niente","Si siede e inizia subito a ridere","Si mette a cantare"],ok:1},
+  {n:3,par:3,tipo:"sm",sez:0,testo:"Chi decide di avvicinarsi a Omar durante l'intervallo?",opts:["L'insegnante","Il ragazzo più popolare della classe","Sara","Nessuno"],ok:2},
+  {n:4,par:4,tipo:"sm",sez:0,testo:"Cosa c'è nello zaino di Omar che sorprende Sara?",opts:["Un gioco di carte","Un fumetto di Dragon Ball","Una foto di famiglia","Un quaderno con disegni"],ok:1},
+  {n:5,par:5,tipo:"sm",sez:0,testo:"Come si dividono il lavoro Omar e Sara nel gruppo?",opts:["Entrambi disegnano","Omar scrive e Sara disegna","Omar disegna e Sara scrive","Ognuno fa il lavoro da solo"],ok:2},
+  {n:6,par:0,tipo:"vf",sez:0,testo:"Segna V se l'affermazione è vera, F se è falsa.",
+    righeVF:[{t:"Omar ha appena cambiato scuola.",ok:true},{t:"Sara è la prima a parlare con Omar.",ok:true},{t:"Omar parla subito con tutti i compagni appena arriva.",ok:false}]},
+  {n:7,par:6,tipo:"sm",sez:0,testo:"Come si sente Omar alla fine della giornata?",opts:["Ancora triste e solo","Un po' meglio grazie a Sara","Arrabbiato con la scuola","Indifferente a tutto"],ok:1},
+  {n:8,par:0,tipo:"sm",sez:0,testo:"Qual è il messaggio principale di questo racconto?",opts:["È importante essere bravi a disegnare","Un piccolo gesto di gentilezza può fare la differenza","I fumetti sono il modo migliore per fare amicizia","La scuola è difficile quando si arriva da nuovi"],ok:1},
+  {n:9,par:1,tipo:"sm",sez:1,testo:'La parola "imbarazzato" significa:',opts:["Arrabbiato e aggressivo","A disagio perché non conosce nessuno","Felice di essere in una nuova scuola","Stanco per il viaggio lungo"],ok:1},
+  {n:10,par:5,tipo:"sm",sez:1,testo:'La parola "collaborano" significa:',opts:["Competono tra loro","Lavorano insieme verso lo stesso obiettivo","Discutono animatamente","Si ignorano"],ok:1},
+  {n:11,par:0,tipo:"vf",sez:0,testo:"Segna V se l'affermazione è vera, F se è falsa.",
+    righeVF:[{t:"Omar e Sara preparano un cartellone su Roma antica.",ok:true},{t:"La professoressa sceglie Sara come compagna di Omar.",ok:false},{t:"Alla fine Omar sorride per la prima volta.",ok:true}]},
+  {n:12,par:3,tipo:"sm",sez:2,tip:"Chiedi: chi rimane seduto?",testo:'Leggi: «Omar rimane seduto al suo posto.» Qual è il soggetto?',opts:["Il posto","Rimane","Omar","Seduto"],ok:2},
+  {n:13,par:5,tipo:"sm",sez:2,tip:"Il predicato verbale è il verbo. Chiedi: cosa fa Sara?",testo:'Leggi: «Sara scrive i testi del cartellone.» Qual è il predicato verbale?',opts:["Sara","Scrive","I testi","Il cartellone"],ok:1},
+  {n:14,par:4,tipo:"sm",sez:2,tip:"Il complemento oggetto risponde a: Omar risponde a chi? risponde cosa?",testo:'Leggi: «Omar risponde piano: \'Mi chiamo Omar.\' » Quali parole dicono COSA risponde Omar?',opts:["Piano","Omar","Mi chiamo Omar","Risponde"],ok:2},
+  {n:15,par:2,tipo:"sm",sez:1,testo:'La parola "curiosità" indica:',opts:["Paura del nuovo","Grande voglia di conoscere qualcosa","Un tipo di emozione triste","Noia e indifferenza"],ok:1},
+]},
+
+// ══ PROVA 5 ═══════════════════════════════════════════════
+{id:5, titolo:"La casa sull'albero", sottotitolo:"Testo narrativo",
+paragrafi:[
+  {n:1, testo:`Matteo ha undici anni e in fondo al giardino di casa sua c'è un grande <span class="glw" title="quercia: albero molto grande e robusto, con foglie verdi e ghiande">quercia</span> con i rami larghi e forti. Da quando era piccolo sognava di costruire una casa su quell'albero. L'estate scorsa, finalmente, il nonno Ettore ha detto sì.`},
+  {n:2, testo:`Il nonno Ettore è un <span class="glw" title="falegname: persona che lavora il legno e costruisce mobili o strutture">falegname</span> in pensione. Conosce il legno come le sue tasche. Ha spiegato a Matteo che per costruire la casa servono assi di legno, chiodi, una scala e tanta <span class="glw" title="pazienza: la capacità di aspettare e di continuare anche quando le cose sono difficili">pazienza</span>.`},
+  {n:3, testo:`La migliore amica di Matteo, Giulia, è venuta ad aiutare ogni pomeriggio. I tre hanno lavorato per due settimane intere. Matteo reggeva i pezzi di legno, Giulia li contava e li misurava, il nonno li inchiodava uno a uno con il martello.`},
+  {n:4, testo:`A volte i pezzi non si incastravano bene e bisognava ricominciare. Matteo si <span class="glw" title="scoraggiava: perdeva la voglia di continuare perché le cose erano difficili">scoraggiava</span>. Ma il nonno diceva sempre: «Chi lascia la strada vecchia per la nuova, sa quel che lascia e non sa quel che trova. Continuiamo.»`},
+  {n:5, testo:`Dopo quattordici giorni di lavoro, la casetta era pronta. Aveva un tetto di <span class="glw" title="compensato: tipo di legno sottile e leggero, formato da strati incollati insieme">compensato</span>, una finestrella, una porta piccola e una scala a pioli per salire. Matteo e Giulia salirono insieme per primi. Da lassù si vedeva tutto il giardino.`},
+  {n:6, testo:`Quella sera, prima di cena, Matteo abbracciò il nonno e disse: «Grazie, nonno. La casa è bella, ma la cosa più bella è stata costruirla con te.» Il nonno sorrise e rispose: «È quello che speravo sentire, Matteo.»`},
+],
+glossario:[
+  {k:"Quercia", v:"Albero molto grande e robusto, con foglie verdi e ghiande."},
+  {k:"Falegname", v:"Persona che lavora il legno e costruisce mobili o strutture."},
+  {k:"Pazienza", v:"La capacità di aspettare e di continuare anche quando le cose sono difficili."},
+  {k:"Scoraggiava", v:"Perdeva la voglia di continuare perché le cose erano difficili."},
+  {k:"Compensato", v:"Tipo di legno sottile e leggero, formato da strati incollati insieme."},
+],
+domande:[
+  {n:1,par:1,tipo:"sm",sez:0,testo:"Cosa vuole costruire Matteo?",opts:["Una barca sul fiume","Una casa sull'albero","Una capanna in montagna","Un castello di sabbia"],ok:1},
+  {n:2,par:2,tipo:"sm",sez:0,testo:"Chi è il nonno Ettore?",opts:["Un medico in pensione","Un insegnante di scuola","Un falegname in pensione","Un architetto"],ok:2},
+  {n:3,par:3,tipo:"sm",sez:0,testo:"Che cosa faceva Giulia durante i lavori?",opts:["Inchiodava i pezzi di legno","Reggeva i pezzi di legno","Contava e misurava i pezzi di legno","Dipingeva la casetta"],ok:2},
+  {n:4,par:4,tipo:"sm",sez:0,testo:"Cosa faceva Matteo quando i pezzi non si incastravano?",opts:["Chiamava il papà","Si scoraggiava","Smetteva di lavorare","Rideva e continuava"],ok:1},
+  {n:5,par:5,tipo:"sm",sez:0,testo:"Quanti giorni ha richiesto la costruzione della casetta?",opts:["Sette giorni","Dieci giorni","Quattordici giorni","Un mese"],ok:2},
+  {n:6,par:0,tipo:"vf",sez:0,testo:"Segna V se l'affermazione è vera, F se è falsa.",
+    righeVF:[{t:"La casetta è costruita su una quercia.",ok:true},{t:"Matteo ha costruito la casetta da solo.",ok:false},{t:"Da lassù si vedeva tutto il giardino.",ok:true}]},
+  {n:7,par:6,tipo:"sm",sez:0,testo:"Cosa dice Matteo al nonno alla fine?",opts:["Che la casa è troppo piccola","Che la cosa più bella è stata costruirla insieme","Che vuole già costruirne un'altra","Che il nonno è stato lento"],ok:1},
+  {n:8,par:0,tipo:"sm",sez:0,testo:"Qual è il tema principale del racconto?",opts:["La fatica del lavoro fisico","Il valore del lavoro condiviso e dell'affetto tra nonno e nipote","Come si costruisce una casetta di legno","L'importanza degli alberi"],ok:1},
+  {n:9,par:2,tipo:"sm",sez:1,testo:'La parola "falegname" indica:',opts:["Chi costruisce case in muratura","Chi lavora il legno e costruisce strutture","Chi ripara i tetti","Chi vende attrezzi da lavoro"],ok:1},
+  {n:10,par:4,tipo:"sm",sez:1,testo:'Il nonno dice un proverbio. Cosa significa l\'espressione «ricominciare»?',opts:["Cominciare una cosa completamente nuova","Ripartire da capo con lo stesso lavoro","Fare una pausa","Chiamare qualcuno in aiuto"],ok:1},
+  {n:11,par:0,tipo:"vf",sez:0,testo:"Segna V se l'affermazione è vera, F se è falsa.",
+    righeVF:[{t:"Giulia è la migliore amica di Matteo.",ok:true},{t:"Il nonno ha insegnato a Matteo che la pazienza è importante.",ok:true},{t:"La casetta non ha finestre.",ok:false}]},
+  {n:12,par:3,tipo:"sm",sez:2,tip:"Chiedi: chi inchiodava?",testo:'Leggi: «Il nonno li inchiodava uno a uno con il martello.» Qual è il soggetto?',opts:["Li","Inchiodava","Il nonno","Il martello"],ok:2},
+  {n:13,par:5,tipo:"sm",sez:2,tip:"Il predicato verbale è il verbo. Chiedi: cosa fecero Matteo e Giulia?",testo:'Leggi: «Matteo e Giulia salirono insieme per primi.» Qual è il predicato verbale?',opts:["Matteo e Giulia","Salirono","Insieme","Per primi"],ok:1},
+  {n:14,par:6,tipo:"sm",sez:2,tip:"Chiedi: Matteo abbracciò chi?",testo:'Leggi: «Matteo abbracciò il nonno.» Qual è il complemento oggetto?',opts:["Matteo","Abbracciò","Il nonno","Quella sera"],ok:2},
+  {n:15,par:4,tipo:"sm",sez:1,testo:'La parola "pazienza" indica:',opts:["La capacità di correre veloce","La capacità di aspettare e continuare anche quando è difficile","La forza fisica nel lavoro","La bravura nel costruire"],ok:1},
+]},
+
+// ══ PROVA 6 ═══════════════════════════════════════════════
+{id:6, titolo:"Il gatto di Miriam", sottotitolo:"Testo narrativo",
+paragrafi:[
+  {n:1, testo:`Miriam ha dieci anni e vive al quarto piano di un condominio in città. Il suo gatto si chiama Neve perché ha il pelo completamente bianco. Neve dorme sempre sul cuscino accanto a Miriam e la segue in ogni stanza della casa.`},
+  {n:2, testo:`Una sera d'inverno, un temporale molto forte si <span class="glw" title="abbatté: si scatenò con forza improvvisa">abbatté</span> sulla città. I tuoni erano forti e i lampi illuminavano le finestre. Neve, spaventata, si nascose sotto il letto di Miriam e non voleva uscire. Miriam cercò di <span class="glw" title="calmarla: farla sentire tranquilla e sicura">calmarla</span> accarezzandola piano.`},
+  {n:3, testo:`La mattina dopo, il temporale era passato. Ma Neve non c'era più. Miriam la cercò in tutta la casa: sotto i letti, dentro gli armadi, dietro i divani. Niente. La gatta era scomparsa. Miriam cominciò a piangere.`},
+  {n:4, testo:`La mamma <span class="glw" title="consolò: aiutò Miriam a sentirsi meno triste">consolò</span> Miriam e la aiutò a cercare. Bussarono alle porte dei vicini del piano. La signora del piano di sopra disse di non aver visto nessun gatto. Il signore del piano di sotto aveva sentito un miagolio la mattina presto, vicino alla sua porta.`},
+  {n:5, testo:`Miriam e la mamma scesero al piano di sotto e aprirono con cautela la porta del corridoio. Là, rannicchiata in un angolo buio vicino al <span class="glw" title="termosifone: il radiatore, il sistema di riscaldamento a muro">termosifone</span>, c'era Neve. Tremava ancora un poco, ma quando vide Miriam, si alzò e le andò incontro.`},
+  {n:6, testo:`Miriam la prese in braccio e la strinse forte. «Non scappare più, Neve», le disse sottovoce. Quella sera, la gatta dormì sul cuscino di Miriam più vicina del solito. Il temporale era solo un ricordo.`},
+],
+glossario:[
+  {k:"Abbatté", v:"Si scatenò con forza improvvisa, come una tempesta."},
+  {k:"Calmarla", v:"Farla sentire tranquilla e sicura."},
+  {k:"Consolò", v:"Aiutò a sentirsi meno triste."},
+  {k:"Termosifone", v:"Il radiatore, il sistema di riscaldamento a muro (chiamato anche calorifero o termosifone)."},
+],
+domande:[
+  {n:1,par:1,tipo:"sm",sez:0,testo:"Come si chiama il gatto di Miriam?",opts:["Fiocco","Neve","Bianco","Luna"],ok:1},
+  {n:2,par:1,tipo:"sm",sez:0,testo:"Perché il gatto si chiama Neve?",opts:["Perché è nata d'inverno","Perché ama giocare con la neve","Perché ha il pelo completamente bianco","Perché è molto silenziosa"],ok:2},
+  {n:3,par:2,tipo:"sm",sez:0,testo:"Cosa successe una sera d'inverno?",opts:["Neve scappò dalla finestra aperta","Un temporale molto forte si abbatté sulla città","La luce si spense per tutta la notte","Neve cadde dal balcone"],ok:1},
+  {n:4,par:3,tipo:"sm",sez:0,testo:"La mattina dopo il temporale, cosa scoprì Miriam?",opts:["Che Neve stava benissimo","Che Neve non c'era più","Che Neve dormiva sotto il letto","Che Neve era uscita sul balcone"],ok:1},
+  {n:5,par:5,tipo:"sm",sez:0,testo:"Dove trovarono Neve?",opts:["Dentro il corridoio al piano di sotto, vicino al termosifone","Sotto il letto di Miriam","Sul balcone del piano di sopra","Nell'armadio della mamma"],ok:0},
+  {n:6,par:0,tipo:"vf",sez:0,testo:"Segna V se l'affermazione è vera, F se è falsa.",
+    righeVF:[{t:"Miriam vive al quarto piano di un condominio.",ok:true},{t:"Neve si era nascosta per via dei fuochi d'artificio.",ok:false},{t:"La signora del piano di sopra aiutò a trovare Neve.",ok:false}]},
+  {n:7,par:6,tipo:"sm",sez:0,testo:"Come finisce il racconto?",opts:["Neve non viene trovata","Miriam decide di non tenere più il gatto","Neve dorme sul cuscino di Miriam, più vicina del solito","Miriam porta Neve dal veterinario"],ok:2},
+  {n:8,par:0,tipo:"sm",sez:0,testo:"Di cosa parla questo racconto?",opts:["Una gita al parco con un gatto","Una bambina che cerca il suo gatto spaventato dal temporale","Un temporale che distrugge un condominio","Un gatto che trova una nuova famiglia"],ok:1},
+  {n:9,par:2,tipo:"sm",sez:1,testo:'Nel testo si dice che il temporale «si abbatté». Cosa significa?',opts:["Si fermò improvvisamente","Si avvicinò lentamente","Si scatenò con forza improvvisa","Passò senza danni"],ok:2},
+  {n:10,par:4,tipo:"sm",sez:1,testo:'La parola "consolò" significa:',opts:["Fece arrabbiare","Aiutò a sentirsi meno triste","Ignorò completamente","Spaventò ancora di più"],ok:1},
+  {n:11,par:0,tipo:"vf",sez:0,testo:"Segna V se l'affermazione è vera, F se è falsa.",
+    righeVF:[{t:"Il gatto di Miriam si chiama Neve per via del suo pelo bianco.",ok:true},{t:"Miriam trovò Neve senza l'aiuto della mamma.",ok:false},{t:"Quella notte Neve dormì più vicina a Miriam del solito.",ok:true}]},
+  {n:12,par:3,tipo:"sm",sez:2,tip:"Chiedi: chi cominciò a piangere?",testo:'Leggi: «Miriam cominciò a piangere.» Qual è il soggetto?',opts:["Cominciò","A piangere","Miriam","La gatta"],ok:2},
+  {n:13,par:5,tipo:"sm",sez:2,tip:"Il predicato verbale è il verbo. Chiedi: cosa fece Neve?",testo:'Leggi: «Neve si alzò e le andò incontro.» Quali sono i predicati verbali?',opts:["Neve e Miriam","Si alzò e andò","In un angolo buio","Tremava ancora"],ok:1},
+  {n:14,par:6,tipo:"sm",sez:2,tip:"Chiedi: Miriam prese chi?",testo:'Leggi: «Miriam la prese in braccio.» Qual è il complemento oggetto di "prese"?',opts:["Miriam","La prese","La (= Neve)","In braccio"],ok:2},
+  {n:15,par:2,tipo:"sm",sez:1,testo:'Nel testo si dice che Miriam «accarezzò» il gatto. Cosa significa "accarezzare"?',opts:["Toccare con forza","Passare la mano con delicatezza sul pelo","Portare a passeggio","Nutrire con del cibo"],ok:1},
+]},
+
+// ══ PROVA 7 ═══════════════════════════════════════════════
+{id:7, titolo:"Il quaderno di Ahmed", sottotitolo:"Testo narrativo",
+paragrafi:[
+  {n:1, testo:`Ahmed è arrivato in Italia sei mesi fa dal Marocco. Frequenta la classe seconda media e ogni giorno impara parole nuove in italiano. Porta sempre con sé un quaderno verde su cui scrive le parole che non capisce insieme alla loro traduzione.`},
+  {n:2, testo:`Un mercoledì mattina, Ahmed cerca il quaderno verde nello zaino. Non c'è. Lo cerca dappertutto: nel banco, nel cortile, in bagno. <span class="glw" title="Disperato: molto triste e senza speranza">Disperato</span>, si siede al suo posto e guarda fuori dalla finestra. Quella mattina non riesce a seguire la lezione.`},
+  {n:3, testo:`La professoressa di italiano, la signora Martini, si accorge che Ahmed è triste. Alla fine della lezione lo chiama in disparte e lui le spiega del quaderno. La professoressa <span class="glw" title="annuisce: fa sì con la testa per dire di capire o di essere d'accordo">annuisce</span> e dice: «Oggi pomeriggio, dopo la scuola, lo cerchiamo insieme.»`},
+  {n:4, testo:`Nel pomeriggio, i compagni di Ahmed vengono a sapere della storia del quaderno. Valeria propone di cercare nella palestra, perché Ahmed ha fatto ginnastica il giorno prima. Marco controlla in segreteria, in caso qualcuno lo avesse <span class="glw" title="consegnato: portato a qualcuno che possa restituirlo al proprietario">consegnato</span>.`},
+  {n:5, testo:`È Valeria a trovarlo: il quaderno era scivolato dietro una panca dello spogliatoio della palestra. Le pagine erano un po' stropicce, ma le parole erano leggibili. Ahmed prese il quaderno tra le mani e lo aprì alla prima pagina.`},
+  {n:6, testo:`Alla prima pagina c'era una scritta in arabo e, sotto, la traduzione italiana: «Le parole sono ponti. Chi le impara cammina più lontano.» Ahmed sorrise. Strinse la mano a Valeria e disse a tutti: «Grazie. Con voi l'italiano lo imparo anche fuori dal quaderno.»`},
+],
+glossario:[
+  {k:"Disperato", v:"Molto triste e senza speranza di risolvere un problema."},
+  {k:"Annuisce", v:"Fa sì con la testa per dire di capire o di essere d'accordo."},
+  {k:"Consegnato", v:"Portato a qualcuno che possa restituirlo al proprietario."},
+  {k:"Stropicce", v:"Un po' piegate e arricciate, non perfettamente lisce."},
+],
+domande:[
+  {n:1,par:1,tipo:"sm",sez:0,testo:"Da dove viene Ahmed?",opts:["Dalla Tunisia","Dall'Egitto","Dal Marocco","Dalla Siria"],ok:2},
+  {n:2,par:1,tipo:"sm",sez:0,testo:"Com'è il quaderno speciale di Ahmed?",opts:["Rosso con i bordi dorati","Verde, con parole italiane e le loro traduzioni","Blu con le poesie italiane","Giallo con i disegni delle città"],ok:1},
+  {n:3,par:2,tipo:"sm",sez:0,testo:"Dove cerca Ahmed il quaderno per prima cosa?",opts:["In palestra","In bagno e nel cortile","Nello zaino e nel banco","In segreteria"],ok:2},
+  {n:4,par:3,tipo:"sm",sez:0,testo:"Chi nota che Ahmed è triste?",opts:["Valeria","Marco","La professoressa Martini","Il bidello"],ok:2},
+  {n:5,par:5,tipo:"sm",sez:0,testo:"Dove trovarono il quaderno?",opts:["In segreteria","Dietro una panca della palestra","Sul banco di Ahmed","Nel cortile della scuola"],ok:1},
+  {n:6,par:0,tipo:"vf",sez:0,testo:"Segna V se l'affermazione è vera, F se è falsa.",
+    righeVF:[{t:"Ahmed studia l'italiano da sei mesi.",ok:true},{t:"È Marco a trovare il quaderno.",ok:false},{t:"Il quaderno ha una frase scritta in arabo alla prima pagina.",ok:true}]},
+  {n:7,par:6,tipo:"sm",sez:0,testo:"Cosa significa la frase scritta nel quaderno?",opts:["Le parole sono inutili se non le si usa","Le parole sono ponti: chi le impara cammina più lontano","L'italiano è una lingua difficile","Chi studia alla fine ce la fa"],ok:1},
+  {n:8,par:0,tipo:"sm",sez:0,testo:"Qual è il tema principale del racconto?",opts:["La difficoltà di imparare una lingua straniera","Il valore della solidarietà e dell'amicizia","La perdita di un oggetto importante","La vita in un paese straniero"],ok:1},
+  {n:9,par:2,tipo:"sm",sez:1,testo:'La parola "disperato" indica:',opts:["Molto arrabbiato","Molto stanco","Molto triste e senza speranza","Molto concentrato"],ok:2},
+  {n:10,par:3,tipo:"sm",sez:1,testo:'La professoressa "annuisce". Cosa fa?',opts:["Ride con simpatia","Fa sì con la testa per dire che capisce","Scrive qualcosa sul registro","Alza la mano"],ok:1},
+  {n:11,par:0,tipo:"vf",sez:0,testo:"Segna V se l'affermazione è vera, F se è falsa.",
+    righeVF:[{t:"Ahmed impara le parole nuove scrivendole nel quaderno.",ok:true},{t:"Il quaderno era in segreteria.",ok:false},{t:"I compagni aiutano Ahmed a cercarlo.",ok:true}]},
+  {n:12,par:2,tipo:"sm",sez:2,tip:"Chiedi: chi si siede?",testo:'Leggi: «Ahmed si siede al suo posto.» Qual è il soggetto?',opts:["Il posto","Si siede","Ahmed","La finestra"],ok:2},
+  {n:13,par:5,tipo:"sm",sez:2,tip:"Il predicato verbale è il verbo. Chiedi: cosa fa Valeria?",testo:'Leggi: «Valeria trova il quaderno.» Qual è il predicato verbale?',opts:["Valeria","Il quaderno","Trova","Dietro la panca"],ok:2},
+  {n:14,par:6,tipo:"sm",sez:2,tip:"Chiedi: Ahmed strinse cosa?",testo:'Leggi: «Ahmed strinse la mano a Valeria.» Qual è il complemento oggetto?',opts:["Ahmed","Strinse","La mano","A Valeria"],ok:2},
+  {n:15,par:6,tipo:"sm",sez:1,testo:'Nel testo Ahmed dice: «l\'italiano lo imparo fuori dal quaderno». Cosa vuole dire?',opts:["Non vuole più usare il quaderno","Impara l'italiano anche grazie ai compagni e all'amicizia","L'italiano è più facile da parlare che da scrivere","Preferisce studiare in classe"],ok:1},
+]},
+
+// ══ PROVA 8 ═══════════════════════════════════════════════
+{id:8, titolo:"La bicicletta rossa", sottotitolo:"Testo narrativo",
+paragrafi:[
+  {n:1, testo:`Luca ha undici anni e da tre mesi mette da parte i soldi della <span class="glw" title="paghetta: una piccola somma di denaro che i genitori danno ai figli ogni settimana">paghetta</span>. Il suo sogno è comprare una bicicletta rossa che ha visto nella vetrina della bottega in fondo alla via. Costa ottantadue euro. Ne manca ancora qualcuno, ma ci è quasi.`},
+  {n:2, testo:`Un sabato mattina, Luca conta i soldi sul tavolo della cucina: ottantaquattro euro. Ce la fa. Con il cuore che batte forte, prende il portafoglio e cammina fino alla bottega. La bicicletta rossa è ancora lì, in vetrina, che lo aspetta.`},
+  {n:3, testo:`Luca compra la bicicletta. Il negoziante la tira fuori e la porta sul <span class="glw" title="marciapiede: il bordo rialzato della strada riservato ai pedoni">marciapiede</span>. È ancora più bella da vicino. Luca la tocca con le dita e sorride. Non riesce a smettere di guardarla.`},
+  {n:4, testo:`A casa, sua sorella Sofia di nove anni corre verso di lui: «Che bella! Me la lasci provare?» Luca esita un momento, poi sorride e risponde: «Va bene, Sofia. Ma vai piano.» Sofia sale sulla bicicletta e parte felice lungo il vialetto del giardino.`},
+  {n:5, testo:`Dopo qualche minuto, Sofia torna con la bicicletta e una faccia <span class="glw" title="mortificata: molto dispiaciuta e in imbarazzo per aver fatto qualcosa di brutto">mortificata</span>. «Luca, mi dispiace. Ho preso una buca e la ruota davanti è <span class="glw" title="bucata: forata, non tiene più l'aria">bucata</span>.» Luca guarda la ruota. Il sorriso scompare per un momento.`},
+  {n:6, testo:`Poi Luca prende un respiro e dice: «Va bene, Sofia. Gli incidenti capitano. Andiamo a comprare il kit per riparare la camera d'aria.» I due fratelli vanno insieme in bottega e riparano la ruota nel pomeriggio. La bicicletta torna come nuova. E Luca capisce che aveva ancora voglia di sorridere.`},
+],
+glossario:[
+  {k:"Paghetta", v:"Una piccola somma di denaro che i genitori danno ai figli ogni settimana."},
+  {k:"Marciapiede", v:"Il bordo rialzato della strada riservato ai pedoni."},
+  {k:"Mortificata", v:"Molto dispiaciuta e in imbarazzo per aver fatto qualcosa di brutto."},
+  {k:"Bucata", v:"Forata: la ruota ha un buco e non tiene più l'aria dentro."},
+],
+domande:[
+  {n:1,par:1,tipo:"sm",sez:0,testo:"Cosa vuole comprare Luca?",opts:["Un pallone da calcio","Una bicicletta rossa","Un videogame","Un monopattino elettrico"],ok:1},
+  {n:2,par:1,tipo:"sm",sez:0,testo:"Come raccoglie i soldi Luca?",opts:["Lavora per i vicini","Mette da parte la paghetta","Li chiede ai nonni","Li trova per casa"],ok:1},
+  {n:3,par:2,tipo:"sm",sez:0,testo:"Quanti euro ha risparmiato Luca alla fine?",opts:["Settantanove euro","Ottantadue euro","Ottantaquattro euro","Cento euro"],ok:2},
+  {n:4,par:4,tipo:"sm",sez:0,testo:"Cosa chiede Sofia a Luca?",opts:["Di insegnarle ad andare in bicicletta","Di prestarle la bicicletta nuova","Di portarla con lui in bottega","Di comprarle una bicicletta uguale"],ok:1},
+  {n:5,par:5,tipo:"sm",sez:0,testo:"Che problema ha la bicicletta dopo che Sofia la usa?",opts:["Si è rotto il manubrio","Si è graffiato il sellino","La ruota davanti è bucata","Il campanello non funziona più"],ok:2},
+  {n:6,par:0,tipo:"vf",sez:0,testo:"Segna V se l'affermazione è vera, F se è falsa.",
+    righeVF:[{t:"Luca ha risparmiato i soldi per tre mesi.",ok:true},{t:"Sofia si arrabbia molto quando buca la ruota.",ok:false},{t:"Luca e Sofia riparano la ruota insieme.",ok:true}]},
+  {n:7,par:6,tipo:"sm",sez:0,testo:"Come reagisce Luca quando scopre che la ruota è bucata?",opts:["Si arrabbia molto con Sofia","La perdona e propone di ripararla insieme","Piange e torna in bottega","Proibisce a Sofia di toccare la bicicletta"],ok:1},
+  {n:8,par:0,tipo:"sm",sez:0,testo:"Qual è il messaggio principale del racconto?",opts:["Le biciclette si bucano facilmente","È importante saper perdonare e affrontare i problemi insieme","Bisogna risparmiare molto prima di comprare qualcosa","Non bisogna prestare le proprie cose"],ok:1},
+  {n:9,par:1,tipo:"sm",sez:1,testo:'La parola "paghetta" indica:',opts:["I soldi guadagnati lavorando","Una piccola somma di denaro che i genitori danno ai figli","Il prezzo di un oggetto in vetrina","Un tipo di portafoglio"],ok:1},
+  {n:10,par:5,tipo:"sm",sez:1,testo:'Sofia aveva la faccia "mortificata". Cosa significa?',opts:["Felice e soddisfatta","Molto stanca","Molto dispiaciuta e in imbarazzo","Indifferente a quello che era successo"],ok:2},
+  {n:11,par:0,tipo:"vf",sez:0,testo:"Segna V se l'affermazione è vera, F se è falsa.",
+    righeVF:[{t:"La bicicletta era in vetrina di una bottega.",ok:true},{t:"Luca rifiuta di prestare la bicicletta a Sofia.",ok:false},{t:"Alla fine la bicicletta torna come nuova.",ok:true}]},
+  {n:12,par:2,tipo:"sm",sez:2,tip:"Chiedi: chi cammina?",testo:'Leggi: «Luca prende il portafoglio e cammina fino alla bottega.» Qual è il soggetto?',opts:["Il portafoglio","Cammina","Luca","Fino alla bottega"],ok:2},
+  {n:13,par:6,tipo:"sm",sez:2,tip:"Il predicato verbale è il verbo. Chiedi: cosa fanno i due fratelli?",testo:'Leggi: «I due fratelli riparano la ruota nel pomeriggio.» Qual è il predicato verbale?',opts:["I due fratelli","La ruota","Riparano","Nel pomeriggio"],ok:2},
+  {n:14,par:4,tipo:"sm",sez:2,tip:"Chiedi: Sofia sale su cosa?",testo:'Leggi: «Sofia sale sulla bicicletta.» Qual è il complemento indiretto (oggetto su cui cade l\'azione)?',opts:["Sofia","Sale","Sulla bicicletta","Felice"],ok:2},
+  {n:15,par:6,tipo:"sm",sez:1,testo:'Luca «prende un respiro». In questo contesto cosa significa?',opts:["Si siede e riposa","Si calma e decide di non reagire male","Fa sport","Si prepara a correre"],ok:1},
+]},
+
+// ══ PROVA 9 ═══════════════════════════════════════════════
+{id:9, titolo:"La nonna di Chiara", sottotitolo:"Testo narrativo",
+paragrafi:[
+  {n:1, testo:`Ogni venerdì pomeriggio, Chiara va a trovare la nonna Rosa. La nonna abita in un piccolo appartamento al piano terra, con un balcone pieno di <span class="glw" title="gerani: piante da fiore, molto colorate, tipiche dei balconi italiani">gerani</span> rossi. Appena Chiara suona il campanello, la nonna apre subito, come se l'avesse aspettata sulla soglia.`},
+  {n:2, testo:`Quel venerdì, la nonna Rosa ha preparato gli ingredienti per fare la pasta fresca. Sul tavolo ci sono la farina, le uova e un mattarello di legno vecchio che è sempre stato in famiglia. «Oggi ti insegno a fare i <span class="glw" title="tagliolini: pasta fresca tagliata a strisce sottili">tagliolini</span>», dice la nonna con un sorriso.`},
+  {n:3, testo:`Prima di tutto bisogna fare la fontana: mettere la farina a <span class="glw" title="mucchio: un insieme di cose ammassate insieme">mucchio</span> sul tavolo, aprire un buco al centro e versarci le uova dentro. Chiara segue le istruzioni con attenzione. Le mani si sporcano di farina e lei ride.`},
+  {n:4, testo:`Poi bisogna impastare a lungo, con le mani, finché il <span class="glw" title="composto: la miscela di ingredienti mescolati insieme">composto</span> diventa liscio ed elastico. È la parte più faticosa. Chiara spinge e gira l'impasto sul tavolo. Le braccia le fanno già male, ma non vuole fermarsi.`},
+  {n:5, testo:`Dopo che l'impasto è pronto, la nonna lo <span class="glw" title="stende: appiattisce l'impasto con il mattarello fino a renderlo sottile">stende</span> con il mattarello fino a ottenere una sfoglia sottile. Poi arrotola la sfoglia e la taglia a strisce strette. Ecco i tagliolini. Chiara li guarda come se fossero un <span class="glw" title="capolavoro: un'opera fatta molto bene, di cui si può essere orgogliosi">capolavoro</span>.`},
+  {n:6, testo:`A cena, i tagliolini vengono serviti con il sugo della nonna. Chiara ne mangia due piatti. Poi dice: «Nonna, quando tornerò, me li insegni di nuovo?» La nonna ride e risponde: «Tutte le volte che vuoi, Chiara mia.»`},
+],
+glossario:[
+  {k:"Gerani", v:"Piante da fiore molto colorate, tipiche dei balconi italiani."},
+  {k:"Tagliolini", v:"Pasta fresca tagliata a strisce sottili."},
+  {k:"Mucchio", v:"Un insieme di cose ammassate insieme."},
+  {k:"Composto", v:"La miscela di ingredienti mescolati insieme."},
+  {k:"Stende", v:"Appiattisce l'impasto con il mattarello fino a renderlo sottile."},
+  {k:"Capolavoro", v:"Un'opera fatta molto bene, di cui si può essere orgogliosi."},
+],
+domande:[
+  {n:1,par:1,tipo:"sm",sez:0,testo:"Quando va a trovare la nonna Chiara?",opts:["Ogni lunedì mattina","Ogni mercoledì pomeriggio","Ogni venerdì pomeriggio","Ogni domenica"],ok:2},
+  {n:2,par:2,tipo:"sm",sez:0,testo:"Cosa insegna la nonna Rosa a Chiara quel pomeriggio?",opts:["A fare le pizze","A fare i tagliolini freschi","A fare la torta al cioccolato","A fare il risotto"],ok:1},
+  {n:3,par:3,tipo:"sm",sez:0,testo:"Cosa si fa prima di tutto per la pasta?",opts:["Si cuoce l'acqua con il sale","Si mette l'impasto nel frigorifero","Si fa la fontana di farina con un buco al centro per le uova","Si taglia la pasta a strisce"],ok:2},
+  {n:4,par:4,tipo:"sm",sez:0,testo:"Come si sente Chiara mentre impasta?",opts:["Si annoia facilmente","Le fanno male le braccia ma non vuole fermarsi","Ha paura di sbagliare","È stanca e smette presto"],ok:1},
+  {n:5,par:5,tipo:"sm",sez:0,testo:"Cosa fa la nonna con l'impasto dopo averlo steso?",opts:["Lo mette nel forno","Lo arrotola e lo taglia a strisce per fare i tagliolini","Lo lascia riposare tutta la notte","Lo divide in pezzetti piccoli"],ok:1},
+  {n:6,par:0,tipo:"vf",sez:0,testo:"Segna V se l'affermazione è vera, F se è falsa.",
+    righeVF:[{t:"La nonna Rosa vive al piano terra con un balcone pieno di gerani.",ok:true},{t:"Chiara impasta con una macchina elettrica.",ok:false},{t:"Chiara mangia due piatti di tagliolini a cena.",ok:true}]},
+  {n:7,par:6,tipo:"sm",sez:0,testo:"Cosa chiede Chiara alla fine della cena?",opts:["Di portare i tagliolini a casa","Di imparare un'altra ricetta subito","Di tornare per imparare di nuovo a fare i tagliolini","Di rimanere a dormire dalla nonna"],ok:2},
+  {n:8,par:0,tipo:"sm",sez:0,testo:"Qual è il tema principale del racconto?",opts:["Come si fa la pasta fresca in modo corretto","Il legame affettivo tra nonna e nipote","La tradizione culinaria italiana","Il lavoro faticoso in cucina"],ok:1},
+  {n:9,par:5,tipo:"sm",sez:1,testo:'La parola "stende" nel testo significa:',opts:["Fa riposare l'impasto","Mette in frigorifero","Appiattisce con il mattarello fino a renderlo sottile","Cuoce in forno"],ok:2},
+  {n:10,par:5,tipo:"sm",sez:1,testo:'Chiara guarda i tagliolini «come se fossero un capolavoro». Cosa significa "capolavoro"?',opts:["Qualcosa di troppo difficile da fare","Un'opera fatta molto bene, di cui essere orgogliosi","Il piatto preferito dalla nonna","Il nome di una ricetta famosa"],ok:1},
+  {n:11,par:0,tipo:"vf",sez:0,testo:"Segna V se l'affermazione è vera, F se è falsa.",
+    righeVF:[{t:"La nonna usa un mattarello di legno vecchio di famiglia.",ok:true},{t:"Chiara trova facile impastare la pasta.",ok:false},{t:"La nonna dice che insegnerà a Chiara tutte le volte che vuole.",ok:true}]},
+  {n:12,par:1,tipo:"sm",sez:2,tip:"Chiedi: chi suona il campanello?",testo:'Leggi: «Appena Chiara suona il campanello, la nonna apre subito.» Qual è il soggetto della prima frase?',opts:["Il campanello","La nonna","Chiara","Subito"],ok:2},
+  {n:13,par:4,tipo:"sm",sez:2,tip:"Il predicato verbale è il verbo. Chiedi: cosa fa Chiara?",testo:'Leggi: «Chiara spinge e gira l\'impasto sul tavolo.» Quali sono i predicati verbali?',opts:["Chiara e il tavolo","Spinge e gira","L'impasto","Sul tavolo"],ok:1},
+  {n:14,par:2,tipo:"sm",sez:2,tip:"Chiedi: la nonna ha preparato cosa?",testo:'Leggi: «La nonna Rosa ha preparato gli ingredienti.» Qual è il complemento oggetto?',opts:["La nonna Rosa","Ha preparato","Gli ingredienti","Il mattarello"],ok:2},
+  {n:15,par:3,tipo:"sm",sez:1,testo:'Nel testo si legge che «le mani si sporcano di farina». Qual è il contrario di "sporcare"?',opts:["Lavare","Pulire","Asciugare","Colorare"],ok:1},
+]},
+
+// ══ PROVA 10 ═══════════════════════════════════════════════
+{id:10, titolo:"L'aquilone di Tommaso", sottotitolo:"Testo narrativo",
+paragrafi:[
+  {n:1, testo:`Tommaso ha undici anni e suo padre gli ha regalato un aquilone per il compleanno. È grande, di <span class="glw" title="nylon: materiale sintetico, leggero e resistente">nylon</span> azzurro e giallo, con una coda lunga tre metri. Quella domenica di marzo, il vento soffia <span class="glw" title="sostenuto: continuo e abbastanza forte">sostenuto</span>: è il giorno perfetto per provarlo.`},
+  {n:2, testo:`Tommaso e il papà vanno al parco con l'aquilone. Il papà mostra al figlio come tenerlo: «Prima lo alzi con le braccia, poi lo lasci andare e tieni la cordicella tesa, mai troppo, mai troppo poca.» Tommaso ascolta con attenzione.`},
+  {n:3, testo:`Al primo tentativo, l'aquilone sale un poco e poi ricade. Al secondo, sale più in alto ma <span class="glw" title="piroetta: gira su sé stesso velocemente">piroetta</span> su sé stesso e scende di lato. Tommaso non si scoraggia. Al terzo tentativo, l'aquilone sale, sale, sale e rimane su, stabile, a cinquanta metri d'altezza.`},
+  {n:4, testo:`Per venti minuti, Tommaso fa <span class="glw" title="manovrare: guidare e controllare qualcosa, come un aquilone o un veicolo">manovrare</span> l'aquilone nel cielo. Lo vede salire, <span class="glw" title="planare: scendere lentamente, come un uccello con le ali aperte">planare</span>, salire ancora. È felicissimo. Poi un colpo di vento forte lo spinge di lato verso un albero.`},
+  {n:5, testo:`L'aquilone si <span class="glw" title="impigliò: si bloccò, rimase intrappolato tra i rami">impigliò</span> tra i rami di un pino alto. La coda penzolava in basso, ma il corpo dell'aquilone era troppo in alto per essere raggiunto. Tommaso guardò suo padre con gli occhi tristi.`},
+  {n:6, testo:`Un signore anziano che passeggiava con il cane si fermò ad osservare. «Ho una scala nel mio furgone», disse. «Se volete, proviamo.» Con l'aiuto della scala, il papà di Tommaso riuscì a liberare l'aquilone dai rami. Tommaso ringraziò il signore e salutò anche il cane. Poi tornò a fare volare l'aquilone, stavolta stando lontano dagli alberi.`},
+],
+glossario:[
+  {k:"Nylon", v:"Materiale sintetico, leggero e resistente, usato per fare aquiloni e impermeabili."},
+  {k:"Sostenuto", v:"Continuo e abbastanza forte (detto del vento)."},
+  {k:"Piroetta", v:"Gira su sé stesso velocemente, come un ballerino."},
+  {k:"Manovrare", v:"Guidare e controllare qualcosa, come un aquilone o un veicolo."},
+  {k:"Planare", v:"Scendere lentamente tenendo le ali aperte, come un uccello o un aeroplano."},
+  {k:"Impigliò", v:"Si bloccò, rimase intrappolato tra i rami."},
+],
+domande:[
+  {n:1,par:1,tipo:"sm",sez:0,testo:"Che regalo ha ricevuto Tommaso?",opts:["Una bicicletta","Un aquilone azzurro e giallo","Un telescopio","Un drone"],ok:1},
+  {n:2,par:1,tipo:"sm",sez:0,testo:"Perché quella domenica di marzo è il giorno perfetto?",opts:["Perché è il suo compleanno","Perché il sole splende forte","Perché il vento soffia sostenuto","Perché il parco è vuoto"],ok:2},
+  {n:3,par:3,tipo:"sm",sez:0,testo:"Al terzo tentativo, cosa succede all'aquilone?",opts:["Ricade di nuovo","Piroetta e scende","Sale e rimane su, stabile","Si impiglia subito in un albero"],ok:2},
+  {n:4,par:4,tipo:"sm",sez:0,testo:"Per quanti minuti Tommaso fa manovrare l'aquilone nel cielo?",opts:["Cinque minuti","Dieci minuti","Quindici minuti","Venti minuti"],ok:3},
+  {n:5,par:5,tipo:"sm",sez:0,testo:"Dove si impigliò l'aquilone?",opts:["In un cespuglio basso","Tra i rami di un pino alto","Sul tetto di un edificio","In una rete da tennis"],ok:1},
+  {n:6,par:0,tipo:"vf",sez:0,testo:"Segna V se l'affermazione è vera, F se è falsa.",
+    righeVF:[{t:"Tommaso e il papà vanno al parco insieme.",ok:true},{t:"L'aquilone si impiglia subito al primo tentativo.",ok:false},{t:"Un signore anziano aiuta a liberare l'aquilone.",ok:true}]},
+  {n:7,par:6,tipo:"sm",sez:0,testo:"Come fu liberato l'aquilone dall'albero?",opts:["Il papà scalò l'albero","Tagliarono la coda dell'aquilone","Un signore anziano portò una scala dal furgone","L'aquilone cadde da solo dopo poco"],ok:2},
+  {n:8,par:0,tipo:"sm",sez:0,testo:"Quale lezione impara Tommaso alla fine?",opts:["Gli aquiloni non si usano vicino agli alberi","Bisogna sempre chiedere aiuto subito","La perseveranza porta al successo ma bisogna anche imparare dagli errori","Gli aquiloni di nylon sono i migliori"],ok:2},
+  {n:9,par:1,tipo:"sm",sez:1,testo:'La parola "sostenuto" applicata al vento significa:',opts:["Improvviso e violento","Debolissimo e leggero","Continuo e abbastanza forte","Freddo e umido"],ok:2},
+  {n:10,par:5,tipo:"sm",sez:1,testo:'L\'aquilone "si impigliò tra i rami". Cosa significa?',opts:["Scivolò giù velocemente","Si bloccò, rimase intrappolato","Volò ancora più in alto","Si aprì completamente"],ok:1},
+  {n:11,par:0,tipo:"vf",sez:0,testo:"Segna V se l'affermazione è vera, F se è falsa.",
+    righeVF:[{t:"L'aquilone è di nylon azzurro e giallo.",ok:true},{t:"Al primo tentativo l'aquilone sale subito molto in alto.",ok:false},{t:"Alla fine Tommaso ricomincia a far volare l'aquilone stando lontano dagli alberi.",ok:true}]},
+  {n:12,par:2,tipo:"sm",sez:2,tip:"Chiedi: chi mostra?",testo:'Leggi: «Il papà mostra al figlio come tenerlo.» Qual è il soggetto?',opts:["Il figlio","Mostra","Il papà","Come tenerlo"],ok:2},
+  {n:13,par:3,tipo:"sm",sez:2,tip:"Il predicato verbale è il verbo. Chiedi: cosa fa l'aquilone?",testo:'Leggi: «L\'aquilone sale, sale, sale e rimane su.» Quali sono i predicati verbali?',opts:["L'aquilone","Sale e rimane","Stabile","A cinquanta metri"],ok:1},
+  {n:14,par:6,tipo:"sm",sez:2,tip:"Chiedi: Tommaso ringraziò chi?",testo:'Leggi: «Tommaso ringraziò il signore.» Qual è il complemento oggetto?',opts:["Tommaso","Ringraziò","Il signore","Il cane"],ok:2},
+  {n:15,par:4,tipo:"sm",sez:1,testo:'Nel testo l\'aquilone "planava". Cosa significa "planare"?',opts:["Cadere velocemente verso il basso","Girare su sé stesso rapidamente","Scendere lentamente tenendo le ali aperte","Andare avanti in linea retta"],ok:2},
+]},
+
+]; // fine PROVE_DIS
+
+// ══════════════════════════════════════════════════════════════
+//  URL PARAMS + INIT
+// ══════════════════════════════════════════════════════════════
+let PROVA_ATTUALE = null;
+let NOME_STUD = '';
+let CLASSE_STUD = '';
+let TOT_DOM = 0;
+
+window.addEventListener('load', () => {
+  const p = new URLSearchParams(window.location.search);
+  const provaId = parseInt(p.get('prova') || '1');
+  NOME_STUD  = p.get('nome')   || '';
+  CLASSE_STUD = p.get('classe') || '';
+
+  // Applica TIC da URL
+  const ticList = (p.get('tic') || '').split(',').filter(t=>t.trim());
+  ticList.forEach(t => {
+    document.body.classList.add('tic-'+t.trim());
+    const btn = document.getElementById('ticb-'+t.trim());
+    if(btn) btn.classList.add('on');
+  });
+  // Alias diretti
+  if(p.get('maiuscolo')==='1') togTicSilent('maiuscolo');
+  if(p.get('grande')==='1')    togTicSilent('grande');
+  if(p.get('contrasto')==='1') togTicSilent('contrasto');
+  if(p.get('spaziatura')==='1')togTicSilent('spaziatura');
+  if(p.get('font')==='1')      togTicSilent('font');
+  if(p.get('bes')==='1')       togTicSilent('bes');
+
+  // Carica prova
+  PROVA_ATTUALE = PROVE_DIS.find(pr=>pr.id===provaId) || PROVE_DIS[0];
+  renderProva(PROVA_ATTUALE);
+});
+
+function togTicSilent(nome){
+  document.body.classList.add('tic-'+nome);
+  const btn = document.getElementById('ticb-'+nome);
+  if(btn) btn.classList.add('on');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  RENDER PROVA
+// ══════════════════════════════════════════════════════════════
+function renderProva(prova){
+  // Header
+  let sub = prova.titolo + (NOME_STUD ? ' &nbsp;|&nbsp; ' + NOME_STUD : '') + (CLASSE_STUD ? ' &nbsp;|&nbsp; Classe ' + CLASSE_STUD : '') + ' &nbsp;|&nbsp; A.S. 2025/2026';
+  document.getElementById('hdr-titolo').textContent = '📖 ' + prova.sottotitolo + ' — ' + prova.titolo;
+  document.getElementById('hdr-sub').innerHTML = sub;
+  document.title = 'Grado 8 — ' + prova.titolo;
+
+  // Testo
+  const tc = document.getElementById('testo-content');
+  tc.innerHTML = prova.paragrafi.map(par => `
+    <div class="par" id="par${par.n}" data-par="${par.n}">
+      <div class="plbl"><span class="dot"></span>Paragrafo ${par.n}</div>
+      <div class="tpar">${par.testo}</div>
+    </div>`).join('');
+
+  // Glossario
+  const gi = document.getElementById('glossario-items');
+  gi.innerHTML = prova.glossario.map(g =>
+    `<div class="gli"><span class="glk">${g.k}:</span><span>${g.v}</span></div>`).join('');
+
+  // Raggruppa domande per sezione
+  const sez0 = prova.domande.filter(d=>d.sez===0);
+  const sez1 = prova.domande.filter(d=>d.sez===1);
+  const sez2 = prova.domande.filter(d=>d.sez===2);
+
+  let html = '';
+  if(sez0.length){
+    html += `<div class="sez"><div class="sezt">✏️ Parte 1 — Comprensione del testo</div>`;
+    html += sez0.map(d => renderDomanda(d, prova.domande)).join('');
+    html += `</div>`;
+  }
+  if(sez1.length){
+    html += `<div class="sez lex"><div class="sezt">🔤 Parte 2 — Lessico</div>`;
+    html += sez1.map(d => renderDomanda(d, prova.domande)).join('');
+    html += `</div>`;
+  }
+  if(sez2.length){
+    html += `<div class="sez gram"><div class="sezt">📐 Parte 3 — Riflessione linguistica</div>`;
+    // Mini-spiegazioni per grammatica
+    html += `<div class="sst" style="background:#0277bd">📌 Soggetto e predicato verbale</div>`;
+    html += `<div class="hint">💡 Il <strong>soggetto</strong> è chi compie l'azione. Il <strong>predicato verbale</strong> è il verbo che indica l'azione. Il <strong>complemento oggetto</strong> indica chi o cosa subisce l'azione.<br>Chiedi sempre: <em>Chi fa? Cosa fa? Su chi o su cosa?</em></div>`;
+    html += sez2.map(d => renderDomanda(d, prova.domande)).join('');
+    html += `</div>`;
+  }
+  document.getElementById('domande-content').innerHTML = html;
+
+  // Conteggio totale
+  TOT_DOM = 0;
+  prova.domande.forEach(d => {
+    if(d.tipo==='sm') TOT_DOM++;
+    if(d.tipo==='vf') TOT_DOM += d.righeVF.length;
+  });
+  document.getElementById('blbl').textContent = `Completate: 0 / ${TOT_DOM} risposte`;
+
+  // Bind eventi
+  document.querySelectorAll('.opts').forEach(g => {
+    g.querySelectorAll('.opt').forEach(l => {
+      l.querySelector('input')?.addEventListener('change', () => {
+        g.querySelectorAll('.opt').forEach(x => x.classList.remove('sel'));
+        l.classList.add('sel');
+        aggBarra();
+      });
+    });
+  });
+  document.querySelectorAll('input[type="radio"]').forEach(r => r.addEventListener('change', aggBarra));
+
+  // IntersectionObserver
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if(e.isIntersecting) attivaDom(e.target); });
+  }, {root:document.getElementById('pd'), rootMargin:'-22% 0px -22% 0px', threshold:0.1});
+  document.querySelectorAll('.dom[data-par]').forEach(d => obs.observe(d));
+}
+
+function renderDomanda(d, tutte){
+  const tagClass = d.sez===1?'oro': d.sez===2?'ros':'';
+  const parLabel = d.par===0 ? 'Tutto il testo' : `Par. ${d.par}`;
+  const domClass = d.sez===1?'li': d.sez===2?'gi':'';
+  const ndomClass = d.sez===1?'li': d.sez===2?'gi':'';
+  const tot = tutte.reduce((s,x) => s + (x.tipo==='sm'?1:x.tipo==='vf'?x.righeVF.length:0), 0);
+
+  let inner = '';
+  if(d.tipo==='sm'){
+    const lett = ['A','B','C','D'];
+    inner += `<div class="opts">${d.opts.map((op,i) =>
+      `<label class="opt"><input type="radio" name="d${d.n}" value="${i}"> ${lett[i]}. &nbsp; ${op}</label>`
+    ).join('')}</div>`;
+    if(d.tip) inner = `<div class="hint">💡 ${d.tip}</div>` + inner;
+  } else if(d.tipo==='vf'){
+    inner = d.righeVF.map((r,i) =>
+      `<div class="vfr"><span>${r.t}</span>
+        <label><input type="radio" name="vf${d.n}_${i}" value="V"> V</label>
+        <label><input type="radio" name="vf${d.n}_${i}" value="F"> F</label>
+      </div>`).join('');
+  }
+
+  return `<div class="dom ${domClass}" id="d${d.n}" data-par="${d.par}" data-righe="">
+    <div class="tag ${tagClass}" onclick="click_tag(this)">📍 ${parLabel}</div>
+    <div class="ndom">Domanda ${d.n} di ${tutte.length}</div>
+    <div class="tdom">${d.testo}</div>
+    ${inner}
+    <div class="fb" id="fb${d.n}"></div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  ILLUMINAZIONE PARAGRAFI
+// ══════════════════════════════════════════════════════════════
+function togli(){
+  document.querySelectorAll('.par.att').forEach(p=>p.classList.remove('att'));
+}
+function attivaDom(dom){
+  const par = parseInt(dom.dataset.par||0);
+  togli();
+  if(par>0){
+    const p = document.getElementById('par'+par);
+    if(p) p.classList.add('att');
+  }
+}
+function click_tag(tag){
+  const dom = tag.closest('.dom');
+  attivaDom(dom);
+  const par = parseInt(dom.dataset.par||0);
+  if(par>0){
+    const p = document.getElementById('par'+par);
+    if(p) p.scrollIntoView({behavior:'smooth', block:'center'});
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  BARRA PROGRESSO
+// ══════════════════════════════════════════════════════════════
+function aggBarra(){
+  if(!PROVA_ATTUALE) return;
+  let c = 0;
+  PROVA_ATTUALE.domande.forEach(d => {
+    if(d.tipo==='sm'){
+      if(document.querySelector(`input[name="d${d.n}"]:checked`)) c++;
+    } else if(d.tipo==='vf'){
+      d.righeVF.forEach((_,i) => {
+        if(document.querySelector(`input[name="vf${d.n}_${i}"]:checked`)) c++;
+      });
+    }
+  });
+  document.getElementById('bff').style.width = Math.round(c/TOT_DOM*100)+'%';
+  document.getElementById('blbl').textContent = `Completate: ${c} / ${TOT_DOM} risposte`;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  CORREGGI
+// ══════════════════════════════════════════════════════════════
+function controlla(){
+  if(!PROVA_ATTUALE) return;
+  let corr = 0, tot = 0;
+  PROVA_ATTUALE.domande.forEach(d => {
+    const fb = document.getElementById('fb'+d.n);
+    if(d.tipo==='sm'){
+      tot++;
+      const sel = document.querySelector(`input[name="d${d.n}"]:checked`);
+      document.querySelectorAll(`input[name="d${d.n}"]`).forEach(r => {
+        const l = r.closest('label');
+        l.classList.remove('ok','no','sel');
+        if(parseInt(r.value)===d.ok) l.classList.add('ok');
+      });
+      if(sel){
+        if(parseInt(sel.value)===d.ok){
+          corr++;
+          if(fb){ fb.textContent='✅ Corretto!'; fb.className='fb ok'; fb.style.display='block'; }
+        } else {
+          sel.closest('label').classList.add('no');
+          if(fb){ fb.textContent='❌ Non corretto. La risposta giusta è evidenziata in verde.'; fb.className='fb no'; fb.style.display='block'; }
+        }
+      } else {
+        if(fb){ fb.textContent='⚠️ Non hai risposto a questa domanda.'; fb.className='fb no'; fb.style.display='block'; }
+      }
+    } else if(d.tipo==='vf'){
+      let vfc = 0;
+      d.righeVF.forEach((r,i) => {
+        tot++;
+        const attesa = r.ok ? 'V' : 'F';
+        const sel = document.querySelector(`input[name="vf${d.n}_${i}"]:checked`);
+        const lV = document.querySelector(`input[name="vf${d.n}_${i}"][value="V"]`)?.closest('label');
+        const lF = document.querySelector(`input[name="vf${d.n}_${i}"][value="F"]`)?.closest('label');
+        if(lV) lV.classList.remove('ok','no');
+        if(lF) lF.classList.remove('ok','no');
+        const lCorr = document.querySelector(`input[name="vf${d.n}_${i}"][value="${attesa}"]`)?.closest('label');
+        if(lCorr) lCorr.classList.add('ok');
+        if(sel && sel.value===attesa){ corr++; vfc++; }
+        else if(sel){ sel.closest('label').classList.add('no'); }
+      });
+      if(fb){
+        fb.textContent = vfc===d.righeVF.length ? `✅ Tutte corrette!` : `⚠️ ${vfc} su ${d.righeVF.length} corrette. Rileggi il testo.`;
+        fb.className = vfc===d.righeVF.length ? 'fb ok' : 'fb no';
+        fb.style.display='block';
+      }
+    }
+  });
+  const pct = Math.round(corr/tot*100);
+  document.getElementById('pts').textContent = corr + ' / ' + tot;
+  document.getElementById('sub-ris').textContent = 'risposte corrette su ' + tot + ' totali';
+  const msg = document.getElementById('rmsg');
+  const [t,co,sf] = pct>=80
+    ? ['🌟 Ottimo lavoro! Hai dimostrato una buona comprensione del testo.','#01579b','#e1f5fe']
+    : pct>=60
+    ? ['👍 Buon lavoro! Hai risposto correttamente alla maggior parte delle domande.','#7a5000','#fff8e1']
+    : ['💪 Continua a provare! Rileggi le parti evidenziate in giallo e riprova.','#c62828','#fdecea'];
+  msg.textContent = t;
+  msg.style.color = co;
+  msg.style.background = sf;
+  msg.style.border = '2px solid ' + co;
+  const box = document.getElementById('risbox');
+  box.style.display = 'block';
+  box.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function riazzeramento(){
+  if(!confirm('Sei sicuro di voler ricominciare? Tutte le risposte verranno cancellate.')) return;
+  document.querySelectorAll('input[type="radio"]').forEach(r => r.checked=false);
+  document.querySelectorAll('.opt').forEach(l => l.classList.remove('ok','no','sel'));
+  document.querySelectorAll('.vfr label').forEach(l => l.classList.remove('ok','no'));
+  document.querySelectorAll('.fb').forEach(f => { f.style.display='none'; f.textContent=''; });
+  document.getElementById('risbox').style.display='none';
+  document.getElementById('bff').style.width='0%';
+  document.getElementById('blbl').textContent = `Completate: 0 / ${TOT_DOM} risposte`;
+  togli();
+  document.getElementById('pd').scrollTop=0;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  AUDIO TTS
+// ══════════════════════════════════════════════════════════════
+let ttsOn = false;
+function getTesto(){
+  return Array.from(document.querySelectorAll('.par .tpar'))
+    .map(p => p.innerText.replace(/\s+/g,' ').trim()).join('. ');
+}
+function toggleAudio(){
+  const b = document.getElementById('baudio');
+  if(ttsOn){ speechSynthesis.cancel(); ttsOn=false; b.textContent='🔊 Ascolta'; b.classList.remove('on'); return; }
+  const u = new SpeechSynthesisUtterance(getTesto());
+  u.lang='it-IT'; u.rate=0.82; u.pitch=1;
+  u.onend = () => { ttsOn=false; b.textContent='🔊 Ascolta'; b.classList.remove('on'); };
+  ttsOn=true; b.textContent='⏹ Ferma'; b.classList.add('on');
+  speechSynthesis.speak(u);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  LENTE
+// ══════════════════════════════════════════════════════════════
+let lente = false;
+function toggleLente(){
+  lente = !lente;
+  document.getElementById('pt').classList.toggle('ing', lente);
+  const b = document.getElementById('blente');
+  b.textContent = lente ? '🔍 Rimpicciolisci' : '🔍 Ingrandisci';
+  b.classList.toggle('on', lente);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  TIC FLOATING PANEL
+// ══════════════════════════════════════════════════════════════
+let ticPanelOpen = false;
+function toggleTicPanel(){
+  ticPanelOpen = !ticPanelOpen;
+  document.getElementById('tic-panel').style.display = ticPanelOpen ? 'flex' : 'none';
+}
+function togTic(nome, btnId){
+  document.body.classList.toggle('tic-'+nome);
+  const btn = document.getElementById(btnId);
+  if(btn) btn.classList.toggle('on', document.body.classList.contains('tic-'+nome));
+}
+</script>
+</body>
+</html>
