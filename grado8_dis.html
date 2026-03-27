@@ -37,30 +37,51 @@ body.tic-font .tpar, body.tic-font .tdom, body.tic-font .opt, body.tic-font .sez
 body.tic-bes .tpar{font-size:1.1rem!important;line-height:2.4!important;letter-spacing:.06em!important;word-spacing:.15em!important}
 body.tic-bes .opt{font-size:1rem!important;line-height:1.9!important;padding:12px 14px!important}
 
-/* ── CAA PITTOGRAMMI ───────────────────────────────────────── */
-/* Barra pittogrammi paragrafo */
-#caa-bar{display:none;gap:8px;padding:10px 14px;background:#e8f4fd;border-bottom:2px solid var(--cb);overflow-x:auto;flex-wrap:nowrap;align-items:flex-start;min-height:0}
+/* ══ CAA — Comunicazione Aumentativa Alternativa ══════════════ */
+/* Barra pittogrammi testo (in cima alla colonna testo) */
+#caa-bar{display:none;flex-wrap:wrap;gap:10px;padding:12px 16px 10px;
+  background:#e8f4fd;border-bottom:3px solid var(--cb)}
 body.tic-caa #caa-bar{display:flex}
-.caa-card{display:inline-flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0;width:72px}
-.caa-card img{width:62px;height:62px;object-fit:contain;border-radius:8px;background:#fff;border:1.5px solid var(--cb);padding:2px}
+
+/* Card pittogramma nella barra testo */
+.caa-card{display:flex;flex-direction:column;align-items:center;gap:5px;
+  width:86px;flex-shrink:0}
+.caa-card img{width:76px;height:76px;object-fit:contain;border-radius:8px;
+  background:#fff;border:2px solid #90caf9;padding:3px}
 .caa-card img.err{display:none}
-.caa-card span{font-size:.6rem;font-weight:700;color:var(--c1);text-align:center;max-width:72px;word-break:break-word;line-height:1.2}
-/* Pittogrammi inline nel testo (glossario) */
-.caa-glw-wrap{display:inline-flex;flex-direction:column;align-items:center;vertical-align:bottom;margin:0 3px 2px}
-.caa-glw-pic{display:none;width:44px;height:44px;object-fit:contain;border-radius:6px;background:#f0f7ff;border:1px solid #b3d4f0}
+.caa-card span{font-size:.58rem;font-weight:800;color:var(--c1);
+  text-align:center;text-transform:uppercase;letter-spacing:.3px;
+  line-height:1.2;max-width:86px;word-break:break-word}
+
+/* Pittogrammi parole glossario nel testo */
+.caa-glw-wrap{display:inline-flex;flex-direction:column;align-items:center;
+  vertical-align:bottom;margin:0 3px 2px}
+.caa-glw-pic{display:none;width:48px;height:48px;object-fit:contain;
+  border-radius:6px;background:#f0f7ff;border:2px solid #90caf9}
 body.tic-caa .caa-glw-pic{display:block}
-body.tic-caa .glw{font-weight:700;color:#01579b;border-bottom:2px dotted #01579b}
-/* Opzioni risposta in modalità CAA - card con immagine grande */
-.caa-wrap{display:none}
-body.tic-caa .caa-wrap{display:flex;justify-content:center;width:100%}
-body.tic-caa .caa-wrap img{width:80px;height:80px;object-fit:contain;border-radius:10px;background:#f0f7ff;border:1.5px solid var(--cb);padding:3px}
-body.tic-caa .caa-wrap img.err{display:none}
-body.tic-caa .caa-wrap img[src=""]{display:none}
-/* Card verticale CAA */
-body.tic-caa .opt{display:flex!important;flex-direction:column!important;align-items:center!important;text-align:center;gap:8px;padding:12px 10px!important;min-width:120px}
-body.tic-caa .opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-body.tic-caa .opt-testo{font-size:.88rem;line-height:1.4;text-align:center;width:100%}
-body.tic-caa .opt input{align-self:center;width:20px;height:20px}
+body.tic-caa .glw{font-weight:800;color:#01579b;border-bottom:2px solid #01579b;
+  font-size:1.05em}
+
+/* ── Risposte CAA — stile libro: immagine + parola in box ─── */
+.caa-opt-pic{display:none}
+body.tic-caa .caa-opt-pic{display:flex;flex-direction:column;align-items:center;
+  gap:6px;padding:8px 6px 6px;background:#f0f7ff;border:2px solid #90caf9;
+  border-radius:10px;margin-bottom:6px;min-width:90px;flex:1}
+body.tic-caa .caa-opt-pic img{width:90px;height:90px;object-fit:contain;
+  background:#fff;border-radius:6px;padding:2px}
+body.tic-caa .caa-opt-pic img[src=""]{width:90px;height:90px;
+  background:#e8f4fd url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 90 90'%3E%3Crect fill='%23e3f2fd' width='90' height='90'/%3E%3Ctext x='45' y='52' text-anchor='middle' fill='%2390caf9' font-size='28'%3E🖼️%3C/text%3E%3C/svg%3E") center/60px no-repeat}
+body.tic-caa .caa-opt-pic .caa-wrd{font-size:.72rem;font-weight:800;
+  text-transform:uppercase;color:#01579b;text-align:center;
+  letter-spacing:.3px;line-height:1.2}
+/* Layout opzioni CAA: 2 per riga, spaziose */
+body.tic-caa .opts{display:grid;grid-template-columns:1fr 1fr;gap:12px;
+  margin-top:8px}
+body.tic-caa .opt{flex-direction:column;align-items:center;
+  padding:10px 8px!important;gap:4px;cursor:pointer}
+body.tic-caa .opt input{order:-1;width:20px;height:20px;margin-bottom:4px}
+body.tic-caa .opt-testo{font-size:.82rem;font-weight:700;text-align:center;
+  color:#333;line-height:1.3}
 
 /* ── HEADER ────────────────────────────────────────────────── */
 .hdr{background:var(--c1);color:#fff;text-align:center;padding:14px 20px 10px;border-bottom:5px solid var(--ob);position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,.28)}
@@ -632,25 +653,25 @@ glossario:[
   {k:"Berretto", v:"Copricapo di lana che protegge la testa dal freddo."},
 ],
 domande:[
-  {n:1,par:1,tipo:"sm",sez:0,testo:"Chi è il protagonista di questo racconto?",opts:["La mamma","Marco","Il papà","La nonna"],pics:[37076,2940,6990,6635],ok:1},
-  {n:2,par:1,tipo:"sm",sez:0,testo:"Perché Marco va in cucina?",opts:["Ha sete","Ha sonno","Ha fame","Ha freddo"],pics:[7618,7684,5003,5165],ok:2},
-  {n:3,par:2,tipo:"sm",sez:0,testo:"Cosa c'è sul tavolo per la colazione?",opts:["Pane e marmellata","Pasta e sugo","Latte, biscotti e banana","Succo e torta"],pics:[5604,7953,3267,3010],ok:2},
-  {n:4,par:3,tipo:"sm",sez:0,testo:"Chi scalda il latte?",opts:["Marco","Il papà","La nonna","La mamma"],pics:[37076,6990,6635,37076],ok:3},
-  {n:5,par:4,tipo:"sm",sez:0,testo:"Come sono i biscotti nel latte?",opts:["Duri e salati","Freddi e acidi","Secchi e amari","Morbidi e buoni"],pics:[5165,3267,7590,2643],ok:3},
+  {n:1,par:1,tipo:"sm",sez:0,testo:"Chi è il protagonista di questo racconto?",opts:["La mamma","Marco","Il papà","La nonna"],ok:1},
+  {n:2,par:1,tipo:"sm",sez:0,testo:"Perché Marco va in cucina?",opts:["Ha sete","Ha sonno","Ha fame","Ha freddo"],ok:2},
+  {n:3,par:2,tipo:"sm",sez:0,testo:"Cosa c'è sul tavolo per la colazione?",opts:["Pane e marmellata","Pasta e sugo","Latte, biscotti e banana","Succo e torta"],ok:2},
+  {n:4,par:3,tipo:"sm",sez:0,testo:"Chi scalda il latte?",opts:["Marco","Il papà","La nonna","La mamma"],ok:3},
+  {n:5,par:4,tipo:"sm",sez:0,testo:"Come sono i biscotti nel latte?",opts:["Duri e salati","Freddi e acidi","Secchi e amari","Morbidi e buoni"],ok:3},
   {n:6,par:0,tipo:"vf",sez:0,testo:"Segna V se vero, F se falso.",righeVF:[
     {t:"Marco si alza tardi e non fa colazione.",ok:false},
     {t:"Lo zaino di Marco è rosso.",ok:true},
     {t:"Fuori fa caldo quando Marco esce.",ok:false}
   ]},
-  {n:7,par:5,tipo:"sm",sez:0,testo:"Cosa fa Marco dopo aver mangiato?",opts:["Va a dormire","Guarda la televisione","Lava la tazza","Chiama un amico"],pics:[7684,7907,7944,2591],ok:2},
-  {n:8,par:6,tipo:"sm",sez:0,testo:"Perché Marco mette il cappotto?",opts:["Perché è elegante","Perché fa freddo fuori","Perché lo vuole la maestra","Perché fa ginnastica"],pics:[null,5165,5714,null],ok:1},
-  {n:9,par:0,tipo:"sm",sez:0,testo:"Come finisce il racconto?",opts:["Marco torna a letto","Marco va a scuola contento","Marco rimane in cucina","Marco piange"],pics:[7684,5040,5003,7062],ok:1},
-  {n:10,par:2,tipo:"sm",sez:1,testo:"Nel testo si parla di \"biscotti\". I biscotti sono:",opts:["Verdure fresche","Dolci secchi da colazione","Tipo di pasta","Frutta acida"],pics:[4858,3267,null,null],ok:1},
-  {n:11,par:5,tipo:"sm",sez:1,testo:"Lo \"zaino\" serve per:",opts:["Dormire comodi","Cucinare","Portare i libri a scuola","Fare sport"],pics:[8132,null,null,null],ok:2},
-  {n:12,par:6,tipo:"sm",sez:1,testo:"Il \"cappotto\" è:",opts:["Un tipo di cibo","Un mobile di casa","Una giacca calda per l'inverno","Un gioco per bambini"],pics:[3699,4013,5883,5224],ok:2},
-  {n:13,par:3,tipo:"sm",sez:2,tip:"Il soggetto è chi compie l'azione. Chiedi: chi scalda?",testo:"Leggi: «La mamma scalda il latte.» Qual è il soggetto?",opts:["Il latte","Scalda","La mamma","Sul fornello"],pics:[37076,null,7944,null],ok:2},
-  {n:14,par:5,tipo:"sm",sez:2,tip:"Il predicato verbale è il verbo. Chiedi: cosa fa Marco?",testo:"Leggi: «Marco lava la tazza.» Qual è il predicato verbale?",opts:["Marco","La tazza","Lava","Nell'acquaio"],pics:[7684,7944,null,null],ok:2},
-  {n:15,par:6,tipo:"sm",sez:2,tip:"Il complemento oggetto risponde alla domanda: aiuta chi?",testo:"Leggi: «La mamma aiuta Marco.» Qual è il complemento oggetto?",opts:["La mamma","Aiuta","Il cappotto","Marco"],pics:[37076,2560,3699,2940],ok:3},
+  {n:7,par:5,tipo:"sm",sez:0,testo:"Cosa fa Marco dopo aver mangiato?",opts:["Va a dormire","Guarda la televisione","Lava la tazza","Chiama un amico"],ok:2},
+  {n:8,par:6,tipo:"sm",sez:0,testo:"Perché Marco mette il cappotto?",opts:["Perché è elegante","Perché fa freddo fuori","Perché lo vuole la maestra","Perché fa ginnastica"],ok:1},
+  {n:9,par:0,tipo:"sm",sez:0,testo:"Come finisce il racconto?",opts:["Marco torna a letto","Marco va a scuola contento","Marco rimane in cucina","Marco piange"],ok:1},
+  {n:10,par:2,tipo:"sm",sez:1,testo:"Nel testo si parla di \"biscotti\". I biscotti sono:",opts:["Verdure fresche","Dolci secchi da colazione","Tipo di pasta","Frutta acida"],ok:1},
+  {n:11,par:5,tipo:"sm",sez:1,testo:"Lo \"zaino\" serve per:",opts:["Dormire comodi","Cucinare","Portare i libri a scuola","Fare sport"],ok:2},
+  {n:12,par:6,tipo:"sm",sez:1,testo:"Il \"cappotto\" è:",opts:["Un tipo di cibo","Un mobile di casa","Una giacca calda per l'inverno","Un gioco per bambini"],ok:2},
+  {n:13,par:3,tipo:"sm",sez:2,tip:"Il soggetto è chi compie l'azione. Chiedi: chi scalda?",testo:"Leggi: «La mamma scalda il latte.» Qual è il soggetto?",opts:["Il latte","Scalda","La mamma","Sul fornello"],ok:2},
+  {n:14,par:5,tipo:"sm",sez:2,tip:"Il predicato verbale è il verbo. Chiedi: cosa fa Marco?",testo:"Leggi: «Marco lava la tazza.» Qual è il predicato verbale?",opts:["Marco","La tazza","Lava","Nell'acquaio"],ok:2},
+  {n:15,par:6,tipo:"sm",sez:2,tip:"Il complemento oggetto risponde alla domanda: aiuta chi?",testo:"Leggi: «La mamma aiuta Marco.» Qual è il complemento oggetto?",opts:["La mamma","Aiuta","Il cappotto","Marco"],ok:3},
 ]},
 
 // ══ PROVA 12 — CAA: Al parco con Bello ══════════════════════
@@ -673,25 +694,25 @@ glossario:[
   {k:"Casa", v:"Il posto dove si abita, dove c'è la propria famiglia."},
 ],
 domande:[
-  {n:1,par:1,tipo:"sm",sez:0,testo:"Come si chiama la protagonista?",opts:["Anna","Bello","Sofia","La mamma"],pics:[2939,4884,2939,37076],ok:2},
-  {n:2,par:1,tipo:"sm",sez:0,testo:"Quando va al parco Sofia?",opts:["Ogni domenica","Ogni sabato mattina","Ogni venerdì sera","Ogni lunedì"],pics:[null,null,5165,7684],ok:1},
-  {n:3,par:2,tipo:"sm",sez:0,testo:"Come si chiama il cane di Sofia?",opts:["Fido","Rex","Fiocco","Bello"],pics:[4884,4884,5081,4884],ok:3},
-  {n:4,par:3,tipo:"sm",sez:0,testo:"Cosa fa Bello con il pallone?",opts:["Lo rompe","Lo nasconde","Lo porta a Sofia","Lo mangia"],pics:[null,3267,6956,4013],ok:2},
-  {n:5,par:4,tipo:"sm",sez:0,testo:"Perché Bello beve l'acqua?",opts:["Ha fame","Ha freddo","Ha sete","Ha sonno"],pics:[5003,5165,7618,7684],ok:2},
+  {n:1,par:1,tipo:"sm",sez:0,testo:"Come si chiama la protagonista?",opts:["Anna","Bello","Sofia","La mamma"],ok:2},
+  {n:2,par:1,tipo:"sm",sez:0,testo:"Quando va al parco Sofia?",opts:["Ogni domenica","Ogni sabato mattina","Ogni venerdì sera","Ogni lunedì"],ok:1},
+  {n:3,par:2,tipo:"sm",sez:0,testo:"Come si chiama il cane di Sofia?",opts:["Fido","Rex","Fiocco","Bello"],ok:3},
+  {n:4,par:3,tipo:"sm",sez:0,testo:"Cosa fa Bello con il pallone?",opts:["Lo rompe","Lo nasconde","Lo porta a Sofia","Lo mangia"],ok:2},
+  {n:5,par:4,tipo:"sm",sez:0,testo:"Perché Bello beve l'acqua?",opts:["Ha fame","Ha freddo","Ha sete","Ha sonno"],ok:2},
   {n:6,par:0,tipo:"vf",sez:0,testo:"Segna V se vero, F se falso.",righeVF:[
     {t:"Il parco è lontano da casa di Sofia.",ok:false},
     {t:"Bello è un cane grande con il pelo marrone.",ok:true},
     {t:"Anna ha i capelli rossi.",ok:false}
   ]},
-  {n:7,par:5,tipo:"sm",sez:0,testo:"Come si chiama il cane di Anna?",opts:["Bello","Rex","Fiocco","Pallino"],pics:[4884,4884,5081,null],ok:2},
-  {n:8,par:6,tipo:"sm",sez:0,testo:"Come torna a casa Sofia?",opts:["Triste e arrabbiata","Stanca ma molto felice","Delusa e annoiata","Spaventata e confusa"],pics:[7963,5040,4858,null],ok:1},
-  {n:9,par:0,tipo:"sm",sez:0,testo:"Di cosa parla questo racconto?",opts:["Di una gita al mare","Di una giornata a scuola","Di una bambina e il suo cane al parco","Di una festa di compleanno"],pics:[5085,5714,4884,null],ok:2},
-  {n:10,par:2,tipo:"sm",sez:1,testo:"Il \"guinzaglio\" è:",opts:["Un tipo di cibo per cani","Una corda per tenere il cane","Un gioco per bambini","Un tipo di collare"],pics:[null,5303,5224,null],ok:1},
-  {n:11,par:4,tipo:"sm",sez:1,testo:"Cosa significa \"sete\" nel testo?",opts:["Voglia di dormire","Voglia di mangiare","Voglia di correre","Voglia di bere"],pics:[7618,6982,5224,null],ok:3},
-  {n:12,par:3,tipo:"sm",sez:1,testo:"\"Accarezza\" significa:",opts:["Colpire forte","Toccare con dolcezza","Lanciare lontano","Chiamare a voce alta"],pics:[5040,2560,3010,2591],ok:1},
-  {n:13,par:3,tipo:"sm",sez:2,tip:"Il soggetto è chi compie l'azione. Chiedi: chi corre?",testo:"Leggi: «Bello corre velocissimo sul prato.» Qual è il soggetto?",opts:["Velocissimo","Il prato","Corre","Bello"],pics:[4884,null,null,2940],ok:3},
-  {n:14,par:3,tipo:"sm",sez:2,tip:"Il predicato verbale è il verbo. Chiedi: cosa fa Sofia?",testo:"Leggi: «Sofia lancia il pallone.» Qual è il predicato verbale?",opts:["Sofia","Il pallone","Lancia","Sul prato"],pics:[6956,null,5040,4884],ok:2},
-  {n:15,par:6,tipo:"sm",sez:2,tip:"Il complemento oggetto risponde a: saluta chi?",testo:"Leggi: «Sofia saluta Anna.» Qual è il complemento oggetto?",opts:["Sofia","Saluta","Anna","Al parco"],pics:[2939,null,2939,6985],ok:2},
+  {n:7,par:5,tipo:"sm",sez:0,testo:"Come si chiama il cane di Anna?",opts:["Bello","Rex","Fiocco","Pallino"],ok:2},
+  {n:8,par:6,tipo:"sm",sez:0,testo:"Come torna a casa Sofia?",opts:["Triste e arrabbiata","Stanca ma molto felice","Delusa e annoiata","Spaventata e confusa"],ok:1},
+  {n:9,par:0,tipo:"sm",sez:0,testo:"Di cosa parla questo racconto?",opts:["Di una gita al mare","Di una giornata a scuola","Di una bambina e il suo cane al parco","Di una festa di compleanno"],ok:2},
+  {n:10,par:2,tipo:"sm",sez:1,testo:"Il \"guinzaglio\" è:",opts:["Un tipo di cibo per cani","Una corda per tenere il cane","Un gioco per bambini","Un tipo di collare"],ok:1},
+  {n:11,par:4,tipo:"sm",sez:1,testo:"Cosa significa \"sete\" nel testo?",opts:["Voglia di dormire","Voglia di mangiare","Voglia di correre","Voglia di bere"],ok:3},
+  {n:12,par:3,tipo:"sm",sez:1,testo:"\"Accarezza\" significa:",opts:["Colpire forte","Toccare con dolcezza","Lanciare lontano","Chiamare a voce alta"],ok:1},
+  {n:13,par:3,tipo:"sm",sez:2,tip:"Il soggetto è chi compie l'azione. Chiedi: chi corre?",testo:"Leggi: «Bello corre velocissimo sul prato.» Qual è il soggetto?",opts:["Velocissimo","Il prato","Corre","Bello"],ok:3},
+  {n:14,par:3,tipo:"sm",sez:2,tip:"Il predicato verbale è il verbo. Chiedi: cosa fa Sofia?",testo:"Leggi: «Sofia lancia il pallone.» Qual è il predicato verbale?",opts:["Sofia","Il pallone","Lancia","Sul prato"],ok:2},
+  {n:15,par:6,tipo:"sm",sez:2,tip:"Il complemento oggetto risponde a: saluta chi?",testo:"Leggi: «Sofia saluta Anna.» Qual è il complemento oggetto?",opts:["Sofia","Saluta","Anna","Al parco"],ok:2},
 ]},
 
 // ══ PROVA 13 — CAA: La pioggia di Luca ══════════════════════
@@ -714,25 +735,25 @@ glossario:[
   {k:"Giardino", v:"Spazio verde vicino a una casa con erba, piante e fiori."},
 ],
 domande:[
-  {n:1,par:1,tipo:"sm",sez:0,testo:"Com'è il cielo all'inizio del racconto?",opts:["Azzurro e soleggiato","Grigio con nuvole scure","Rosa con nuvole bianche","Verde e nuvoloso"],pics:[7766,7090,7090,5040],ok:1},
-  {n:2,par:2,tipo:"sm",sez:0,testo:"Di che colore è l'impermeabile di Luca?",opts:["Rosso","Blu","Giallo","Verde"],pics:[7349,3305,5185,8037],ok:2},
-  {n:3,par:2,tipo:"sm",sez:0,testo:"Di che colore sono gli stivali di Luca?",opts:["Gialli","Blu","Verdi","Rossi"],pics:[5185,3305,8037,7349],ok:3},
-  {n:4,par:3,tipo:"sm",sez:0,testo:"Cosa fa Luca in giardino?",opts:["Costruisce un pupazzo di neve","Salta nelle pozzanghere","Raccoglie i fiori","Gioca a pallone"],pics:[null,7127,5081,6956],ok:1},
-  {n:5,par:4,tipo:"sm",sez:0,testo:"Cosa appare nel cielo dopo la pioggia?",opts:["Una stella cadente","La luna piena","Un arcobaleno","Un aereo colorato"],pics:[null,2786,7766,null],ok:2},
+  {n:1,par:1,tipo:"sm",sez:0,testo:"Com'è il cielo all'inizio del racconto?",opts:["Azzurro e soleggiato","Grigio con nuvole scure","Rosa con nuvole bianche","Verde e nuvoloso"],ok:1},
+  {n:2,par:2,tipo:"sm",sez:0,testo:"Di che colore è l'impermeabile di Luca?",opts:["Rosso","Blu","Giallo","Verde"],ok:2},
+  {n:3,par:2,tipo:"sm",sez:0,testo:"Di che colore sono gli stivali di Luca?",opts:["Gialli","Blu","Verdi","Rossi"],ok:3},
+  {n:4,par:3,tipo:"sm",sez:0,testo:"Cosa fa Luca in giardino?",opts:["Costruisce un pupazzo di neve","Salta nelle pozzanghere","Raccoglie i fiori","Gioca a pallone"],ok:1},
+  {n:5,par:4,tipo:"sm",sez:0,testo:"Cosa appare nel cielo dopo la pioggia?",opts:["Una stella cadente","La luna piena","Un arcobaleno","Un aereo colorato"],ok:2},
   {n:6,par:0,tipo:"vf",sez:0,testo:"Segna V se vero, F se falso.",righeVF:[
     {t:"Luca ha paura della pioggia.",ok:false},
     {t:"La mamma guarda Luca dalla finestra.",ok:true},
     {t:"Luca disegna la pioggia sul quaderno la sera.",ok:true}
   ]},
-  {n:7,par:5,tipo:"sm",sez:0,testo:"Cosa raccoglie Luca in giardino?",opts:["Fiori profumati","Sassi colorati","Foglie bagnate","Bacche rosse"],pics:[5081,null,5093,null],ok:2},
-  {n:8,par:6,tipo:"sm",sez:0,testo:"Cosa scrive Luca sul quaderno?",opts:["Oggi ho studiato molto","Oggi mi è piaciuta la pioggia!","Non voglio più uscire","La pioggia è brutta"],pics:[5714,7090,null,null],ok:1},
-  {n:9,par:0,tipo:"sm",sez:0,testo:"Come si sente Luca durante la pioggia?",opts:["Triste e spaventato","Si diverte e ride","È annoiato e stanco","È arrabbiato con la mamma"],pics:[7963,5040,7684,2643],ok:1},
-  {n:10,par:2,tipo:"sm",sez:1,testo:"L'\"impermeabile\" è:",opts:["Una scarpa calda","Un cappello di lana","Una giacca che non si bagna","Un tipo di ombrello"],pics:[null,5434,null,null],ok:2},
-  {n:11,par:3,tipo:"sm",sez:1,testo:"Le \"pozzanghere\" sono:",opts:["Piante acquatiche","Raccolte d'acqua sul terreno","Tipi di nuvole","Scarpe di gomma"],pics:[7127,5093,6684,7826],ok:1},
-  {n:12,par:4,tipo:"sm",sez:1,testo:"L'\"arcobaleno\" appare:",opts:["Solo di notte","Solo d'estate","Nel cielo dopo la pioggia","Solo in montagna"],pics:[2786,null,null,null],ok:2},
-  {n:13,par:3,tipo:"sm",sez:2,tip:"Il soggetto è chi compie l'azione. Chiedi: chi salta?",testo:"Leggi: «Luca salta nelle pozzanghere.» Qual è il soggetto?",opts:["Le pozzanghere","Salta","Con gli stivali","Luca"],pics:[7127,null,null,2940],ok:3},
-  {n:14,par:5,tipo:"sm",sez:2,tip:"Il predicato verbale è il verbo. Chiedi: cosa fa Luca?",testo:"Leggi: «Luca raccoglie le foglie.» Qual è il predicato verbale?",opts:["Luca","Le foglie","In giardino","Raccoglie"],pics:[2940,5093,5194,null],ok:3},
-  {n:15,par:6,tipo:"sm",sez:2,tip:"Il complemento oggetto risponde a: disegna cosa?",testo:"Leggi: «Luca disegna l'arcobaleno.» Qual è il complemento oggetto?",opts:["Luca","Disegna","Sul quaderno","L'arcobaleno"],pics:[2940,null,null,2786],ok:3},
+  {n:7,par:5,tipo:"sm",sez:0,testo:"Cosa raccoglie Luca in giardino?",opts:["Fiori profumati","Sassi colorati","Foglie bagnate","Bacche rosse"],ok:2},
+  {n:8,par:6,tipo:"sm",sez:0,testo:"Cosa scrive Luca sul quaderno?",opts:["Oggi ho studiato molto","Oggi mi è piaciuta la pioggia!","Non voglio più uscire","La pioggia è brutta"],ok:1},
+  {n:9,par:0,tipo:"sm",sez:0,testo:"Come si sente Luca durante la pioggia?",opts:["Triste e spaventato","Si diverte e ride","È annoiato e stanco","È arrabbiato con la mamma"],ok:1},
+  {n:10,par:2,tipo:"sm",sez:1,testo:"L'\"impermeabile\" è:",opts:["Una scarpa calda","Un cappello di lana","Una giacca che non si bagna","Un tipo di ombrello"],ok:2},
+  {n:11,par:3,tipo:"sm",sez:1,testo:"Le \"pozzanghere\" sono:",opts:["Piante acquatiche","Raccolte d'acqua sul terreno","Tipi di nuvole","Scarpe di gomma"],ok:1},
+  {n:12,par:4,tipo:"sm",sez:1,testo:"L'\"arcobaleno\" appare:",opts:["Solo di notte","Solo d'estate","Nel cielo dopo la pioggia","Solo in montagna"],ok:2},
+  {n:13,par:3,tipo:"sm",sez:2,tip:"Il soggetto è chi compie l'azione. Chiedi: chi salta?",testo:"Leggi: «Luca salta nelle pozzanghere.» Qual è il soggetto?",opts:["Le pozzanghere","Salta","Con gli stivali","Luca"],ok:3},
+  {n:14,par:5,tipo:"sm",sez:2,tip:"Il predicato verbale è il verbo. Chiedi: cosa fa Luca?",testo:"Leggi: «Luca raccoglie le foglie.» Qual è il predicato verbale?",opts:["Luca","Le foglie","In giardino","Raccoglie"],ok:3},
+  {n:15,par:6,tipo:"sm",sez:2,tip:"Il complemento oggetto risponde a: disegna cosa?",testo:"Leggi: «Luca disegna l'arcobaleno.» Qual è il complemento oggetto?",opts:["Luca","Disegna","Sul quaderno","L'arcobaleno"],ok:3},
 ]},
 
 // ══ PROVA 14 — CAA: Il cane e il pallone ════════════════════
@@ -755,25 +776,25 @@ glossario:[
   {k:"Bocca", v:"La parte del viso con i denti e la lingua, usata per mangiare e parlare."},
 ],
 domande:[
-  {n:1,par:1,tipo:"sm",sez:0,testo:"Come si chiama il cane di Filippo?",opts:["Rex","Fido","Bello","Luna"],pics:[null,null,4884,null],ok:2},
-  {n:2,par:1,tipo:"sm",sez:0,testo:"Di che colore è il pelo di Bello?",opts:["Bianco","Marrone","Nero","Grigio"],pics:[3214,5754,5965,null],ok:1},
-  {n:3,par:2,tipo:"sm",sez:0,testo:"Qual è il gioco preferito di Bello?",opts:["Nuotare nel fiume","Dormire sul divano","Correre da solo","Prendere il pallone"],pics:[null,7684,null,6956],ok:3},
-  {n:4,par:2,tipo:"sm",sez:0,testo:"Di che colore è il pallone?",opts:["Blu","Verde","Giallo","Rosso"],pics:[7349,8037,5185,3305],ok:3},
-  {n:5,par:3,tipo:"sm",sez:0,testo:"Dove finisce il pallone?",opts:["In casa","Sul tetto","Nella strada","In piscina"],pics:[19268,null,7830,null],ok:2},
+  {n:1,par:1,tipo:"sm",sez:0,testo:"Come si chiama il cane di Filippo?",opts:["Rex","Fido","Bello","Luna"],ok:2},
+  {n:2,par:1,tipo:"sm",sez:0,testo:"Di che colore è il pelo di Bello?",opts:["Bianco","Marrone","Nero","Grigio"],ok:1},
+  {n:3,par:2,tipo:"sm",sez:0,testo:"Qual è il gioco preferito di Bello?",opts:["Nuotare nel fiume","Dormire sul divano","Correre da solo","Prendere il pallone"],ok:3},
+  {n:4,par:2,tipo:"sm",sez:0,testo:"Di che colore è il pallone?",opts:["Blu","Verde","Giallo","Rosso"],ok:3},
+  {n:5,par:3,tipo:"sm",sez:0,testo:"Dove finisce il pallone?",opts:["In casa","Sul tetto","Nella strada","In piscina"],ok:2},
   {n:6,par:0,tipo:"vf",sez:0,testo:"Segna V se vero, F se falso.",righeVF:[
     {t:"Bello dorme nel cesto vicino al divano.",ok:true},
     {t:"Bello riesce ad aprire il cancello da solo.",ok:false},
     {t:"Filippo riempie la ciotola con l'acqua del rubinetto.",ok:true}
   ]},
-  {n:7,par:4,tipo:"sm",sez:0,testo:"Perché Bello va alla ciotola dell'acqua?",opts:["Ha fame","Ha sete","Ha sonno","Ha freddo"],pics:[7618,5165,5003,7684],ok:1},
-  {n:8,par:5,tipo:"sm",sez:0,testo:"Cosa mangia Bello la sera?",opts:["Pasta e verdure","Biscotti dolci","Crocchette nella ciotola gialla","Carne fresca"],pics:[null,4414,null,null],ok:2},
-  {n:9,par:6,tipo:"sm",sez:0,testo:"Dove dorme Bello la sera?",opts:["Sul letto di Filippo","In giardino","Nel suo cesto vicino al letto","In cucina"],pics:[null,7684,5194,4446],ok:2},
-  {n:10,par:2,tipo:"sm",sez:1,testo:"Il \"pallone\" è:",opts:["Un tipo di cibo","Una palla gonfiata d'aria","Un accessorio per cani","Una scarpa sportiva"],pics:[6956,null,null,null],ok:1},
-  {n:11,par:4,tipo:"sm",sez:1,testo:"La \"ciotola\" è usata per:",opts:["Dormire","Il cibo e l'acqua degli animali","Giocare a palla","Portare i libri"],pics:[4020,null,null,null],ok:1},
-  {n:12,par:5,tipo:"sm",sez:1,testo:"Le \"crocchette\" sono:",opts:["Frutta per cani","Cibo secco per cani","Giocattoli per animali","Scarpe sportive"],pics:[4414,null,null,null],ok:1},
-  {n:13,par:2,tipo:"sm",sez:2,tip:"Il soggetto è chi compie l'azione. Chiedi: chi lancia?",testo:"Leggi: «Filippo lancia il pallone.» Qual è il soggetto?",opts:["Il pallone","Lancia","Filippo","Sul prato"],pics:[6956,null,2940,null],ok:2},
-  {n:14,par:4,tipo:"sm",sez:2,tip:"Il predicato verbale è il verbo. Chiedi: cosa fa Bello?",testo:"Leggi: «Bello beve l'acqua.» Qual è il predicato verbale?",opts:["Bello","L'acqua","Dalla ciotola","Beve"],pics:[4884,7618,4020,null],ok:3},
-  {n:15,par:4,tipo:"sm",sez:2,tip:"Il complemento oggetto risponde a: riempie cosa?",testo:"Leggi: «Filippo riempie la ciotola.» Qual è il complemento oggetto?",opts:["Filippo","Riempie","La ciotola","Con l'acqua"],pics:[2940,null,4020,null],ok:2},
+  {n:7,par:4,tipo:"sm",sez:0,testo:"Perché Bello va alla ciotola dell'acqua?",opts:["Ha fame","Ha sete","Ha sonno","Ha freddo"],ok:1},
+  {n:8,par:5,tipo:"sm",sez:0,testo:"Cosa mangia Bello la sera?",opts:["Pasta e verdure","Biscotti dolci","Crocchette nella ciotola gialla","Carne fresca"],ok:2},
+  {n:9,par:6,tipo:"sm",sez:0,testo:"Dove dorme Bello la sera?",opts:["Sul letto di Filippo","In giardino","Nel suo cesto vicino al letto","In cucina"],ok:2},
+  {n:10,par:2,tipo:"sm",sez:1,testo:"Il \"pallone\" è:",opts:["Un tipo di cibo","Una palla gonfiata d'aria","Un accessorio per cani","Una scarpa sportiva"],ok:1},
+  {n:11,par:4,tipo:"sm",sez:1,testo:"La \"ciotola\" è usata per:",opts:["Dormire","Il cibo e l'acqua degli animali","Giocare a palla","Portare i libri"],ok:1},
+  {n:12,par:5,tipo:"sm",sez:1,testo:"Le \"crocchette\" sono:",opts:["Frutta per cani","Cibo secco per cani","Giocattoli per animali","Scarpe sportive"],ok:1},
+  {n:13,par:2,tipo:"sm",sez:2,tip:"Il soggetto è chi compie l'azione. Chiedi: chi lancia?",testo:"Leggi: «Filippo lancia il pallone.» Qual è il soggetto?",opts:["Il pallone","Lancia","Filippo","Sul prato"],ok:2},
+  {n:14,par:4,tipo:"sm",sez:2,tip:"Il predicato verbale è il verbo. Chiedi: cosa fa Bello?",testo:"Leggi: «Bello beve l'acqua.» Qual è il predicato verbale?",opts:["Bello","L'acqua","Dalla ciotola","Beve"],ok:3},
+  {n:15,par:4,tipo:"sm",sez:2,tip:"Il complemento oggetto risponde a: riempie cosa?",testo:"Leggi: «Filippo riempie la ciotola.» Qual è il complemento oggetto?",opts:["Filippo","Riempie","La ciotola","Con l'acqua"],ok:2},
 ]},
 
 // ══ PROVA 15 — CAA: La torta del nonno ══════════════════════
@@ -796,25 +817,25 @@ glossario:[
   {k:"Fragole", v:"Frutti rossi, piccoli, dolci e profumati che maturano in primavera e in estate."},
 ],
 domande:[
-  {n:1,par:1,tipo:"sm",sez:0,testo:"Come si chiama la protagonista?",opts:["Sofia","Giulia","Anna","Maria"],pics:[2939,2939,2939,null],ok:2},
-  {n:2,par:1,tipo:"sm",sez:0,testo:"Come si chiama il nonno?",opts:["Luigi","Marco","Giuseppe","Carlo"],pics:[null,null,null,6637],ok:3},
-  {n:3,par:2,tipo:"sm",sez:0,testo:"Cosa indossa il nonno per cucinare?",opts:["Un cappotto rosso","Un grembiule a righe rosse","Un cappello da cuoco","Una giacca verde"],pics:[null,3699,null,null],ok:1},
-  {n:4,par:3,tipo:"sm",sez:0,testo:"Con cosa mescola Anna le uova?",opts:["Con il cucchiaio","Con le mani","Con la forchetta","Con il mestolo"],pics:[null,null,5131,null],ok:2},
+  {n:1,par:1,tipo:"sm",sez:0,testo:"Come si chiama la protagonista?",opts:["Sofia","Giulia","Anna","Maria"],ok:2},
+  {n:2,par:1,tipo:"sm",sez:0,testo:"Come si chiama il nonno?",opts:["Luigi","Marco","Giuseppe","Carlo"],ok:3},
+  {n:3,par:2,tipo:"sm",sez:0,testo:"Cosa indossa il nonno per cucinare?",opts:["Un cappotto rosso","Un grembiule a righe rosse","Un cappello da cuoco","Una giacca verde"],ok:1},
+  {n:4,par:3,tipo:"sm",sez:0,testo:"Con cosa mescola Anna le uova?",opts:["Con il cucchiaio","Con le mani","Con la forchetta","Con il mestolo"],ok:2},
   {n:5,par:4,tipo:"sm",sez:0,testo:"Per quanto tempo si cuoce la torta nel forno?",opts:["Dieci minuti","Venti minuti","Un'ora intera","Quaranta minuti"],ok:3},
   {n:6,par:0,tipo:"vf",sez:0,testo:"Segna V se vero, F se falso.",righeVF:[
     {t:"Il nonno ha i capelli neri.",ok:false},
     {t:"Anna e il nonno giocano a carte aspettando la torta.",ok:true},
     {t:"Anna decora la torta con le fragole rosse.",ok:true}
   ]},
-  {n:7,par:5,tipo:"sm",sez:0,testo:"Dove giocano a carte Anna e il nonno?",opts:["In cucina","In salotto","In camera da letto","In giardino"],pics:[4446,null,null,5194],ok:3},
-  {n:8,par:6,tipo:"sm",sez:0,testo:"Come è la torta quando esce dal forno?",opts:["Cruda e pallida","Alta, dorata e profumata","Bassa e bruciata","Dura e secca"],pics:[null,7953,null,null],ok:1},
-  {n:9,par:0,tipo:"sm",sez:0,testo:"Cosa mette Anna sopra la torta?",opts:["Cioccolato fuso","Panna montata","Fragole rosse e zucchero a velo","Solo zucchero"],pics:[null,5152,null,null],ok:2},
-  {n:10,par:2,tipo:"sm",sez:1,testo:"Gli \"ingredienti\" sono:",opts:["I piatti da lavare","Le cose per preparare una ricetta","I mobili della cucina","I libri di cucina"],pics:[8022,5451,4446,5568],ok:1},
-  {n:11,par:4,tipo:"sm",sez:1,testo:"La \"teglia\" è:",opts:["Un tipo di forchetta","Un recipiente di metallo per cuocere","Un tipo di dolce","Una pentola per la pasta"],pics:[5131,7878,null,null],ok:1},
-  {n:12,par:6,tipo:"sm",sez:1,testo:"Le \"fragole\" sono:",opts:["Verdure verdi","Frutti rossi dolci e piccoli","Tipo di farina speciale","Cereali per colazione"],pics:[5040,5152,null,null],ok:1},
-  {n:13,par:3,tipo:"sm",sez:2,tip:"Il soggetto è chi compie l'azione. Chiedi: chi rompe?",testo:"Leggi: «Il nonno rompe le uova.» Qual è il soggetto?",opts:["Le uova","Rompe","Il nonno","Nella ciotola"],pics:[8022,null,6637,null],ok:2},
-  {n:14,par:3,tipo:"sm",sez:2,tip:"Il predicato verbale è il verbo. Chiedi: cosa fa Anna?",testo:"Leggi: «Anna mescola tutto.» Qual è il predicato verbale?",opts:["Anna","Tutto","Con forza","Mescola"],pics:[2939,8022,null,null],ok:3},
-  {n:15,par:6,tipo:"sm",sez:2,tip:"Il complemento oggetto risponde a: decora cosa?",testo:"Leggi: «Anna decora la torta.» Qual è il complemento oggetto?",opts:["Anna","Decora","La torta","Con le fragole"],pics:[2939,null,7953,null],ok:2},
+  {n:7,par:5,tipo:"sm",sez:0,testo:"Dove giocano a carte Anna e il nonno?",opts:["In cucina","In salotto","In camera da letto","In giardino"],ok:3},
+  {n:8,par:6,tipo:"sm",sez:0,testo:"Come è la torta quando esce dal forno?",opts:["Cruda e pallida","Alta, dorata e profumata","Bassa e bruciata","Dura e secca"],ok:1},
+  {n:9,par:0,tipo:"sm",sez:0,testo:"Cosa mette Anna sopra la torta?",opts:["Cioccolato fuso","Panna montata","Fragole rosse e zucchero a velo","Solo zucchero"],ok:2},
+  {n:10,par:2,tipo:"sm",sez:1,testo:"Gli \"ingredienti\" sono:",opts:["I piatti da lavare","Le cose per preparare una ricetta","I mobili della cucina","I libri di cucina"],ok:1},
+  {n:11,par:4,tipo:"sm",sez:1,testo:"La \"teglia\" è:",opts:["Un tipo di forchetta","Un recipiente di metallo per cuocere","Un tipo di dolce","Una pentola per la pasta"],ok:1},
+  {n:12,par:6,tipo:"sm",sez:1,testo:"Le \"fragole\" sono:",opts:["Verdure verdi","Frutti rossi dolci e piccoli","Tipo di farina speciale","Cereali per colazione"],ok:1},
+  {n:13,par:3,tipo:"sm",sez:2,tip:"Il soggetto è chi compie l'azione. Chiedi: chi rompe?",testo:"Leggi: «Il nonno rompe le uova.» Qual è il soggetto?",opts:["Le uova","Rompe","Il nonno","Nella ciotola"],ok:2},
+  {n:14,par:3,tipo:"sm",sez:2,tip:"Il predicato verbale è il verbo. Chiedi: cosa fa Anna?",testo:"Leggi: «Anna mescola tutto.» Qual è il predicato verbale?",opts:["Anna","Tutto","Con forza","Mescola"],ok:3},
+  {n:15,par:6,tipo:"sm",sez:2,tip:"Il complemento oggetto risponde a: decora cosa?",testo:"Leggi: «Anna decora la torta.» Qual è il complemento oggetto?",opts:["Anna","Decora","La torta","Con le fragole"],ok:2},
 ]},
 
 ]; // fine PROVE_DIS
@@ -968,26 +989,22 @@ function renderDomanda(d, tutte){
   let inner = '';
   if(d.tipo==='sm'){
     const lett = ['A','B','C','D'];
-    const stop = new Set(['il','lo','la','i','gli','le','un','una','uno','di','a','da','in','con','su','per','tra','fra','del','della','dei','degli','delle','al','alla','ai','agli','alle','che','non','si','è','e']);
+    const STOP_OPT = new Set(['il','lo','la','i','gli','le','un','una','uno','di','a','da','in','con','su','per','tra','fra','del','della','dei','degli','delle','al','alla','ai','agli','alle','che','non','si','è','e','ha','ho','ho','fu','sua','suo','loro']);
     inner += `<div class="opts">${d.opts.map((op,i) => {
-      // Determina URL pittogramma: usa pics[] se presente, poi dizionario, poi keyword
-      let picSrc = '';
-      if(d.pics && d.pics[i]){
-        picSrc = picUrl(d.pics[i]);
-      } else {
-        const kw = op.replace(/<[^>]+>/g,'').split(/\s+/).find(w => w.length>3 && !stop.has(w.toLowerCase())) || op.replace(/<[^>]+>/g,'').split(/\s+/)[0];
-        const kwClean = kw.toLowerCase().replace(/[^a-zàáèéìíòóùú]/g,'');
-        const dictId = ARASAAC_DICT[kwClean] || ARASAAC_DICT[kwClean.substring(0,5) ? Object.keys(ARASAAC_DICT).find(k=>k.startsWith(kwClean.substring(0,5)))||'' : ''];
-        if(dictId) picSrc = picUrl(dictId);
-      }
-      const imgTag = picSrc
-        ? `<img class="caa-img" src="${picSrc}" alt="" style="display:block" onerror="this.style.display='none';this.parentElement.style.display='none'">`
-        : `<img class="caa-img" src="" alt="" style="display:none">`;
-      return `<label class="opt"><input type="radio" name="d${d.n}" value="${i}">
-        <div class="caa-wrap"${picSrc?'':' data-kw="'+(op.replace(/<[^>]+>/g,'').split(/\s+/).find(w=>w.length>3&&!stop.has(w.toLowerCase()))||'').toLowerCase().replace(/[^a-zàáèéìíòóùú]/g,'')+'"'}>
-          ${imgTag}
+      const opText = op.replace(/<[^>]+>/g,'').trim();
+      // Parola chiave per CAA: prima parola significativa dell'opzione
+      const kwArr = opText.split(/\s+/).filter(w=>w.length>2&&!STOP_OPT.has(w.toLowerCase()));
+      const kw = (kwArr[0]||opText.split(/\s+/)[0]||'').toLowerCase().replace(/[^a-zàáèéìíòóùú]/g,'');
+      // Lettera per etichetta
+      const shortLabel = opText.length > 22 ? opText.substring(0,20)+'…' : opText;
+      return `<label class="opt" id="optlbl_${d.n}_${i}">
+        <input type="radio" name="d${d.n}" value="${i}">
+        <div class="caa-opt-pic" data-kw="${kw}" data-dom="${d.n}" data-idx="${i}">
+          <img src="" alt="${kw}" title="${kw}">
+          <span class="caa-wrd">${shortLabel}</span>
         </div>
-        <span class="opt-testo">${lett[i]}.&nbsp;&nbsp;${op}</span></label>`;
+        <span class="opt-testo">${lett[i]}.&nbsp;${op}</span>
+      </label>`;
     }).join('')}</div>`;
     if(d.tip) inner = `<div class="hint">💡 ${d.tip}</div>` + inner;
   } else if(d.tipo==='vf'){
@@ -1186,88 +1203,50 @@ function togTicCAA(){
 }
 
 // Cache pittogrammi per evitare chiamate ripetute
-// ── ARASAAC dizionario statico ─────────────────────────────────
-// Pittogrammi © Governo di Aragona — Sergio Palao per ARASAAC
-// https://www.arasaac.org — Licenza Creative Commons BY-NC-SA
-const ARASAAC_DICT = {
-  'acqua':2083,'aiutare':2560,'albero':2660,'arancione':2788,
-  'arcobaleno':2786,'ascoltare':2843,'bambina':2939,'bambino':2940,
-  'banana':3010,'bere':3498,'berretto':3160,'bianco':3214,
-  'biscotti':3267,'blu':3305,'borraccia':3329,'caldo':3632,
-  'camminare':3637,'cancello':3652,'cane':4884,'cappotto':3699,
-  'casa':19268,'cesto':3902,'cielo':4025,'ciotola':4020,
-  'città':4058,'classe':4046,'correre':6223,'crocchette':4414,
-  'cucchiaio':4447,'cucina':4446,'disegnare':4725,'dormire':7684,
-  'erba':4899,'fame':5003,'farina':5015,'felice':5040,
-  'fiore':5081,'finestra':5073,'foglie':5093,'forchetta':5131,
-  'forno':5130,'fossato':5142,'fragole':5152,'freddo':5165,
-  'gatto':4917,'giallo':5185,'giardino':5194,'giocare':6224,
-  'grande':5244,'guardare':5305,'guinzaglio':5303,'impermeabile':5434,
-  'ingredienti':5451,'labrador':4884,'lago':5494,'latte':5604,
-  'leggere':5537,'letto':5551,'lievito':5583,'libro':5568,
-  'luna':5662,'maestra':5714,'mangiare':6830,'marrone':5754,
-  'matita':5778,'mela':5809,'montagna':5895,'neve':6017,
-  'nero':5965,'nonno':6637,'nuvole':6684,'occhi':6721,
-  'pallone':6956,'pane':6982,'parco':6985,'paura':6996,
-  'piangere':7062,'pioggia':7090,'piccolo':7055,'porta':7116,
-  'pozzanghere':7127,'quaderno':7220,'ragazzo':7237,'recinzione':7270,
-  'ridere':7330,'rosso':7349,'saltare':7518,'scrivere':7591,
-  'scuola':6054,'sedia':7600,'sete':7618,'sole':7766,
-  'stivali':7826,'strada':7830,'tavolo':7874,'tazza':7944,
-  'teglia':7878,'torta':7953,'triste':7963,'uova':8022,
-  'verde':8037,'vento':8053,'viola':8069,'zucchero':8142,
-  'zaino':8132,'ciotola':4020,'mamma':37076,'bambino':2940,
-  'acqua':2083,'banana':3010,'casa':19268
-};
-
+// ── ARASAAC — pittogrammi tramite API pubblica (CORS OK) ──────────
+// Pittogrammi © Governo di Aragona — Sergio Palao — ARASAAC (arasaac.org) — CC BY-NC-SA
 function picUrl(id){ return `https://static.arasaac.org/pictograms/${id}/${id}_500.png`; }
 
+// Cache per sessione: evita chiamate ripetute
 const _caaCache = {};
 
 async function fetchPic(kw){
+  if(!kw || kw.length < 2) return null;
   if(_caaCache[kw] !== undefined) return _caaCache[kw];
-  // 1. dizionario statico — nessuna chiamata di rete
-  const kwBase = kw.replace(/[aeiouàáèéìíòóùú]+$/,'') || kw; // stem grezzo
-  let id = ARASAAC_DICT[kw] || ARASAAC_DICT[kwBase];
-  if(!id){
-    // cerca stem (prime 5 lettere)
-    const prefix = kw.substring(0,5);
-    const match = Object.keys(ARASAAC_DICT).find(k=>k.startsWith(prefix));
-    if(match) id = ARASAAC_DICT[match];
-  }
-  if(id){
-    _caaCache[kw] = picUrl(id);
-    return _caaCache[kw];
-  }
-  // 2. fallback API (solo se non in dizionario)
+  _caaCache[kw] = null; // segna "in corso"
   try {
-    const r = await fetch(`https://api.arasaac.org/api/pictograms/it/search/${encodeURIComponent(kw)}`);
-    if(!r.ok) throw new Error('no');
+    const r = await fetch(
+      `https://api.arasaac.org/api/pictograms/it/search/${encodeURIComponent(kw)}`,
+      {signal: AbortSignal.timeout(4000)}
+    );
+    if(!r.ok) throw new Error('http '+r.status);
     const data = await r.json();
-    if(data && data.length > 0){
+    if(Array.isArray(data) && data.length > 0){
       _caaCache[kw] = picUrl(data[0]._id);
-    } else { _caaCache[kw] = null; }
-  } catch(e){ _caaCache[kw] = null; }
+    }
+  } catch(e){
+    // API non raggiungibile o parola non trovata: nessuna immagine
+    _caaCache[kw] = null;
+  }
   return _caaCache[kw];
 }
 
+// Carica pittogrammi nei box .caa-opt-pic (risposte) e .caa-card (barra testo)
 async function caricaPittogrammi(){
-  const wraps = document.querySelectorAll('.caa-wrap[data-kw]:not([data-loaded])');
-  for(const wrap of wraps){
-    wrap.dataset.loaded = '1';
-    const kw = wrap.dataset.kw;
-    if(!kw) continue;
-    const img = wrap.querySelector('.caa-img');
-    if(!img) continue;
+  // 1. Risposte — .caa-opt-pic
+  document.querySelectorAll('.caa-opt-pic[data-kw]:not([data-loaded])').forEach(async box=>{
+    box.dataset.loaded='1';
+    const kw = box.dataset.kw;
+    if(!kw) return;
+    const img = box.querySelector('img');
+    if(!img) return;
     const url = await fetchPic(kw);
     if(url){
-      img.onload  = ()=>{ img.style.display=''; wrap.style.display=''; };
-      img.onerror = ()=>{ img.style.display='none'; wrap.style.display='none'; };
       img.src = url;
-    } else {
-      wrap.style.display='none';
+      img.onerror = ()=>{ img.removeAttribute('src'); };
     }
-  }
+    // senza URL: rimane il placeholder SVG via CSS [src=""]
+  });
 }
 
 // ── Barra pittogrammi paragrafo attivo ──────────────────────────
@@ -1292,21 +1271,28 @@ function estraiKW(parNum){
 async function aggiornaCAABar(parNum){
   const bar = document.getElementById('caa-bar');
   if(!bar) return;
-  bar.innerHTML = '<span style="font-size:.65rem;color:#555;align-self:center;flex-shrink:0;padding-right:4px">🖼️ Parole:</span>';
-  if(!parNum){ return; }
+  bar.innerHTML = '';
+  if(!parNum) return;
   const kws = estraiKW(parNum);
-  if(!kws.length){ bar.innerHTML=''; return; }
-  kws.forEach(kw=>{
+  if(!kws.length) return;
+
+  // Crea prima tutti i card con placeholder, poi carica le immagini
+  kws.forEach(kw => {
     const card = document.createElement('div');
-    card.className='caa-card';
-    const img = document.createElement('img');
-    img.alt=kw; img.title=kw;
-    img.onerror = ()=>{ img.classList.add('err'); card.style.display='none'; };
-    const lbl = document.createElement('span');
-    lbl.textContent=kw;
-    card.appendChild(img); card.appendChild(lbl);
+    card.className = 'caa-card';
+    // Placeholder visuale mentre carica
+    card.innerHTML = `<img src="" alt="${kw}" title="${kw}" style="background:#e3f2fd">
+      <span>${kw.toUpperCase()}</span>`;
     bar.appendChild(card);
-    fetchPic(kw).then(url=>{ if(url) img.src=url; else { img.classList.add('err'); card.style.display='none'; } });
+    const img = card.querySelector('img');
+    fetchPic(kw).then(url => {
+      if(url){
+        img.src = url;
+        img.onerror = ()=>{ img.classList.add('err'); card.style.display='none'; };
+      } else {
+        img.classList.add('err'); card.style.display='none';
+      }
+    });
   });
 }
 
