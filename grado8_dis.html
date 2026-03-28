@@ -1112,11 +1112,14 @@ function renderProva(prova){
   }
   document.getElementById('domande-content').innerHTML = html;
 
-  // Conteggio totale
+  // Conteggio totale domande (tutti i tipi)
   TOT_DOM = 0;
   prova.domande.forEach(d => {
-    if(d.tipo==='sm') TOT_DOM++;
-    if(d.tipo==='vf') TOT_DOM += d.righeVF.length;
+    const tipo = (d.tipo||'sm').toLowerCase();
+    if(tipo==='sm'||tipo==='ap'||tipo==='comp') TOT_DOM++;
+    else if(tipo==='vf') TOT_DOM += (d.righeVF?.length||0);
+    else if(tipo==='col') TOT_DOM += (d.sinistra?.length||0);
+    else TOT_DOM++;
   });
   document.getElementById('blbl').textContent = `Completate: 0 / ${TOT_DOM} risposte`;
 
@@ -1143,44 +1146,84 @@ function renderDomanda(d, tutte){
   const tagClass = d.sez===1?'oro': d.sez===2?'ros':'';
   const parLabel = d.par===0 ? 'Tutto il testo' : `Par. ${d.par}`;
   const domClass = d.sez===1?'li': d.sez===2?'gi':'';
-  const ndomClass = d.sez===1?'li': d.sez===2?'gi':'';
-  const tot = tutte.reduce((s,x) => s + (x.tipo==='sm'?1:x.tipo==='vf'?x.righeVF.length:0), 0);
+  const tipo = (d.tipo||'sm').toLowerCase();
 
   let inner = '';
-  if(d.tipo==='sm'){
+
+  if(tipo==='sm'){
     const lett = ['A','B','C','D'];
-    const STOP_OPT = new Set(['il','lo','la','i','gli','le','un','una','uno','di','a','da','in','con','su','per','tra','fra','del','della','dei','degli','delle','al','alla','ai','agli','alle','che','non','si','è','e','ha','ho','ho','fu','sua','suo','loro']);
-    inner += `<div class="opts">${d.opts.map((op,i) => {
+    const STOP_OPT = new Set(['il','lo','la','i','gli','le','un','una','uno','di','a','da','in','con','su','per','tra','fra','del','della','dei','degli','delle','al','alla','ai','agli','alle','che','non','si','è','e','ha','ho','fu','sua','suo','loro']);
+    inner = `<div class="opts">${(d.opts||[]).map((op,i)=>{
       const opText = op.replace(/<[^>]+>/g,'').trim();
-      // Keyword per ARASAAC: prima parola concreta dell'opzione (evita aggettivi lunghi)
-      const kwArr = opText.split(/\s+/).filter(w=>{
-        const wl = w.toLowerCase().replace(/[^a-zàáèéìíòóùú]/g,'');
-        return wl.length>2 && !STOP_OPT.has(wl);
-      });
-      // preferisci parole brevi e concrete (nomi > aggettivi)
-      const kw = (kwArr.find(w=>w.replace(/[^a-z]/gi,'').length<=8) || kwArr[0] || opText.split(/\s+/)[0] || '')
-                 .toLowerCase().replace(/[^a-zàáèéìíòóùú]/g,'');
-      // Lettera per etichetta
-      const shortLabel = opText.length > 22 ? opText.substring(0,20)+'…' : opText;
+      const kwArr = opText.split(/\s+/).filter(w=>{ const wl=w.toLowerCase().replace(/[^a-zàáèéìíòóùú]/g,''); return wl.length>2&&!STOP_OPT.has(wl); });
+      const kw = (kwArr.find(w=>w.replace(/[^a-z]/gi,'').length<=8)||kwArr[0]||opText.split(/\s+/)[0]||'').toLowerCase().replace(/[^a-zàáèéìíòóùú]/g,'');
       return `<label class="opt" id="optlbl_${d.n}_${i}">
         <input type="radio" name="d${d.n}" value="${i}">
         <div class="caa-opt-pic" data-kw="${kw}" data-dom="${d.n}" data-idx="${i}">
           <img src="" alt="${kw}" title="${kw}">
-          <span class="caa-wrd">${shortLabel}</span>
+          <span class="caa-wrd">${opText.length>22?opText.substring(0,20)+'…':opText}</span>
         </div>
         <span class="opt-testo">${lett[i]}.&nbsp;${op}</span>
       </label>`;
     }).join('')}</div>`;
     if(d.tip) inner = `<div class="hint">💡 ${d.tip}</div>` + inner;
-  } else if(d.tipo==='vf'){
-    inner = d.righeVF.map((r,i) =>
-      `<div class="vfr"><span>${r.t}</span>
-        <label><input type="radio" name="vf${d.n}_${i}" value="V"> V</label>
-        <label><input type="radio" name="vf${d.n}_${i}" value="F"> F</label>
-      </div>`).join('');
+
+  } else if(tipo==='vf'){
+    inner = `<table class="vf-table" style="width:100%;border-collapse:collapse;margin-top:8px">
+      <thead><tr>
+        <th style="text-align:left;padding:6px 10px;font-size:12px;color:#555;font-weight:600">Affermazione</th>
+        <th style="width:50px;text-align:center;padding:6px;font-size:12px;color:#2e7d32">V</th>
+        <th style="width:50px;text-align:center;padding:6px;font-size:12px;color:#c62828">F</th>
+      </tr></thead>
+      <tbody>${(d.righeVF||[]).map((r,i)=>`
+        <tr style="border-top:1px solid #eee">
+          <td style="padding:8px 10px;font-size:13px">${r.t}</td>
+          <td style="text-align:center;padding:6px"><label class="vf-btn" style="width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;border:2px solid #a5d6a7;cursor:pointer;font-size:13px;font-weight:700">
+            <input type="radio" name="vf${d.n}_${i}" value="V" style="display:none"> V
+          </label></td>
+          <td style="text-align:center;padding:6px"><label class="vf-btn" style="width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;border:2px solid #f48fb1;cursor:pointer;font-size:13px;font-weight:700">
+            <input type="radio" name="vf${d.n}_${i}" value="F" style="display:none"> F
+          </label></td>
+        </tr>`).join('')}
+      </tbody></table>`;
+
+  } else if(tipo==='ap'){
+    inner = `<textarea name="ap${d.n}" class="finp" rows="3"
+      placeholder="Scrivi qui la tua risposta…"
+      style="width:100%;padding:9px 12px;font-size:14px;line-height:1.7;resize:vertical;font-family:inherit;border:2px solid #b3c6f7;border-radius:8px;margin-top:6px"
+      oninput="aggBarra()"></textarea>`;
+
+  } else if(tipo==='comp'){
+    const parole = (d.parole||[]).slice().sort(()=>Math.random()-.5);
+    const fraseConSelect = (d.frase||'').replace('___',
+      `<select name="comp${d.n}" class="comp-select" style="border:2px solid var(--az);border-radius:6px;padding:4px 8px;font-size:13px;font-family:inherit;cursor:pointer" onchange="aggBarra()">
+        <option value="">— scegli —</option>
+        ${parole.map(p=>`<option value="${p}">${p}</option>`).join('')}
+      </select>`);
+    inner = `<div style="margin-top:8px">
+      <div style="font-size:13px;line-height:2.2;margin-bottom:10px">${fraseConSelect}</div>
+      <div style="font-size:11px;color:#888">Parole disponibili: ${(d.parole||[]).map(p=>`<span style="background:var(--grigio-ch,#f0f4f8);border-radius:4px;padding:1px 8px;margin:2px;display:inline-block">${p}</span>`).join('')}</div>
+    </div>`;
+
+  } else if(tipo==='col'){
+    const sx = d.sinistra||[];
+    const dxMescolata = (d.destra||[]).slice().sort(()=>Math.random()-.5);
+    inner = `<div style="margin-top:10px">
+      <div style="font-size:11px;color:#888;margin-bottom:8px">Per ogni elemento a sinistra, scegli quello corrispondente a destra.</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${sx.map((el,i)=>`<div style="display:flex;align-items:center;gap:10px">
+          <span style="flex:1;background:#e3f2fd;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;color:#1565c0">${el}</span>
+          <span style="font-size:18px;color:#999">→</span>
+          <select name="col${d.n}_${i}" style="flex:1;border:2px solid var(--az,#4a90d9);border-radius:8px;padding:8px 10px;font-size:13px;font-family:inherit;cursor:pointer;background:#fff" onchange="aggBarra()">
+            <option value="">— scegli —</option>
+            ${dxMescolata.map(v=>`<option value="${v}">${v}</option>`).join('')}
+          </select>
+        </div>`).join('')}
+      </div>
+    </div>`;
   }
 
-  return `<div class="dom ${domClass}" id="d${d.n}" data-par="${d.par}" data-righe="">
+  return `<div class="dom ${domClass}" id="d${d.n}" data-par="${d.par}" data-tipo="${tipo}">
     <div class="tag ${tagClass}" onclick="click_tag(this)">📍 ${parLabel}</div>
     <div class="ndom">Domanda ${d.n} di ${tutte.length}</div>
     <div class="tdom">${d.testo}</div>
@@ -1221,17 +1264,28 @@ function aggBarra(){
   if(!PROVA_ATTUALE) return;
   let c = 0;
   PROVA_ATTUALE.domande.forEach(d => {
-    if(d.tipo==='sm'){
+    const tipo = (d.tipo||'sm').toLowerCase();
+    if(tipo==='sm'){
       if(document.querySelector(`input[name="d${d.n}"]:checked`)) c++;
-    } else if(d.tipo==='vf'){
-      d.righeVF.forEach((_,i) => {
+    } else if(tipo==='vf'){
+      (d.righeVF||[]).forEach((_,i) => {
         if(document.querySelector(`input[name="vf${d.n}_${i}"]:checked`)) c++;
+      });
+    } else if(tipo==='ap'){
+      if((document.querySelector(`textarea[name="ap${d.n}"]`)?.value||'').trim()) c++;
+    } else if(tipo==='comp'){
+      if(document.querySelector(`select[name="comp${d.n}"]`)?.value) c++;
+    } else if(tipo==='col'){
+      (d.sinistra||[]).forEach((_,i)=>{
+        if(document.querySelector(`select[name="col${d.n}_${i}"]`)?.value) c++;
       });
     }
   });
-  document.getElementById('bff').style.width = Math.round(c/TOT_DOM*100)+'%';
+  const pct = TOT_DOM>0 ? Math.round(c/TOT_DOM*100) : 0;
+  document.getElementById('bff').style.width = pct+'%';
   document.getElementById('blbl').textContent = `Completate: ${c} / ${TOT_DOM} risposte`;
 }
+
 
 // ══════════════════════════════════════════════════════════════
 //  CORREGGI
@@ -1239,9 +1293,12 @@ function aggBarra(){
 function controlla(){
   if(!PROVA_ATTUALE) return;
   let corr = 0, tot = 0;
+
   PROVA_ATTUALE.domande.forEach(d => {
+    const tipo = (d.tipo||'sm').toLowerCase();
     const fb = document.getElementById('fb'+d.n);
-    if(d.tipo==='sm'){
+
+    if(tipo==='sm'){
       tot++;
       const sel = document.querySelector(`input[name="d${d.n}"]:checked`);
       document.querySelectorAll(`input[name="d${d.n}"]`).forEach(r => {
@@ -1250,39 +1307,93 @@ function controlla(){
         if(parseInt(r.value)===d.ok) l.classList.add('ok');
       });
       if(sel){
-        if(parseInt(sel.value)===d.ok){
-          corr++;
+        if(parseInt(sel.value)===d.ok){ corr++;
           if(fb){ fb.textContent='✅ Corretto!'; fb.className='fb ok'; fb.style.display='block'; }
         } else {
           sel.closest('label').classList.add('no');
           if(fb){ fb.textContent='❌ Non corretto. La risposta giusta è evidenziata in verde.'; fb.className='fb no'; fb.style.display='block'; }
         }
       } else {
-        if(fb){ fb.textContent='⚠️ Non hai risposto a questa domanda.'; fb.className='fb no'; fb.style.display='block'; }
+        if(fb){ fb.textContent='⚠️ Non hai risposto.'; fb.className='fb no'; fb.style.display='block'; }
       }
-    } else if(d.tipo==='vf'){
+
+    } else if(tipo==='vf'){
       let vfc = 0;
-      d.righeVF.forEach((r,i) => {
+      (d.righeVF||[]).forEach((r,i) => {
         tot++;
         const attesa = r.ok ? 'V' : 'F';
         const sel = document.querySelector(`input[name="vf${d.n}_${i}"]:checked`);
-        const lV = document.querySelector(`input[name="vf${d.n}_${i}"][value="V"]`)?.closest('label');
-        const lF = document.querySelector(`input[name="vf${d.n}_${i}"][value="F"]`)?.closest('label');
-        if(lV) lV.classList.remove('ok','no');
-        if(lF) lF.classList.remove('ok','no');
+        // Stile pulsanti VF
+        ['V','F'].forEach(val=>{
+          const btn = document.querySelector(`input[name="vf${d.n}_${i}"][value="${val}"]`)?.closest('label');
+          if(btn){ btn.style.background=''; btn.style.color=''; btn.style.borderColor=''; }
+        });
         const lCorr = document.querySelector(`input[name="vf${d.n}_${i}"][value="${attesa}"]`)?.closest('label');
-        if(lCorr) lCorr.classList.add('ok');
+        if(lCorr){ lCorr.style.background='#e8f5e9'; lCorr.style.borderColor='#2e7d32'; lCorr.style.color='#2e7d32'; }
         if(sel && sel.value===attesa){ corr++; vfc++; }
-        else if(sel){ sel.closest('label').classList.add('no'); }
+        else if(sel){
+          const lWrong = sel.closest('label');
+          if(lWrong){ lWrong.style.background='#fce4e4'; lWrong.style.borderColor='#c62828'; lWrong.style.color='#c62828'; }
+        }
       });
       if(fb){
-        fb.textContent = vfc===d.righeVF.length ? `✅ Tutte corrette!` : `⚠️ ${vfc} su ${d.righeVF.length} corrette. Rileggi il testo.`;
-        fb.className = vfc===d.righeVF.length ? 'fb ok' : 'fb no';
+        fb.textContent = vfc===(d.righeVF||[]).length ? `✅ Tutte corrette!` : `⚠️ ${vfc} su ${(d.righeVF||[]).length} corrette.`;
+        fb.className = vfc===(d.righeVF||[]).length ? 'fb ok' : 'fb no';
+        fb.style.display='block';
+      }
+
+    } else if(tipo==='ap'){
+      tot++;
+      const val = (document.querySelector(`textarea[name="ap${d.n}"]`)?.value||'').trim();
+      if(val){ corr++; // aperta: si considera risposta data = punto
+        if(fb){ fb.textContent='✅ Risposta registrata.'; fb.className='fb ok'; fb.style.display='block'; }
+      } else {
+        if(fb){ fb.textContent='⚠️ Non hai scritto una risposta.'; fb.className='fb no'; fb.style.display='block'; }
+      }
+
+    } else if(tipo==='comp'){
+      tot++;
+      const sel = document.querySelector(`select[name="comp${d.n}"]`);
+      const corretta = (d.parole||[])[0]; // prima parola = corretta
+      if(sel && sel.value){
+        if(sel.value===corretta){ corr++;
+          sel.style.borderColor='var(--verde)'; sel.style.background='#e8f5e9';
+          if(fb){ fb.textContent='✅ Corretto!'; fb.className='fb ok'; fb.style.display='block'; }
+        } else {
+          sel.style.borderColor='var(--rosso)'; sel.style.background='#fce4e4';
+          if(fb){ fb.textContent=`❌ La parola giusta era: "${corretta}"`; fb.className='fb no'; fb.style.display='block'; }
+        }
+      } else {
+        if(fb){ fb.textContent='⚠️ Scegli una parola.'; fb.className='fb no'; fb.style.display='block'; }
+      }
+
+    } else if(tipo==='col'){
+      const sx = d.sinistra||[];
+      sx.forEach((el,i)=>{
+        tot++;
+        const sel = document.querySelector(`select[name="col${d.n}_${i}"]`);
+        const corretta = (d.destra||[])[i];
+        if(sel && sel.value){
+          if(sel.value===corretta){ corr++;
+            sel.style.borderColor='var(--verde)'; sel.style.background='#e8f5e9';
+          } else {
+            sel.style.borderColor='var(--rosso)'; sel.style.background='#fce4e4';
+          }
+        }
+      });
+      const corrCol = sx.filter((_,i)=>{
+        const sel=document.querySelector(`select[name="col${d.n}_${i}"]`);
+        return sel && sel.value===(d.destra||[])[i];
+      }).length;
+      if(fb){
+        fb.textContent = corrCol===sx.length ? `✅ Tutte le coppie corrette!` : `⚠️ ${corrCol} su ${sx.length} coppie corrette. Gli errori sono in rosso.`;
+        fb.className = corrCol===sx.length ? 'fb ok' : 'fb no';
         fb.style.display='block';
       }
     }
   });
-  const pct = Math.round(corr/tot*100);
+
+  const pct = tot>0 ? Math.round(corr/tot*100) : 0;
   document.getElementById('pts').textContent = corr + ' / ' + tot;
   document.getElementById('sub-ris').textContent = 'risposte corrette su ' + tot + ' totali';
   const msg = document.getElementById('rmsg');
@@ -1299,61 +1410,30 @@ function controlla(){
   box.style.display = 'block';
   box.scrollIntoView({behavior:'smooth', block:'start'});
 
-  // ── Invia risultati al Google Sheet (se c'è una sessione registrata) ──
+  // Invia risultati al Google Sheet (se c'è una sessione registrata)
   if(SESSIONE_KEY && CLASSE_STUD){
     const isCaa = document.body.classList.contains('tic-caa');
-    const tipo  = isCaa ? 'caa' : 'disabilita';
-
-    // Calcola errori per competenza (sez: 0=comprensione, 1=lessico, 2=grammatica)
     const errori = {comprensione_globale:0, lessico:0, morfologia:0};
-    PROVA_ATTUALE.domande.forEach(d => {
-      if(d.tipo==='sm'){
-        const sel = document.querySelector(`input[name="d${d.n}"]:checked`);
-        if(sel && parseInt(sel.value) !== d.ok){
+    PROVA_ATTUALE.domande.forEach(d=>{
+      const tipo=(d.tipo||'sm').toLowerCase();
+      if(tipo==='sm'){
+        const sel=document.querySelector(`input[name="d${d.n}"]:checked`);
+        if(sel && parseInt(sel.value)!==d.ok){
           if(d.sez===0) errori.comprensione_globale++;
           else if(d.sez===1) errori.lessico++;
-          else if(d.sez===2) errori.morfologia++;
+          else errori.morfologia++;
         }
-      } else if(d.tipo==='vf'){
-        d.righeVF.forEach((r,i)=>{
-          const attesa = r.ok ? 'V' : 'F';
-          const sel = document.querySelector(`input[name="vf${d.n}_${i}"]:checked`);
-          if(!sel || sel.value!==attesa) errori.comprensione_globale++;
-        });
       }
     });
-
-    const payload = {
-      codice:    NOME_STUD || ('Alunno-'+tipo),
-      sessione:  SESSIONE_KEY,
-      classe:    CLASSE_STUD,
-      totale:    corr,
-      su:        tot,
-      pct:       pct,
-      sezioni:   [
-        {c: PROVA_ATTUALE.domande.filter(d=>d.sez===0&&d.tipo==='sm').filter(d=>{const s=document.querySelector(`input[name="d${d.n}"]:checked`);return s&&parseInt(s.value)===d.ok;}).length,
-         t: PROVA_ATTUALE.domande.filter(d=>d.sez===0&&d.tipo==='sm').length},
-        {c: PROVA_ATTUALE.domande.filter(d=>d.sez===1&&d.tipo==='sm').filter(d=>{const s=document.querySelector(`input[name="d${d.n}"]:checked`);return s&&parseInt(s.value)===d.ok;}).length,
-         t: PROVA_ATTUALE.domande.filter(d=>d.sez===1&&d.tipo==='sm').length},
-        {c: PROVA_ATTUALE.domande.filter(d=>d.sez===2&&d.tipo==='sm').filter(d=>{const s=document.querySelector(`input[name="d${d.n}"]:checked`);return s&&parseInt(s.value)===d.ok;}).length,
-         t: PROVA_ATTUALE.domande.filter(d=>d.sez===2&&d.tipo==='sm').length},
-      ],
-      errori:    errori,
-      det:       [],   // dettaglio non usato nell'analisi disabilità/CAA
-      data:      new Date().toISOString(),
-      titolo:    PROVA_ATTUALE.titolo,
-      tipo:      tipo,
-      flag_dis:  true  // flag per distinguere dall'analisi standard
-    };
-
-    fetch(SCRIPT_URL, {
-      method: 'POST',
-      mode:   'no-cors',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(payload)
-    }).catch(()=>{}); // silenzioso se offline
+    fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({codice:NOME_STUD||('Alunno-'+(isCaa?'caa':'dis')),
+        sessione:SESSIONE_KEY,classe:CLASSE_STUD,totale:corr,su:tot,pct,
+        sezioni:[{c:0,t:0},{c:0,t:0},{c:0,t:0}],errori,det:[],
+        data:new Date().toISOString(),titolo:PROVA_ATTUALE.titolo,flag_dis:true})
+    }).catch(()=>{});
   }
 }
+
 
 function riazzeramento(){
   if(!confirm('Sei sicuro di voler ricominciare? Tutte le risposte verranno cancellate.')) return;
