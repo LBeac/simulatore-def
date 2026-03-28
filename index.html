@@ -986,6 +986,13 @@ tr:hover td{background:var(--grigio-ch)}
         <h3 style="font-size:14px;font-weight:700;color:var(--blu);margin-bottom:14px">💡 Suggerimenti didattici</h3>
         <div id="gen-suggerimenti"></div>
       </div>
+
+      <!-- Alunni con disabilità / CAA — sezione separata, non fa media -->
+      <div style="background:#fff;border-radius:10px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.07);margin-top:16px;border-top:4px solid #7b1fa2">
+        <h3 style="font-size:14px;font-weight:700;color:#6a1b9a;margin-bottom:6px">🌟 Prove personalizzate — Disabilità e CAA</h3>
+        <p style="font-size:11px;color:#888;margin-bottom:12px">Questi alunni non rientrano nelle medie della classe. Vengono mostrati qui separatamente.</p>
+        <div id="gen-dis"></div>
+      </div>
     </div>
   </div>
 
@@ -1025,10 +1032,190 @@ tr:hover td{background:var(--grigio-ch)}
 
     <!-- ══ SOTTO-PANNELLO 2: PER DISABILITÀ ══════════════════ -->
     <div class="sub-panel" id="st-dis">
-      <div class="info-panel">
-        🌟 <strong>Prove adattate per alunni con disabilità</strong><br>
-        10 testi narrativi originali con paragrafi estesi, glossario integrato, illuminazione automatica, audio TTS e tutti gli strumenti TIC selezionabili.
+      <div class="info-panel" style="background:#e8f5e9;border-color:#a5d6a7;color:#1b5e20">
+        🌟 <strong>Prove adattate per alunni con disabilità</strong> — Incolla qualsiasi testo: la piattaforma genera domande con AI e produce un link con illuminazione paragrafi, audio, glossario e tutti gli strumenti TIC.
       </div>
+
+      <!-- STEP 1: testo -->
+      <div class="panel-card" style="max-width:none;margin-top:14px">
+        <h3 style="margin-bottom:12px">📄 Passo 1 — Incolla il testo</h3>
+        <div class="fg" style="margin-bottom:10px">
+          <label class="flbl">Titolo del testo</label>
+          <input type="text" id="dis-ai-titolo" class="finp" placeholder="es. La passeggiata di Marco" style="padding:9px 12px">
+        </div>
+        <div class="fg">
+          <label class="flbl">Testo (incolla qui — verrà suddiviso in paragrafi automaticamente)</label>
+          <textarea id="dis-ai-testo" class="finp" rows="8" placeholder="Incolla qui il testo che vuoi usare per la prova..." style="padding:9px 12px;resize:vertical;font-size:13px;line-height:1.7"></textarea>
+        </div>
+      </div>
+
+      <!-- STEP 2: opzioni generazione -->
+      <div class="panel-card" style="max-width:none;margin-top:10px">
+        <h3 style="margin-bottom:12px">⚙️ Passo 2 — Opzioni domande</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;align-items:end">
+          <div class="fg">
+            <label class="flbl">Numero domande (max 40)</label>
+            <input type="number" id="dis-ai-ndom" class="finp" value="10" min="3" max="40" style="padding:9px 12px">
+          </div>
+          <div>
+            <label class="flbl" style="display:block;margin-bottom:8px">Tipi di domanda</label>
+            <label style="display:flex;align-items:center;gap:7px;font-size:13px;margin-bottom:6px;cursor:pointer">
+              <input type="checkbox" id="dis-ai-inferenza" style="width:15px;height:15px;accent-color:var(--verde)" checked> 🧠 Inferenziali (non solo letterali)
+            </label>
+            <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer">
+              <input type="checkbox" id="dis-ai-aperte" style="width:15px;height:15px;accent-color:var(--verde)"> ✏️ Domande aperte
+            </label>
+          </div>
+          <div>
+            <label class="flbl" style="display:block;margin-bottom:8px">Sezioni</label>
+            <label style="display:flex;align-items:center;gap:7px;font-size:13px;margin-bottom:6px;cursor:pointer">
+              <input type="checkbox" id="dis-ai-lessico" style="width:15px;height:15px;accent-color:var(--verde)" checked> 📖 Lessico
+            </label>
+            <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer">
+              <input type="checkbox" id="dis-ai-gram" style="width:15px;height:15px;accent-color:var(--verde)"> 📐 Grammatica base (soggetto/predicato)
+            </label>
+          </div>
+        </div>
+        <button onclick="generaDomandeAI('dis')" style="margin-top:16px;width:100%;padding:12px;background:var(--blu);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:800;cursor:pointer;font-family:var(--font)">
+          🤖 Genera domande con AI
+        </button>
+        <div id="dis-ai-loading" style="display:none;margin-top:12px;text-align:center;color:var(--blu);font-size:13px;font-weight:700">
+          ⏳ Generazione in corso…
+        </div>
+        <div id="dis-ai-err" class="err-msg" style="display:none;margin-top:8px"></div>
+      </div>
+
+      <!-- STEP 3: anteprima + modifica domande -->
+      <div id="dis-ai-preview" style="display:none">
+        <div class="panel-card" style="max-width:none;margin-top:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <h3>📝 Passo 3 — Rivedi le domande</h3>
+            <button onclick="aggiungiDomandaDis()" style="padding:6px 14px;background:var(--az);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)">➕ Aggiungi domanda</button>
+          </div>
+          <div id="dis-dom-list" style="display:flex;flex-direction:column;gap:10px"></div>
+        </div>
+
+        <!-- STEP 4: TIC + classe + genera link -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px">
+          <div class="panel-card" style="max-width:none">
+            <h3 style="margin-bottom:10px">👤 Dati sessione</h3>
+            <div class="fg" style="margin-bottom:10px">
+              <label class="flbl">Classe</label>
+              <select id="dis-classe" class="finp" style="padding:9px 12px">
+                <option value="">— Nessuna —</option>
+                <option value="3A">3A</option><option value="3B">3B</option>
+                <option value="3C">3C</option><option value="3D">3D</option><option value="3E">3E</option>
+              </select>
+            </div>
+            <div class="fg">
+              <label class="flbl">Nome alunno (opzionale)</label>
+              <input type="text" id="dis-nome" placeholder="es. Mario R." maxlength="40" class="finp" style="padding:9px 12px">
+            </div>
+          </div>
+          <div class="panel-card" style="max-width:none">
+            <h3 style="margin-bottom:10px">⚙️ Strumenti TIC</h3>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-grande" style="width:15px;height:15px;accent-color:var(--verde)"> 🔍 Testo grande</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-maiuscolo" style="width:15px;height:15px;accent-color:var(--verde)"> 🔠 Stampato maiuscolo</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-contrasto" style="width:15px;height:15px;accent-color:var(--verde)"> 🌗 Alto contrasto</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-spaziatura" style="width:15px;height:15px;accent-color:var(--verde)"> ↔️ Spaziatura aumentata</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-font" style="width:15px;height:15px;accent-color:var(--verde)"> ✒️ Font dislessia (Lexend)</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-bes" style="width:15px;height:15px;accent-color:var(--verde)"> 📘 Modalità BES</label>
+            </div>
+          </div>
+        </div>
+
+        <button onclick="creaLinkDisAI()" style="width:100%;margin-top:14px;padding:13px;background:var(--verde);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:800;cursor:pointer;font-family:var(--font)">
+          🔗 Genera link prova adattata
+        </button>
+        <div id="dis-succ" class="succ-msg" style="display:none;margin-top:12px"></div>
+      </div>
+    </div><!-- fine st-dis -->
+
+    <!-- ══ SOTTO-PANNELLO 3: PROVE CAA ═══════════════════════ -->
+    <div class="sub-panel" id="st-caa">
+      <div class="info-panel" style="background:#f3e5f5;border-color:#ce93d8;color:#4a148c">
+        🖼️ <strong>Prove CAA — Comunicazione Aumentativa Alternativa</strong> — Incolla un testo: la piattaforma lo semplifica, genera domande con AI e aggiunge pittogrammi ARASAAC su ogni parola chiave del testo e delle risposte.
+      </div>
+
+      <!-- STEP 1: testo -->
+      <div class="panel-card" style="max-width:none;margin-top:14px">
+        <h3 style="margin-bottom:12px">📄 Passo 1 — Incolla il testo</h3>
+        <div class="fg" style="margin-bottom:10px">
+          <label class="flbl">Titolo</label>
+          <input type="text" id="caa-ai-titolo" class="finp" placeholder="es. La colazione di Marco" style="padding:9px 12px">
+        </div>
+        <div class="fg" style="margin-bottom:8px">
+          <label class="flbl">Testo originale (anche complesso — l'AI lo semplificherà per CAA)</label>
+          <textarea id="caa-ai-testo" class="finp" rows="7" placeholder="Incolla qui il testo originale..." style="padding:9px 12px;resize:vertical;font-size:13px;line-height:1.7"></textarea>
+        </div>
+        <div class="fg">
+          <label class="flbl">Numero domande (max 15 — stile semplice per CAA)</label>
+          <input type="number" id="caa-ai-ndom" class="finp" value="8" min="3" max="15" style="padding:9px 12px;max-width:120px">
+        </div>
+        <button onclick="generaDomandeAI('caa')" style="margin-top:14px;width:100%;padding:12px;background:#7b1fa2;color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:800;cursor:pointer;font-family:var(--font)">
+          🤖 Semplifica testo e genera domande CAA
+        </button>
+        <div id="caa-ai-loading" style="display:none;margin-top:12px;text-align:center;color:#7b1fa2;font-size:13px;font-weight:700">
+          ⏳ Elaborazione in corso… l'AI sta semplificando il testo e creando le domande…
+        </div>
+        <div id="caa-ai-err" class="err-msg" style="display:none;margin-top:8px"></div>
+      </div>
+
+      <!-- STEP 2: anteprima testo CAA + domande -->
+      <div id="caa-ai-preview" style="display:none">
+        <div class="panel-card" style="max-width:none;margin-top:10px">
+          <h3 style="margin-bottom:10px">📄 Testo semplificato (modificabile)</h3>
+          <div id="caa-testo-preview" style="display:flex;flex-direction:column;gap:8px"></div>
+        </div>
+        <div class="panel-card" style="max-width:none;margin-top:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <h3>📝 Domande generate</h3>
+            <button onclick="aggiungiDomandaDis('caa')" style="padding:6px 14px;background:#9c27b0;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)">➕ Aggiungi</button>
+          </div>
+          <div id="caa-dom-list" style="display:flex;flex-direction:column;gap:10px"></div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px">
+          <div class="panel-card" style="max-width:none">
+            <h3 style="margin-bottom:10px">👤 Dati sessione</h3>
+            <div class="fg" style="margin-bottom:10px">
+              <label class="flbl">Classe</label>
+              <select id="caa-classe" class="finp" style="padding:9px 12px">
+                <option value="">— Nessuna —</option>
+                <option value="3A">3A</option><option value="3B">3B</option>
+                <option value="3C">3C</option><option value="3D">3D</option><option value="3E">3E</option>
+              </select>
+            </div>
+            <div class="fg">
+              <label class="flbl">Nome alunno (opzionale)</label>
+              <input type="text" id="caa-nome" placeholder="es. Mario R." maxlength="40" class="finp" style="padding:9px 12px">
+            </div>
+          </div>
+          <div class="panel-card" style="max-width:none">
+            <h3 style="margin-bottom:10px">🖼️ Strumenti aggiuntivi</h3>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="caa-tic-grande" style="width:15px;height:15px;accent-color:#9c27b0"> 🔍 Testo grande</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="caa-tic-maiuscolo" style="width:15px;height:15px;accent-color:#9c27b0"> 🔠 Stampato maiuscolo</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="caa-tic-spaziatura" style="width:15px;height:15px;accent-color:#9c27b0"> ↔️ Spaziatura aumentata</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="caa-tic-bes" style="width:15px;height:15px;accent-color:#9c27b0"> 📘 Modalità BES</label>
+            </div>
+            <div style="margin-top:10px;padding:8px 12px;background:#f3e5f5;border-radius:6px;font-size:10px;color:#6a1b9a;line-height:1.5">
+              🖼️ Pittogrammi ARASAAC sempre attivi su testo e risposte.<br>Pittogrammi © Governo di Aragona — Sergio Palao, CC BY-NC-SA.
+            </div>
+          </div>
+        </div>
+
+        <button onclick="creaLinkCaaAI()" style="width:100%;margin-top:14px;padding:13px;background:#7b1fa2;color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:800;cursor:pointer;font-family:var(--font)">
+          🖼️ Genera link prova CAA
+        </button>
+        <div id="caa-succ" class="succ-msg" style="display:none;margin-top:12px"></div>
+      </div>
+    </div><!-- fine st-caa -->
+
+  </div><!-- fine tab-new -->
+
+
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;margin-top:16px">
         <div class="panel-card" style="max-width:none">
@@ -3259,8 +3446,17 @@ function scaricaPDF(){
 // ── HELPERS ANALISI ───────────────────────────────────────────
 function getRisultatiClasse(){
   if(S.classe === 'ALL') return DB.risultati;
-  // Filtra SOLO per classe — esclude risultati senza classe o di altra classe
   return DB.risultati.filter(r => r.classe === S.classe);
+}
+
+// Ritorna solo i risultati standard (esclude prove disabilità e CAA dalle medie)
+function getRisultatiStandard(){
+  return getRisultatiClasse().filter(r => !r.flag_dis);
+}
+
+// Ritorna solo risultati disabilità/CAA
+function getRisultatiDis(){
+  return getRisultatiClasse().filter(r => r.flag_dis);
 }
 
 function kpiCard(ico, lbl, val, col='var(--blu)'){
@@ -3752,32 +3948,32 @@ function caricaAnalisiProva(){
 }
 
 // ── ANDAMENTO GENERALE ────────────────────────────────────────
-// Legge tutti i risultati già salvati nel DB (o sheet), indipendentemente
-// dalla sessione aperta in "Analisi sessione".
 function aggiornaGenerale(){
-  // Legge TUTTI i risultati: se la classe è ALL prende tutto, altrimenti filtra
-  const ris = getRisultatiClasse();
+  // Risultati STANDARD (esclusi dis/CAA) per medie e KPI
+  const ris    = getRisultatiStandard();
+  // Risultati dis/CAA per sezione separata
+  const risDis = getRisultatiDis();
 
   const noData = '<p style="color:#aaa;font-size:13px">Nessun dato disponibile.</p>';
-  if(!ris.length){
-    ['gen-kpi','gen-andamento','gen-competenze','gen-alunni','gen-top10','gen-bottom10','gen-suggerimenti']
+  if(!ris.length && !risDis.length){
+    ['gen-kpi','gen-andamento','gen-competenze','gen-alunni','gen-top10','gen-bottom10','gen-suggerimenti','gen-dis']
       .forEach(id=>{ const el=$(id); if(el) el.innerHTML=noData; });
     return;
   }
 
-  // ── KPI ───────────────────────────────────────────────────
-  const avgPct   = Math.round(ris.reduce((s,r)=>s+r.pct,0)/ris.length);
+  // ── KPI (solo prove standard) ─────────────────────────────
+  const avgPct   = ris.length ? Math.round(ris.reduce((s,r)=>s+r.pct,0)/ris.length) : 0;
   const studenti = [...new Set(ris.map(r=>r.codice))].length;
   const classiSet= [...new Set(ris.map(r=>r.classe))].filter(Boolean);
   const sessioni = [...new Set(ris.map(r=>r.sessione))].length;
 
   const elKpi=$('gen-kpi');
-  if(elKpi) elKpi.innerHTML = [
+  if(elKpi) elKpi.innerHTML = ris.length ? [
     kpiCard('👥','Studenti',studenti),
     kpiCard('📝','Prove svolte',ris.length),
     kpiCard('📊','Media generale',`${avgPct}%`,avgPct>=60?'var(--verde)':avgPct>=40?'var(--giallo)':'var(--rosso)'),
     kpiCard('🏫','Sessioni',sessioni),
-  ].join('');
+  ].join('') : noData;
 
   // ── ANDAMENTO PER PROVA ───────────────────────────────────
   const coloriClassi={'3A':'var(--blu)','3E':'var(--verde)','3B':'var(--arancio)','3C':'#7b1fa2','3D':'#00838f'};
@@ -3785,7 +3981,6 @@ function aggiornaGenerale(){
   let andH='';
   classiGrafico.forEach(cl=>{
     const rCl=ris.filter(r=>r.classe===cl);
-    // raggruppa per sessione (non solo per id prova, per supportare più sessioni della stessa prova)
     const sessIds=[...new Set(rCl.map(r=>r.sessione))].sort();
     if(!sessIds.length) return;
     if(S.classe==='ALL')
@@ -3809,21 +4004,21 @@ function aggiornaGenerale(){
   const elAnd=$('gen-andamento');
   if(elAnd) elAnd.innerHTML=andH||noData;
 
-  // ── COMPETENZE AGGREGATE ──────────────────────────────────
+  // ── COMPETENZE AGGREGATE (solo standard) ──────────────────
   const compTot={};
   ris.forEach(r=>Object.entries(r.errori||{}).forEach(([c,n])=>{
     compTot[c]=(compTot[c]||0)+n;
   }));
   const elComp=$('gen-competenze');
-  if(elComp) elComp.innerHTML=Object.entries(compTot)
-    .sort((a,b)=>b[1]-a[1])
-    .map(([c,tot])=>{
-      const avg=(tot/ris.length).toFixed(1);
-      const pct=Math.max(0,100-Math.round(parseFloat(avg)*15));
-      return barraComp(c,pct,100,avg);
-    }).join('')||'<p style="color:var(--verde);font-weight:700">✅ Nessuna area critica rilevante.</p>';
+  if(elComp) elComp.innerHTML=ris.length
+    ? Object.entries(compTot).sort((a,b)=>b[1]-a[1]).map(([c,tot])=>{
+        const avg=(tot/ris.length).toFixed(1);
+        const pct=Math.max(0,100-Math.round(parseFloat(avg)*15));
+        return barraComp(c,pct,100,avg);
+      }).join('')||'<p style="color:var(--verde);font-weight:700">✅ Nessuna area critica.</p>'
+    : noData;
 
-  // ── PER ALUNNO: media cumulativa di tutte le prove svolte ──
+  // ── PER ALUNNO (solo standard) ────────────────────────────
   const byStud={};
   ris.forEach(r=>{
     const key=`${r.codice}__${r.classe}`;
@@ -3848,8 +4043,7 @@ function aggiornaGenerale(){
       const pid=parseInt(sess.replace(/prova-(\d+).*/,'$1'));
       return `<span style="background:var(--grigio-ch);border:1px solid ${c};border-radius:4px;padding:1px 6px;font-size:11px;color:${c};font-weight:700">P${pid}: ${pct}%</span>`;
     }).join(' ');
-    // Mini grafico a torta SVG per questo alunno
-    const torta=miniTorta(s.errori,ris.length>0?ris.filter(r=>r.codice===s.codice).length:1);
+    const torta=miniTorta(s.errori,s.pcts.length);
     alunniH+=`<div style="background:var(--grigio-ch);border-radius:10px;padding:14px 16px;margin-bottom:10px;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center">
       <div>
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
@@ -3867,41 +4061,44 @@ function aggiornaGenerale(){
   const elAlunni=$('gen-alunni');
   if(elAlunni) elAlunni.innerHTML=alunniH||noData;
 
-  // ── TOP / BOTTOM ──────────────────────────────────────────
+  // ── TOP / BOTTOM (solo standard) ─────────────────────────
   const toCard=(s,i,tipo)=>studenteCard({...s,pct:s.media},i+1,tipo);
   const elTop=$('gen-top10'), elBot=$('gen-bottom10');
   if(elTop)    elTop.innerHTML    = ranking.slice(0,10).map((s,i)=>toCard(s,i,'top')).join('');
   if(elBot)    elBot.innerHTML    = [...ranking].reverse().slice(0,10).map((s,i)=>toCard(s,i,'bottom')).join('');
 
-  // ── SUGGERIMENTI ──────────────────────────────────────────
+  // ── SUGGERIMENTI (solo standard) ─────────────────────────
   const compDeboli=Object.entries(compTot).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]);
   renderSuggerimenti('gen-suggerimenti',compDeboli,true);
-}
 
-// ── MINI TORTA SVG PER ALUNNO ─────────────────────────────────
-function miniTorta(errori, nProve){
-  const COMP_COLORI={
-    comprensione_globale:'#1565c0', comprensione_locale:'#1976d2',
-    inferenza:'#42a5f5', struttura_testo:'#26a69a',
-    lessico:'#66bb6a', lessico_contesto:'#a5d6a7',
-    morfologia:'#ffa726', sintassi:'#ef5350',
-    ortografia:'#ec407a', punteggiatura:'#ab47bc', coesione:'#78909c'
-  };
-  const entries=Object.entries(errori).filter(([,n])=>n>0);
-  if(!entries.length) return `<svg width="54" height="54" viewBox="0 0 54 54"><circle cx="27" cy="27" r="24" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/><text x="27" y="31" text-anchor="middle" font-size="11" fill="#2e7d32" font-weight="700">✓</text></svg>`;
-  const tot=entries.reduce((s,[,n])=>s+n,0);
-  let svgPath='',start=0;
-  const R=24,cx=27,cy=27;
-  entries.forEach(([c,n],i)=>{
-    const ang=(n/tot)*Math.PI*2;
-    const x1=cx+R*Math.cos(start), y1=cy+R*Math.sin(start);
-    const x2=cx+R*Math.cos(start+ang), y2=cy+R*Math.sin(start+ang);
-    const large=ang>Math.PI?1:0;
-    const col=COMP_COLORI[c]||'#90a4ae';
-    svgPath+=`<path d="M${cx},${cy} L${x1.toFixed(1)},${y1.toFixed(1)} A${R},${R} 0 ${large},1 ${x2.toFixed(1)},${y2.toFixed(1)} Z" fill="${col}" opacity="0.85"/>`;
-    start+=ang;
-  });
-  return `<svg width="54" height="54" viewBox="0 0 54 54" style="border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.15)">${svgPath}<circle cx="${cx}" cy="${cy}" r="10" fill="white"/><text x="${cx}" y="${cy+4}" text-anchor="middle" font-size="9" fill="#444" font-weight="700">${nProve}p</text></svg>`;
+  // ── ALUNNI CON DISABILITÀ / CAA (sezione separata) ───────
+  const elDis=$('gen-dis');
+  if(elDis){
+    if(!risDis.length){
+      elDis.innerHTML='<p style="color:#aaa;font-size:13px">Nessuna prova personalizzata registrata.</p>';
+    } else {
+      let disH='';
+      risDis.forEach(r=>{
+        const col=r.pct>=70?'var(--verde)':r.pct>=40?'var(--giallo)':'var(--rosso)';
+        const badge=r.tipo==='caa'
+          ? `<span style="font-size:10px;background:#7b1fa2;color:#fff;padding:1px 8px;border-radius:3px">CAA</span>`
+          : `<span style="font-size:10px;background:var(--verde);color:#fff;padding:1px 8px;border-radius:3px">Disabilità</span>`;
+        disH+=`<div style="background:var(--grigio-ch);border-radius:8px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px">
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+              <span style="font-weight:700;font-size:13px">${r.codice}</span>
+              ${badge}
+              <span style="font-size:20px;font-weight:800;color:${col}">${r.pct}%</span>
+              <span style="font-size:11px;color:#888">${r.totale}/${r.su} risposte</span>
+            </div>
+            <div style="font-size:11px;color:#888">Sessione: ${r.sessione} · ${new Date(r.data).toLocaleDateString('it-IT')}</div>
+          </div>
+          <div style="font-size:22px">${r.pct>=70?'🌟':r.pct>=40?'👍':'💪'}</div>
+        </div>`;
+      });
+      elDis.innerHTML=disH;
+    }
+  }
 }
 
 // ── SUGGERIMENTI ──────────────────────────────────────────────
@@ -3928,6 +4125,32 @@ function renderSuggerimenti(elId, compDeboli, globale=false){
           <div style="font-size:13px;color:#444;line-height:1.6">${SUGG[c]||'Vedi quadro di riferimento INVALSI.'}</div>
         </div>`).join('')
     : '<p style="color:var(--verde);font-weight:700">✅ Nessuna area critica in questa sessione.</p>';
+}
+
+// ── MINI TORTA SVG PER ALUNNO ─────────────────────────────────
+function miniTorta(errori, nProve){
+  const COMP_COLORI={
+    comprensione_globale:'#1565c0', comprensione_locale:'#1976d2',
+    inferenza:'#42a5f5', struttura_testo:'#26a69a',
+    lessico:'#66bb6a', lessico_contesto:'#a5d6a7',
+    morfologia:'#ffa726', sintassi:'#ef5350',
+    ortografia:'#ec407a', punteggiatura:'#ab47bc', coesione:'#78909c'
+  };
+  const entries=Object.entries(errori).filter(([,n])=>n>0);
+  if(!entries.length) return `<svg width="54" height="54" viewBox="0 0 54 54"><circle cx="27" cy="27" r="24" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/><text x="27" y="31" text-anchor="middle" font-size="11" fill="#2e7d32" font-weight="700">✓</text></svg>`;
+  const tot=entries.reduce((s,[,n])=>s+n,0);
+  let svgPath='',start=0;
+  const R=24,cx=27,cy=27;
+  entries.forEach(([c,n],i)=>{
+    const ang=(n/tot)*Math.PI*2;
+    const x1=cx+R*Math.cos(start), y1=cy+R*Math.sin(start);
+    const x2=cx+R*Math.cos(start+ang), y2=cy+R*Math.sin(start+ang);
+    const large=ang>Math.PI?1:0;
+    const col=COMP_COLORI[c]||'#90a4ae';
+    svgPath+=`<path d="M${cx},${cy} L${x1.toFixed(1)},${y1.toFixed(1)} A${R},${R} 0 ${large},1 ${x2.toFixed(1)},${y2.toFixed(1)} Z" fill="${col}" opacity="0.85"/>`;
+    start+=ang;
+  });
+  return `<svg width="54" height="54" viewBox="0 0 54 54" style="border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.15)">${svgPath}<circle cx="${cx}" cy="${cy}" r="10" fill="white"/><text x="${cx}" y="${cy+4}" text-anchor="middle" font-size="9" fill="#444" font-weight="700">${nProve}p</text></svg>`;
 }
 
 // ── POPOLADOCENTE ─────────────────────────────────────────────
@@ -4133,9 +4356,16 @@ function mostraSubTab(id, btn){
 }
 
 function creaSessioneCAA(){
-  const provaId = document.getElementById('caa-sel-prova').value;
+  const provaId = parseInt(document.getElementById('caa-sel-prova').value);
   const classe  = document.getElementById('caa-classe').value;
   const nome    = document.getElementById('caa-nome').value.trim();
+
+  if(!classe){
+    const el = document.getElementById('caa-succ');
+    el.innerHTML = '<div style="color:#7b1fa2;font-weight:700">⚠️ Seleziona una classe per registrare la sessione.</div>';
+    el.style.display='block';
+    return;
+  }
 
   const ticExtra = [];
   if(document.getElementById('caa-tic-grande')?.checked)    ticExtra.push('grande');
@@ -4146,15 +4376,41 @@ function creaSessioneCAA(){
   // CAA sempre inclusa
   const ticAll = ['caa', ...ticExtra];
 
+  // Registra sessione nel DB locale
+  const sessKey  = `caa-${provaId}-${classe}`;
+  const sessData = {
+    provaId, classe, tipo: 'caa', tic: {caa:true},
+    data: new Date().toISOString(),
+    studenti: 0, chiusa: false
+  };
+  DB.sessioni[sessKey] = sessData;
+  saveDB();
+  try{
+    fetch(SCRIPT_URL, {
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        action:'salvaSessione', sessione:sessKey,
+        classe, provaId, provaTitolo:`CAA – prova ${provaId}`,
+        data: sessData.data
+      })
+    }).catch(()=>{});
+  }catch(e){}
+
   const base = window.location.href.replace(/[^/]*$/, '') + 'grado8_dis.html';
   const params = new URLSearchParams();
   params.set('prova', provaId);
-  if(classe) params.set('classe', classe);
-  if(nome)   params.set('nome', nome);
+  params.set('classe', classe);
+  params.set('sessione', sessKey);          // ← passa la chiave sessione
+  if(nome) params.set('nome', nome);
   params.set('tic', ticAll.join(','));
 
   const link = base + '?' + params.toString();
   window._linkCAA = link;
+
+  // Aggiorna UI docente
+  try{ aggiornaTabellaSessioni(); }catch(e){}
+  try{ aggSelSessioni(); }catch(e){}
 
   const nomiProve = {
     '11':'La colazione di Marco','12':'Al parco con Bello',
@@ -4162,7 +4418,7 @@ function creaSessioneCAA(){
   };
 
   const el = document.getElementById('caa-succ');
-  el.innerHTML = `✅ Link prova CAA generato:<br>
+  el.innerHTML = `✅ Sessione <strong>${sessKey}</strong> registrata:<br>
     <div style="margin-top:8px;padding:8px 12px;background:#fff;border:1px solid #9c27b0;border-radius:6px;word-break:break-all;font-size:12px;font-family:monospace">${link}</div>
     <button onclick="navigator.clipboard.writeText(window._linkCAA).then(()=>alert('✅ Link copiato!'))"
       style="margin-top:10px;width:100%;padding:9px;font-family:var(--font);font-weight:700;font-size:13px;border:none;border-radius:6px;cursor:pointer;background:#7b1fa2;color:#fff">
@@ -4170,127 +4426,278 @@ function creaSessioneCAA(){
     </button>
     <div style="margin-top:8px;font-size:11px;color:#555">
       Prova: <strong>${nomiProve[provaId]||provaId}</strong>
-      ${classe ? ' &nbsp;|&nbsp; Classe: <strong>'+classe+'</strong>' : ''}
-      ${nome   ? ' &nbsp;|&nbsp; Alunno: <strong>'+nome+'</strong>' : ''}<br>
-      TIC: <strong>${ticAll.join(', ')}</strong>
+      &nbsp;|&nbsp; Classe: <strong>${classe}</strong>
+      ${nome ? ' &nbsp;|&nbsp; Alunno: <strong>'+nome+'</strong>' : ''}<br>
+      TIC: <strong>${ticAll.join(', ')}</strong><br>
+      I risultati appariranno in <strong>Analisi sessione → ${sessKey}</strong>
     </div>`;
   el.style.display='block';
 }
 
-// ── ALLEGA PROVA PERSONALIZZATA ──────────────────────────────────
-let _apDomN = 0;
-function toggleAllegaProva(header){
-  const form = document.getElementById('allega-form');
-  const arrow = document.getElementById('allega-arrow');
-  const open = form.style.display==='none';
-  form.style.display = open ? 'block' : 'none';
-  arrow.style.transform = open ? 'rotate(90deg)' : '';
-  if(open && _apDomN===0){ addDomandaForm(); addDomandaForm(); addDomandaForm(); }
+// ══════════════════════════════════════════════════════════════
+//  AI QUESTION GENERATOR — Disabilità & CAA
+// ══════════════════════════════════════════════════════════════
+let _disAIProva   = null;
+let _caaAIParas   = [];
+let _caaAIDomande = [];
+
+async function generaDomandeAI(tipo){
+  const isCaa = tipo === 'caa';
+  const testoEl   = document.getElementById(isCaa ? 'caa-ai-testo'   : 'dis-ai-testo');
+  const titoloEl  = document.getElementById(isCaa ? 'caa-ai-titolo'  : 'dis-ai-titolo');
+  const ndomEl    = document.getElementById(isCaa ? 'caa-ai-ndom'    : 'dis-ai-ndom');
+  const loadEl    = document.getElementById(isCaa ? 'caa-ai-loading' : 'dis-ai-loading');
+  const errEl     = document.getElementById(isCaa ? 'caa-ai-err'     : 'dis-ai-err');
+  const previewEl = document.getElementById(isCaa ? 'caa-ai-preview' : 'dis-ai-preview');
+
+  const testo  = testoEl?.value.trim();
+  const titolo = titoloEl?.value.trim() || 'Testo personalizzato';
+  const ndom   = Math.min(40, Math.max(3, parseInt(ndomEl?.value)||10));
+
+  if(!testo){ errEl.textContent='⚠️ Incolla un testo prima di generare.'; errEl.style.display='block'; return; }
+  errEl.style.display='none';
+  loadEl.style.display='block';
+  previewEl.style.display='none';
+
+  const inferenza = document.getElementById('dis-ai-inferenza')?.checked ?? true;
+  const aperte    = document.getElementById('dis-ai-aperte')?.checked ?? false;
+  const lessico   = document.getElementById('dis-ai-lessico')?.checked ?? true;
+  const gram      = document.getElementById('dis-ai-gram')?.checked ?? false;
+
+  let prompt;
+  if(isCaa){
+    prompt = `Sei un esperto di CAA (Comunicazione Aumentativa Alternativa) per alunni con disabilità cognitive.
+
+TESTO ORIGINALE:
+"""
+${testo}
+"""
+
+Hai due compiti:
+1. SEMPLIFICA il testo in al massimo 6 paragrafi brevi (3-5 frasi ciascuno), usando parole semplici e concrete, frasi corte, soggetto-verbo-complemento.
+2. Genera esattamente ${ndom} domande di comprensione MOLTO SEMPLICI in stile CAA: domande brevi, risposte concrete, 4 opzioni (A/B/C/D).
+
+Rispondi SOLO con JSON valido, senza markdown, senza backtick:
+{"paragrafi":[{"n":1,"testo":"..."}],"domande":[{"n":1,"par":1,"tipo":"sm","sez":0,"testo":"Chi è il protagonista?","opts":["Marco","Luca","Sara","Paolo"],"ok":0}]}`;
+  } else {
+    const sezioni = [];
+    if(lessico) sezioni.push('lessico (sez:1)');
+    if(gram) sezioni.push('grammatica base soggetto/predicato (sez:2)');
+    prompt = `Sei un esperto di didattica inclusiva per alunni con disabilità di scuola media.
+
+TESTO:
+"""
+${testo}
+"""
+
+Genera esattamente ${ndom} domande sul testo. Comprensione (sez:0) è obbligatoria.${inferenza?' Includi 2-3 domande INFERENZIALI (logicamente deducibili, non letterali).':''}${aperte?' Includi 2-3 domande APERTE (tipo:"ap", senza opts).':''}${sezioni.length?' Aggiungi anche: '+sezioni.join('; ')+'.':''}
+
+Per scelta multipla: tipo:"sm", 4 opts, ok=indice corretto (0-3). Per domanda aperta: tipo:"ap", no opts. Il campo par indica il paragrafo di riferimento.
+
+Suddividi il testo in paragrafi numerati.
+
+Rispondi SOLO con JSON valido, senza markdown:
+{"paragrafi":[{"n":1,"testo":"..."}],"domande":[{"n":1,"par":1,"tipo":"sm","sez":0,"testo":"...","opts":["A","B","C","D"],"ok":0}]}`;
+  }
+
+  try{
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:4000,messages:[{role:'user',content:prompt}]})
+    });
+    const data = await res.json();
+    const raw = data.content?.[0]?.text||'';
+    const match = raw.match(/\{[\s\S]*\}/);
+    if(!match) throw new Error('Risposta AI non valida');
+    const parsed = JSON.parse(match[0]);
+    if(!parsed.paragrafi||!parsed.domande) throw new Error('Struttura JSON incompleta');
+    loadEl.style.display='none';
+    if(isCaa){
+      _caaAIParas=parsed.paragrafi; _caaAIDomande=parsed.domande;
+      renderPreviewCAA(titolo,parsed.paragrafi,parsed.domande);
+    } else {
+      _disAIProva={titolo,sottotitolo:'Prova personalizzata',glossario:[],paragrafi:parsed.paragrafi,domande:parsed.domande};
+      renderPreviewDis(parsed.domande);
+    }
+    previewEl.style.display='block';
+  } catch(e){
+    loadEl.style.display='none';
+    errEl.textContent='⚠️ Errore AI: '+e.message+'. Riprova o controlla la connessione.';
+    errEl.style.display='block';
+  }
 }
 
-function addDomandaForm(){
-  const wrap = document.getElementById('ap-domande-wrap');
-  if(!wrap) return;
-  const existing = wrap.querySelectorAll('.ap-dom').length;
-  if(existing >= 6){ alert('Massimo 6 domande.'); return; }
-  _apDomN++;
-  const n = _apDomN;
-  const div = document.createElement('div');
-  div.className='ap-dom';
-  div.dataset.n=n;
-  div.style.cssText='background:#f7f9ff;border:1.5px solid #d0d9f0;border-radius:8px;padding:12px';
+function renderPreviewDis(domande){
+  const list=$('dis-dom-list'); if(!list) return;
+  list.innerHTML='';
+  domande.forEach((d,i)=>list.appendChild(makeDomCard(d,i,'dis')));
+}
+
+function renderPreviewCAA(titolo,paragrafi,domande){
+  const pDiv=$('caa-testo-preview');
+  if(pDiv) pDiv.innerHTML=paragrafi.map(p=>`
+    <div style="background:var(--grigio-ch);border-radius:8px;padding:10px 14px;margin-bottom:8px">
+      <div style="font-size:10px;font-weight:700;color:var(--blu);margin-bottom:5px">Paragrafo ${p.n}</div>
+      <textarea data-par="${p.n}" style="width:100%;border:1px solid #d0d9f0;border-radius:6px;padding:8px 10px;font-size:13px;line-height:1.7;resize:vertical;font-family:inherit" rows="3">${p.testo}</textarea>
+    </div>`).join('');
+  const list=$('caa-dom-list'); if(!list) return;
+  list.innerHTML='';
+  domande.forEach((d,i)=>list.appendChild(makeDomCard(d,i,'caa')));
+}
+
+function makeDomCard(d,idx,tipo){
+  const div=document.createElement('div');
+  div.className='ap-dom'; div.dataset.idx=idx; div.dataset.tipo=tipo;
+  const col=tipo==='caa'?'#7b1fa2':'var(--blu)';
+  const sezOpts=tipo==='caa'
+    ?'<option value="0">Comprensione</option>'
+    :'<option value="0">Comprensione</option><option value="1">Lessico</option><option value="2">Grammatica</option>';
+  const isAp=d.tipo==='ap';
+  div.style.cssText='background:#f7f9ff;border:1.5px solid #d0d9f0;border-radius:8px;padding:14px;margin-bottom:2px';
   div.innerHTML=`
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-      <span style="font-size:11px;font-weight:800;color:var(--blu)">Domanda ${existing+1}</span>
-      <button onclick="this.closest('.ap-dom').remove()"
-        style="background:none;border:none;color:#c62828;cursor:pointer;font-size:12px">✕ Rimuovi</button>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span style="font-size:11px;font-weight:800;color:${col}">Dom. ${idx+1} · Par. ${d.par||1}</span>
+      <button onclick="this.closest('.ap-dom').remove()" style="background:none;border:none;color:#c62828;cursor:pointer;font-size:13px">✕</button>
     </div>
-    <div class="fg" style="margin-bottom:8px">
-      <label class="flbl" style="font-size:11px">Testo domanda</label>
-      <input type="text" class="finp ap-tdom" placeholder="es. Chi è il protagonista?" style="padding:8px 10px;font-size:13px">
+    <div style="display:grid;grid-template-columns:1fr 60px;gap:8px;margin-bottom:8px">
+      <div class="fg" style="margin:0"><label class="flbl" style="font-size:10px">Domanda</label>
+        <input type="text" class="finp dom-testo" value="${(d.testo||'').replace(/"/g,'&quot;')}" style="padding:7px 10px;font-size:13px"></div>
+      <div><label class="flbl" style="font-size:10px">Par.</label>
+        <input type="number" class="finp dom-par" value="${d.par||1}" min="1" max="20" style="padding:7px 8px;font-size:12px;width:100%"></div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
-      <div><label class="flbl" style="font-size:10px">Opzione A</label><input type="text" class="finp ap-opA" placeholder="Risposta A" style="padding:7px 10px;font-size:12px"></div>
-      <div><label class="flbl" style="font-size:10px">Opzione B</label><input type="text" class="finp ap-opB" placeholder="Risposta B" style="padding:7px 10px;font-size:12px"></div>
-      <div><label class="flbl" style="font-size:10px">Opzione C</label><input type="text" class="finp ap-opC" placeholder="Risposta C" style="padding:7px 10px;font-size:12px"></div>
-      <div><label class="flbl" style="font-size:10px">Opzione D</label><input type="text" class="finp ap-opD" placeholder="Risposta D" style="padding:7px 10px;font-size:12px"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      <div><label class="flbl" style="font-size:10px">Tipo</label>
+        <select class="finp dom-tipo" style="padding:7px 10px;font-size:12px" onchange="toggleOpts(this)">
+          <option value="sm" ${!isAp?'selected':''}>Scelta multipla</option>
+          <option value="ap" ${isAp?'selected':''}>Aperta</option></select></div>
+      <div><label class="flbl" style="font-size:10px">Sezione</label>
+        <select class="finp dom-sez" style="padding:7px 10px;font-size:12px">${sezOpts}</select></div>
     </div>
-    <div class="fg">
-      <label class="flbl" style="font-size:11px">Risposta corretta</label>
-      <select class="finp ap-ok" style="padding:7px 10px;font-size:12px">
-        <option value="0">A</option><option value="1">B</option>
-        <option value="2">C</option><option value="3">D</option>
-      </select>
+    <div class="opts-block" style="${isAp?'display:none':''}">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
+        <div><label class="flbl" style="font-size:10px">A</label><input type="text" class="finp dom-optA" value="${(d.opts?.[0]||'').replace(/"/g,'&quot;')}" style="padding:6px 9px;font-size:12px"></div>
+        <div><label class="flbl" style="font-size:10px">B</label><input type="text" class="finp dom-optB" value="${(d.opts?.[1]||'').replace(/"/g,'&quot;')}" style="padding:6px 9px;font-size:12px"></div>
+        <div><label class="flbl" style="font-size:10px">C</label><input type="text" class="finp dom-optC" value="${(d.opts?.[2]||'').replace(/"/g,'&quot;')}" style="padding:6px 9px;font-size:12px"></div>
+        <div><label class="flbl" style="font-size:10px">D</label><input type="text" class="finp dom-optD" value="${(d.opts?.[3]||'').replace(/"/g,'&quot;')}" style="padding:6px 9px;font-size:12px"></div>
+      </div>
+      <div><label class="flbl" style="font-size:10px">Risposta corretta</label>
+        <select class="finp dom-ok" style="padding:6px 9px;font-size:12px">
+          <option value="0" ${d.ok===0?'selected':''}>A</option><option value="1" ${d.ok===1?'selected':''}>B</option>
+          <option value="2" ${d.ok===2?'selected':''}>C</option><option value="3" ${d.ok===3?'selected':''}>D</option>
+        </select></div>
     </div>`;
-  wrap.appendChild(div);
+  div.querySelector('.dom-sez').value=d.sez||0;
+  return div;
 }
 
-function generaProvaCustom(){
-  const err = document.getElementById('ap-err');
-  const succ = document.getElementById('ap-succ');
-  err.style.display='none'; succ.style.display='none';
+function toggleOpts(sel){
+  const block=sel.closest('.ap-dom')?.querySelector('.opts-block');
+  if(block) block.style.display=sel.value==='ap'?'none':'';
+}
 
-  const titolo = document.getElementById('ap-titolo').value.trim();
-  if(!titolo){ err.textContent='⚠️ Inserisci il titolo del testo.'; err.style.display='block'; return; }
+function aggiungiDomandaDis(tipo){
+  tipo=tipo||'dis';
+  const list=$(tipo==='caa'?'caa-dom-list':'dis-dom-list'); if(!list) return;
+  const idx=list.querySelectorAll('.ap-dom').length;
+  list.appendChild(makeDomCard({n:idx+1,par:1,tipo:'sm',sez:0,testo:'',opts:['','','',''],ok:0},idx,tipo));
+}
 
-  const par1 = document.getElementById('ap-par1').value.trim();
-  if(!par1){ err.textContent='⚠️ Inserisci almeno il primo paragrafo.'; err.style.display='block'; return; }
-
-  const paragrafi = [];
-  [par1, document.getElementById('ap-par2').value.trim(), document.getElementById('ap-par3').value.trim()]
-    .forEach((t,i)=>{ if(t) paragrafi.push({n:i+1, testo:t}); });
-
-  const domande = [];
-  let idx=1;
-  document.querySelectorAll('#ap-domande-wrap .ap-dom').forEach(div=>{
-    const tdom = div.querySelector('.ap-tdom')?.value.trim();
-    const A = div.querySelector('.ap-opA')?.value.trim();
-    const B = div.querySelector('.ap-opB')?.value.trim();
-    const C = div.querySelector('.ap-opC')?.value.trim();
-    const D = div.querySelector('.ap-opD')?.value.trim();
-    const ok = parseInt(div.querySelector('.ap-ok')?.value||'0');
-    if(!tdom||!A||!B){ return; } // salta vuote
-    const opts=[A,B];
-    if(C) opts.push(C); if(D) opts.push(D);
-    domande.push({n:idx++,par:1,tipo:'sm',sez:0,testo:tdom,opts,ok});
+function raccogliDomande(listId){
+  const domande=[];
+  document.querySelectorAll(`#${listId} .ap-dom`).forEach((card)=>{
+    const testo=card.querySelector('.dom-testo')?.value.trim(); if(!testo) return;
+    const tipo=card.querySelector('.dom-tipo')?.value||'sm';
+    const sez=parseInt(card.querySelector('.dom-sez')?.value||'0');
+    const par=parseInt(card.querySelector('.dom-par')?.value||'1');
+    if(tipo==='ap'){
+      domande.push({n:domande.length+1,par,tipo:'ap',sez,testo});
+    } else {
+      const A=card.querySelector('.dom-optA')?.value.trim()||'';
+      const B=card.querySelector('.dom-optB')?.value.trim()||'';
+      const C=card.querySelector('.dom-optC')?.value.trim()||'';
+      const D=card.querySelector('.dom-optD')?.value.trim()||'';
+      const ok=parseInt(card.querySelector('.dom-ok')?.value||'0');
+      const opts=[A,B]; if(C) opts.push(C); if(D) opts.push(D);
+      domande.push({n:domande.length+1,par,tipo:'sm',sez,testo,opts,ok});
+    }
   });
+  return domande;
+}
 
-  if(!domande.length){ err.textContent='⚠️ Inserisci almeno una domanda completa (testo + A + B).'; err.style.display='block'; return; }
-
-  const provaObj = { titolo, sottotitolo:'Testo personalizzato', glossario:[], paragrafi, domande };
-  const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(provaObj))));
-
-  // Costruisci link con TIC attivi
-  const ticMap = {
-    grande: document.getElementById('dis-tic-grande')?.checked,
-    maiuscolo: document.getElementById('dis-tic-maiuscolo')?.checked,
-    contrasto: document.getElementById('dis-tic-contrasto')?.checked,
-    spaziatura: document.getElementById('dis-tic-spaziatura')?.checked,
-    font: document.getElementById('dis-tic-font')?.checked,
-    bes: document.getElementById('dis-tic-bes')?.checked,
-    caa: document.getElementById('dis-tic-caa')?.checked,
+function creaLinkDisAI(){
+  const classe=$('dis-classe')?.value; const nome=$('dis-nome')?.value.trim()||'';
+  if(!classe){alert('⚠️ Seleziona una classe.'); return;}
+  if(!_disAIProva){alert('⚠️ Prima genera le domande con AI.'); return;}
+  const domande=raccogliDomande('dis-dom-list');
+  if(!domande.length){alert('⚠️ Aggiungi almeno una domanda.'); return;}
+  const prova={..._disAIProva,domande};
+  const b64=btoa(unescape(encodeURIComponent(JSON.stringify(prova))));
+  const ticMap={
+    grande:$('dis-tic-grande')?.checked||false, maiuscolo:$('dis-tic-maiuscolo')?.checked||false,
+    contrasto:$('dis-tic-contrasto')?.checked||false, spaziatura:$('dis-tic-spaziatura')?.checked||false,
+    font:$('dis-tic-font')?.checked||false, bes:$('dis-tic-bes')?.checked||false
   };
-  const ticAttivi = Object.keys(ticMap).filter(k=>ticMap[k]);
-  const base = window.location.href.replace(/[^/]*$/,'') + 'grado8_dis.html';
-  const params = new URLSearchParams();
-  params.set('prova','custom');
-  params.set('data',b64);
-  const classe = document.getElementById('dis-classe')?.value;
-  const nome = document.getElementById('dis-nome')?.value.trim();
-  if(classe) params.set('classe',classe);
-  if(nome)   params.set('nome',nome);
+  const ticAttivi=Object.keys(ticMap).filter(k=>ticMap[k]);
+  const sessKey=`dis-custom-${classe}-${Date.now()}`;
+  DB.sessioni[sessKey]={provaId:'custom',classe,tipo:'disabilita',tic:ticMap,data:new Date().toISOString(),studenti:0,chiusa:false};
+  saveDB();
+  try{fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'salvaSessione',sessione:sessKey,classe,provaId:'custom',provaTitolo:prova.titolo,data:new Date().toISOString()})}).catch(()=>{});}catch(e){}
+  const base=window.location.href.replace(/[^/]*$/,'')+'grado8_dis.html';
+  const params=new URLSearchParams();
+  params.set('prova','custom'); params.set('data',b64);
+  params.set('sessione',sessKey); params.set('classe',classe);
+  if(nome) params.set('nome',nome);
   if(ticAttivi.length) params.set('tic',ticAttivi.join(','));
-  const link = base+'?'+params.toString();
+  const link=base+'?'+params.toString();
+  try{aggiornaTabellaSessioni();}catch(e){} try{aggSelSessioni();}catch(e){}
+  const el=$('dis-succ');
+  el.innerHTML=`✅ Sessione <strong>${sessKey}</strong> creata!<br>
+    <div style="margin-top:8px;padding:8px 12px;background:#fff;border:1px solid var(--verde);border-radius:6px;word-break:break-all;font-size:11px;font-family:monospace">${link.substring(0,180)}…</div>
+    <button onclick="navigator.clipboard.writeText('${link.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}').then(()=>alert('✅ Copiato!'))" class="btn btn-g" style="margin-top:10px;width:100%;padding:9px;font-weight:700;font-size:13px">📋 Copia link</button>
+    <div style="margin-top:6px;font-size:11px;color:#555">Classe: <strong>${classe}</strong> · Domande: <strong>${domande.length}</strong></div>`;
+  el.style.display='block';
+}
 
-  window._linkCustom = link;
-  succ.innerHTML=`✅ Link prova personalizzata:<br>
-    <div style="margin-top:8px;padding:8px 12px;background:#fff;border:1px solid var(--verde);border-radius:6px;word-break:break-all;font-size:11px;font-family:monospace">${link.substring(0,120)}…</div>
-    <button onclick="navigator.clipboard.writeText(window._linkCustom).then(()=>alert('✅ Link copiato!'))"
-      class="btn btn-g" style="margin-top:10px;width:100%;padding:9px;font-family:var(--font);font-size:13px;font-weight:700;border:none;border-radius:6px;cursor:pointer;background:var(--verde);color:#fff">
-      📋 Copia link
-    </button>
-    <div style="margin-top:6px;font-size:11px;color:#555">Prova: <strong>${titolo}</strong> — ${domande.length} domande — ${ticAttivi.length?'TIC: '+ticAttivi.join(', '):'nessun TIC'}</div>`;
-  succ.style.display='block';
+function creaLinkCaaAI(){
+  const classe=$('caa-classe')?.value; const nome=$('caa-nome')?.value.trim()||'';
+  if(!classe){alert('⚠️ Seleziona una classe.'); return;}
+  if(!_caaAIParas.length){alert('⚠️ Prima genera le domande con AI.'); return;}
+  const titolo=$('caa-ai-titolo')?.value.trim()||'Prova CAA';
+  const paragrafi=[];
+  document.querySelectorAll('#caa-testo-preview textarea[data-par]').forEach(ta=>{
+    const n=parseInt(ta.dataset.par), testo=ta.value.trim();
+    if(testo) paragrafi.push({n,testo});
+  });
+  const domande=raccogliDomande('caa-dom-list');
+  if(!domande.length){alert('⚠️ Aggiungi almeno una domanda.'); return;}
+  const prova={titolo,sottotitolo:'Testo in CAA',glossario:[],paragrafi,domande};
+  const b64=btoa(unescape(encodeURIComponent(JSON.stringify(prova))));
+  const ticExtra=[];
+  if($('caa-tic-grande')?.checked) ticExtra.push('grande');
+  if($('caa-tic-maiuscolo')?.checked) ticExtra.push('maiuscolo');
+  if($('caa-tic-spaziatura')?.checked) ticExtra.push('spaziatura');
+  if($('caa-tic-bes')?.checked) ticExtra.push('bes');
+  const ticAll=['caa',...ticExtra];
+  const sessKey=`caa-custom-${classe}-${Date.now()}`;
+  DB.sessioni[sessKey]={provaId:'custom',classe,tipo:'caa',data:new Date().toISOString(),studenti:0,chiusa:false};
+  saveDB();
+  try{fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'salvaSessione',sessione:sessKey,classe,provaId:'custom',provaTitolo:titolo,data:new Date().toISOString()})}).catch(()=>{});}catch(e){}
+  const base=window.location.href.replace(/[^/]*$/,'')+'grado8_dis.html';
+  const params=new URLSearchParams();
+  params.set('prova','custom'); params.set('data',b64);
+  params.set('sessione',sessKey); params.set('classe',classe);
+  if(nome) params.set('nome',nome);
+  params.set('tic',ticAll.join(','));
+  const link=base+'?'+params.toString();
+  window._linkCAA=link;
+  try{aggiornaTabellaSessioni();}catch(e){} try{aggSelSessioni();}catch(e){}
+  const el=$('caa-succ');
+  el.innerHTML=`✅ Sessione <strong>${sessKey}</strong> creata!<br>
+    <div style="margin-top:8px;padding:8px 12px;background:#fff;border:1px solid #9c27b0;border-radius:6px;word-break:break-all;font-size:11px;font-family:monospace">${link.substring(0,180)}…</div>
+    <button onclick="navigator.clipboard.writeText(window._linkCAA).then(()=>alert('✅ Copiato!'))" style="margin-top:10px;width:100%;padding:9px;background:#7b1fa2;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">📋 Copia link</button>
+    <div style="margin-top:6px;font-size:11px;color:#555">Classe: <strong>${classe}</strong> · Domande: <strong>${domande.length}</strong></div>`;
+  el.style.display='block';
 }
 
 function cambiaClasse(cl){
@@ -4990,9 +5397,16 @@ window.addEventListener('load', () => {
 //  SESSIONE PERSONALIZZATA DISABILITÀ → grado8_dis.html
 // ══════════════════════════════════════════════════════════════
 function creaSessDisabilita(){
-  const provaId = document.getElementById('dis-sel-prova').value;
+  const provaId = parseInt(document.getElementById('dis-sel-prova').value);
   const classe  = document.getElementById('dis-classe').value;
   const nome    = document.getElementById('dis-nome').value.trim();
+
+  if(!classe){
+    const el = document.getElementById('dis-succ');
+    el.innerHTML = '<div style="color:var(--rosso);font-weight:700">⚠️ Seleziona una classe per registrare la sessione.</div>';
+    el.style.display='block';
+    return;
+  }
 
   const ticMap = {
     grande:    document.getElementById('dis-tic-grande').checked,
@@ -5005,10 +5419,33 @@ function creaSessDisabilita(){
   };
   const ticAttivi = Object.keys(ticMap).filter(k => ticMap[k]);
 
+  // Registra sessione nel DB locale (come le sessioni standard)
+  const sessKey  = `dis-${provaId}-${classe}`;
+  const sessData = {
+    provaId, classe, tic: ticMap, tipo: 'disabilita',
+    data: new Date().toISOString(),
+    studenti: 0, chiusa: false
+  };
+  DB.sessioni[sessKey] = sessData;
+  saveDB();
+  // Notifica lo sheet
+  try{
+    fetch(SCRIPT_URL, {
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        action:'salvaSessione', sessione:sessKey,
+        classe, provaId, provaTitolo:`Disabilità – prova ${provaId}`,
+        data: sessData.data
+      })
+    }).catch(()=>{});
+  }catch(e){}
+
   const base = window.location.href.replace(/[^/]*$/, '') + 'grado8_dis.html';
   const params = new URLSearchParams();
   params.set('prova', provaId);
-  if(classe) params.set('classe', classe);
+  params.set('classe', classe);
+  params.set('sessione', sessKey);          // ← passa la chiave sessione
   if(nome)   params.set('nome', nome);
   if(ticAttivi.length) params.set('tic', ticAttivi.join(','));
 
@@ -5029,8 +5466,12 @@ function creaSessDisabilita(){
     '10':'L\'aquilone di Tommaso'
   };
 
+  // Aggiorna UI
+  try{ aggiornaTabellaSessioni(); }catch(e){}
+  try{ aggSelSessioni(); }catch(e){}
+
   const el = document.getElementById('dis-succ');
-  el.innerHTML = `✅ Link prova personalizzata generato:<br>
+  el.innerHTML = `✅ Sessione <strong>${sessKey}</strong> registrata e link generato:<br>
     <div style="margin-top:8px;padding:8px 12px;background:#fff;border:1px solid var(--verde);
       border-radius:6px;word-break:break-all;font-size:12px;font-family:monospace">${link}</div>
     <button onclick="navigator.clipboard.writeText('${link.replace(/'/g,"\\'")}').then(()=>alert('✅ Link copiato!'))"
@@ -5041,9 +5482,10 @@ function creaSessDisabilita(){
     </button>
     <div style="margin-top:8px;font-size:11px;color:#555">
       Prova: <strong>${nomiProve[provaId]||provaId}</strong><br>
-      ${classe ? 'Classe: <strong>'+classe+'</strong><br>' : ''}
-      ${nome   ? 'Alunno: <strong>'+nome+'</strong><br>' : ''}
-      TIC attivi: <strong>${ticLabel}</strong>
+      Classe: <strong>${classe}</strong><br>
+      ${nome ? 'Alunno: <strong>'+nome+'</strong><br>' : ''}
+      TIC attivi: <strong>${ticLabel}</strong><br>
+      I risultati appariranno nella sezione <strong>Analisi sessione → ${sessKey}</strong>
     </div>`;
   el.style.display='block';
 }
