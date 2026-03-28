@@ -4,207 +4,210 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700;800&display=swap" rel="stylesheet">
-<title id="page-title">Grado 8 — Prova personalizzata</title>
+<title id="page-title">Grado 8 — Prova CAA</title>
 <style>
-/* ══ VARIABILI ════════════════════════════════════════════════ */
+/* ══ BASE ═══════════════════════════════════════════════════════ */
 :root{
   --c1:#01579b;--c2:#0277bd;--cl:#e1f5fe;--cb:#81d4fa;
-  --hi:#fff9c4;--hi2:rgba(251,192,45,.85);--oro:#fff8e1;--ob:#f9a825;
-  --gok:#e8f5e9;--gbord:#2e7d32;--rc:#fdecea;
-  --bi:#fff;--tx:#1a1a1a;--gr:#f5f5f5;
+  --gok:#e8f5e9;--gbord:#2e7d32;--rc:#fdecea;--err:#c62828;
+  --bi:#fff;--tx:#1a1a1a;--gr:#f0f4f8;--ob:#f9a825;
   --font:'Lexend',Verdana,sans-serif;
+  --box-border:#b0c4de;--box-bg:#fff;--box-hover:#e3f2fd;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--font);font-size:15px;line-height:1.85;background:#e8f4fd;color:var(--tx);overflow-x:hidden}
+body{font-family:var(--font);background:#e8f4fd;color:var(--tx);font-size:15px;min-height:100vh}
+.hidden{display:none!important}
 
-/* ── TIC CLASSES ───────────────────────────────────────────── */
-body.tic-maiuscolo .tpar, body.tic-maiuscolo .tdom, body.tic-maiuscolo .opt{text-transform:uppercase!important}
-body.tic-grande .tpar{font-size:1.25rem!important;line-height:2.2!important}
-body.tic-grande .tdom{font-size:1.1rem!important}
-body.tic-grande .opt{font-size:1rem!important;padding:11px 14px!important}
-body.tic-spaziatura .tpar, body.tic-spaziatura .tdom, body.tic-spaziatura .opt{
-  letter-spacing:.08em!important;word-spacing:.18em!important;line-height:2.6!important}
-body.tic-contrasto{background:#111!important}
-body.tic-contrasto .pt{background:#000!important}
-body.tic-contrasto .tpar{color:#fff!important}
-body.tic-contrasto .par{background:#111!important;border-bottom-color:#333!important}
-body.tic-contrasto .par.att{background:#1a1500!important;border-left-color:#fdd835!important}
-body.tic-contrasto .pd{background:#111!important}
-body.tic-contrasto .sez{background:#1a1a1a!important}
-body.tic-contrasto .tdom{color:#fff!important}
-body.tic-contrasto .opt{background:#222!important;color:#fff!important;border-color:#555!important}
-body.tic-font .tpar, body.tic-font .tdom, body.tic-font .opt, body.tic-font .sezt{font-family:'Lexend',sans-serif!important}
-body.tic-bes .tpar{font-size:1.1rem!important;line-height:2.4!important;letter-spacing:.06em!important;word-spacing:.15em!important}
-body.tic-bes .opt{font-size:1rem!important;line-height:1.9!important;padding:12px 14px!important}
+/* ══ HEADER ══════════════════════════════════════════════════ */
+.hdr{background:var(--c1);color:#fff;padding:12px 20px;
+  border-bottom:4px solid var(--cb);position:sticky;top:0;z-index:900;
+  box-shadow:0 3px 10px rgba(0,0,0,.3)}
+.hdr h1{font-size:1rem;font-weight:800;display:flex;align-items:center;gap:8px}
+.hdr p{font-size:.75rem;opacity:.8;margin-top:2px}
 
-/* ══ CAA — Comunicazione Aumentativa Alternativa ══════════════ */
-/* Barra pittogrammi testo (in cima alla colonna testo) */
-#caa-bar{display:none;flex-wrap:wrap;gap:10px;padding:12px 16px 10px;
-  background:#e8f4fd;border-bottom:3px solid var(--cb)}
-body.tic-caa #caa-bar{display:flex}
+/* ══ PROGRESS BAR ═════════════════════════════════════════════ */
+.pbwrap{background:#dde4ed;height:6px}
+.pbfill{height:6px;background:var(--c2);transition:width .3s;width:0%}
+.pbinfo{display:flex;justify-content:space-between;padding:5px 20px;
+  font-size:.72rem;color:#555;background:#fff;border-bottom:1px solid #dde4ed}
 
-/* Card pittogramma nella barra testo */
-.caa-card{display:flex;flex-direction:column;align-items:center;gap:5px;
-  width:86px;flex-shrink:0}
-.caa-card img{width:76px;height:76px;object-fit:contain;border-radius:8px;
-  background:#fff;border:2px solid #90caf9;padding:3px}
-.caa-card img.err{display:none}
-.caa-skel{width:76px;height:76px;border-radius:8px;background:linear-gradient(90deg,#e3f2fd 25%,#bbdefb 50%,#e3f2fd 75%);background-size:200% 100%;animation:skel-shine 1.2s infinite}
-@keyframes skel-shine{0%{background-position:200%}100%{background-position:-200%}}
-.caa-card span{font-size:.58rem;font-weight:800;color:var(--c1);
-  text-align:center;text-transform:uppercase;letter-spacing:.3px;
-  line-height:1.2;max-width:86px;word-break:break-word}
+/* ══ CAA PAGE LAYOUT ══════════════════════════════════════════ */
+.caa-page{max-width:860px;margin:0 auto;padding:20px 16px 60px}
 
-/* Pittogrammi parole glossario nel testo */
-.caa-glw-wrap{display:inline-flex;flex-direction:column;align-items:center;
-  vertical-align:bottom;margin:0 3px 2px}
-.caa-glw-pic{display:none;width:48px;height:48px;object-fit:contain;
-  border-radius:6px;background:#f0f7ff;border:2px solid #90caf9}
-body.tic-caa .caa-glw-pic{display:block}
-body.tic-caa .glw{font-weight:800;color:#01579b;border-bottom:2px solid #01579b;
-  font-size:1.05em}
+/* ── SEZIONE STORIA ─────────────────────────────────────────── */
+.caa-storia-wrap{background:#fff;border-radius:14px;padding:20px;
+  box-shadow:0 2px 12px rgba(0,0,0,.08);margin-bottom:28px}
+.caa-sezione-titolo{font-size:.78rem;font-weight:800;text-transform:uppercase;
+  letter-spacing:.08em;color:var(--c2);margin-bottom:14px;
+  display:flex;align-items:center;gap:7px}
+.caa-sezione-titolo::after{content:'';flex:1;height:2px;background:var(--cl)}
 
-/* ── Risposte CAA — stile libro: immagine + parola in box ─── */
-.caa-opt-pic{display:none}
-body.tic-caa .caa-opt-pic{display:flex;flex-direction:column;align-items:center;
-  gap:6px;padding:8px 6px 6px;background:#f0f7ff;border:2px solid #90caf9;
-  border-radius:10px;margin-bottom:6px;min-width:90px;flex:1}
-body.tic-caa .caa-opt-pic img{width:90px;height:90px;object-fit:contain;
-  background:#fff;border-radius:6px;padding:2px}
-body.tic-caa .caa-opt-pic img[src=""]{width:90px;height:90px;
-  background:#e8f4fd url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 90 90'%3E%3Crect fill='%23e3f2fd' width='90' height='90'/%3E%3Ctext x='45' y='52' text-anchor='middle' fill='%2390caf9' font-size='28'%3E🖼️%3C/text%3E%3C/svg%3E") center/60px no-repeat}
-body.tic-caa .caa-opt-pic .caa-wrd{font-size:.72rem;font-weight:800;
-  text-transform:uppercase;color:#01579b;text-align:center;
-  letter-spacing:.3px;line-height:1.2}
-/* Layout opzioni CAA: 2 per riga, spaziose */
-body.tic-caa .opts{display:grid;grid-template-columns:1fr 1fr;gap:12px;
-  margin-top:8px}
-body.tic-caa .opt{flex-direction:column;align-items:center;
-  padding:10px 8px!important;gap:4px;cursor:pointer}
-body.tic-caa .opt input{order:-1;width:20px;height:20px;margin-bottom:4px}
-body.tic-caa .opt-testo{font-size:.82rem;font-weight:700;text-align:center;
-  color:#333;line-height:1.3}
+/* Paragrafo */
+.caa-par{margin-bottom:22px}
+.caa-par-num{display:inline-flex;align-items:center;gap:5px;
+  background:var(--c2);color:#fff;padding:3px 10px;border-radius:12px;
+  font-size:.68rem;font-weight:800;margin-bottom:10px}
 
-/* ── HEADER ────────────────────────────────────────────────── */
-.hdr{background:var(--c1);color:#fff;text-align:center;padding:14px 20px 10px;border-bottom:5px solid var(--ob);position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,.28)}
-.hdr h1{font-size:1.05rem;font-weight:800}
-.hdr p{font-size:.75rem;margin-top:3px;opacity:.88}
-.barra-wrap{background:var(--c1);padding:0 20px 8px;position:sticky;top:56px;z-index:199}
-.bfg{background:rgba(255,255,255,.25);border-radius:99px;height:8px;overflow:hidden}
-.bff{background:var(--ob);height:100%;border-radius:99px;transition:width .4s;width:0%}
-.blbl{font-size:.68rem;font-weight:800;color:rgba(255,255,255,.85);margin-top:3px;text-align:right}
-.istr{background:var(--oro);border-bottom:3px solid var(--ob);padding:9px 22px;font-size:.82rem;font-weight:700;color:#5a3a00}
-.istr ul{padding-left:18px;margin-top:3px}
-.istr li{margin-bottom:2px}
+/* Flusso di parole */
+.caa-words{display:flex;flex-wrap:wrap;align-items:flex-end;gap:6px 4px;
+  line-height:1}
 
-/* ── SPLIT LAYOUT ─────────────────────────────────────────── */
-.split{display:flex;height:calc(100vh - 106px);overflow:hidden}
-.pt{width:44%;flex-shrink:0;background:var(--bi);border-right:3px solid var(--cb);overflow-y:auto}
-.pt-hdr{background:var(--c1);color:#fff;font-size:.74rem;font-weight:800;padding:7px 14px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10}
-.twrap{display:flex;gap:6px}
-.btool{font-family:var(--font);font-size:.7rem;font-weight:800;background:rgba(255,255,255,.16);color:#fff;border:2px solid rgba(255,255,255,.35);border-radius:18px;padding:3px 11px;cursor:pointer;transition:background .2s;display:flex;align-items:center;gap:4px}
-.btool:hover{background:rgba(255,255,255,.28)}
-.btool.on{background:var(--ob);color:#5a3a00;border-color:var(--ob)}
-.par{padding:13px 16px 11px;border-bottom:2px solid #e1f5fe;transition:background .3s,border-left .22s;border-left:5px solid transparent}
-.par.att{background:var(--hi);border-left:5px solid var(--ob)}
-.plbl{font-size:.64rem;font-weight:800;color:var(--c2);margin-bottom:5px;display:flex;align-items:center;gap:5px}
-.plbl .dot{width:8px;height:8px;border-radius:50%;background:var(--cb);flex-shrink:0;transition:background .3s}
-.par.att .dot{background:var(--ob)}
-.par.att .plbl{color:#7a5000}
-.tpar{font-size:.93rem;line-height:1.9}
+/* Box parola chiave */
+.caa-wbox{display:inline-flex;flex-direction:column;align-items:center;
+  gap:4px;padding:5px 6px;border:2px solid var(--box-border);
+  border-radius:9px;background:var(--box-bg);cursor:default;
+  transition:background .15s;min-width:60px;max-width:90px}
+.caa-wbox img{width:72px;height:72px;object-fit:contain;display:block;
+  border-radius:5px}
+.caa-wbox .caa-wlbl{font-size:.55rem;font-weight:800;text-transform:uppercase;
+  text-align:center;color:var(--c1);word-break:break-word;line-height:1.15;
+  max-width:80px}
+/* Skeleton loading */
+.caa-wbox .caa-skel{width:72px;height:72px;border-radius:5px;
+  background:linear-gradient(90deg,#e3f2fd 25%,#bbdefb 50%,#e3f2fd 75%);
+  background-size:200% 100%;animation:sk 1.2s infinite}
+@keyframes sk{0%{background-position:200%}100%{background-position:-200%}}
+/* Parole funzione */
+.caa-fn{font-size:.85rem;color:#555;align-self:flex-end;
+  padding-bottom:6px;font-weight:600}
+/* Punteggiatura */
+.caa-punct{font-size:1rem;color:#333;align-self:flex-end;padding-bottom:4px;font-weight:700}
+/* Parola senza immagine — solo box testo */
+.caa-wbox.no-img img{display:none}
+.caa-wbox.no-img .caa-skel{display:none}
+.caa-wbox.no-img{min-height:30px;justify-content:center;background:var(--gr);
+  border-style:dashed}
 
-/* ── TESTO CAA: ogni parola = simbolo + scritta ───────────────── */
-body.tic-caa .tpar{line-height:1!important;display:flex;flex-wrap:wrap;
-  align-items:flex-end;gap:6px 4px;padding-bottom:4px}
-/* token = simbolo sopra + parola sotto */
-.caa-tok{display:inline-flex;flex-direction:column;align-items:center;
-  gap:3px;margin:2px 1px}
-.caa-tok img{width:58px;height:58px;object-fit:contain;
-  border:1.5px solid #90caf9;border-radius:7px;background:#f0f7ff;padding:2px;
-  display:block}
-.caa-tok img[src=""]{background:#e3f2fd;border-color:#b3d4f0}
-.caa-tok span{font-size:.6rem;font-weight:800;text-transform:uppercase;
-  color:#01579b;text-align:center;max-width:62px;word-break:break-word;
-  line-height:1.1}
-/* parole funzione (preposizioni, articoli): solo testo, niente immagine */
-.caa-fn{display:inline-flex;align-items:flex-end;padding-bottom:4px;
-  font-size:.88rem;color:#555;font-weight:600;align-self:flex-end}
-.glw{border-bottom:2.5px dashed var(--c2);cursor:help;font-weight:700;color:var(--c1)}
-.gl-p{background:var(--oro);border-top:3px solid var(--ob);padding:11px 16px}
-.glt{font-size:.72rem;font-weight:800;color:#7a5000;margin-bottom:8px}
-.gli{display:flex;gap:6px;margin-bottom:5px;font-size:.74rem;align-items:flex-start}
-.gli .glk{font-weight:800;color:var(--c1);min-width:110px;flex-shrink:0}
+/* ── SEZIONE DOMANDE ────────────────────────────────────────── */
+.caa-domande-wrap{background:#fff;border-radius:14px;padding:20px;
+  box-shadow:0 2px 12px rgba(0,0,0,.08)}
 
-/* ── INGRANDITO ─────────────────────────────────────────────── */
-.pt.ing .tpar{font-size:1.22rem!important;line-height:2.1!important}
+/* Singola domanda */
+.caa-dom{border:2px solid #dde4ed;border-radius:12px;padding:16px;
+  margin-bottom:20px;transition:border-color .2s}
+.caa-dom.att{border-color:var(--cb);background:var(--cl)}
+.caa-dom-hdr{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.caa-dom-num{background:var(--c2);color:#fff;border-radius:50%;
+  width:28px;height:28px;display:flex;align-items:center;justify-content:center;
+  font-size:.75rem;font-weight:800;flex-shrink:0}
+.caa-dom-par{font-size:.68rem;background:#e8f4fd;color:var(--c1);
+  padding:2px 8px;border-radius:8px;font-weight:700}
+.caa-dom-par-ref{font-size:.68rem;color:#777}
 
-/* ── DOMANDE PANEL ─────────────────────────────────────────── */
-.pd{flex:1;overflow-y:auto;padding:16px 18px 60px;background:#e8f4fd}
-.sez{background:var(--bi);border-radius:12px;padding:16px 18px;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,.06);border-top:5px solid var(--c2)}
-.sez.lex{border-top-color:var(--ob)}
-.sez.gram{border-top-color:#c62828}
-.sezt{font-size:.9rem;font-weight:800;color:var(--c1);margin-bottom:12px;padding-bottom:7px;border-bottom:2px solid var(--cl);display:flex;align-items:center;gap:7px}
-.sez.lex .sezt{color:#7a5000}
-.sez.gram .sezt{color:#c62828}
-.dom{background:var(--gr);border-radius:9px;padding:12px 14px;margin-bottom:12px;border-left:4px solid var(--c2);scroll-margin-top:14px}
-.dom.li{border-left-color:var(--ob)}
-.dom.gi{border-left-color:#c62828}
-.tag{display:inline-flex;align-items:center;gap:4px;font-size:.63rem;font-weight:800;padding:3px 9px;border-radius:18px;margin-bottom:5px;cursor:pointer;transition:opacity .2s;color:#fff;background:var(--c2)}
-.tag:hover{opacity:.75}
-.tag.oro{background:var(--ob);color:#5a3a00}
-.tag.ros{background:#c62828}
-.tag.gri{background:#757575}
-.ndom{font-size:.7rem;font-weight:800;color:var(--c2);margin-bottom:3px;opacity:.82}
-.dom.li .ndom{color:#7a5000}
-.dom.gi .ndom{color:#c62828}
-.tdom{font-size:.92rem;font-weight:700;margin-bottom:10px;line-height:1.52}
-.hint{font-size:.78rem;font-weight:700;background:#fff3e0;border:1.5px solid #ffb74d;border-radius:7px;padding:7px 11px;margin-bottom:10px;color:#7a4000;line-height:1.55}
-.opts{display:flex;flex-direction:column;gap:7px}
-.opt{display:flex;align-items:flex-start;gap:9px;background:var(--bi);border:2.5px solid var(--cb);border-radius:8px;padding:9px 12px;cursor:pointer;transition:all .15s;font-size:.9rem;line-height:1.48}
-.opt:hover{border-color:var(--c2);background:var(--cl)}
-.opt.sel{border-color:var(--c2);background:var(--cl)}
-.opt.ok{border-color:var(--gbord);background:var(--gok)}
-.opt.no{border-color:#c62828;background:var(--rc)}
-.opt input{margin-top:3px;width:17px;height:17px;flex-shrink:0;accent-color:var(--c2);cursor:pointer}
-.vfr{display:flex;align-items:center;gap:8px;background:var(--bi);border:2px solid var(--cb);border-radius:8px;padding:9px 12px;margin-bottom:7px;font-size:.88rem;font-weight:600;line-height:1.45}
-.vfr span{flex:1}
-.vfr label{display:flex;align-items:center;gap:4px;cursor:pointer;font-weight:800;background:var(--cl);border-radius:6px;padding:4px 10px;font-size:.82rem;border:2px solid transparent;transition:all .13s;white-space:nowrap}
-.vfr label:hover{border-color:var(--c2)}
-.vfr input{accent-color:var(--c2)}
-.vfr label.ok{background:var(--gok)!important;border-color:var(--gbord)!important;color:var(--gbord)}
-.vfr label.no{background:var(--rc)!important;border-color:#c62828!important;color:#c62828}
-.fb{font-size:.78rem;font-weight:800;margin-top:7px;padding:6px 11px;border-radius:6px;display:none}
-.fb.ok{background:var(--gok);color:var(--gbord)}
-.fb.no{background:var(--rc);color:#c62828}
-.sst{font-size:.74rem;font-weight:800;color:#fff;display:inline-block;padding:4px 12px;border-radius:18px;margin:10px 0 8px}
-.btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:20px;padding-bottom:24px}
-.btn{font-family:var(--font);font-size:.9rem;font-weight:800;padding:12px 26px;border:none;border-radius:10px;cursor:pointer;transition:all .2s}
-.btnp{background:var(--c2);color:#fff;box-shadow:0 4px 12px rgba(2,119,189,.28)}
-.btnp:hover{background:var(--c1);transform:translateY(-2px)}
-.btnr{background:#fff;color:var(--c2);border:2.5px solid var(--c2)}
-.btnr:hover{background:var(--cl)}
+/* Testo domanda in CAA */
+.caa-dom-testo{margin-bottom:14px}
+.caa-dom-testo .caa-words{gap:5px 3px}
+.caa-dom-testo .caa-wbox{min-width:52px;max-width:78px}
+.caa-dom-testo .caa-wbox img{width:58px;height:58px}
+.caa-dom-testo .caa-wbox .caa-skel{width:58px;height:58px}
+.caa-dom-testo .caa-wbox .caa-wlbl{font-size:.5rem;max-width:66px}
+
+/* Opzioni 2×2 */
+.caa-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.caa-opt{display:flex;flex-direction:column;align-items:center;gap:6px;
+  padding:10px 8px;border:2.5px solid var(--box-border);border-radius:11px;
+  background:var(--box-bg);cursor:pointer;transition:all .15s;text-align:center}
+.caa-opt:hover{border-color:var(--c2);background:var(--cl)}
+.caa-opt.sel{border-color:var(--c2);background:#e3f2fd;border-width:3px}
+.caa-opt.corr{border-color:var(--gbord)!important;background:var(--gok)!important}
+.caa-opt.err{border-color:var(--err)!important;background:var(--rc)!important}
+.caa-opt img{width:80px;height:80px;object-fit:contain;border-radius:7px}
+.caa-opt .caa-skel{width:80px;height:80px;border-radius:7px;
+  background:linear-gradient(90deg,#e3f2fd 25%,#bbdefb 50%,#e3f2fd 75%);
+  background-size:200% 100%;animation:sk 1.2s infinite}
+.caa-opt .caa-opt-lbl{font-size:.72rem;font-weight:800;color:var(--tx);
+  line-height:1.3;text-align:center}
+.caa-opt .caa-opt-letter{font-size:.68rem;font-weight:800;color:var(--c1);
+  background:var(--cl);padding:1px 6px;border-radius:5px}
+.caa-opt.no-img img,.caa-opt.no-img .caa-skel{display:none}
+
+/* VF domande */
+.caa-vf{display:flex;flex-direction:column;gap:8px}
+.caa-vf-row{display:flex;align-items:center;gap:8px;padding:8px 10px;
+  border:2px solid #dde4ed;border-radius:9px;background:#f9fafb}
+.caa-vf-testo{flex:1;font-size:.8rem;font-weight:600;line-height:1.4}
+.caa-vf-btns{display:flex;gap:6px}
+.caa-vf-btn{padding:5px 14px;border:2px solid #bbb;border-radius:7px;
+  font-weight:800;font-size:.8rem;cursor:pointer;font-family:var(--font);
+  background:#fff;transition:all .15s}
+.caa-vf-btn:hover{border-color:var(--c2);background:var(--cl)}
+.caa-vf-btn.sel{border-color:var(--c2);background:var(--c2);color:#fff}
+.caa-vf-btn.corr{border-color:var(--gbord)!important;background:var(--gok)!important;color:#1b5e20!important}
+.caa-vf-btn.err{border-color:var(--err)!important;background:var(--rc)!important;color:var(--err)!important}
 
 /* ── RISULTATI ─────────────────────────────────────────────── */
-.risbox{display:none;background:var(--bi);border-radius:12px;padding:24px 18px;margin-top:18px;text-align:center;box-shadow:0 4px 18px rgba(0,0,0,.09);border-top:7px solid var(--c2)}
-.risbox h2{font-size:1.15rem;color:var(--c1);margin-bottom:7px}
-.risbox .pts{font-size:2.6rem;font-weight:900;color:var(--c1);margin:10px 0 4px;line-height:1}
-.risbox .sub{font-size:.82rem;color:#555;margin-bottom:12px}
-.risbox .rmsg{font-size:.9rem;font-weight:700;padding:12px 16px;border-radius:9px;margin-top:9px}
+.caa-result{display:none;margin-top:20px;background:var(--c1);color:#fff;
+  border-radius:14px;padding:24px;text-align:center}
+.caa-result.show{display:block}
+.caa-result h2{font-size:1.3rem;margin-bottom:8px}
+.caa-result .pts{font-size:3rem;font-weight:800}
+.caa-result .sub{font-size:.9rem;opacity:.8;margin-top:4px}
+.caa-result-msg{margin-top:12px;font-size:.85rem;background:rgba(255,255,255,.12);
+  border-radius:8px;padding:10px 14px}
 
-/* ── TIC FLOATING PANEL ────────────────────────────────────── */
-#tic-panel{position:fixed;bottom:70px;right:12px;z-index:990;display:flex;flex-direction:column;gap:5px;align-items:flex-end}
-.tic-btn{width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,.45);background:var(--c1);color:#fff;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(0,0,0,.3);transition:all .15s;font-family:var(--font);position:relative}
-.tic-btn:hover{transform:scale(1.1)}
-.tic-btn.on{background:#2e7d32;border-color:#fff}
-.tic-btn .tic-lbl{position:absolute;right:52px;background:rgba(0,0,0,.75);color:#fff;padding:3px 8px;border-radius:4px;font-size:10px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .2s}
-.tic-btn:hover .tic-lbl{opacity:1}
-#tic-toggle{position:fixed;bottom:18px;right:12px;z-index:990;width:44px;height:44px;border-radius:50%;border:3px solid #fff;background:var(--ob);color:#5a3a00;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 14px rgba(0,0,0,.4);font-family:var(--font)}
+/* ── AZIONI ────────────────────────────────────────────────── */
+.caa-btns{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+.caa-btn{padding:12px 20px;border:none;border-radius:10px;font-size:.9rem;
+  font-weight:800;cursor:pointer;font-family:var(--font);transition:all .15s}
+.caa-btn-check{background:var(--gbord);color:#fff}
+.caa-btn-reset{background:#e0e0e0;color:#333}
+.caa-btn:hover{opacity:.88;transform:translateY(-1px)}
 
-/* ── MOBILE ────────────────────────────────────────────────── */
-@media(max-width:768px){
-  .split{flex-direction:column;height:auto;overflow:visible}
-  .pt{width:100%;border-right:none;border-bottom:3px solid var(--cb);max-height:50vh}
-  .pd{padding:13px 13px 38px}
+/* ── SEZIONE GRAMMATICA ─────────────────────────────────────── */
+.caa-sez-hdr{padding:8px 14px;border-radius:8px;font-size:.78rem;
+  font-weight:800;color:#fff;margin-bottom:12px;margin-top:4px}
+.sez0-hdr{background:#0277bd}
+.sez1-hdr{background:#00695c}
+.sez2-hdr{background:#6a1b9a}
+.caa-hint{background:#fff8e1;border-left:4px solid var(--ob);padding:8px 12px;
+  border-radius:0 8px 8px 0;font-size:.76rem;margin-bottom:12px;line-height:1.6}
+
+/* ── TIC PANEL ──────────────────────────────────────────────── */
+#tic-toggle{position:fixed;bottom:18px;right:12px;z-index:990;width:44px;height:44px;
+  border-radius:50%;border:3px solid #fff;background:var(--ob);color:#5a3a00;
+  cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 3px 14px rgba(0,0,0,.4);font-family:var(--font)}
+#tic-panel{position:fixed;bottom:68px;right:12px;z-index:990;display:none;
+  flex-direction:column;gap:6px}
+.tic-btn{display:flex;align-items:center;gap:7px;padding:7px 12px;border-radius:10px;
+  border:2px solid #aaa;background:#fff;cursor:pointer;font-size:.8rem;
+  font-weight:700;font-family:var(--font);white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.tic-btn.on{border-color:var(--c2);background:var(--cl)}
+
+/* Modalità alto contrasto */
+body.tic-contrasto{background:#111!important}
+body.tic-contrasto .caa-storia-wrap,body.tic-contrasto .caa-domande-wrap{background:#000!important}
+body.tic-contrasto .caa-wbox{background:#111!important;border-color:#555!important}
+body.tic-contrasto .caa-wbox .caa-wlbl{color:#7ec8e3!important}
+body.tic-contrasto .caa-fn{color:#aaa!important}
+body.tic-contrasto .caa-opt{background:#111!important;border-color:#555!important}
+
+/* Modalità testo grande */
+body.tic-grande .caa-wbox img{width:90px!important;height:90px!important}
+body.tic-grande .caa-wbox .caa-skel{width:90px!important;height:90px!important}
+body.tic-grande .caa-wbox .caa-wlbl{font-size:.65rem!important}
+body.tic-grande .caa-opt img{width:100px!important;height:100px!important}
+body.tic-grande .caa-opt .caa-skel{width:100px!important;height:100px!important}
+
+/* Glossario */
+.caa-gloss{background:#fff8e1;border-radius:10px;padding:12px 16px;margin-top:16px;
+  border-left:4px solid var(--ob)}
+.caa-gloss-titolo{font-size:.72rem;font-weight:800;color:#7a5000;margin-bottom:8px;text-transform:uppercase}
+.caa-gloss-item{font-size:.74rem;margin-bottom:5px;line-height:1.5;
+  display:flex;gap:6px}
+.caa-gloss-key{font-weight:800;color:var(--c1);min-width:110px;flex-shrink:0}
+
+/* Audio button */
+.caa-audio-btn{display:inline-flex;align-items:center;gap:6px;
+  padding:6px 12px;border:2px solid var(--cb);border-radius:8px;
+  background:var(--cl);color:var(--c1);cursor:pointer;font-family:var(--font);
+  font-size:.78rem;font-weight:700;margin-bottom:14px}
+
+@media(max-width:600px){
+  .caa-opts{grid-template-columns:1fr 1fr}
+  .caa-opt img,.caa-opt .caa-skel{width:60px!important;height:60px!important}
+  .caa-wbox img,.caa-wbox .caa-skel{width:60px!important;height:60px!important}
+  .caa-wbox{min-width:52px;max-width:76px}
 }
 </style>
 </head>
@@ -212,71 +215,60 @@ body.tic-caa .tpar{line-height:1!important;display:flex;flex-wrap:wrap;
 
 <!-- ═══ HEADER ═══════════════════════════════════════════════ -->
 <div class="hdr">
-  <h1 id="hdr-titolo">📖 Prova di italiano — Testo narrativo</h1>
-  <p id="hdr-sub">— &nbsp;|&nbsp; A.S. 2025/2026</p>
+  <h1>📖 <span id="hdr-titolo">Testo in CAA</span></h1>
+  <p id="hdr-sub">A.S. 2025/2026</p>
 </div>
-<div class="barra-wrap">
-  <div class="bfg"><div class="bff" id="bff"></div></div>
-  <div class="blbl" id="blbl">Completate: 0 / — risposte</div>
-</div>
-<div class="istr">
-  ℹ️ Istruzioni:
-  <ul>
-    <li>Leggi il testo a sinistra. I paragrafi si illuminano in giallo 🟡 automaticamente quando scorri le domande.</li>
-    <li>Clicca su <span style="background:var(--c2);color:#fff;padding:1px 8px;border-radius:10px;font-size:.75rem;">📍 Par. N</span> per tornare al punto esatto del testo.</li>
-    <li>🔊 Clicca <strong>Ascolta</strong> per la lettura ad alta voce. &nbsp;|&nbsp; ⚙️ Clicca il pulsante giallo per le opzioni di accessibilità.</li>
-  </ul>
+<div class="pbwrap"><div class="pbfill" id="pbfill"></div></div>
+<div class="pbinfo">
+  <span id="pbinfo-l">Completate: 0 / — risposte</span>
+  <span id="pbinfo-r">📍 <span id="pbinfo-prova">—</span></span>
 </div>
 
-<!-- ═══ SPLIT ════════════════════════════════════════════════ -->
-<div class="split">
-  <!-- COLONNA TESTO -->
-  <div class="pt" id="pt">
-    <div class="pt-hdr">
-      <span>📖 Leggi il testo</span>
-      <div class="twrap">
-        <button class="btool" id="baudio" onclick="toggleAudio()">🔊 Ascolta</button>
-        <button class="btool" id="blente" onclick="toggleLente()">🔍 Ingrandisci</button>
-      </div>
-    </div>
-    <div id="caa-bar" role="complementary" aria-label="Pittogrammi parole chiave"></div>
-    <div id="testo-content"><!-- Testo renderizzato da JS --></div>
-    <div class="gl-p" id="glossario-panel"><div class="glt">📚 Glossario — Parole difficili:</div><div id="glossario-items"></div></div>
+<!-- ═══ MAIN CAA PAGE ═════════════════════════════════════════ -->
+<div class="caa-page" id="caa-page">
+  <!-- STORIA -->
+  <div class="caa-storia-wrap">
+    <div class="caa-sezione-titolo">📖 Leggi la storia</div>
+    <div id="caa-audio-wrap"></div>
+    <div id="caa-storia-content"><!-- rendered by JS --></div>
+    <div id="caa-gloss-panel" class="hidden"></div>
   </div>
 
-  <!-- COLONNA DOMANDE -->
-  <div class="pd" id="pd">
-    <div id="domande-content"><!-- Domande renderizzate da JS --></div>
-    <div class="btns">
-      <button class="btn btnp" onclick="controlla()">✅ Controlla le risposte</button>
-      <button class="btn btnr" onclick="riazzeramento()">🔄 Ricomincia</button>
+  <!-- DOMANDE -->
+  <div class="caa-domande-wrap">
+    <div class="caa-sezione-titolo">❓ Rispondi alle domande</div>
+    <div id="caa-domande-content"><!-- rendered by JS --></div>
+    <div class="caa-btns">
+      <button class="caa-btn caa-btn-check" onclick="caaControlla()">✅ Controlla le risposte</button>
+      <button class="caa-btn caa-btn-reset" onclick="caaReset()">🔄 Ricomincia</button>
     </div>
-    <div class="risbox" id="risbox">
+    <div class="caa-result" id="caa-result">
       <h2>🎓 Risultato della prova</h2>
-      <div class="pts" id="pts">—</div>
-      <div class="sub" id="sub-ris">risposte corrette</div>
-      <div class="rmsg" id="rmsg"></div>
+      <div class="pts" id="caa-pts">—</div>
+      <div class="sub" id="caa-sub">risposte corrette</div>
+      <div class="caa-result-msg" id="caa-msg"></div>
     </div>
   </div>
 </div>
 
-<!-- ═══ TIC FLOATING PANEL ═══════════════════════════════════ -->
-<button id="tic-toggle" title="Opzioni accessibilità" onclick="toggleTicPanel()">⚙️</button>
-<div id="tic-panel" style="display:none">
-  <div class="tic-btn" id="ticb-maiuscolo" onclick="togTic('maiuscolo','ticb-maiuscolo')" title="Maiuscolo"><span class="tic-lbl">Maiuscolo</span>🔠</div>
-  <div class="tic-btn" id="ticb-grande" onclick="togTic('grande','ticb-grande')" title="Testo grande"><span class="tic-lbl">Testo grande</span>🔍</div>
-  <div class="tic-btn" id="ticb-spaziatura" onclick="togTic('spaziatura','ticb-spaziatura')" title="Spaziatura aumentata"><span class="tic-lbl">Spaziatura+</span>↔️</div>
-  <div class="tic-btn" id="ticb-contrasto" onclick="togTic('contrasto','ticb-contrasto')" title="Alto contrasto"><span class="tic-lbl">Alto contrasto</span>🌗</div>
-  <div class="tic-btn" id="ticb-font" onclick="togTic('font','ticb-font')" title="Font dislessia (Lexend)"><span class="tic-lbl">Font dislessia</span>✒️</div>
-  <div class="tic-btn" id="ticb-bes" onclick="togTic('bes','ticb-bes')" title="Modalità BES/DSA"><span class="tic-lbl">BES/DSA</span>📘</div>
-  <div class="tic-btn" id="ticb-caa" onclick="togTicCAA()" title="CAA — Pittogrammi ARASAAC" style="border-color:#9c27b0;color:#6a1b9a"><span class="tic-lbl">CAA pittogrammi</span>🖼️</div>
+<!-- ═══ TIC PANEL ════════════════════════════════════════════ -->
+<button id="tic-toggle" title="Opzioni" onclick="toggleTicPanel()">⚙️</button>
+<div id="tic-panel">
+  <div class="tic-btn" id="ticb-grande" onclick="togTic('grande','ticb-grande')">🔍 Testo grande</div>
+  <div class="tic-btn" id="ticb-contrasto" onclick="togTic('contrasto','ticb-contrasto')">🌗 Alto contrasto</div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════
-     DATI — 10 PROVE ADATTATE
-     max 20 domande | testi originali | glossario integrato
-════════════════════════════════════════════════════════════ -->
 <script>
+let PROVA_ATTUALE = null;
+let NOME_STUD = '';
+let CLASSE_STUD = '';
+let TOT_DOM = 0;
+let AUDIO_EL = null;
+let ticPanelOpen = false;
+
+// ═══════════════════════════════════════════════════════════════
+//  DATI PROVE
+// ═══════════════════════════════════════════════════════════════
 const PROVE_DIS = [
 
 // ══ PROVA 1 ═══════════════════════════════════════════════
@@ -857,587 +849,90 @@ domande:[
   {n:15,par:6,tipo:"sm",sez:2,tip:"Il complemento oggetto risponde a: decora cosa?",testo:"Leggi: «Anna decora la torta.» Qual è il complemento oggetto?",opts:["Anna","Decora","La torta","Con le fragole"],ok:2},
 ]},
 
-]; // fine PROVE_DIS
+];
 
-// ══════════════════════════════════════════════════════════════
-//  URL PARAMS + INIT
-// ══════════════════════════════════════════════════════════════
-let PROVA_ATTUALE = null;
-let NOME_STUD = '';
-let CLASSE_STUD = '';
-let TOT_DOM = 0;
-
-window.addEventListener('load', () => {
-  const p = new URLSearchParams(window.location.search);
-
-  // Prova custom via ?prova=custom&data=BASE64
-  if(p.get('prova') === 'custom'){
-    const raw = p.get('data');
-    if(raw){
-      try {
-        const json = decodeURIComponent(escape(atob(raw)));
-        const provaCustom = JSON.parse(json);
-        provaCustom.id = 'custom';
-        PROVE_DIS.push(provaCustom);
-      } catch(e){ console.warn('Prova custom non valida:', e); }
-    }
-  }
-
-  const provaRaw = p.get('prova') || '1';
-  const provaId  = provaRaw === 'custom' ? 'custom' : parseInt(provaRaw);
-  NOME_STUD  = p.get('nome')   || '';
-  CLASSE_STUD = p.get('classe') || '';
-
-  // Applica TIC da URL
-  const ticList = (p.get('tic') || '').split(',').filter(t=>t.trim());
-  ticList.forEach(t => {
-    document.body.classList.add('tic-'+t.trim());
-    const btn = document.getElementById('ticb-'+t.trim());
-    if(btn) btn.classList.add('on');
-  });
-  // Alias diretti
-  if(p.get('maiuscolo')==='1') togTicSilent('maiuscolo');
-  if(p.get('grande')==='1')    togTicSilent('grande');
-  if(p.get('contrasto')==='1') togTicSilent('contrasto');
-  if(p.get('spaziatura')==='1')togTicSilent('spaziatura');
-  if(p.get('font')==='1')      togTicSilent('font');
-  if(p.get('bes')==='1')       togTicSilent('bes');
-
-  // Carica prova
-  PROVA_ATTUALE = PROVE_DIS.find(pr=>pr.id===provaId) || PROVE_DIS[0];
-  renderProva(PROVA_ATTUALE);
-
-  // CAA: attiva dopo render (le immagini devono essere nel DOM)
-  if(ticList.includes('caa')){
-    document.body.classList.add('tic-caa');
-    const btn = document.getElementById('ticb-caa');
-    if(btn) btn.classList.add('on');
-    setTimeout(()=>{ caricaPittogrammi(); addCAAToText(); aggiornaCAABar(1); }, 200);
-  }
-});
-
-function togTicSilent(nome){
-  document.body.classList.add('tic-'+nome);
-  const btn = document.getElementById('ticb-'+nome);
-  if(btn) btn.classList.add('on');
-}
-
-// ══════════════════════════════════════════════════════════════
-//  RENDER PROVA
-// ══════════════════════════════════════════════════════════════
-// ── CAA: converte testo in sequenza simbolo+parola ──────────────────
-const STOP_FN = new Set([
-  'il','lo','la','i','gli','le','un','una','uno',
-  'di','a','da','in','con','su','per','tra','fra',
-  'del','della','dei','degli','delle','al','alla','ai','agli','alle',
-  'dal','dalla','dai','dagli','dalle','nel','nella','nei','negli','nelle',
-  'sul','sulla','sui','sugli','sulle','col','coi',
-  'che','non','si','è','e','o','ma','anche','né',
-  'ha','ho','hai','hanno','era','erano','fu','fu',
-  'sua','suo','suoi','sue','mia','mio','miei','mie',
-  'lui','lei','loro','esso','essa','essi','esse',
-  'ci','ce','ne','mi','ti','vi','li',
-  'già','poi','però','allora','quando','dove','come','così',
-  'ogni','tutto','molto','poco','più','meno','ancora',
-  'questo','questa','questi','queste','quello','quella','quelli','quelle',
-  "c'è","c'erano","l'","d'","dell'","all'","dall'","nell'","sull'"
-]);
-
-// Parola → keyword semplificata per ARASAAC
-function semplificaKW(word){
-  const w = word.toLowerCase().replace(/[^a-zàáèéìíòóùú]/g,'');
-  if(w.length < 2) return null;
-  if(STOP_FN.has(w)) return null;
-  // riduci a radice semplice (toglie desinenze comuni)
-  const subs = [
-    [/ando$|endo$/,''],  // gerundi
-    [/ando$|endo$/,''],
-    [/zione$|zioni$/,''],
-    [/amente$/,''],
-    [/mente$/,''],
-    [/issim[aio]$/,'o'],
-    [/[aeiou]ti$|[aeiou]to$/,''],
-    [/ndo$/,'re'],
-  ];
-  let stem = w;
-  if(stem.length > 6){
-    for(const [pat,rep] of subs){
-      const t = stem.replace(pat,rep);
-      if(t.length>3){ stem=t; break; }
-    }
-  }
-  return stem || w;
-}
-
-function tokenizzaCAA(htmlTesto){
-  // Splitta preservando tag HTML (<span class="glw"...>PAROLA</span>)
-  const tokens = [];
-  // parse grossolano: separa tag da testo
-  const parts = htmlTesto.split(/(<[^>]+>)/);
-  let inTag = false; let tagBuf = ''; let insideGlw = false; let glwKW = '';
-  for(const part of parts){
-    if(part.startsWith('<')){
-      if(part.toLowerCase().includes('class="glw"')){
-        insideGlw=true;
-        // estrai keyword dal title
-        const m = part.match(/title="([^"]+)"/);
-        glwKW = m ? m[1].split(':')[0].toLowerCase().replace(/[^a-zàáèéìíòóùú]/g,'') : '';
-      } else if(part==='</span>' && insideGlw){
-        insideGlw=false; glwKW='';
-      }
-      continue; // non aggiungiamo i tag all'output
-    }
-    // testo normale
-    const words = part.split(/(\s+)/);
-    for(const w of words){
-      if(/^\s+$/.test(w)){ tokens.push({type:'space'}); continue; }
-      if(!w) continue;
-      const clean = w.replace(/[^a-zàáèéìíòóùúA-ZÀÁÈÉÌÍÒÓÙÚ']/g,'');
-      const kw = insideGlw && glwKW ? glwKW : semplificaKW(clean);
-      if(kw && clean.length>1){
-        tokens.push({type:'word', text:w, kw, glw: insideGlw});
-      } else {
-        tokens.push({type:'fn', text:w});
-      }
-    }
-  }
-  return tokens;
-}
-
-function buildTestoCAA(testo){
-  const toks = tokenizzaCAA(testo);
-  let html = '';
-  for(const tok of toks){
-    if(tok.type==='space'){ html+=' '; continue; }
-    if(tok.type==='fn'){
-      html += `<span class="caa-fn">${tok.text}</span>`;
-    } else {
-      // token con immagine
-      html += `<span class="caa-tok" data-kw="${tok.kw}">
-        <img src="" alt="${tok.kw}" title="${tok.kw}">
-        <span>${tok.text}</span>
-      </span>`;
-    }
-  }
-  return html;
-}
-
-function caricaTestoCAA(){
-  document.querySelectorAll('.caa-tok[data-kw]:not([data-loaded])').forEach(tok=>{
-    tok.dataset.loaded='1';
-    const kw = tok.dataset.kw;
-    if(!kw) return;
-    const img = tok.querySelector('img');
-    if(!img) return;
-    const id = cercaId(kw);
-    if(id){
-      img.src = arasaacUrl(id);
-      img.onerror = ()=>{ img.style.display='none'; };
-    } else {
-      img.style.display='none';
-    }
-  });
-}
-
-function renderProva(prova){
-  // Header
-  let sub = prova.titolo + (NOME_STUD ? ' &nbsp;|&nbsp; ' + NOME_STUD : '') + (CLASSE_STUD ? ' &nbsp;|&nbsp; Classe ' + CLASSE_STUD : '') + ' &nbsp;|&nbsp; A.S. 2025/2026';
-  document.getElementById('hdr-titolo').textContent = '📖 ' + prova.sottotitolo + ' — ' + prova.titolo;
-  document.getElementById('hdr-sub').innerHTML = sub;
-  document.title = 'Grado 8 — ' + prova.titolo;
-
-  // Testo
-  const tc = document.getElementById('testo-content');
-  const isCaa = document.body.classList.contains('tic-caa');
-  tc.innerHTML = prova.paragrafi.map(par => {
-    const contenuto = isCaa ? buildTestoCAA(par.testo) : par.testo;
-    return `<div class="par" id="par${par.n}" data-par="${par.n}">
-      <div class="plbl"><span class="dot"></span>Paragrafo ${par.n}</div>
-      <div class="tpar">${contenuto}</div>
-    </div>`;
-  }).join('');
-  if(isCaa) caricaTestoCAA();
-
-  // Glossario
-  const gi = document.getElementById('glossario-items');
-  gi.innerHTML = prova.glossario.map(g =>
-    `<div class="gli"><span class="glk">${g.k}:</span><span>${g.v}</span></div>`).join('');
-
-  // Raggruppa domande per sezione
-  const sez0 = prova.domande.filter(d=>d.sez===0);
-  const sez1 = prova.domande.filter(d=>d.sez===1);
-  const sez2 = prova.domande.filter(d=>d.sez===2);
-
-  let html = '';
-  if(sez0.length){
-    html += `<div class="sez"><div class="sezt">✏️ Parte 1 — Comprensione del testo</div>`;
-    html += sez0.map(d => renderDomanda(d, prova.domande)).join('');
-    html += `</div>`;
-  }
-  if(sez1.length){
-    html += `<div class="sez lex"><div class="sezt">🔤 Parte 2 — Lessico</div>`;
-    html += sez1.map(d => renderDomanda(d, prova.domande)).join('');
-    html += `</div>`;
-  }
-  if(sez2.length){
-    html += `<div class="sez gram"><div class="sezt">📐 Parte 3 — Riflessione linguistica</div>`;
-    // Mini-spiegazioni per grammatica
-    html += `<div class="sst" style="background:#0277bd">📌 Soggetto e predicato verbale</div>`;
-    html += `<div class="hint">💡 Il <strong>soggetto</strong> è chi compie l'azione. Il <strong>predicato verbale</strong> è il verbo che indica l'azione. Il <strong>complemento oggetto</strong> indica chi o cosa subisce l'azione.<br>Chiedi sempre: <em>Chi fa? Cosa fa? Su chi o su cosa?</em></div>`;
-    html += sez2.map(d => renderDomanda(d, prova.domande)).join('');
-    html += `</div>`;
-  }
-  document.getElementById('domande-content').innerHTML = html;
-
-  // Conteggio totale
-  TOT_DOM = 0;
-  prova.domande.forEach(d => {
-    if(d.tipo==='sm') TOT_DOM++;
-    if(d.tipo==='vf') TOT_DOM += d.righeVF.length;
-  });
-  document.getElementById('blbl').textContent = `Completate: 0 / ${TOT_DOM} risposte`;
-
-  // Bind eventi
-  document.querySelectorAll('.opts').forEach(g => {
-    g.querySelectorAll('.opt').forEach(l => {
-      l.querySelector('input')?.addEventListener('change', () => {
-        g.querySelectorAll('.opt').forEach(x => x.classList.remove('sel'));
-        l.classList.add('sel');
-        aggBarra();
-      });
-    });
-  });
-  document.querySelectorAll('input[type="radio"]').forEach(r => r.addEventListener('change', aggBarra));
-
-  // IntersectionObserver
-  const obs = new IntersectionObserver(entries => {
-    entries.forEach(e => { if(e.isIntersecting) attivaDom(e.target); });
-  }, {root:document.getElementById('pd'), rootMargin:'-22% 0px -22% 0px', threshold:0.1});
-  document.querySelectorAll('.dom[data-par]').forEach(d => obs.observe(d));
-}
-
-function renderDomanda(d, tutte){
-  const tagClass = d.sez===1?'oro': d.sez===2?'ros':'';
-  const parLabel = d.par===0 ? 'Tutto il testo' : `Par. ${d.par}`;
-  const domClass = d.sez===1?'li': d.sez===2?'gi':'';
-  const ndomClass = d.sez===1?'li': d.sez===2?'gi':'';
-  const tot = tutte.reduce((s,x) => s + (x.tipo==='sm'?1:x.tipo==='vf'?x.righeVF.length:0), 0);
-
-  let inner = '';
-  if(d.tipo==='sm'){
-    const lett = ['A','B','C','D'];
-    const STOP_OPT = new Set(['il','lo','la','i','gli','le','un','una','uno','di','a','da','in','con','su','per','tra','fra','del','della','dei','degli','delle','al','alla','ai','agli','alle','che','non','si','è','e','ha','ho','ho','fu','sua','suo','loro']);
-    inner += `<div class="opts">${d.opts.map((op,i) => {
-      const opText = op.replace(/<[^>]+>/g,'').trim();
-      // Keyword per ARASAAC: prima parola concreta dell'opzione (evita aggettivi lunghi)
-      const kwArr = opText.split(/\s+/).filter(w=>{
-        const wl = w.toLowerCase().replace(/[^a-zàáèéìíòóùú]/g,'');
-        return wl.length>2 && !STOP_OPT.has(wl);
-      });
-      // preferisci parole brevi e concrete (nomi > aggettivi)
-      const kw = (kwArr.find(w=>w.replace(/[^a-z]/gi,'').length<=8) || kwArr[0] || opText.split(/\s+/)[0] || '')
-                 .toLowerCase().replace(/[^a-zàáèéìíòóùú]/g,'');
-      // Lettera per etichetta
-      const shortLabel = opText.length > 22 ? opText.substring(0,20)+'…' : opText;
-      return `<label class="opt" id="optlbl_${d.n}_${i}">
-        <input type="radio" name="d${d.n}" value="${i}">
-        <div class="caa-opt-pic" data-kw="${kw}" data-dom="${d.n}" data-idx="${i}">
-          <img src="" alt="${kw}" title="${kw}">
-          <span class="caa-wrd">${shortLabel}</span>
-        </div>
-        <span class="opt-testo">${lett[i]}.&nbsp;${op}</span>
-      </label>`;
-    }).join('')}</div>`;
-    if(d.tip) inner = `<div class="hint">💡 ${d.tip}</div>` + inner;
-  } else if(d.tipo==='vf'){
-    inner = d.righeVF.map((r,i) =>
-      `<div class="vfr"><span>${r.t}</span>
-        <label><input type="radio" name="vf${d.n}_${i}" value="V"> V</label>
-        <label><input type="radio" name="vf${d.n}_${i}" value="F"> F</label>
-      </div>`).join('');
-  }
-
-  return `<div class="dom ${domClass}" id="d${d.n}" data-par="${d.par}" data-righe="">
-    <div class="tag ${tagClass}" onclick="click_tag(this)">📍 ${parLabel}</div>
-    <div class="ndom">Domanda ${d.n} di ${tutte.length}</div>
-    <div class="tdom">${d.testo}</div>
-    ${inner}
-    <div class="fb" id="fb${d.n}"></div>
-  </div>`;
-}
-
-// ══════════════════════════════════════════════════════════════
-//  ILLUMINAZIONE PARAGRAFI
-// ══════════════════════════════════════════════════════════════
-function togli(){
-  document.querySelectorAll('.par.att').forEach(p=>p.classList.remove('att'));
-}
-function attivaDom(dom){
-  const par = parseInt(dom.dataset.par||0);
-  togli();
-  if(par>0){
-    const p = document.getElementById('par'+par);
-    if(p) p.classList.add('att');
-  }
-  if(document.body.classList.contains('tic-caa')) aggiornaCAABar(par);
-}
-function click_tag(tag){
-  const dom = tag.closest('.dom');
-  attivaDom(dom);
-  const par = parseInt(dom.dataset.par||0);
-  if(par>0){
-    const p = document.getElementById('par'+par);
-    if(p) p.scrollIntoView({behavior:'smooth', block:'center'});
-  }
-}
-
-// ══════════════════════════════════════════════════════════════
-//  BARRA PROGRESSO
-// ══════════════════════════════════════════════════════════════
-function aggBarra(){
-  if(!PROVA_ATTUALE) return;
-  let c = 0;
-  PROVA_ATTUALE.domande.forEach(d => {
-    if(d.tipo==='sm'){
-      if(document.querySelector(`input[name="d${d.n}"]:checked`)) c++;
-    } else if(d.tipo==='vf'){
-      d.righeVF.forEach((_,i) => {
-        if(document.querySelector(`input[name="vf${d.n}_${i}"]:checked`)) c++;
-      });
-    }
-  });
-  document.getElementById('bff').style.width = Math.round(c/TOT_DOM*100)+'%';
-  document.getElementById('blbl').textContent = `Completate: ${c} / ${TOT_DOM} risposte`;
-}
-
-// ══════════════════════════════════════════════════════════════
-//  CORREGGI
-// ══════════════════════════════════════════════════════════════
-function controlla(){
-  if(!PROVA_ATTUALE) return;
-  let corr = 0, tot = 0;
-  PROVA_ATTUALE.domande.forEach(d => {
-    const fb = document.getElementById('fb'+d.n);
-    if(d.tipo==='sm'){
-      tot++;
-      const sel = document.querySelector(`input[name="d${d.n}"]:checked`);
-      document.querySelectorAll(`input[name="d${d.n}"]`).forEach(r => {
-        const l = r.closest('label');
-        l.classList.remove('ok','no','sel');
-        if(parseInt(r.value)===d.ok) l.classList.add('ok');
-      });
-      if(sel){
-        if(parseInt(sel.value)===d.ok){
-          corr++;
-          if(fb){ fb.textContent='✅ Corretto!'; fb.className='fb ok'; fb.style.display='block'; }
-        } else {
-          sel.closest('label').classList.add('no');
-          if(fb){ fb.textContent='❌ Non corretto. La risposta giusta è evidenziata in verde.'; fb.className='fb no'; fb.style.display='block'; }
-        }
-      } else {
-        if(fb){ fb.textContent='⚠️ Non hai risposto a questa domanda.'; fb.className='fb no'; fb.style.display='block'; }
-      }
-    } else if(d.tipo==='vf'){
-      let vfc = 0;
-      d.righeVF.forEach((r,i) => {
-        tot++;
-        const attesa = r.ok ? 'V' : 'F';
-        const sel = document.querySelector(`input[name="vf${d.n}_${i}"]:checked`);
-        const lV = document.querySelector(`input[name="vf${d.n}_${i}"][value="V"]`)?.closest('label');
-        const lF = document.querySelector(`input[name="vf${d.n}_${i}"][value="F"]`)?.closest('label');
-        if(lV) lV.classList.remove('ok','no');
-        if(lF) lF.classList.remove('ok','no');
-        const lCorr = document.querySelector(`input[name="vf${d.n}_${i}"][value="${attesa}"]`)?.closest('label');
-        if(lCorr) lCorr.classList.add('ok');
-        if(sel && sel.value===attesa){ corr++; vfc++; }
-        else if(sel){ sel.closest('label').classList.add('no'); }
-      });
-      if(fb){
-        fb.textContent = vfc===d.righeVF.length ? `✅ Tutte corrette!` : `⚠️ ${vfc} su ${d.righeVF.length} corrette. Rileggi il testo.`;
-        fb.className = vfc===d.righeVF.length ? 'fb ok' : 'fb no';
-        fb.style.display='block';
-      }
-    }
-  });
-  const pct = Math.round(corr/tot*100);
-  document.getElementById('pts').textContent = corr + ' / ' + tot;
-  document.getElementById('sub-ris').textContent = 'risposte corrette su ' + tot + ' totali';
-  const msg = document.getElementById('rmsg');
-  const [t,co,sf] = pct>=80
-    ? ['🌟 Ottimo lavoro! Hai dimostrato una buona comprensione del testo.','#01579b','#e1f5fe']
-    : pct>=60
-    ? ['👍 Buon lavoro! Hai risposto correttamente alla maggior parte delle domande.','#7a5000','#fff8e1']
-    : ['💪 Continua a provare! Rileggi le parti evidenziate in giallo e riprova.','#c62828','#fdecea'];
-  msg.textContent = t;
-  msg.style.color = co;
-  msg.style.background = sf;
-  msg.style.border = '2px solid ' + co;
-  const box = document.getElementById('risbox');
-  box.style.display = 'block';
-  box.scrollIntoView({behavior:'smooth', block:'start'});
-}
-
-function riazzeramento(){
-  if(!confirm('Sei sicuro di voler ricominciare? Tutte le risposte verranno cancellate.')) return;
-  document.querySelectorAll('input[type="radio"]').forEach(r => r.checked=false);
-  document.querySelectorAll('.opt').forEach(l => l.classList.remove('ok','no','sel'));
-  document.querySelectorAll('.vfr label').forEach(l => l.classList.remove('ok','no'));
-  document.querySelectorAll('.fb').forEach(f => { f.style.display='none'; f.textContent=''; });
-  document.getElementById('risbox').style.display='none';
-  document.getElementById('bff').style.width='0%';
-  document.getElementById('blbl').textContent = `Completate: 0 / ${TOT_DOM} risposte`;
-  togli();
-  document.getElementById('pd').scrollTop=0;
-}
-
-// ══════════════════════════════════════════════════════════════
-//  AUDIO TTS
-// ══════════════════════════════════════════════════════════════
-let ttsOn = false;
-function getTesto(){
-  return Array.from(document.querySelectorAll('.par .tpar'))
-    .map(p => p.innerText.replace(/\s+/g,' ').trim()).join('. ');
-}
-function toggleAudio(){
-  const b = document.getElementById('baudio');
-  if(ttsOn){ speechSynthesis.cancel(); ttsOn=false; b.textContent='🔊 Ascolta'; b.classList.remove('on'); return; }
-  const u = new SpeechSynthesisUtterance(getTesto());
-  u.lang='it-IT'; u.rate=0.82; u.pitch=1;
-  u.onend = () => { ttsOn=false; b.textContent='🔊 Ascolta'; b.classList.remove('on'); };
-  ttsOn=true; b.textContent='⏹ Ferma'; b.classList.add('on');
-  speechSynthesis.speak(u);
-}
-
-// ══════════════════════════════════════════════════════════════
-//  LENTE
-// ══════════════════════════════════════════════════════════════
-let lente = false;
-function toggleLente(){
-  lente = !lente;
-  document.getElementById('pt').classList.toggle('ing', lente);
-  const b = document.getElementById('blente');
-  b.textContent = lente ? '🔍 Rimpicciolisci' : '🔍 Ingrandisci';
-  b.classList.toggle('on', lente);
-}
-
-// ══════════════════════════════════════════════════════════════
-//  TIC FLOATING PANEL
-// ══════════════════════════════════════════════════════════════
-let ticPanelOpen = false;
-function toggleTicPanel(){
-  ticPanelOpen = !ticPanelOpen;
-  document.getElementById('tic-panel').style.display = ticPanelOpen ? 'flex' : 'none';
-}
-function togTic(nome, btnId){
-  document.body.classList.toggle('tic-'+nome);
-  const btn = document.getElementById(btnId);
-  if(btn) btn.classList.toggle('on', document.body.classList.contains('tic-'+nome));
-}
-
-// ── CAA utilities ────────────────────────────────────────────────
-// (API test rimosso: le immagini gestiscono i fallback singolarmente)
-
-function togTicCAA(){
-  document.body.classList.toggle('tic-caa');
-  const btn = document.getElementById('ticb-caa');
-  if(btn) btn.classList.toggle('on', document.body.classList.contains('tic-caa'));
-  if(document.body.classList.contains('tic-caa')){
-    if(PROVA_ATTUALE) renderProva(PROVA_ATTUALE);
-    setTimeout(()=>{ caricaPittogrammi(); addCAAToText(); aggiornaCAABar(1); }, 150);
-  }
-}
-
-// ══ CAA — Pittogrammi ARASAAC ══════════════════════════════════
-// © Governo di Aragona — Sergio Palao per ARASAAC (arasaac.org) — CC BY-NC-SA
-// Dizionario statico espanso + lookup dinamico API per parole mancanti
+// ═══════════════════════════════════════════════════════════════
+//  ARASAAC
+// ═══════════════════════════════════════════════════════════════
 const ARASAAC = {
-  // ── PERSONE & FAMIGLIA
   'mamma':37076,'papà':6990,'nonno':6637,'nonna':6635,
   'bambino':2940,'bambina':2939,'ragazzo':7237,'ragazza':7238,
   'bambini':2940,'uomo':8073,'donna':4632,'persona':7024,
   'amico':27851,'amica':27851,'professore':7139,'professoressa':7139,
-  'insegnante':7139,'studente':7803,'studentessa':7803,
-  // ── ANIMALI
+  'insegnante':7139,'studente':7803,
   'cane':4884,'gatto':4917,'rana':7245,'pesce':7027,
   'uccello':8071,'coniglio':4087,'cavallo':3870,'labrador':4884,
-  // ── NATURA & AMBIENTE
   'acqua':2083,'albero':2660,'erba':4899,'fiore':5081,
   'foglie':5093,'lago':5494,'mare':5752,'fiume':5083,
   'montagna':5898,'cielo':4003,'sole':7766,'luna':5665,
   'nuvole':6684,'pioggia':7090,'neve':6017,'vento':8053,
   'arcobaleno':2786,'quercia':2660,'parco':6985,'giardino':5194,
   'strada':7830,'prato':7130,'bosco':3330,
-  // ── CASA & LUOGHI
   'casa':19268,'cucina':4446,'letto':5551,'tavolo':7874,
   'porta':7108,'finestra':5069,'tetto':7907,'forno':5130,
   'scuola':6054,'supermercato':7833,'cancello':3670,
   'recinzione':3670,'rimessa':19268,
-  // ── CIBO & BEVANDE
   'mangiare':6830,'bere':3498,'fame':5003,'sete':7618,
   'pane':6982,'pasta':6992,'pizza':7098,'torta':7953,
   'biscotti':3267,'frutta':5190,'verdure':8039,'mela':5809,
   'banana':3010,'fragola':5152,'fragole':5152,'latte':5604,
   'zucchero':8142,'cioccolato':4001,'ciotola':4020,'tazza':7944,
-  'cucchiaio':4447,'forchetta':5131,'teglia':7874,'forno':5130,
+  'cucchiaio':4447,'forchetta':5131,'teglia':7874,
   'pranzo':7129,'merenda':5813,'cena':3876,'colazione':4041,
   'farina':5003,'burro':3617,'ingredienti':5992,'impasto':5992,
-  // ── AZIONI
   'correre':6223,'camminare':3637,'saltare':7518,'giocare':6224,
   'dormire':7684,'leggere':5519,'scrivere':7581,'disegnare':4576,
   'costruire':4405,'lavorare':5519,'guardare':5288,'parlare':6993,
   'aiutare':2650,'cercare':3882,'trovare':7965,'tornare':7951,
   'andare':8141,'uscire':8095,'salire':7519,'abbracciare':2083,
   'sorridere':7780,'aspettare':2897,'riparare':7298,
-  // ── EMOZIONI & STATI
   'felice':5040,'contento':5040,'triste':7963,'arrabbiato':2810,
   'paura':6996,'stanco':7818,'piange':7062,'ride':7330,'sonno':7684,
   'curioso':5040,'imbarazzato':7963,'solo':7769,'sorpresa':7779,
-  // ── OGGETTI & STRUMENTI
   'zaino':8132,'borraccia':3329,'pallone':6956,'libro':5584,
   'penna':6998,'quaderno':7228,'martello':5755,'scala':7564,
   'legno':5545,'chiodo':3990,'cartellone':3785,'fumetto':5191,
   'berretto':3160,'cappotto':3699,'stivali':7826,'impermeabile':5434,
   'guinzaglio':5303,'crocchette':4414,'pozzanghere':7127,
-  // ── COLORI
   'rosso':7349,'blu':3305,'verde':8037,'giallo':5185,
   'arancione':2788,'bianco':3214,'nero':5965,'marrone':5754,
-  // ── TEMPO
   'giorno':5200,'notte':6015,'mattina':5757,'sera':7608,
   'domani':4640,'settimana':7611,'anno':2769,'compleanno':4056,
-  // ── VEICOLI
   'macchina':5701,'autobus':2931,'pullman':2931,'treno':7964,
   'bicicletta':3193,'barca':3131,
-  // ── AGGETTIVI COMUNI
   'grande':5243,'piccolo':7071,'bello':3143,'caldo':3632,'freddo':5165,
   'nuovo':6681,'vecchio':8032,
 };
-
-function arasaacUrl(id){ return `https://static.arasaac.org/pictograms/${id}/${id}_500.png`; }
-
-// ── Cache dinamica API ──────────────────────────────────────────
 const _apiCache = {};
 const _apiPending = {};
 
-async function cercaIdAsync(kw){
+function arasaacUrl(id){ return `https://static.arasaac.org/pictograms/${id}/${id}_500.png`; }
+
+function cercaId(kw){
   if(!kw) return null;
-  const k = kw.toLowerCase().replace(/[^a-zàáèéìíòóùú]/g,'');
-  if(k.length < 2) return null;
+  const k = kw.toLowerCase().replace(/[^a-zàáèéìíòóùú]/g,"");
   if(ARASAAC[k]) return ARASAAC[k];
-  const stem = k.replace(/[aeiouàáèéìíòóùú]{1,2}$/, '');
+  const stem = k.replace(/[aeiouàáèéìíòóùú]{1,2}$/, "");
   if(stem.length >= 4){
     const match = Object.keys(ARASAAC).find(w => w.startsWith(stem));
     if(match) return ARASAAC[match];
   }
+  return null;
+}
+
+async function cercaIdAsync(kw){
+  if(!kw) return null;
+  const k = kw.toLowerCase().replace(/[^a-zàáèéìíòóùú]/g,"");
+  if(k.length < 2) return null;
+  const staticId = cercaId(k);
+  if(staticId) return staticId;
   if(_apiCache[k] !== undefined) return _apiCache[k];
   if(_apiPending[k]) return _apiPending[k];
   _apiPending[k] = (async () => {
     try {
       const ctrl = new AbortController();
       const timer = setTimeout(()=>ctrl.abort(), 5000);
-      const r = await fetch(
-        `https://api.arasaac.org/api/pictograms/it/search/${encodeURIComponent(k)}`,
-        { signal: ctrl.signal }
-      );
+      const r = await fetch(`https://api.arasaac.org/api/pictograms/it/search/${encodeURIComponent(k)}`,{signal:ctrl.signal});
       clearTimeout(timer);
       if(r.ok){
         const data = await r.json();
@@ -1454,146 +949,433 @@ async function cercaIdAsync(kw){
   return _apiPending[k];
 }
 
-function cercaId(kw){
-  if(!kw) return null;
-  const k = kw.toLowerCase().replace(/[^a-zàáèéìíòóùú]/g,'');
-  if(ARASAAC[k]) return ARASAAC[k];
-  const stem = k.replace(/[aeiouàáèéìíòóùú]{1,2}$/, '');
-  if(stem.length >= 4){
-    const match = Object.keys(ARASAAC).find(w => w.startsWith(stem));
-    if(match) return ARASAAC[match];
-  }
-  return null;
-}
-
 const EMOJI_FB = {
-  'cane':'🐕','gatto':'🐱','rana':'🐸','pesce':'🐟','uccello':'🐦',
-  'casa':'🏠','scuola':'🏫','lago':'🏞️','mare':'🌊','fiume':'🌊',
-  'albero':'🌳','fiore':'🌸','sole':'☀️','pioggia':'🌧️','neve':'❄️',
-  'mangiare':'🍽️','bere':'💧','dormire':'😴','correre':'🏃','leggere':'📖',
-  'scrivere':'✏️','giocare':'🎮','ridere':'😄','piangere':'😢',
-  'felice':'😊','triste':'😢','arrabbiato':'😠','paura':'😨',
-  'mamma':'👩','papà':'👨','nonno':'👴','nonna':'👵','bambino':'👦',
-  'ragazzo':'👦','ragazza':'👧','amico':'🤝',
-  'torta':'🎂','pizza':'🍕','mela':'🍎','banana':'🍌','pane':'🍞',
-  'latte':'🥛','cioccolato':'🍫','pranzo':'🍴','merenda':'🥪',
-  'zaino':'🎒','libro':'📚','penna':'✏️','martello':'🔨','scala':'🪜',
-  'pallone':'⚽','bicicletta':'🚲','macchina':'🚗','pullman':'🚌',
-  'notte':'🌙','giorno':'☀️','compleanno':'🎂','finestra':'🪟',
-  'porta':'🚪','tetto':'🏠','legno':'🪵','chiodo':'🔩',
+  "cane":"🐕","gatto":"🐱","rana":"🐸","pesce":"🐟","uccello":"🐦",
+  "casa":"🏠","scuola":"🏫","lago":"🏞️","mare":"🌊","fiume":"🌊",
+  "albero":"🌳","fiore":"🌸","sole":"☀️","pioggia":"🌧️","neve":"❄️",
+  "mangiare":"🍽️","bere":"💧","dormire":"😴","correre":"🏃","leggere":"📖",
+  "scrivere":"✏️","giocare":"🎮","ridere":"😄","piangere":"😢",
+  "felice":"😊","triste":"😢","arrabbiato":"😠","paura":"😨",
+  "mamma":"👩","papà":"👨","nonno":"👴","nonna":"👵","bambino":"👦",
+  "ragazzo":"👦","ragazza":"👧","amico":"🤝",
+  "torta":"🎂","pizza":"🍕","mela":"🍎","banana":"🍌","pane":"🍞",
+  "latte":"🥛","cioccolato":"🍫","pranzo":"🍴","merenda":"🥪",
+  "zaino":"🎒","libro":"📚","penna":"✏️","martello":"🔨","scala":"🪜",
+  "pallone":"⚽","bicicletta":"🚲","macchina":"🚗","pullman":"🚌",
+  "notte":"🌙","giorno":"☀️","compleanno":"🎂","finestra":"🪟",
+  "porta":"🚪","tetto":"🏠","legno":"🪵",
 };
 
-function _mostraEmoji(container, kw){
-  const k = kw.toLowerCase().replace(/[^a-zàáèéìíòóùú]/g,'');
-  const em = EMOJI_FB[k] || '🖼️';
-  const span = document.createElement('span');
-  span.textContent = em;
-  span.style.cssText = 'font-size:2.2rem;line-height:1;display:block;text-align:center';
-  const firstChild = container.querySelector('img');
-  if(firstChild) container.insertBefore(span, firstChild);
-  else container.appendChild(span);
+// ═══════════════════════════════════════════════════════════════
+//  TOKENIZER
+// ═══════════════════════════════════════════════════════════════
+const STOP_FN = new Set([
+  "il","lo","la","i","gli","le","un","una","uno",
+  "di","a","da","in","con","su","per","tra","fra",
+  "del","della","dei","degli","delle","al","alla",
+  "ai","agli","alle","dal","dalla","dai","dagli","dalle",
+  "nel","nella","nei","negli","nelle","sul","sulla","sui","sugli","sulle",
+  "che","non","si","e","o","ma","anche","era","poi","suo","sua",
+  "lui","lei","come","quando","dove","gli","ci","ne","ce",
+  "mi","ti","vi","lo","la","li","le","ho","ha","fu","se",
+  "col","coi","quel","quella","quei","quegli","quelle",
+  "questo","questa","questi","queste","quello",
+  "ad","ed","od","col","coi","all","dell","nell","sull",
+]);
+
+function stripHtml(html){
+  // preserve glw title as readable word
+  return html
+    .replace(/<span[^>]*class="glw"[^>]*title="([^:"]*):[^"]*"[^>]*>([^<]*)<\/span>/g, "$1")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ").trim();
 }
 
-async function caricaPittogrammi(){
-  const boxes = document.querySelectorAll('.caa-opt-pic[data-kw]:not([data-loaded])');
-  for(const box of boxes){
-    box.dataset.loaded = '1';
-    const kw = box.dataset.kw;
-    const img = box.querySelector('img');
-    if(!img || !kw) continue;
-    const id = await cercaIdAsync(kw);
-    if(id){
-      img.onerror = ()=>{ img.style.display='none'; _mostraEmoji(box, kw); };
-      img.onload = ()=>{ img.style.display='block'; };
-      img.src = arasaacUrl(id);
-    } else {
-      img.style.display='none';
-      _mostraEmoji(box, kw);
+function tokenize(text){
+  // text can be HTML, strip first
+  const plain = stripHtml(text);
+  const tokens = [];
+  // split keeping punctuation
+  const parts = plain.split(/(\s+|(?<=[a-zàáèéìíòóùúA-Z])(?=[.,;:!?«»"()'\-–])|(?<=[.,;:!?«»"()'\-–])(?=[a-zàáèéìíòóùúA-Z]))/);
+  for(const part of parts){
+    if(!part || /^\s+$/.test(part)) continue;
+    if(/^[.,;:!?«»"()\-–]+$/.test(part)){
+      tokens.push({type:"punct", text:part});
+      continue;
     }
+    const clean = part.replace(/[^a-zàáèéìíòóùúA-Z]/gi,"");
+    if(!clean) continue;
+    const lc = clean.toLowerCase();
+    const isFn = STOP_FN.has(lc) || clean.length <= 2;
+    tokens.push({type: isFn ? "fn" : "key", text:part, kw:lc});
+  }
+  return tokens;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  RENDERING
+// ═══════════════════════════════════════════════════════════════
+function buildWordBox(kw, displayText, small=false){
+  const id = cercaId(kw);
+  const sizeClass = small ? "small" : "";
+  if(id){
+    return `<div class="caa-wbox ${sizeClass}" data-kw="${kw}" data-id="${id}">
+      <div class="caa-skel"></div>
+      <span class="caa-wlbl">${displayText.toUpperCase()}</span>
+    </div>`;
+  } else {
+    return `<div class="caa-wbox no-img ${sizeClass}" data-kw="${kw}">
+      <span class="caa-wlbl">${displayText.toUpperCase()}</span>
+    </div>`;
   }
 }
 
-const _parKW = {};
-const STOP = new Set(['il','lo','la','i','gli','le','un','una','uno','di','a','da','in','con','su','per','tra','fra','del','della','dei','degli','delle','al','alla','ai','agli','alle','che','non','si','è','e','o','ma','anche','era','poi','suo','sua','lui','lei','come','quando','dove','così','tutto','molto','dopo','prima','ogni','già','solo','però','ne','ce','ci','mi','ti','vi','ha','ho','fu','se','al','col','coi','dai','dagli','dalle','nel','negli','nelle','sul','sugli','sulle','quel','quella','quei','quegli','quelle','questo','questa','questi','queste','quello']);
-
-function estraiKW(parNum){
-  if(_parKW[parNum]) return _parKW[parNum];
-  const el = document.getElementById('par'+parNum);
-  if(!el){ _parKW[parNum]=[]; return []; }
-  const txt = (el.innerText||el.textContent).toLowerCase();
-  const words = txt.split(/[\s.,;:!?«»"()'''\-–]+/)
-    .map(w=>w.replace(/[^a-zàáèéìíòóùú]/g,''))
-    .filter(w=>w.length>3 && !STOP.has(w));
-  const seen=new Set(), out=[];
-  for(const w of words){
-    if(!seen.has(w)){ seen.add(w); out.push(w); if(out.length>=8) break; }
-  }
-  _parKW[parNum]=out;
-  return out;
+function buildTokensHTML(text, small=false){
+  const tokens = tokenize(text);
+  return tokens.map(tok => {
+    if(tok.type === "punct") return `<span class="caa-punct">${tok.text}</span>`;
+    if(tok.type === "fn")    return `<span class="caa-fn">${tok.text}</span>`;
+    return buildWordBox(tok.kw, tok.text, small);
+  }).join("");
 }
 
-async function aggiornaCAABar(parNum){
-  const bar = document.getElementById('caa-bar');
-  if(!bar) return;
-  bar.innerHTML = '';
-  if(!parNum) return;
-  const kws = estraiKW(parNum);
-  if(!kws.length) return;
+function renderStoria(prova){
+  const html = prova.paragrafi.map(par => {
+    const wordsHtml = buildTokensHTML(par.testo);
+    return `<div class="caa-par" id="caa-par${par.n}">
+      <div class="caa-par-num">📍 Paragrafo ${par.n}</div>
+      <div class="caa-words">${wordsHtml}</div>
+    </div>`;
+  }).join("");
+  document.getElementById("caa-storia-content").innerHTML = html;
 
-  const cards = [];
-  kws.forEach(kw=>{
-    const card = document.createElement('div');
-    card.className = 'caa-card';
-    card.innerHTML = `<div class="caa-skel"></div><span>${kw.toUpperCase()}</span>`;
-    bar.appendChild(card);
-    cards.push({card, kw});
+  // Render glossario
+  if(prova.glossario && prova.glossario.length){
+    const gHtml = prova.glossario.map(g =>
+      `<div class="caa-gloss-item"><span class="caa-gloss-key">${g.k}:</span><span>${g.v}</span></div>`
+    ).join("");
+    const panel = document.getElementById("caa-gloss-panel");
+    panel.innerHTML = `<div class="caa-gloss"><div class="caa-gloss-titolo">📚 Glossario</div>${gHtml}</div>`;
+    panel.classList.remove("hidden");
+  }
+}
+
+function extractKWFromOption(text){
+  // Get the most meaningful keyword from an answer option
+  const tokens = tokenize(stripHtml(text));
+  const keyTokens = tokens.filter(t => t.type === "key" && t.kw.length > 3);
+  if(!keyTokens.length) return null;
+  // Prefer a token that has an ARASAAC match
+  for(const t of keyTokens){
+    if(cercaId(t.kw)) return t.kw;
+  }
+  return keyTokens[0].kw;
+}
+
+function renderDomanda(dom, idx){
+  const letters = ["A","B","C","D"];
+  let optsHtml = "";
+
+  if(dom.tipo === "sm"){
+    optsHtml = `<div class="caa-opts">` +
+      dom.opts.map((opt, i) => {
+        const kw = extractKWFromOption(opt) || "";
+        const id = kw ? cercaId(kw) : null;
+        const imgHtml = id
+          ? `<div class="caa-skel"></div>`
+          : (EMOJI_FB[kw] ? `<span style="font-size:2.2rem">${EMOJI_FB[kw]}</span>` : "");
+        return `<div class="caa-opt" data-idx="${i}" data-kw="${kw}" data-id="${id||""}"
+            onclick="caaSelOpt(this,${dom.n},${i},${dom.ok})">
+          ${imgHtml}
+          <span class="caa-opt-letter">${letters[i]}</span>
+          <span class="caa-opt-lbl">${opt}</span>
+        </div>`;
+      }).join("") + `</div>`;
+  } else if(dom.tipo === "vf"){
+    optsHtml = `<div class="caa-vf">` +
+      dom.righeVF.map((row, ri) => {
+        return `<div class="caa-vf-row">
+          <span class="caa-vf-testo">${row.t}</span>
+          <div class="caa-vf-btns">
+            <button class="caa-vf-btn" onclick="caaSelVF(this,${dom.n},${ri},true,${row.ok})">V</button>
+            <button class="caa-vf-btn" onclick="caaSelVF(this,${dom.n},${ri},false,${row.ok})">F</button>
+          </div>
+        </div>`;
+      }).join("") + `</div>`;
+  }
+
+  // Reference paragraph label
+  const parRef = dom.par > 0 ? `<span class="caa-dom-par">📍 Par. ${dom.par}</span>` : "";
+  // Question text as CAA
+  const qWords = buildTokensHTML(dom.testo, true);
+
+  return `<div class="caa-dom" id="caa-dom-${dom.n}">
+    <div class="caa-dom-hdr">
+      <div class="caa-dom-num">${idx+1}</div>
+      ${parRef}
+    </div>
+    <div class="caa-dom-testo">
+      <div class="caa-words">${qWords}</div>
+    </div>
+    ${optsHtml}
+  </div>`;
+}
+
+function renderDomande(prova){
+  const sez0 = prova.domande.filter(d=>d.sez===0);
+  const sez1 = prova.domande.filter(d=>d.sez===1);
+  const sez2 = prova.domande.filter(d=>d.sez===2);
+  let html = "";
+  let globalIdx = 0;
+
+  if(sez0.length){
+    html += `<div class="caa-sez-hdr sez0-hdr">✏️ Parte 1 — Comprensione del testo</div>`;
+    html += sez0.map(d => renderDomanda(d, globalIdx++)).join("");
+  }
+  if(sez1.length){
+    html += `<div class="caa-sez-hdr sez1-hdr">🔤 Parte 2 — Lessico</div>`;
+    html += sez1.map(d => renderDomanda(d, globalIdx++)).join("");
+  }
+  if(sez2.length){
+    html += `<div class="caa-sez-hdr sez2-hdr">📐 Parte 3 — Grammatica</div>`;
+    html += `<div class="caa-hint">💡 Il <strong>soggetto</strong> è chi fa l'azione. Il <strong>predicato</strong> è il verbo. Il <strong>complemento oggetto</strong> è chi subisce l'azione.</div>`;
+    html += sez2.map(d => renderDomanda(d, globalIdx++)).join("");
+  }
+
+  // count total
+  TOT_DOM = 0;
+  prova.domande.forEach(d => {
+    if(d.tipo==="sm") TOT_DOM++;
+    else if(d.tipo==="vf") TOT_DOM += d.righeVF.length;
   });
+  document.getElementById("pbinfo-l").textContent = `Completate: 0 / ${TOT_DOM} risposte`;
+  document.getElementById("caa-domande-content").innerHTML = html;
+}
 
-  for(const {card, kw} of cards){
+// ═══════════════════════════════════════════════════════════════
+//  CARICA IMMAGINI ASYNC
+// ═══════════════════════════════════════════════════════════════
+async function loadAllImages(){
+  // Collect all elements with data-id set
+  const allBoxes = document.querySelectorAll("[data-id]:not([data-img-loaded])");
+  for(const el of allBoxes){
+    const id = el.dataset.id;
+    if(!id) continue;
+    el.dataset.imgLoaded = "1";
+    const skel = el.querySelector(".caa-skel");
+    const img = document.createElement("img");
+    img.alt = el.dataset.kw || "";
+    img.onerror = ()=>{
+      if(skel) skel.remove();
+      const kw = el.dataset.kw || "";
+      const em = EMOJI_FB[kw];
+      if(em){
+        const espan = document.createElement("span");
+        espan.textContent = em;
+        espan.style.cssText = "font-size:2rem;line-height:1;display:block;text-align:center";
+        if(skel) el.insertBefore(espan, skel);
+        else el.insertBefore(espan, el.firstChild);
+      } else if(skel){
+        skel.remove();
+      }
+    };
+    img.onload = ()=>{ if(skel) skel.remove(); };
+    img.src = arasaacUrl(id);
+    if(skel) el.insertBefore(img, skel);
+    else el.prepend(img);
+  }
+
+  // Elements with no static ID: try API
+  const noIdBoxes = document.querySelectorAll(".caa-wbox:not([data-id]):not([data-api-tried]),.caa-opt:not([data-id]):not([data-api-tried])");
+  for(const el of noIdBoxes){
+    el.dataset.apiTried = "1";
+    const kw = el.dataset.kw;
+    if(!kw || el.classList.contains("no-img")) continue;
     const id = await cercaIdAsync(kw);
-    const skel = card.querySelector('.caa-skel');
     if(id){
-      const img = document.createElement('img');
+      el.dataset.id = id;
+      const skel = el.querySelector(".caa-skel");
+      const img = document.createElement("img");
       img.alt = kw;
-      img.onerror = ()=>{
-        if(skel) skel.remove();
-        _mostraEmoji(card, kw);
-      };
+      img.onerror = ()=>{ if(skel) skel.remove(); };
       img.onload = ()=>{ if(skel) skel.remove(); };
       img.src = arasaacUrl(id);
-      if(skel) card.insertBefore(img, skel);
-      else card.insertBefore(img, card.querySelector('span'));
+      if(skel) el.insertBefore(img, skel);
+      else el.prepend(img);
     } else {
+      el.classList.add("no-img");
+      const skel = el.querySelector(".caa-skel");
       if(skel) skel.remove();
-      const k = kw.toLowerCase().replace(/[^a-zàáèéìíòóùú]/g,'');
-      if(EMOJI_FB[k]){
-        _mostraEmoji(card, kw);
-      } else {
-        card.style.display='none';
+      const em = EMOJI_FB[kw];
+      if(em){
+        const espan = document.createElement("span");
+        espan.textContent = em;
+        espan.style.cssText = "font-size:1.8rem;line-height:1;display:block;text-align:center";
+        el.prepend(espan);
       }
     }
   }
 }
 
-async function addCAAToText(){
-  const spans = document.querySelectorAll('.glw:not([data-caa-done])');
-  for(const span of spans){
-    span.dataset.caaDone='1';
-    const raw=(span.getAttribute('title')||span.textContent).split(':')[0].trim();
-    const kw=raw.toLowerCase().replace(/[^a-zàáèéìíòóùú]/g,'');
-    const id = await cercaIdAsync(kw);
-    if(!id) continue;
-    const wrapper=document.createElement('span');
-    wrapper.className='caa-glw-wrap';
-    const img=document.createElement('img');
-    img.className='caa-glw-pic';
-    img.alt=kw;
-    img.onerror=()=>{ img.style.display='none'; };
-    img.src=arasaacUrl(id);
-    span.parentNode.insertBefore(wrapper,span);
-    wrapper.appendChild(img);
-    wrapper.appendChild(span);
-  }
+// ═══════════════════════════════════════════════════════════════
+//  INTERAZIONI
+// ═══════════════════════════════════════════════════════════════
+const _answers = {}; // domN -> {sel, ok}
+const _vfAnswers = {}; // "domN_ri" -> {val, ok}
+let _completedCount = 0;
+
+function caaSelOpt(btn, domN, idx, ok){
+  const dom = document.getElementById("caa-dom-"+domN);
+  dom.querySelectorAll(".caa-opt").forEach(b=>b.classList.remove("sel"));
+  btn.classList.add("sel");
+  const wasAnswered = _answers[domN] !== undefined;
+  _answers[domN] = {sel:idx, ok};
+  if(!wasAnswered){ _completedCount++; aggiornaPB(); }
+  dom.classList.add("att");
+  setTimeout(()=>dom.classList.remove("att"),600);
 }
 
+function caaSelVF(btn, domN, ri, val, ok){
+  const row = btn.closest(".caa-vf-row");
+  row.querySelectorAll(".caa-vf-btn").forEach(b=>b.classList.remove("sel"));
+  btn.classList.add("sel");
+  const key = domN+"_"+ri;
+  const wasAnswered = _vfAnswers[key] !== undefined;
+  _vfAnswers[key] = {val, ok};
+  if(!wasAnswered){ _completedCount++; aggiornaPB(); }
+}
+
+function aggiornaPB(){
+  const pct = TOT_DOM > 0 ? (_completedCount/TOT_DOM)*100 : 0;
+  document.getElementById("pbfill").style.width = pct+"%";
+  document.getElementById("pbinfo-l").textContent = `Completate: ${_completedCount} / ${TOT_DOM} risposte`;
+}
+
+function caaControlla(){
+  let correct = 0;
+  // SM
+  Object.entries(_answers).forEach(([domN, ans]) => {
+    const dom = document.getElementById("caa-dom-"+domN);
+    if(!dom) return;
+    dom.querySelectorAll(".caa-opt").forEach((opt, i) => {
+      opt.classList.remove("corr","err");
+      if(i === ans.ok) opt.classList.add("corr");
+      else if(i === ans.sel && ans.sel !== ans.ok) opt.classList.add("err");
+    });
+    if(ans.sel === ans.ok) correct++;
+  });
+  // VF
+  Object.entries(_vfAnswers).forEach(([key, ans]) => {
+    const [domN, ri] = key.split("_");
+    const dom = document.getElementById("caa-dom-"+domN);
+    if(!dom) return;
+    const rows = dom.querySelectorAll(".caa-vf-row");
+    const row = rows[parseInt(ri)];
+    if(!row) return;
+    row.querySelectorAll(".caa-vf-btn").forEach(b=>{
+      b.classList.remove("corr","err");
+      const btnVal = b.textContent === "V";
+      if(btnVal === ans.ok) b.classList.add("corr");
+      else if(btnVal === ans.val && ans.val !== ans.ok) b.classList.add("err");
+    });
+    if(ans.val === ans.ok) correct++;
+  });
+
+  const result = document.getElementById("caa-result");
+  document.getElementById("caa-pts").textContent = `${correct} / ${TOT_DOM}`;
+  document.getElementById("caa-sub").textContent = "risposte corrette";
+  const pct = TOT_DOM > 0 ? Math.round(correct/TOT_DOM*100) : 0;
+  const msgs = [
+    [90, "🌟 Eccellente! Hai capito tutto il racconto!"],
+    [70, "✅ Bravo! Hai risposto bene a molte domande."],
+    [50, "👍 Abbastanza bene! Puoi rileggere il testo per migliorare."],
+    [0, "📖 Rileggi il racconto. Puoi farcela!"],
+  ];
+  const msg = msgs.find(([t]) => pct >= t);
+  document.getElementById("caa-msg").textContent = msg ? msg[1] : "";
+  result.classList.add("show");
+  result.scrollIntoView({behavior:"smooth", block:"nearest"});
+}
+
+function caaReset(){
+  Object.keys(_answers).forEach(k=>delete _answers[k]);
+  Object.keys(_vfAnswers).forEach(k=>delete _vfAnswers[k]);
+  _completedCount = 0;
+  aggiornaPB();
+  document.querySelectorAll(".caa-opt").forEach(o=>o.classList.remove("sel","corr","err"));
+  document.querySelectorAll(".caa-vf-btn").forEach(b=>b.classList.remove("sel","corr","err"));
+  document.getElementById("caa-result").classList.remove("show");
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  TIC (accessibilità)
+// ═══════════════════════════════════════════════════════════════
+function togTic(nome, btnId){
+  document.body.classList.toggle("tic-"+nome);
+  const btn = document.getElementById(btnId);
+  if(btn) btn.classList.toggle("on", document.body.classList.contains("tic-"+nome));
+}
+function toggleTicPanel(){
+  ticPanelOpen = !ticPanelOpen;
+  document.getElementById("tic-panel").style.display = ticPanelOpen ? "flex" : "none";
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════════
+window.addEventListener("load", () => {
+  const p = new URLSearchParams(window.location.search);
+
+  // Prova custom
+  if(p.get("prova") === "custom"){
+    const raw = p.get("data");
+    if(raw){
+      try{
+        const json = decodeURIComponent(escape(atob(raw)));
+        const provaCustom = JSON.parse(json);
+        provaCustom.id = "custom";
+        PROVE_DIS.push(provaCustom);
+      }catch(e){ console.warn("Prova custom non valida:", e); }
+    }
+  }
+
+  const provaRaw = p.get("prova") || "1";
+  const provaId = provaRaw === "custom" ? "custom" : parseInt(provaRaw);
+  NOME_STUD = p.get("nome") || "";
+  CLASSE_STUD = p.get("classe") || "";
+
+  // TIC da URL (grande, contrasto)
+  const ticList = (p.get("tic") || "").split(",").filter(t=>t.trim());
+  ticList.forEach(t => {
+    document.body.classList.add("tic-"+t.trim());
+    const btn = document.getElementById("ticb-"+t.trim());
+    if(btn) btn.classList.add("on");
+  });
+
+  PROVA_ATTUALE = PROVE_DIS.find(pr=>pr.id===provaId) || PROVE_DIS[0];
+  const prova = PROVA_ATTUALE;
+
+  // Header
+  document.getElementById("hdr-titolo").textContent = `Testo in CAA — ${prova.titolo}`;
+  const sub = [prova.titolo, NOME_STUD, CLASSE_STUD ? "Classe "+CLASSE_STUD : ""].filter(Boolean).join(" | ");
+  document.getElementById("hdr-sub").textContent = sub + " | A.S. 2025/2026";
+  document.getElementById("pbinfo-prova").textContent = prova.titolo;
+  document.title = `Grado 8 — ${prova.titolo}`;
+
+  // Istruzioni
+  document.getElementById("caa-audio-wrap").innerHTML = `
+    <div style="background:#e3f2fd;border-radius:9px;padding:10px 14px;margin-bottom:14px;font-size:.78rem;line-height:1.7">
+      ℹ️ <strong>Istruzioni:</strong><br>
+      • Clicca su <strong>📍 Par. N</strong> per tornare al paragrafo giusto.<br>
+      • Guarda le immagini e leggi le parole. Poi rispondi alle domande.
+    </div>`;
+
+  renderStoria(prova);
+  renderDomande(prova);
+
+  // Carica immagini async (prima quelle già con ID, poi via API)
+  requestAnimationFrame(() => loadAllImages());
+});
 </script>
+</body>
+</html>
