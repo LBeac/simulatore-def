@@ -4729,7 +4729,7 @@ function makeDomCardDis(d, idx){
         + '<input type="text" class="finp vf-testo" value="'+escHtml(r.t||'')+'" style="flex:1;padding:5px 9px;font-size:12px">'
         + '<select class="vf-ok" style="padding:5px 8px;border:1px solid #ccc;border-radius:4px;font-size:12px">'
         + '<option value="true"'+(r.ok?' selected':'')+'>Vero</option>'
-        + '<option value="false"+(!r.ok?' selected':'')+">Falso</option>'
+        + '<option value="false"'+(!r.ok?' selected':'')+'>Falso</option>'
         + '</select>'
         + '<button onclick="this.closest(\'.vf-row\').remove()" style="background:none;border:none;color:#c62828;cursor:pointer;font-size:12px">\u2715</button>'
         + '</div>').join('')
