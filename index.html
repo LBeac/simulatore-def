@@ -905,7 +905,7 @@ tr:hover td{background:var(--grigio-ch)}
       <select class="finp" id="sel-sess-analisi" style="max-width:320px;padding:9px 12px" onchange="caricaAnalisi()">
         <option value="">-- Seleziona sessione da analizzare --</option>
       </select>
-      <button class="btn btn-s" onclick="esportaCSV()" style="font-size:12px" title="Esporta tutti i risultati della classe selezionata in formato CSV">📥 Esporta CSV classe</button>
+      <button class="btn btn-s" onclick="esportaCSV()" style="font-size:12px" title="Esporta tutti i risultati della classe">📥 Esporta CSV classe</button>
     </div>
     <div id="analisi-contenuto" class="hidden">
       <!-- RIEPILOGO NUMERICO -->
@@ -946,53 +946,33 @@ tr:hover td{background:var(--grigio-ch)}
       <div style="font-size:12px;color:#888">📋 Analisi automatica di tutti i risultati salvati per la classe selezionata</div>
       <button class="btn btn-s" onclick="esportaCSV()" style="font-size:12px">📥 Esporta CSV</button>
     </div>
-    <div id="generale-contenuto">
-      <!-- KPI -->
-      <div id="gen-kpi" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px"></div>
-
-      <!-- Andamento per prova / per classe -->
-      <div style="background:#fff;border-radius:10px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.07);margin-bottom:16px">
-        <h3 style="font-size:14px;font-weight:700;color:var(--blu);margin-bottom:14px">📈 Andamento per prova</h3>
-        <div id="gen-andamento"></div>
-      </div>
-
-      <!-- Competenze aggregate -->
-      <div style="background:#fff;border-radius:10px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.07);margin-bottom:16px">
-        <h3 style="font-size:14px;font-weight:700;color:var(--blu);margin-bottom:14px">🎯 Competenze: aree critiche</h3>
-        <div id="gen-competenze"></div>
-      </div>
-
-      <!-- Andamento per alunno -->
-      <div style="background:#fff;border-radius:10px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.07);margin-bottom:16px">
-        <h3 style="font-size:14px;font-weight:700;color:var(--blu);margin-bottom:10px">👤 Andamento per alunno</h3>
-        <div style="font-size:12px;color:#888;margin-bottom:12px">Media delle prove svolte da ogni studente · clicca su un alunno per il dettaglio competenze</div>
-        <div id="gen-alunni"></div>
-      </div>
-
-      <!-- Top / Bottom -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
-        <div style="background:#fff;border-radius:10px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.07)">
-          <h3 style="font-size:14px;font-weight:700;color:var(--verde);margin-bottom:14px">🏆 Top 10</h3>
-          <div id="gen-top10"></div>
-        </div>
-        <div style="background:#fff;border-radius:10px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.07)">
-          <h3 style="font-size:14px;font-weight:700;color:var(--rosso);margin-bottom:14px">📉 Da supportare</h3>
-          <div id="gen-bottom10"></div>
-        </div>
-      </div>
-
-      <!-- Suggerimenti -->
+    <div id="gen-kpi" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px"></div>
+    <div style="background:#fff;border-radius:10px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.07);margin-bottom:16px">
+      <h3 style="font-size:14px;font-weight:700;color:var(--blu);margin-bottom:14px">📈 Andamento per prova</h3>
+      <div id="gen-andamento"></div>
+    </div>
+    <div style="background:#fff;border-radius:10px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.07);margin-bottom:16px">
+      <h3 style="font-size:14px;font-weight:700;color:var(--blu);margin-bottom:14px">🎯 Competenze: aree critiche</h3>
+      <div id="gen-competenze"></div>
+    </div>
+    <div style="background:#fff;border-radius:10px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.07);margin-bottom:16px">
+      <h3 style="font-size:14px;font-weight:700;color:var(--blu);margin-bottom:10px">👤 Andamento per alunno</h3>
+      <div style="font-size:12px;color:#888;margin-bottom:12px">Media cumulativa di tutte le prove svolte — solo prove standard</div>
+      <div id="gen-alunni"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
       <div style="background:#fff;border-radius:10px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.07)">
-        <h3 style="font-size:14px;font-weight:700;color:var(--blu);margin-bottom:14px">💡 Suggerimenti didattici</h3>
-        <div id="gen-suggerimenti"></div>
+        <h3 style="font-size:14px;font-weight:700;color:var(--verde);margin-bottom:14px">🏆 Top 10</h3>
+        <div id="gen-top10"></div>
       </div>
-
-      <!-- Alunni con disabilità / CAA — sezione separata, non fa media -->
-      <div style="background:#fff;border-radius:10px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.07);margin-top:16px;border-top:4px solid #7b1fa2">
-        <h3 style="font-size:14px;font-weight:700;color:#6a1b9a;margin-bottom:6px">🌟 Prove personalizzate — Disabilità e CAA</h3>
-        <p style="font-size:11px;color:#888;margin-bottom:12px">Questi alunni non rientrano nelle medie della classe. Vengono mostrati qui separatamente.</p>
-        <div id="gen-dis"></div>
+      <div style="background:#fff;border-radius:10px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.07)">
+        <h3 style="font-size:14px;font-weight:700;color:var(--rosso);margin-bottom:14px">📉 Da supportare</h3>
+        <div id="gen-bottom10"></div>
       </div>
+    </div>
+    <div style="background:#fff;border-radius:10px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.07)">
+      <h3 style="font-size:14px;font-weight:700;color:var(--blu);margin-bottom:14px">💡 Suggerimenti didattici</h3>
+      <div id="gen-suggerimenti"></div>
     </div>
   </div>
 
@@ -1033,15 +1013,15 @@ tr:hover td{background:var(--grigio-ch)}
     <!-- ══ SOTTO-PANNELLO 2: PER DISABILITÀ ══════════════════ -->
     <div class="sub-panel" id="st-dis">
       <div class="info-panel" style="background:#e8f5e9;border-color:#a5d6a7;color:#1b5e20">
-        🌟 <strong>Prove adattate per alunni con disabilità</strong> — Incolla un testo: l'AI (Google Gemini, gratuito) genera domande di 5 tipi diversi. Puoi modificarle o crearne di nuove manualmente.
+        🌟 <strong>Prove adattate per alunni con disabilità</strong> — Incolla un testo: l'AI (Google Gemini, gratuito) genera le domande. Puoi modificarle o crearle manualmente.
       </div>
 
-      <!-- CONFIGURAZIONE AI GEMINI -->
+      <!-- Configurazione Gemini -->
       <div class="panel-card" style="max-width:none;margin-top:14px;border:2px solid #e8f0fe">
         <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleGeminiSetup()">
           <div>
             <div style="font-size:13px;font-weight:800;color:#1a73e8">🔑 Configurazione AI — Google Gemini (gratuito)</div>
-            <div id="gemini-status-lbl" style="font-size:11px;color:#888;margin-top:2px">Inserisci la tua chiave API gratuita — si salva automaticamente sul browser</div>
+            <div id="gemini-status-lbl" style="font-size:11px;color:#888;margin-top:2px">Inserisci la tua chiave API gratuita — si salva automaticamente nel browser</div>
           </div>
           <span id="gemini-arrow" style="font-size:16px;color:#1a73e8;transition:transform .2s">▸</span>
         </div>
@@ -1050,22 +1030,22 @@ tr:hover td{background:var(--grigio-ch)}
             📌 <strong>Come ottenere la chiave gratuita (1 minuto):</strong><br>
             1. Vai su <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#1a73e8;font-weight:700">aistudio.google.com/app/apikey</a> con il tuo account Google<br>
             2. Clicca <strong>"Create API key"</strong> → copia la chiave<br>
-            3. Incollala qui sotto. Piano gratuito: 1500 richieste/giorno, più che sufficiente.
+            3. Incollala qui sotto. Piano gratuito: 1500 richieste/giorno.
           </div>
           <div style="display:flex;gap:8px;align-items:center">
             <input type="password" id="gemini-key-input" class="finp" placeholder="AIza..." style="padding:9px 12px;flex:1;font-family:monospace">
-            <button onclick="salvaChiaveGemini()" style="padding:9px 16px;background:#1a73e8;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:var(--font)">💾 Salva</button>
-            <button onclick="cancellaChiaveGemini()" style="padding:9px 12px;background:#fce8e6;color:#c62828;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-family:var(--font)" title="Cancella chiave salvata">🗑️</button>
+            <button onclick="salvaChiaveGemini()" style="padding:9px 16px;background:#1a73e8;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">💾 Salva</button>
+            <button onclick="cancellaChiaveGemini()" style="padding:9px 12px;background:#fce8e6;color:#c62828;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-family:var(--font)" title="Cancella chiave">🗑️</button>
           </div>
           <div id="gemini-key-msg" style="font-size:11px;margin-top:6px"></div>
         </div>
       </div>
 
-      <!-- STEP 1: testo -->
+      <!-- Step 1: Testo -->
       <div class="panel-card" style="max-width:none;margin-top:10px">
         <h3 style="margin-bottom:12px">📄 Passo 1 — Incolla il testo</h3>
         <div class="fg" style="margin-bottom:10px">
-          <label class="flbl">Titolo del testo</label>
+          <label class="flbl">Titolo</label>
           <input type="text" id="dis-ai-titolo" class="finp" placeholder="es. La quercia di Samuele" style="padding:9px 12px">
         </div>
         <div class="fg">
@@ -1074,7 +1054,7 @@ tr:hover td{background:var(--grigio-ch)}
         </div>
       </div>
 
-      <!-- STEP 2: opzioni -->
+      <!-- Step 2: Opzioni -->
       <div class="panel-card" style="max-width:none;margin-top:10px">
         <h3 style="margin-bottom:12px">⚙️ Passo 2 — Opzioni domande</h3>
         <div style="display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start">
@@ -1083,37 +1063,30 @@ tr:hover td{background:var(--grigio-ch)}
             <input type="number" id="dis-ai-ndom" class="finp" value="10" min="3" max="40" style="padding:9px 12px;width:100px">
           </div>
           <div>
-            <label class="flbl" style="display:block;margin-bottom:8px">Tipi di domanda da includere</label>
+            <label class="flbl" style="display:block;margin-bottom:8px">Tipi di domanda</label>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 20px">
-              <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tipo-sm" style="width:14px;height:14px;accent-color:var(--blu)" checked> <span style="background:#e3f2fd;border-radius:4px;padding:1px 8px;font-size:11px;font-weight:800;color:#1565c0">SM</span> Scelta multipla (4 opzioni)</label>
-              <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tipo-vf" style="width:14px;height:14px;accent-color:var(--blu)" checked> <span style="background:#e8f5e9;border-radius:4px;padding:1px 8px;font-size:11px;font-weight:800;color:#2e7d32">VF</span> Vero/Falso (tabella)</label>
-              <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tipo-ap" style="width:14px;height:14px;accent-color:var(--blu)"> <span style="background:#fff3e0;border-radius:4px;padding:1px 8px;font-size:11px;font-weight:800;color:#e65100">AP</span> Aperta breve</label>
-              <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tipo-comp" style="width:14px;height:14px;accent-color:var(--blu)"> <span style="background:#f3e5f5;border-radius:4px;padding:1px 8px;font-size:11px;font-weight:800;color:#6a1b9a">COMP</span> Completamento</label>
-              <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tipo-col" style="width:14px;height:14px;accent-color:var(--blu)"> <span style="background:#fce4ec;border-radius:4px;padding:1px 8px;font-size:11px;font-weight:800;color:#880e4f">COL</span> Collegamento (2 colonne)</label>
-              <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-ai-inferenza" style="width:14px;height:14px;accent-color:var(--blu)" checked> 🧠 Include inferenziali</label>
+              <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tipo-sm" style="width:14px;height:14px;accent-color:var(--blu)" checked> <span style="background:#e3f2fd;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:800;color:#1565c0">SM</span> Scelta multipla</label>
+              <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tipo-vf" style="width:14px;height:14px;accent-color:var(--blu)" checked> <span style="background:#e8f5e9;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:800;color:#2e7d32">VF</span> Vero/Falso</label>
+              <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tipo-ap" style="width:14px;height:14px;accent-color:var(--blu)"> <span style="background:#fff3e0;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:800;color:#e65100">AP</span> Aperta breve</label>
+              <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tipo-comp" style="width:14px;height:14px;accent-color:var(--blu)"> <span style="background:#f3e5f5;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:800;color:#6a1b9a">COMP</span> Completamento</label>
+              <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tipo-col" style="width:14px;height:14px;accent-color:var(--blu)"> <span style="background:#fce4ec;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:800;color:#880e4f">COL</span> Collegamento</label>
+              <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-ai-inferenza" style="width:14px;height:14px;accent-color:var(--blu)" checked> 🧠 Inferenziali</label>
             </div>
           </div>
         </div>
-
         <div style="display:flex;gap:10px;margin-top:14px">
-          <button onclick="generaDomandeAI('dis')" style="flex:1;padding:12px;background:var(--blu);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:800;cursor:pointer;font-family:var(--font)">
-            🤖 Genera con AI
-          </button>
-          <button onclick="apriFinestraManuale()" style="padding:12px 18px;background:var(--grigio-ch);color:var(--blu);border:2px solid var(--az);border-radius:var(--r);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">
-            ✏️ Crea manualmente
-          </button>
+          <button onclick="generaDomandeAI()" style="flex:1;padding:12px;background:var(--blu);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:800;cursor:pointer;font-family:var(--font)">🤖 Genera con AI</button>
+          <button onclick="apriFinestraManuale()" style="padding:12px 18px;background:var(--grigio-ch);color:var(--blu);border:2px solid var(--az);border-radius:var(--r);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">✏️ Crea manualmente</button>
         </div>
-        <div id="dis-ai-loading" style="display:none;margin-top:12px;text-align:center;color:var(--blu);font-size:13px;font-weight:700">
-          ⏳ Gemini sta generando le domande…
-        </div>
+        <div id="dis-ai-loading" style="display:none;margin-top:12px;text-align:center;color:var(--blu);font-size:13px;font-weight:700">⏳ Gemini sta generando le domande…</div>
         <div id="dis-ai-err" class="err-msg" style="display:none;margin-top:8px"></div>
       </div>
 
-      <!-- STEP 3: anteprima + modifica domande -->
+      <!-- Step 3: Anteprima -->
       <div id="dis-ai-preview" style="display:none">
         <div class="panel-card" style="max-width:none;margin-top:10px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
-            <h3>📝 Passo 3 — Rivedi e modifica le domande</h3>
+            <h3>📝 Passo 3 — Rivedi e modifica</h3>
             <div style="display:flex;gap:6px;flex-wrap:wrap">
               <button onclick="aggiungiDomandaManuale('sm')" style="padding:5px 10px;background:#e3f2fd;color:#1565c0;border:1px solid #90caf9;border-radius:5px;font-size:11px;font-weight:800;cursor:pointer;font-family:var(--font)">+SM</button>
               <button onclick="aggiungiDomandaManuale('vf')" style="padding:5px 10px;background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;border-radius:5px;font-size:11px;font-weight:800;cursor:pointer;font-family:var(--font)">+VF</button>
@@ -1124,8 +1097,6 @@ tr:hover td{background:var(--grigio-ch)}
           </div>
           <div id="dis-dom-list" style="display:flex;flex-direction:column;gap:10px"></div>
         </div>
-
-        <!-- STEP 4: TIC + classe + genera link -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px">
           <div class="panel-card" style="max-width:none">
             <h3 style="margin-bottom:10px">👤 Dati sessione</h3>
@@ -1146,286 +1117,16 @@ tr:hover td{background:var(--grigio-ch)}
             <h3 style="margin-bottom:10px">⚙️ Strumenti TIC</h3>
             <div style="display:flex;flex-direction:column;gap:7px">
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-grande" style="width:14px;height:14px;accent-color:var(--verde)"> 🔍 Testo grande</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-maiuscolo" style="width:14px;height:14px;accent-color:var(--verde)"> 🔠 Stampato maiuscolo</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-maiuscolo" style="width:14px;height:14px;accent-color:var(--verde)"> 🔠 Maiuscolo</label>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-contrasto" style="width:14px;height:14px;accent-color:var(--verde)"> 🌗 Alto contrasto</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-spaziatura" style="width:14px;height:14px;accent-color:var(--verde)"> ↔️ Spaziatura aumentata</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-font" style="width:14px;height:14px;accent-color:var(--verde)"> ✒️ Font dislessia (Lexend)</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-spaziatura" style="width:14px;height:14px;accent-color:var(--verde)"> ↔️ Spaziatura+</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-font" style="width:14px;height:14px;accent-color:var(--verde)"> ✒️ Font dislessia</label>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-bes" style="width:14px;height:14px;accent-color:var(--verde)"> 📘 Modalità BES</label>
             </div>
           </div>
         </div>
-        <button onclick="creaLinkDisAI()" style="width:100%;margin-top:14px;padding:13px;background:var(--verde);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:800;cursor:pointer;font-family:var(--font)">
-          🔗 Genera link prova adattata
-        </button>
+        <button onclick="creaLinkDisAI()" style="width:100%;margin-top:14px;padding:13px;background:var(--verde);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:800;cursor:pointer;font-family:var(--font)">🔗 Genera link prova adattata</button>
         <div id="dis-succ" class="succ-msg" style="display:none;margin-top:12px"></div>
-      </div>
-    </div><!-- fine st-dis -->
-
-
-      <!-- STEP 1: testo -->
-      <div class="panel-card" style="max-width:none;margin-top:14px">
-        <h3 style="margin-bottom:12px">📄 Passo 1 — Incolla il testo</h3>
-        <div class="fg" style="margin-bottom:10px">
-          <label class="flbl">Titolo del testo</label>
-          <input type="text" id="dis-ai-titolo" class="finp" placeholder="es. La passeggiata di Marco" style="padding:9px 12px">
-        </div>
-        <div class="fg">
-          <label class="flbl">Testo (incolla qui — verrà suddiviso in paragrafi automaticamente)</label>
-          <textarea id="dis-ai-testo" class="finp" rows="8" placeholder="Incolla qui il testo che vuoi usare per la prova..." style="padding:9px 12px;resize:vertical;font-size:13px;line-height:1.7"></textarea>
-        </div>
-      </div>
-
-      <!-- STEP 2: opzioni generazione -->
-      <div class="panel-card" style="max-width:none;margin-top:10px">
-        <h3 style="margin-bottom:12px">⚙️ Passo 2 — Opzioni domande</h3>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;align-items:end">
-          <div class="fg">
-            <label class="flbl">Numero domande (max 40)</label>
-            <input type="number" id="dis-ai-ndom" class="finp" value="10" min="3" max="40" style="padding:9px 12px">
-          </div>
-          <div>
-            <label class="flbl" style="display:block;margin-bottom:8px">Tipi di domanda</label>
-            <label style="display:flex;align-items:center;gap:7px;font-size:13px;margin-bottom:6px;cursor:pointer">
-              <input type="checkbox" id="dis-ai-inferenza" style="width:15px;height:15px;accent-color:var(--verde)" checked> 🧠 Inferenziali (non solo letterali)
-            </label>
-            <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer">
-              <input type="checkbox" id="dis-ai-aperte" style="width:15px;height:15px;accent-color:var(--verde)"> ✏️ Domande aperte
-            </label>
-          </div>
-          <div>
-            <label class="flbl" style="display:block;margin-bottom:8px">Sezioni</label>
-            <label style="display:flex;align-items:center;gap:7px;font-size:13px;margin-bottom:6px;cursor:pointer">
-              <input type="checkbox" id="dis-ai-lessico" style="width:15px;height:15px;accent-color:var(--verde)" checked> 📖 Lessico
-            </label>
-            <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer">
-              <input type="checkbox" id="dis-ai-gram" style="width:15px;height:15px;accent-color:var(--verde)"> 📐 Grammatica base (soggetto/predicato)
-            </label>
-          </div>
-        </div>
-        <button onclick="generaDomandeAI('dis')" style="margin-top:16px;width:100%;padding:12px;background:var(--blu);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:800;cursor:pointer;font-family:var(--font)">
-          🤖 Genera domande con AI
-        </button>
-        <div id="dis-ai-loading" style="display:none;margin-top:12px;text-align:center;color:var(--blu);font-size:13px;font-weight:700">
-          ⏳ Generazione in corso…
-        </div>
-        <div id="dis-ai-err" class="err-msg" style="display:none;margin-top:8px"></div>
-      </div>
-
-      <!-- STEP 3: anteprima + modifica domande -->
-      <div id="dis-ai-preview" style="display:none">
-        <div class="panel-card" style="max-width:none;margin-top:10px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-            <h3>📝 Passo 3 — Rivedi le domande</h3>
-            <button onclick="aggiungiDomandaDis()" style="padding:6px 14px;background:var(--az);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)">➕ Aggiungi domanda</button>
-          </div>
-          <div id="dis-dom-list" style="display:flex;flex-direction:column;gap:10px"></div>
-        </div>
-
-        <!-- STEP 4: TIC + classe + genera link -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px">
-          <div class="panel-card" style="max-width:none">
-            <h3 style="margin-bottom:10px">👤 Dati sessione</h3>
-            <div class="fg" style="margin-bottom:10px">
-              <label class="flbl">Classe</label>
-              <select id="dis-classe" class="finp" style="padding:9px 12px">
-                <option value="">— Nessuna —</option>
-                <option value="3A">3A</option><option value="3B">3B</option>
-                <option value="3C">3C</option><option value="3D">3D</option><option value="3E">3E</option>
-              </select>
-            </div>
-            <div class="fg">
-              <label class="flbl">Nome alunno (opzionale)</label>
-              <input type="text" id="dis-nome" placeholder="es. Mario R." maxlength="40" class="finp" style="padding:9px 12px">
-            </div>
-          </div>
-          <div class="panel-card" style="max-width:none">
-            <h3 style="margin-bottom:10px">⚙️ Strumenti TIC</h3>
-            <div style="display:flex;flex-direction:column;gap:8px">
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-grande" style="width:15px;height:15px;accent-color:var(--verde)"> 🔍 Testo grande</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-maiuscolo" style="width:15px;height:15px;accent-color:var(--verde)"> 🔠 Stampato maiuscolo</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-contrasto" style="width:15px;height:15px;accent-color:var(--verde)"> 🌗 Alto contrasto</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-spaziatura" style="width:15px;height:15px;accent-color:var(--verde)"> ↔️ Spaziatura aumentata</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-font" style="width:15px;height:15px;accent-color:var(--verde)"> ✒️ Font dislessia (Lexend)</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-bes" style="width:15px;height:15px;accent-color:var(--verde)"> 📘 Modalità BES</label>
-            </div>
-          </div>
-        </div>
-
-        <button onclick="creaLinkDisAI()" style="width:100%;margin-top:14px;padding:13px;background:var(--verde);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:800;cursor:pointer;font-family:var(--font)">
-          🔗 Genera link prova adattata
-        </button>
-        <div id="dis-succ" class="succ-msg" style="display:none;margin-top:12px"></div>
-      </div>
-    </div><!-- fine st-dis -->
-
-    <!-- ══ SOTTO-PANNELLO 3: PROVE CAA ═══════════════════════ -->
-    <div class="sub-panel" id="st-caa">
-      <div class="info-panel" style="background:#f3e5f5;border-color:#ce93d8;color:#4a148c">
-        🖼️ <strong>Prove CAA — Comunicazione Aumentativa Alternativa</strong> — Incolla un testo: la piattaforma lo semplifica, genera domande con AI e aggiunge pittogrammi ARASAAC su ogni parola chiave del testo e delle risposte.
-      </div>
-
-      <!-- STEP 1: testo -->
-      <div class="panel-card" style="max-width:none;margin-top:14px">
-        <h3 style="margin-bottom:12px">📄 Passo 1 — Incolla il testo</h3>
-        <div class="fg" style="margin-bottom:10px">
-          <label class="flbl">Titolo</label>
-          <input type="text" id="caa-ai-titolo" class="finp" placeholder="es. La colazione di Marco" style="padding:9px 12px">
-        </div>
-        <div class="fg" style="margin-bottom:8px">
-          <label class="flbl">Testo originale (anche complesso — l'AI lo semplificherà per CAA)</label>
-          <textarea id="caa-ai-testo" class="finp" rows="7" placeholder="Incolla qui il testo originale..." style="padding:9px 12px;resize:vertical;font-size:13px;line-height:1.7"></textarea>
-        </div>
-        <div class="fg">
-          <label class="flbl">Numero domande (max 15 — stile semplice per CAA)</label>
-          <input type="number" id="caa-ai-ndom" class="finp" value="8" min="3" max="15" style="padding:9px 12px;max-width:120px">
-        </div>
-        <button onclick="generaDomandeAI('caa')" style="margin-top:14px;width:100%;padding:12px;background:#7b1fa2;color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:800;cursor:pointer;font-family:var(--font)">
-          🤖 Semplifica testo e genera domande CAA
-        </button>
-        <div id="caa-ai-loading" style="display:none;margin-top:12px;text-align:center;color:#7b1fa2;font-size:13px;font-weight:700">
-          ⏳ Elaborazione in corso… l'AI sta semplificando il testo e creando le domande…
-        </div>
-        <div id="caa-ai-err" class="err-msg" style="display:none;margin-top:8px"></div>
-      </div>
-
-      <!-- STEP 2: anteprima testo CAA + domande -->
-      <div id="caa-ai-preview" style="display:none">
-        <div class="panel-card" style="max-width:none;margin-top:10px">
-          <h3 style="margin-bottom:10px">📄 Testo semplificato (modificabile)</h3>
-          <div id="caa-testo-preview" style="display:flex;flex-direction:column;gap:8px"></div>
-        </div>
-        <div class="panel-card" style="max-width:none;margin-top:10px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-            <h3>📝 Domande generate</h3>
-            <button onclick="aggiungiDomandaDis('caa')" style="padding:6px 14px;background:#9c27b0;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)">➕ Aggiungi</button>
-          </div>
-          <div id="caa-dom-list" style="display:flex;flex-direction:column;gap:10px"></div>
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px">
-          <div class="panel-card" style="max-width:none">
-            <h3 style="margin-bottom:10px">👤 Dati sessione</h3>
-            <div class="fg" style="margin-bottom:10px">
-              <label class="flbl">Classe</label>
-              <select id="caa-classe" class="finp" style="padding:9px 12px">
-                <option value="">— Nessuna —</option>
-                <option value="3A">3A</option><option value="3B">3B</option>
-                <option value="3C">3C</option><option value="3D">3D</option><option value="3E">3E</option>
-              </select>
-            </div>
-            <div class="fg">
-              <label class="flbl">Nome alunno (opzionale)</label>
-              <input type="text" id="caa-nome" placeholder="es. Mario R." maxlength="40" class="finp" style="padding:9px 12px">
-            </div>
-          </div>
-          <div class="panel-card" style="max-width:none">
-            <h3 style="margin-bottom:10px">🖼️ Strumenti aggiuntivi</h3>
-            <div style="display:flex;flex-direction:column;gap:8px">
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="caa-tic-grande" style="width:15px;height:15px;accent-color:#9c27b0"> 🔍 Testo grande</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="caa-tic-maiuscolo" style="width:15px;height:15px;accent-color:#9c27b0"> 🔠 Stampato maiuscolo</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="caa-tic-spaziatura" style="width:15px;height:15px;accent-color:#9c27b0"> ↔️ Spaziatura aumentata</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="caa-tic-bes" style="width:15px;height:15px;accent-color:#9c27b0"> 📘 Modalità BES</label>
-            </div>
-            <div style="margin-top:10px;padding:8px 12px;background:#f3e5f5;border-radius:6px;font-size:10px;color:#6a1b9a;line-height:1.5">
-              🖼️ Pittogrammi ARASAAC sempre attivi su testo e risposte.<br>Pittogrammi © Governo di Aragona — Sergio Palao, CC BY-NC-SA.
-            </div>
-          </div>
-        </div>
-
-        <button onclick="creaLinkCaaAI()" style="width:100%;margin-top:14px;padding:13px;background:#7b1fa2;color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:800;cursor:pointer;font-family:var(--font)">
-          🖼️ Genera link prova CAA
-        </button>
-        <div id="caa-succ" class="succ-msg" style="display:none;margin-top:12px"></div>
-      </div>
-    </div><!-- fine st-caa -->
-
-  </div><!-- fine tab-new -->
-
-
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;margin-top:16px">
-        <div class="panel-card" style="max-width:none">
-          <h3>📋 Dati sessione</h3>
-          <div class="fg" style="margin-bottom:14px">
-            <label class="flbl">Prova</label>
-            <select id="dis-sel-prova" class="finp" style="padding:9px 12px">
-              <option value="1">1 — Il cane di Lorenzo</option>
-              <option value="2">2 — La torta di Giulia</option>
-              <option value="3">3 — La gita al lago</option>
-              <option value="4">4 — Il nuovo compagno</option>
-              <option value="5">5 — La casa sull'albero</option>
-              <option value="6">6 — Il gatto di Miriam</option>
-              <option value="7">7 — Il quaderno di Ahmed</option>
-              <option value="8">8 — La bicicletta rossa</option>
-              <option value="9">9 — La nonna di Chiara</option>
-              <option value="10">10 — L'aquilone di Tommaso</option>
-            </select>
-          </div>
-          <div class="fg" style="margin-bottom:14px">
-            <label class="flbl">Classe</label>
-            <select id="dis-classe" class="finp" style="padding:9px 12px">
-              <option value="">— Nessuna (link generico) —</option>
-              <option value="3A">3A</option><option value="3B">3B</option>
-              <option value="3C">3C</option><option value="3D">3D</option><option value="3E">3E</option>
-            </select>
-          </div>
-          <div class="fg">
-            <label class="flbl">Nome alunno (opzionale)</label>
-            <input type="text" id="dis-nome" placeholder="es. Mario R." maxlength="40" class="finp" style="padding:9px 12px">
-          </div>
-        </div>
-
-        <div class="panel-card" style="max-width:none">
-          <h3>⚙️ Strumenti TIC</h3>
-          <div style="display:flex;flex-direction:column;gap:10px">
-            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-grande" style="width:16px;height:16px;accent-color:var(--verde)"> 🔍 <strong>Testo grande</strong></label>
-            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-maiuscolo" style="width:16px;height:16px;accent-color:var(--verde)"> 🔠 <strong>Stampato maiuscolo</strong></label>
-            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-contrasto" style="width:16px;height:16px;accent-color:var(--verde)"> 🌗 <strong>Alto contrasto</strong></label>
-            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-spaziatura" style="width:16px;height:16px;accent-color:var(--verde)"> ↔️ <strong>Spaziatura aumentata</strong></label>
-            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-font" style="width:16px;height:16px;accent-color:var(--verde)"> ✒️ <strong>Font dislessia</strong> — Lexend</label>
-            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-bes" style="width:16px;height:16px;accent-color:var(--verde)"> 📘 <strong>Modalità BES</strong></label>
-          </div>
-          <div style="margin-top:10px;padding:9px 12px;background:#e8f5e9;border-radius:6px;font-size:11px;color:var(--verde)">
-            ✓ Sempre attivi: illuminazione paragrafi, glossario, audio TTS.
-          </div>
-        </div>
-      </div>
-
-      <button onclick="creaSessDisabilita()" style="width:100%;margin-top:16px;padding:13px;background:var(--verde);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:800;cursor:pointer;font-family:var(--font)">
-        🔗 Genera link prova adattata
-      </button>
-      <div id="dis-succ" class="succ-msg" style="display:none;margin-top:12px"></div>
-
-      <!-- Crea prova personalizzata (fisarmonica) -->
-      <div style="margin-top:22px;border-top:2px dashed #b0c4de;padding-top:18px">
-        <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none" onclick="toggleAllegaProva(this)">
-          <div>
-            <div style="font-size:13px;font-weight:800;color:var(--blu)">📎 Crea prova personalizzata</div>
-            <div style="font-size:11px;color:#888;margin-top:2px">Scrivi un testo e domande su misura → genera il link</div>
-          </div>
-          <span id="allega-arrow" style="font-size:18px;color:var(--blu);transition:transform .2s">▸</span>
-        </div>
-        <div id="allega-form" style="display:none;margin-top:16px">
-          <div class="info-panel" style="margin-bottom:14px;background:#f0f4ff;border-color:#b3c6f7">
-            📌 Calibra sugli <strong>Obiettivi Minimi</strong>: comprensione, lessico, soggetto/predicato/complemento oggetto.
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-            <div>
-              <div class="fg" style="margin-bottom:10px"><label class="flbl">Titolo del testo</label><input type="text" id="ap-titolo" class="finp" placeholder="es. La passeggiata di Luca" style="padding:9px 12px"></div>
-              <div class="fg" style="margin-bottom:10px"><label class="flbl">Paragrafo 1 <span style="color:#888;font-weight:400">(obbligatorio)</span></label><textarea id="ap-par1" class="finp" rows="4" placeholder="Scrivi il primo paragrafo..." style="padding:9px 12px;resize:vertical;font-family:inherit;font-size:13px"></textarea></div>
-              <div class="fg" style="margin-bottom:10px"><label class="flbl">Paragrafo 2 <span style="color:#888;font-weight:400">(opzionale)</span></label><textarea id="ap-par2" class="finp" rows="4" placeholder="Secondo paragrafo..." style="padding:9px 12px;resize:vertical;font-family:inherit;font-size:13px"></textarea></div>
-              <div class="fg"><label class="flbl">Paragrafo 3 <span style="color:#888;font-weight:400">(opzionale)</span></label><textarea id="ap-par3" class="finp" rows="4" placeholder="Terzo paragrafo..." style="padding:9px 12px;resize:vertical;font-family:inherit;font-size:13px"></textarea></div>
-            </div>
-            <div>
-              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--blu);margin-bottom:10px">Domande (max 6)</div>
-              <div id="ap-domande-wrap" style="display:flex;flex-direction:column;gap:12px"></div>
-              <button onclick="addDomandaForm()" style="margin-top:10px;width:100%;padding:8px;border:2px dashed #b0c4de;border-radius:6px;background:#f7f9ff;color:var(--blu);cursor:pointer;font-size:12px;font-weight:700;font-family:var(--font)">➕ Aggiungi domanda</button>
-            </div>
-          </div>
-          <button onclick="generaProvaCustom()" style="margin-top:16px;width:100%;padding:12px;background:#5c35be;color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:800;cursor:pointer;font-family:var(--font)">📎 Genera link prova personalizzata</button>
-          <div id="ap-err" class="err-msg" style="display:none;margin-top:8px"></div>
-          <div id="ap-succ" class="succ-msg" style="display:none;margin-top:10px"></div>
-        </div>
       </div>
     </div><!-- fine st-dis -->
 
@@ -3574,16 +3275,125 @@ function getRisultatiClasse(){
   if(S.classe === 'ALL') return DB.risultati;
   return DB.risultati.filter(r => r.classe === S.classe);
 }
-
-// Ritorna solo i risultati standard (esclude prove disabilità e CAA dalle medie)
 function getRisultatiStandard(){
   return getRisultatiClasse().filter(r => !r.flag_dis);
 }
-
-// Ritorna solo risultati disabilità/CAA
 function getRisultatiDis(){
   return getRisultatiClasse().filter(r => r.flag_dis);
 }
+// ── ANALISI GENERALE ─────────────────────────────────────────────
+function miniTorta(errori, nProve){
+  const CC={'comprensione_globale':'#1565c0','comprensione_locale':'#1976d2','inferenza':'#42a5f5','struttura_testo':'#26a69a','lessico':'#66bb6a','lessico_contesto':'#a5d6a7','morfologia':'#ffa726','sintassi':'#ef5350','ortografia':'#ec407a','punteggiatura':'#ab47bc','coesione':'#78909c'};
+  const entries=Object.entries(errori).filter(([,n])=>n>0);
+  if(!entries.length) return '<svg width="54" height="54" viewBox="0 0 54 54"><circle cx="27" cy="27" r="24" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/><text x="27" y="31" text-anchor="middle" font-size="11" fill="#2e7d32" font-weight="700">✓</text></svg>';
+  const tot=entries.reduce((s,[,n])=>s+n,0);
+  let svg='',start=0;
+  const R=24,cx=27,cy=27;
+  entries.forEach(([c,n])=>{
+    const ang=(n/tot)*Math.PI*2;
+    const x1=cx+R*Math.cos(start),y1=cy+R*Math.sin(start);
+    const x2=cx+R*Math.cos(start+ang),y2=cy+R*Math.sin(start+ang);
+    const large=ang>Math.PI?1:0;
+    svg+='<path d="M'+cx+','+cy+' L'+x1.toFixed(1)+','+y1.toFixed(1)+' A'+R+','+R+' 0 '+large+',1 '+x2.toFixed(1)+','+y2.toFixed(1)+' Z" fill="'+(CC[c]||'#90a4ae')+'" opacity="0.85"/>';
+    start+=ang;
+  });
+  return '<svg width="54" height="54" viewBox="0 0 54 54" style="border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.15)">'+svg+'<circle cx="'+cx+'" cy="'+cy+'" r="10" fill="white"/><text x="'+cx+'" y="'+(cy+4)+'" text-anchor="middle" font-size="9" fill="#444" font-weight="700">'+nProve+'p</text></svg>';
+}
+
+function aggiornaGenerale(){
+  const ris = typeof getRisultatiStandard === 'function' ? getRisultatiStandard() : getRisultatiClasse().filter(r=>!r.flag_dis);
+  const risDis = typeof getRisultatiDis === 'function' ? getRisultatiDis() : [];
+  const noData = '<p style="color:#aaa;font-size:13px">Nessun dato disponibile.</p>';
+
+  if(!ris.length && !risDis.length){
+    ['gen-kpi','gen-andamento','gen-competenze','gen-alunni','gen-top10','gen-bottom10','gen-suggerimenti'].forEach(id=>{const el=$(id);if(el)el.innerHTML=noData;});
+    return;
+  }
+
+  // KPI
+  const avgPct=ris.length?Math.round(ris.reduce((s,r)=>s+r.pct,0)/ris.length):0;
+  const studenti=[...new Set(ris.map(r=>r.codice))].length;
+  const sessioni=[...new Set(ris.map(r=>r.sessione))].length;
+  const elKpi=$('gen-kpi');
+  if(elKpi) elKpi.innerHTML=ris.length?[
+    kpiCard('👥','Studenti',studenti),
+    kpiCard('📝','Prove',ris.length),
+    kpiCard('📊','Media',avgPct+'%',avgPct>=60?'var(--verde)':avgPct>=40?'var(--giallo)':'var(--rosso)'),
+    kpiCard('🏫','Sessioni',sessioni)
+  ].join(''):noData;
+
+  // Andamento per sessione
+  const classiSet=[...new Set(ris.map(r=>r.classe))].filter(Boolean);
+  const classiG=S.classe==='ALL'?classiSet:[S.classe];
+  const colC={'3A':'var(--blu)','3E':'var(--verde)','3B':'var(--arancio)','3C':'#7b1fa2','3D':'#00838f'};
+  let andH='';
+  classiG.forEach(cl=>{
+    const rCl=ris.filter(r=>r.classe===cl);
+    const sessIds=[...new Set(rCl.map(r=>r.sessione))].sort();
+    if(!sessIds.length) return;
+    if(S.classe==='ALL') andH+='<div style="font-size:13px;font-weight:700;color:'+(colC[cl]||'var(--blu)')+';margin-bottom:8px;margin-top:12px">Classe '+cl+'</div>';
+    andH+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">';
+    sessIds.forEach(sId=>{
+      const rS=rCl.filter(r=>r.sessione===sId);
+      const avg=Math.round(rS.reduce((s,r)=>s+r.pct,0)/rS.length);
+      const col=avg>=70?'var(--verde)':avg>=40?'var(--giallo)':'var(--rosso)';
+      const pid=parseInt(sId.replace(/prova-(\d+).*/,'$1'));
+      const p=typeof PROVE!=='undefined'?PROVE.find(x=>x.id===pid):null;
+      const titolo=p?p.titolo.substring(0,18)+'…':'Sess.'+sId.substring(0,8);
+      andH+='<div style="background:var(--grigio-ch);border-radius:8px;padding:10px 14px;min-width:110px;text-align:center;border-left:4px solid '+col+'"><div style="font-size:10px;color:#888;margin-bottom:4px">'+titolo+'</div><div style="font-size:22px;font-weight:800;color:'+col+'">'+avg+'%</div><div style="font-size:10px;color:#aaa">'+rS.length+' stud.</div></div>';
+    });
+    andH+='</div>';
+  });
+  const elAnd=$('gen-andamento');
+  if(elAnd) elAnd.innerHTML=andH||noData;
+
+  // Competenze
+  const compTot={};
+  ris.forEach(r=>Object.entries(r.errori||{}).forEach(([c,n])=>{compTot[c]=(compTot[c]||0)+n;}));
+  const elComp=$('gen-competenze');
+  if(elComp) elComp.innerHTML=ris.length?Object.entries(compTot).sort((a,b)=>b[1]-a[1]).map(([c,tot])=>{
+    const avg=(tot/ris.length).toFixed(1);
+    const pct=Math.max(0,100-Math.round(parseFloat(avg)*15));
+    return barraComp(c,pct,100,avg);
+  }).join('')||'<p style="color:var(--verde);font-weight:700">✅ Nessuna area critica.</p>':noData;
+
+  // Per alunno
+  const byStud={};
+  ris.forEach(r=>{
+    const key=r.codice+'__'+r.classe;
+    if(!byStud[key]) byStud[key]={codice:r.codice,classe:r.classe,pcts:[],sessioni:[],errori:{}};
+    byStud[key].pcts.push(r.pct);
+    byStud[key].sessioni.push(r.sessione);
+    Object.entries(r.errori||{}).forEach(([c,n])=>{byStud[key].errori[c]=(byStud[key].errori[c]||0)+n;});
+  });
+  const ranking=Object.values(byStud).map(s=>({...s,media:Math.round(s.pcts.reduce((a,b)=>a+b,0)/s.pcts.length)})).sort((a,b)=>b.media-a.media);
+  let alH='';
+  ranking.forEach(s=>{
+    const col=s.media>=70?'var(--verde)':s.media>=40?'var(--giallo)':'var(--rosso)';
+    const deb=Object.entries(s.errori).sort((a,b)=>b[1]-a[1])[0];
+    const badge=s.sessioni.map((sess,i)=>{const pct=s.pcts[i];const c=pct>=70?'var(--verde)':pct>=40?'var(--giallo)':'var(--rosso)';const pid=parseInt(sess.replace(/prova-(\d+).*/,'$1'));return '<span style="background:var(--grigio-ch);border:1px solid '+c+';border-radius:4px;padding:1px 6px;font-size:11px;color:'+c+';font-weight:700">P'+pid+': '+pct+'%</span>';}).join(' ');
+    const torta=miniTorta(s.errori,s.pcts.length);
+    alH+='<div style="background:var(--grigio-ch);border-radius:10px;padding:14px 16px;margin-bottom:10px;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center"><div><div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><span style="font-weight:700;font-size:13px">'+s.codice+'</span>'+(s.classe&&S.classe==='ALL'?'<span style="font-size:10px;background:var(--az);color:#fff;padding:1px 7px;border-radius:3px">'+s.classe+'</span>':'')+'<span style="font-size:20px;font-weight:800;color:'+col+'">'+s.media+'%</span><span style="font-size:11px;color:#888">'+s.pcts.length+' prov'+(s.pcts.length===1?'a':'e')+'</span></div><div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px">'+badge+'</div>'+(deb?'<div style="font-size:11px;color:#888">⚠️ Area debole: <strong>'+nC(deb[0])+'</strong></div>':'')+'</div><div style="text-align:center">'+torta+'</div></div>';
+  });
+  const elAl=$('gen-alunni');
+  if(elAl) elAl.innerHTML=alH||noData;
+
+  // Top/Bottom
+  const toCard=(s,i,tipo)=>studenteCard({...s,pct:s.media},i+1,tipo);
+  const elTop=$('gen-top10'),elBot=$('gen-bottom10');
+  if(elTop) elTop.innerHTML=ranking.slice(0,10).map((s,i)=>toCard(s,i,'top')).join('');
+  if(elBot) elBot.innerHTML=[...ranking].reverse().slice(0,10).map((s,i)=>toCard(s,i,'bottom')).join('');
+
+  // Suggerimenti
+  const compDeboli=Object.entries(compTot).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]);
+  renderSuggerimenti('gen-suggerimenti',compDeboli,true);
+}
+
+function aggiornaAnalisiGenerale(){
+  try{ aggiornaGenerale(); }catch(e){ console.warn('aggiornaGenerale',e); }
+}
+
+
 
 function kpiCard(ico, lbl, val, col='var(--blu)'){
   return `<div style="background:#fff;border-radius:10px;padding:16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.07)">
@@ -3623,6 +3433,361 @@ function studenteCard(r, rank, tipo){
 // ── CAMBIO CLASSE ────────────────────────────────────────────
 // ── SESSIONI ─────────────────────────────────────────────────
 // ── CREA SESSIONE (salva locale + Sheet) ─────────────────────
+
+// ══════════════════════════════════════════════════════════════
+//  GEMINI + GENERATORE DOMANDE DISABILITÀ
+// ══════════════════════════════════════════════════════════════
+var GEMINI_KEY_LS = 'gemini_api_key_invalsi';
+
+function getChiaveGemini(){ return localStorage.getItem(GEMINI_KEY_LS)||''; }
+
+function toggleGeminiSetup(){
+  var el=document.getElementById('gemini-setup');
+  var arrow=document.getElementById('gemini-arrow');
+  var open=el.style.display==='none';
+  el.style.display=open?'block':'none';
+  if(arrow) arrow.style.transform=open?'rotate(90deg)':'';
+  if(open){ var k=getChiaveGemini(); var inp=document.getElementById('gemini-key-input'); if(inp&&k) inp.value=k; }
+}
+
+function salvaChiaveGemini(){
+  var inp=document.getElementById('gemini-key-input');
+  var k=inp?inp.value.trim():'';
+  var msg=document.getElementById('gemini-key-msg');
+  if(!k||k.indexOf('AIza')!==0){
+    if(msg){msg.textContent='\u26a0\ufe0f La chiave deve iniziare con AIza\u2026';msg.style.color='#c62828';}
+    return;
+  }
+  localStorage.setItem(GEMINI_KEY_LS,k);
+  if(msg){msg.textContent='\u2705 Chiave salvata!';msg.style.color='#2e7d32';}
+  aggiornaStatoGemini();
+  setTimeout(function(){
+    var s=document.getElementById('gemini-setup'); if(s) s.style.display='none';
+    var a=document.getElementById('gemini-arrow'); if(a) a.style.transform='';
+  },800);
+}
+
+function cancellaChiaveGemini(){
+  localStorage.removeItem(GEMINI_KEY_LS);
+  var inp=document.getElementById('gemini-key-input'); if(inp) inp.value='';
+  aggiornaStatoGemini();
+}
+
+function aggiornaStatoGemini(){
+  var k=getChiaveGemini();
+  var lbl=document.getElementById('gemini-status-lbl');
+  if(lbl) lbl.textContent=k?'\u2705 Chiave API configurata \u2014 pronto per generare':'Inserisci la tua chiave API gratuita \u2014 si salva automaticamente nel browser';
+}
+
+async function callGemini(prompt){
+  var key=getChiaveGemini();
+  if(!key) throw new Error('Nessuna chiave Gemini. Clicca "Configurazione AI" e inserisci la chiave gratuita da aistudio.google.com/app/apikey');
+  var url='https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+key;
+  var body=JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.4,maxOutputTokens:4000}});
+  var res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:body});
+  if(!res.ok){
+    var err=await res.json().catch(function(){return {};});
+    throw new Error((err.error&&err.error.message)||'Errore HTTP '+res.status);
+  }
+  var data=await res.json();
+  return data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts&&data.candidates[0].content.parts[0]&&data.candidates[0].content.parts[0].text||'';
+}
+
+var _disAIProva=null;
+
+async function generaDomandeAI(){
+  var loadEl=document.getElementById('dis-ai-loading');
+  var errEl=document.getElementById('dis-ai-err');
+  var prevEl=document.getElementById('dis-ai-preview');
+  var testoEl=document.getElementById('dis-ai-testo');
+  var titoloEl=document.getElementById('dis-ai-titolo');
+  var ndomEl=document.getElementById('dis-ai-ndom');
+  var testo=testoEl?testoEl.value.trim():'';
+  var titolo=titoloEl?titoloEl.value.trim():'Prova personalizzata';
+  var ndom=Math.min(40,Math.max(3,parseInt(ndomEl?ndomEl.value:'10')||10));
+  if(!testo){
+    if(errEl){errEl.textContent='\u26a0\ufe0f Incolla un testo prima di generare.';errEl.style.display='block';}
+    return;
+  }
+  if(errEl) errEl.style.display='none';
+  if(loadEl) loadEl.style.display='block';
+  if(prevEl) prevEl.style.display='none';
+
+  var tipiRich=[];
+  if(document.getElementById('dis-tipo-sm')&&document.getElementById('dis-tipo-sm').checked) tipiRich.push('SM');
+  if(document.getElementById('dis-tipo-vf')&&document.getElementById('dis-tipo-vf').checked) tipiRich.push('VF');
+  if(document.getElementById('dis-tipo-ap')&&document.getElementById('dis-tipo-ap').checked) tipiRich.push('AP');
+  if(document.getElementById('dis-tipo-comp')&&document.getElementById('dis-tipo-comp').checked) tipiRich.push('COMP');
+  if(document.getElementById('dis-tipo-col')&&document.getElementById('dis-tipo-col').checked) tipiRich.push('COL');
+  if(!tipiRich.length) tipiRich.push('SM');
+  var inferenza=document.getElementById('dis-ai-inferenza')&&document.getElementById('dis-ai-inferenza').checked;
+
+  var prompt='Sei un esperto di didattica inclusiva per alunni con disabilita di scuola media italiana.\n\nTESTO:\n"""\n'+testo+'\n"""\n\nCOMPITO: Genera esattamente '+ndom+' domande sul testo.\nTipi da usare (distribuisci equamente): '+tipiRich.join(', ')+(inferenza?'\nIncludi almeno 2 domande inferenziali.':'')+'\nSuddividi il testo in paragrafi numerati (ogni ~80 parole). Usa frasi semplici e chiare.\n\nDescrizione tipi:\n- SM: scelta multipla, opts=[A,B,C,D], ok=indice risposta corretta (0-3)\n- VF: vero/falso, righeVF=[{"t":"affermazione","ok":true}] con 3-5 righe\n- AP: aperta breve, solo campo testo\n- COMP: completamento, frase="testo con ___ mancante", parole=["corretta","distr1","distr2","distr3"]\n- COL: collegamento, sinistra=["el1","el2"], destra=["corr1","corr2"] stesso ordine\n\nRispondi SOLO con JSON valido senza markdown:\n{"paragrafi":[{"n":1,"testo":"..."}],"domande":[{"n":1,"par":1,"tipo":"sm","sez":0,"testo":"...","opts":["A","B","C","D"],"ok":0}]}';
+
+  try{
+    var raw=await callGemini(prompt);
+    var match=raw.match(/\{[\s\S]*\}/);
+    if(!match) throw new Error('Formato risposta non valido. Riprova.');
+    var parsed=JSON.parse(match[0]);
+    if(!parsed.paragrafi||!parsed.domande) throw new Error('Struttura JSON incompleta');
+    _disAIProva={titolo:titolo||'Prova personalizzata',sottotitolo:'Prova personalizzata',glossario:[],paragrafi:parsed.paragrafi,domande:parsed.domande};
+    renderPreviewDisAI(parsed.domande);
+    if(loadEl) loadEl.style.display='none';
+    if(prevEl) prevEl.style.display='block';
+  } catch(e){
+    if(loadEl) loadEl.style.display='none';
+    if(errEl){errEl.textContent='\u26a0\ufe0f '+e.message;errEl.style.display='block';}
+  }
+}
+
+var TIPO_BADGE_DIS={
+  sm:['SM','#1565c0','#e3f2fd'],
+  vf:['VF','#2e7d32','#e8f5e9'],
+  ap:['AP','#e65100','#fff3e0'],
+  comp:['COMP','#6a1b9a','#f3e5f5'],
+  col:['COL','#880e4f','#fce4ec']
+};
+
+function escHtml(s){
+  return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function makeDomCardDis(d,idx){
+  var tipo=(d.tipo||'sm').toLowerCase();
+  var badge=TIPO_BADGE_DIS[tipo]||TIPO_BADGE_DIS.sm;
+  var lbl=badge[0],fg=badge[1],bg=badge[2];
+  var div=document.createElement('div');
+  div.className='ap-dom';
+  div.dataset.idx=String(idx);
+  div.style.cssText='background:#f7f9ff;border:1.5px solid #d0d9f0;border-radius:8px;padding:14px;position:relative';
+  var sezOpts='<option value="0">Comprensione</option><option value="1">Lessico</option><option value="2">Grammatica</option>';
+  var html='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
+    +'<div style="display:flex;align-items:center;gap:8px">'
+    +'<span class="tipo-badge" style="background:'+bg+';color:'+fg+';border-radius:4px;padding:2px 8px;font-size:11px;font-weight:800">'+lbl+'</span>'
+    +'<span style="font-size:11px;color:#888">Dom.'+(idx+1)+' Par.</span>'
+    +'<input type="number" class="dom-par" value="'+(d.par||1)+'" min="1" max="20" style="width:45px;padding:2px 5px;border:1px solid #ccc;border-radius:4px;font-size:12px;text-align:center">'
+    +'<select class="dom-sez" style="padding:3px 6px;border:1px solid #ccc;border-radius:4px;font-size:11px">'+sezOpts+'</select>'
+    +'</div>'
+    +'<button onclick="this.closest(\'.ap-dom\').remove()" style="background:none;border:none;color:#c62828;cursor:pointer;font-size:14px;padding:2px 6px">\u2715</button>'
+    +'</div>'
+    +'<div style="margin-bottom:8px">'
+    +'<label style="font-size:10px;font-weight:700;color:#666;text-transform:uppercase">Domanda</label>'
+    +'<input type="text" class="finp dom-testo" value="'+escHtml(d.testo||'')+'" style="padding:7px 10px;font-size:13px;margin-top:3px">'
+    +'</div>';
+
+  if(tipo==='sm'){
+    var opts=d.opts||['','','',''];
+    var ok=typeof d.ok==='number'?d.ok:0;
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">';
+    ['A','B','C','D'].forEach(function(l,i){
+      html+='<div><label style="font-size:10px;font-weight:700;color:#666">'+l+'</label>'
+        +'<input type="text" class="finp dom-opt" data-i="'+i+'" value="'+escHtml(opts[i]||'')+'" style="padding:6px 9px;font-size:12px;margin-top:2px"></div>';
+    });
+    html+='</div><div><label style="font-size:10px;font-weight:700;color:#666">Risposta corretta</label>'
+      +'<select class="finp dom-ok" style="padding:5px 9px;font-size:12px;margin-top:2px">';
+    ['A','B','C','D'].forEach(function(l,i){
+      html+='<option value="'+i+'"'+(ok===i?' selected':'')+'>'+l+'</option>';
+    });
+    html+='</select></div>';
+
+  } else if(tipo==='vf'){
+    var righe=d.righeVF||[{t:'',ok:true}];
+    html+='<div class="vf-rows">';
+    righe.forEach(function(r){
+      var selV=r.ok?' selected':'';
+      var selF=!r.ok?' selected':'';
+      html+='<div class="vf-row" style="display:flex;align-items:center;gap:6px;margin-bottom:5px">'
+        +'<input type="text" class="finp vf-testo" value="'+escHtml(r.t||'')+'" style="flex:1;padding:5px 9px;font-size:12px">'
+        +'<select class="vf-ok" style="padding:5px 8px;border:1px solid #ccc;border-radius:4px;font-size:12px">'
+        +'<option value="true"'+selV+'>Vero</option>'
+        +'<option value="false"'+selF+'>Falso</option>'
+        +'</select>'
+        +'<button onclick="this.closest(\'.vf-row\').remove()" style="background:none;border:none;color:#c62828;cursor:pointer;font-size:12px">\u2715</button>'
+        +'</div>';
+    });
+    html+='</div><button onclick="aggiungiRigaVF(this)" style="margin-top:4px;padding:4px 10px;background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;border-radius:4px;font-size:11px;cursor:pointer;font-family:var(--font)">+ Aggiungi riga</button>';
+
+  } else if(tipo==='ap'){
+    html+='<div style="background:#fff3e0;border-radius:6px;padding:8px 10px;font-size:11px;color:#7a4000">\u270f\ufe0f L\'alunno scriver\xe0 la risposta nel campo testo.</div>';
+
+  } else if(tipo==='comp'){
+    var parole=d.parole||['','','',''];
+    html+='<div style="margin-bottom:6px">'
+      +'<label style="font-size:10px;font-weight:700;color:#666">Frase con ___ al posto della parola mancante</label>'
+      +'<input type="text" class="finp dom-frase" value="'+escHtml(d.frase||'')+'" placeholder="es. Marco era molto ___ di tornare." style="padding:7px 10px;font-size:12px;margin-top:3px">'
+      +'</div><div><label style="font-size:10px;font-weight:700;color:#666">Parole (prima = risposta corretta)</label>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:3px">';
+    parole.forEach(function(p,i){
+      html+='<input type="text" class="finp dom-parola" data-i="'+i+'" value="'+escHtml(p)+'" placeholder="'+(i===0?'\u2705 Corretta':'Distrattore '+i)+'" style="padding:5px 9px;font-size:12px;'+(i===0?'border-color:var(--verde);':'')+'">';
+    });
+    html+='</div></div>';
+
+  } else if(tipo==='col'){
+    var sx=d.sinistra||['',''];
+    var dx=d.destra||['',''];
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+      +'<div><label style="font-size:10px;font-weight:700;color:#666">Sinistra</label>'
+      +'<div class="col-sx" style="display:flex;flex-direction:column;gap:4px;margin-top:3px">';
+    sx.forEach(function(v){ html+='<input type="text" class="finp col-item-sx" value="'+escHtml(v)+'" style="padding:5px 9px;font-size:12px">'; });
+    html+='</div></div>'
+      +'<div><label style="font-size:10px;font-weight:700;color:#666">Destra (stessa riga = coppia)</label>'
+      +'<div class="col-dx" style="display:flex;flex-direction:column;gap:4px;margin-top:3px">';
+    dx.forEach(function(v){ html+='<input type="text" class="finp col-item-dx" value="'+escHtml(v)+'" style="padding:5px 9px;font-size:12px">'; });
+    html+='</div></div></div>'
+      +'<button onclick="aggiungiCoppiaCol(this)" style="margin-top:6px;padding:4px 10px;background:#fce4ec;color:#880e4f;border:1px solid #f48fb1;border-radius:4px;font-size:11px;cursor:pointer;font-family:var(--font)">+ Aggiungi coppia</button>';
+  }
+
+  div.innerHTML=html;
+  setTimeout(function(){ var s=div.querySelector('.dom-sez'); if(s) s.value=String(d.sez||0); },0);
+  return div;
+}
+
+function aggiungiRigaVF(btn){
+  var rows=btn.previousElementSibling;
+  var div=document.createElement('div');
+  div.className='vf-row';
+  div.style.cssText='display:flex;align-items:center;gap:6px;margin-bottom:5px';
+  div.innerHTML='<input type="text" class="finp vf-testo" value="" style="flex:1;padding:5px 9px;font-size:12px" placeholder="Nuova affermazione...">'
+    +'<select class="vf-ok" style="padding:5px 8px;border:1px solid #ccc;border-radius:4px;font-size:12px">'
+    +'<option value="true">Vero</option><option value="false">Falso</option></select>'
+    +'<button onclick="this.closest(\'.vf-row\').remove()" style="background:none;border:none;color:#c62828;cursor:pointer;font-size:12px">\u2715</button>';
+  rows.appendChild(div);
+}
+
+function aggiungiCoppiaCol(btn){
+  var grid=btn.previousElementSibling;
+  var sx=grid.querySelector('.col-sx');
+  var dx=grid.querySelector('.col-dx');
+  [sx,dx].forEach(function(col,ci){
+    var inp=document.createElement('input');
+    inp.type='text';
+    inp.className='finp '+(ci===0?'col-item-sx':'col-item-dx');
+    inp.style.cssText='padding:5px 9px;font-size:12px';
+    col.appendChild(inp);
+  });
+}
+
+function aggiungiDomandaManuale(tipo){
+  var list=document.getElementById('dis-dom-list');
+  if(!list) return;
+  var idx=list.querySelectorAll('.ap-dom').length;
+  var tmpl={
+    sm:{tipo:'sm',par:1,sez:0,testo:'',opts:['','','',''],ok:0},
+    vf:{tipo:'vf',par:1,sez:0,testo:'Segna Vero o Falso',righeVF:[{t:'',ok:true},{t:'',ok:false}]},
+    ap:{tipo:'ap',par:1,sez:0,testo:''},
+    comp:{tipo:'comp',par:1,sez:1,testo:'Completa la frase',frase:'',parole:['','','','']},
+    col:{tipo:'col',par:1,sez:0,testo:'Collega',sinistra:['',''],destra:['','']}
+  };
+  list.appendChild(makeDomCardDis(tmpl[tipo]||tmpl.sm,idx));
+  var prev=document.getElementById('dis-ai-preview');
+  if(prev) prev.style.display='block';
+}
+
+function apriFinestraManuale(){
+  if(!_disAIProva){
+    var titoloEl=document.getElementById('dis-ai-titolo');
+    var testoEl=document.getElementById('dis-ai-testo');
+    var titolo=titoloEl?titoloEl.value.trim():'Prova';
+    var testo=testoEl?testoEl.value.trim():'';
+    var paras=testo.split(/\n\n+/).filter(Boolean).map(function(t,i){return {n:i+1,testo:t.trim()};});
+    _disAIProva={titolo:titolo,sottotitolo:'Prova personalizzata',glossario:[],paragrafi:paras.length?paras:[{n:1,testo:testo}],domande:[]};
+  }
+  var list=document.getElementById('dis-dom-list');
+  if(list&&!list.children.length) aggiungiDomandaManuale('sm');
+  var prev=document.getElementById('dis-ai-preview');
+  if(prev) prev.style.display='block';
+}
+
+function renderPreviewDisAI(domande){
+  var list=document.getElementById('dis-dom-list');
+  if(!list) return;
+  list.innerHTML='';
+  domande.forEach(function(d,i){ list.appendChild(makeDomCardDis(d,i)); });
+}
+
+function raccogliDomandeDis(){
+  var domande=[];
+  document.querySelectorAll('#dis-dom-list .ap-dom').forEach(function(card){
+    var badgeEl=card.querySelector('.tipo-badge');
+    var tipo=badgeEl?badgeEl.textContent.trim().toLowerCase():'sm';
+    var testoEl=card.querySelector('.dom-testo');
+    var testo=testoEl?testoEl.value.trim():'';
+    var sezEl=card.querySelector('.dom-sez');
+    var parEl=card.querySelector('.dom-par');
+    var sez=parseInt(sezEl?sezEl.value:'0')||0;
+    var par=parseInt(parEl?parEl.value:'1')||1;
+    var d={n:domande.length+1,par:par,sez:sez,testo:testo,tipo:tipo};
+    if(tipo==='sm'){
+      d.opts=Array.from(card.querySelectorAll('.dom-opt')).map(function(el){return el.value.trim();});
+      var okEl=card.querySelector('.dom-ok');
+      d.ok=parseInt(okEl?okEl.value:'0')||0;
+    } else if(tipo==='vf'){
+      d.righeVF=Array.from(card.querySelectorAll('.vf-row')).map(function(r){
+        var t=r.querySelector('.vf-testo'); var o=r.querySelector('.vf-ok');
+        return {t:t?t.value.trim():'',ok:o?o.value==='true':true};
+      }).filter(function(r){return r.t;});
+    } else if(tipo==='comp'){
+      var fraseEl=card.querySelector('.dom-frase');
+      d.frase=fraseEl?fraseEl.value.trim():'';
+      d.parole=Array.from(card.querySelectorAll('.dom-parola')).map(function(el){return el.value.trim();});
+    } else if(tipo==='col'){
+      d.sinistra=Array.from(card.querySelectorAll('.col-item-sx')).map(function(el){return el.value.trim();}).filter(Boolean);
+      d.destra=Array.from(card.querySelectorAll('.col-item-dx')).map(function(el){return el.value.trim();}).filter(Boolean);
+    }
+    domande.push(d);
+  });
+  return domande;
+}
+
+function creaLinkDisAI(){
+  var classeEl=document.getElementById('dis-classe');
+  var nomeEl=document.getElementById('dis-nome');
+  var classe=classeEl?classeEl.value:'';
+  var nome=nomeEl?nomeEl.value.trim():'';
+  if(!classe){alert('\u26a0\ufe0f Seleziona una classe.');return;}
+  if(!_disAIProva){alert('\u26a0\ufe0f Prima genera o crea le domande.');return;}
+  var domande=raccogliDomandeDis();
+  if(!domande.length){alert('\u26a0\ufe0f Aggiungi almeno una domanda.');return;}
+  var prova=Object.assign({},_disAIProva,{domande:domande});
+  var b64=btoa(unescape(encodeURIComponent(JSON.stringify(prova))));
+  var ticMap={
+    grande:!!(document.getElementById('dis-tic-grande')&&document.getElementById('dis-tic-grande').checked),
+    maiuscolo:!!(document.getElementById('dis-tic-maiuscolo')&&document.getElementById('dis-tic-maiuscolo').checked),
+    contrasto:!!(document.getElementById('dis-tic-contrasto')&&document.getElementById('dis-tic-contrasto').checked),
+    spaziatura:!!(document.getElementById('dis-tic-spaziatura')&&document.getElementById('dis-tic-spaziatura').checked),
+    font:!!(document.getElementById('dis-tic-font')&&document.getElementById('dis-tic-font').checked),
+    bes:!!(document.getElementById('dis-tic-bes')&&document.getElementById('dis-tic-bes').checked)
+  };
+  var ticAttivi=Object.keys(ticMap).filter(function(k){return ticMap[k];});
+  var sessKey='dis-'+classe+'-'+Date.now();
+  DB.sessioni[sessKey]={provaId:'custom',classe:classe,tipo:'disabilita',tic:ticMap,data:new Date().toISOString(),studenti:0,chiusa:false};
+  saveDB();
+  try{
+    fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'salvaSessione',sessione:sessKey,classe:classe,provaId:'custom',provaTitolo:prova.titolo,data:new Date().toISOString()})
+    }).catch(function(){});
+  }catch(e){}
+  var base=window.location.href.replace(/[^/]*$/,'')+'grado8_dis.html';
+  var params=new URLSearchParams();
+  params.set('prova','custom');params.set('data',b64);
+  params.set('sessione',sessKey);params.set('classe',classe);
+  if(nome) params.set('nome',nome);
+  if(ticAttivi.length) params.set('tic',ticAttivi.join(','));
+  var link=base+'?'+params.toString();
+  window._linkDisAI=link;
+  try{aggiornaTabellaSessioni();}catch(e){}
+  try{aggSelSessioni();}catch(e){}
+  var el=document.getElementById('dis-succ');
+  if(el){
+    el.innerHTML='\u2705 Sessione <strong>'+sessKey+'</strong> creata!<br>'
+      +'<div style="margin-top:8px;padding:8px 12px;background:#fff;border:1px solid var(--verde);border-radius:6px;word-break:break-all;font-size:11px;font-family:monospace">'+link.substring(0,180)+'\u2026</div>'
+      +'<button onclick="navigator.clipboard.writeText(window._linkDisAI).then(function(){alert(\'\u2705 Copiato!\')})" class="btn btn-g" style="margin-top:10px;width:100%;padding:9px;font-weight:700;font-size:13px">\ud83d\udccb Copia link</button>'
+      +'<div style="margin-top:6px;font-size:11px;color:#555">Classe: <strong>'+classe+'</strong> \xb7 Domande: <strong>'+domande.length+'</strong></div>';
+    el.style.display='block';
+  }
+}
+
+
 function creaSessione(){
   const valSel  = $('sel-prova-new').value;
   const provaId = Number(valSel);
@@ -3817,7 +3982,55 @@ function confermaDelStudente(){
   caricaAnalisi();
 }
 
-// mostraDetDoc, esportaCSV, salvaPW, togglePwVis — definite più avanti (unica versione)
+function mostraDetDoc(codice, sessione){
+  const r = DB.risultati.find(x=>x.codice===codice && x.sessione===sessione);
+  if(!r) return;
+  $('doc-det-title').textContent = `${r.codice} · ${r.classe} · ${r.pct}%`;
+  const deb = Object.entries(r.errori||{}).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([c])=>c);
+  $('doc-det-body').innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+      ${[['Totale',`${r.totale}/${r.su}`],['Lettura',`${r.sezioni[0]?.c||0}/${r.sezioni[0]?.t||0}`],
+         ['Lessico',`${r.sezioni[1]?.c||0}/${r.sezioni[1]?.t||0}`],
+         ['Grammatica',`${r.sezioni[2]?.c||0}/${r.sezioni[2]?.t||0}`]]
+        .map(([l,v])=>`<div style="text-align:center;background:var(--grigio-ch);border-radius:8px;padding:10px">
+          <div style="font-size:11px;color:#888">${l}</div>
+          <div style="font-size:18px;font-weight:800;color:var(--blu)">${v}</div>
+        </div>`).join('')}
+    </div>
+    <div style="font-size:12px;font-weight:700;color:var(--blu);margin-bottom:8px">Aree deboli:</div>
+    ${deb.map(c=>`<div style="background:var(--grigio-ch);border-left:3px solid var(--az);
+      padding:8px 12px;border-radius:4px;margin-bottom:6px;font-size:13px">${nC(c)}</div>`).join('')
+      ||'<p style="color:var(--verde);font-size:13px">Nessuna area critica.</p>'}
+    <button class="btn btn-s" onclick="stampaSchedaStudente('${codice}','${sessione}')"
+      style="width:100%;margin-top:12px;padding:9px;font-size:13px">🖨️ Stampa scheda</button>`;
+  $('doc-ris-wrap').classList.remove('hidden');
+  setTimeout(()=>$('doc-ris-wrap').scrollIntoView({behavior:'smooth', block:'nearest'}), 100);
+}
+
+function esportaCSV(){
+  const risultati = getRisultatiClasse();
+  if(!risultati.length){ alert('Nessun risultato da esportare per questa classe.'); return; }
+  const COMP_KEYS=['comprensione_globale','comprensione_locale','inferenza','struttura_testo','lessico','lessico_contesto','morfologia','sintassi','ortografia','punteggiatura','coesione'];
+  const hdr=['Codice','Sessione','Classe','DataProva','Totale','Su','Percentuale','Lettura','Lessico','Grammatica','CompetenzaDebole',...COMP_KEYS.map(k=>nC(k)+'_err')].join(',');
+  const rows=risultati.map(r=>{
+    const deb=Object.entries(r.errori||{}).sort((a,b)=>b[1]-a[1])[0];
+    const compVals=COMP_KEYS.map(k=>r.errori?.[k]||0);
+    return ['"'+r.codice+'"','"'+r.sessione+'"',r.classe||'',
+      new Date(r.data).toLocaleDateString('it-IT'),
+      r.totale,r.su,r.pct,
+      '"'+(r.sezioni[0]?.c??'')+'/'+(r.sezioni[0]?.t??'')+'"',
+      '"'+(r.sezioni[1]?.c??'')+'/'+(r.sezioni[1]?.t??'')+'"',
+      '"'+(r.sezioni[2]?.c??'')+'/'+(r.sezioni[2]?.t??'')+'"',
+      deb?'"'+nC(deb[0])+'"':'',...compVals].join(',');
+  });
+  const csv=[hdr,...rows].join('\n');
+  const label=S.classe==='ALL'?'tutte_classi':S.classe;
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download='INVALSI_risultati_'+label+'_'+new Date().toLocaleDateString('it-IT').replace(/\//g,'-')+'.csv';
+  a.click();
+}
+
 
 
 function popolaSelImport(){
@@ -4074,158 +4287,6 @@ function caricaAnalisiProva(){
 }
 
 // ── ANDAMENTO GENERALE ────────────────────────────────────────
-function aggiornaGenerale(){
-  // Risultati STANDARD (esclusi dis/CAA) per medie e KPI
-  const ris    = getRisultatiStandard();
-  // Risultati dis/CAA per sezione separata
-  const risDis = getRisultatiDis();
-
-  const noData = '<p style="color:#aaa;font-size:13px">Nessun dato disponibile.</p>';
-  if(!ris.length && !risDis.length){
-    ['gen-kpi','gen-andamento','gen-competenze','gen-alunni','gen-top10','gen-bottom10','gen-suggerimenti','gen-dis']
-      .forEach(id=>{ const el=$(id); if(el) el.innerHTML=noData; });
-    return;
-  }
-
-  // ── KPI (solo prove standard) ─────────────────────────────
-  const avgPct   = ris.length ? Math.round(ris.reduce((s,r)=>s+r.pct,0)/ris.length) : 0;
-  const studenti = [...new Set(ris.map(r=>r.codice))].length;
-  const classiSet= [...new Set(ris.map(r=>r.classe))].filter(Boolean);
-  const sessioni = [...new Set(ris.map(r=>r.sessione))].length;
-
-  const elKpi=$('gen-kpi');
-  if(elKpi) elKpi.innerHTML = ris.length ? [
-    kpiCard('👥','Studenti',studenti),
-    kpiCard('📝','Prove svolte',ris.length),
-    kpiCard('📊','Media generale',`${avgPct}%`,avgPct>=60?'var(--verde)':avgPct>=40?'var(--giallo)':'var(--rosso)'),
-    kpiCard('🏫','Sessioni',sessioni),
-  ].join('') : noData;
-
-  // ── ANDAMENTO PER PROVA ───────────────────────────────────
-  const coloriClassi={'3A':'var(--blu)','3E':'var(--verde)','3B':'var(--arancio)','3C':'#7b1fa2','3D':'#00838f'};
-  const classiGrafico = S.classe==='ALL' ? classiSet : [S.classe];
-  let andH='';
-  classiGrafico.forEach(cl=>{
-    const rCl=ris.filter(r=>r.classe===cl);
-    const sessIds=[...new Set(rCl.map(r=>r.sessione))].sort();
-    if(!sessIds.length) return;
-    if(S.classe==='ALL')
-      andH+=`<div style="font-size:13px;font-weight:700;color:${coloriClassi[cl]||'var(--blu)'};margin-bottom:8px;margin-top:12px">Classe ${cl}</div>`;
-    andH+=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">`;
-    sessIds.forEach(sId=>{
-      const rS=rCl.filter(r=>r.sessione===sId);
-      const avg=Math.round(rS.reduce((s,r)=>s+r.pct,0)/rS.length);
-      const col=avg>=70?'var(--verde)':avg>=40?'var(--giallo)':'var(--rosso)';
-      const pid=parseInt(sId.replace(/prova-(\d+).*/,'$1'));
-      const p=typeof PROVE!=='undefined'?PROVE.find(x=>x.id===pid):null;
-      const titolo=p?p.titolo.substring(0,20)+'…':`Sess. ${sId}`;
-      andH+=`<div style="background:var(--grigio-ch);border-radius:8px;padding:10px 14px;min-width:110px;text-align:center;border-left:4px solid ${col}">
-        <div style="font-size:10px;color:#888;margin-bottom:4px">${titolo}</div>
-        <div style="font-size:22px;font-weight:800;color:${col}">${avg}%</div>
-        <div style="font-size:10px;color:#aaa">${rS.length} stud.</div>
-      </div>`;
-    });
-    andH+='</div>';
-  });
-  const elAnd=$('gen-andamento');
-  if(elAnd) elAnd.innerHTML=andH||noData;
-
-  // ── COMPETENZE AGGREGATE (solo standard) ──────────────────
-  const compTot={};
-  ris.forEach(r=>Object.entries(r.errori||{}).forEach(([c,n])=>{
-    compTot[c]=(compTot[c]||0)+n;
-  }));
-  const elComp=$('gen-competenze');
-  if(elComp) elComp.innerHTML=ris.length
-    ? Object.entries(compTot).sort((a,b)=>b[1]-a[1]).map(([c,tot])=>{
-        const avg=(tot/ris.length).toFixed(1);
-        const pct=Math.max(0,100-Math.round(parseFloat(avg)*15));
-        return barraComp(c,pct,100,avg);
-      }).join('')||'<p style="color:var(--verde);font-weight:700">✅ Nessuna area critica.</p>'
-    : noData;
-
-  // ── PER ALUNNO (solo standard) ────────────────────────────
-  const byStud={};
-  ris.forEach(r=>{
-    const key=`${r.codice}__${r.classe}`;
-    if(!byStud[key]) byStud[key]={codice:r.codice,classe:r.classe,pcts:[],sessioni:[],errori:{}};
-    byStud[key].pcts.push(r.pct);
-    byStud[key].sessioni.push(r.sessione);
-    Object.entries(r.errori||{}).forEach(([c,n])=>{
-      byStud[key].errori[c]=(byStud[key].errori[c]||0)+n;
-    });
-  });
-  const ranking=Object.values(byStud)
-    .map(s=>({...s,media:Math.round(s.pcts.reduce((a,b)=>a+b,0)/s.pcts.length)}))
-    .sort((a,b)=>b.media-a.media);
-
-  let alunniH='';
-  ranking.forEach(s=>{
-    const col=s.media>=70?'var(--verde)':s.media>=40?'var(--giallo)':'var(--rosso)';
-    const debole=Object.entries(s.errori).sort((a,b)=>b[1]-a[1])[0];
-    const punteggiBadge=s.sessioni.map((sess,i)=>{
-      const pct=s.pcts[i];
-      const c=pct>=70?'var(--verde)':pct>=40?'var(--giallo)':'var(--rosso)';
-      const pid=parseInt(sess.replace(/prova-(\d+).*/,'$1'));
-      return `<span style="background:var(--grigio-ch);border:1px solid ${c};border-radius:4px;padding:1px 6px;font-size:11px;color:${c};font-weight:700">P${pid}: ${pct}%</span>`;
-    }).join(' ');
-    const torta=miniTorta(s.errori,s.pcts.length);
-    alunniH+=`<div style="background:var(--grigio-ch);border-radius:10px;padding:14px 16px;margin-bottom:10px;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center">
-      <div>
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-          <span style="font-weight:700;font-size:13px">${s.codice}</span>
-          ${s.classe&&S.classe==='ALL'?`<span style="font-size:10px;background:var(--az);color:#fff;padding:1px 7px;border-radius:3px">${s.classe}</span>`:''}
-          <span style="font-size:20px;font-weight:800;color:${col}">${s.media}%</span>
-          <span style="font-size:11px;color:#888">${s.pcts.length} prov${s.pcts.length===1?'a':'e'}</span>
-        </div>
-        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px">${punteggiBadge}</div>
-        ${debole?`<div style="font-size:11px;color:#888">⚠️ Area debole: <strong>${nC(debole[0])}</strong></div>`:''}
-      </div>
-      <div style="text-align:center">${torta}</div>
-    </div>`;
-  });
-  const elAlunni=$('gen-alunni');
-  if(elAlunni) elAlunni.innerHTML=alunniH||noData;
-
-  // ── TOP / BOTTOM (solo standard) ─────────────────────────
-  const toCard=(s,i,tipo)=>studenteCard({...s,pct:s.media},i+1,tipo);
-  const elTop=$('gen-top10'), elBot=$('gen-bottom10');
-  if(elTop)    elTop.innerHTML    = ranking.slice(0,10).map((s,i)=>toCard(s,i,'top')).join('');
-  if(elBot)    elBot.innerHTML    = [...ranking].reverse().slice(0,10).map((s,i)=>toCard(s,i,'bottom')).join('');
-
-  // ── SUGGERIMENTI (solo standard) ─────────────────────────
-  const compDeboli=Object.entries(compTot).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]);
-  renderSuggerimenti('gen-suggerimenti',compDeboli,true);
-
-  // ── ALUNNI CON DISABILITÀ / CAA (sezione separata) ───────
-  const elDis=$('gen-dis');
-  if(elDis){
-    if(!risDis.length){
-      elDis.innerHTML='<p style="color:#aaa;font-size:13px">Nessuna prova personalizzata registrata.</p>';
-    } else {
-      let disH='';
-      risDis.forEach(r=>{
-        const col=r.pct>=70?'var(--verde)':r.pct>=40?'var(--giallo)':'var(--rosso)';
-        const badge=r.tipo==='caa'
-          ? `<span style="font-size:10px;background:#7b1fa2;color:#fff;padding:1px 8px;border-radius:3px">CAA</span>`
-          : `<span style="font-size:10px;background:var(--verde);color:#fff;padding:1px 8px;border-radius:3px">Disabilità</span>`;
-        disH+=`<div style="background:var(--grigio-ch);border-radius:8px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px">
-          <div style="flex:1">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-              <span style="font-weight:700;font-size:13px">${r.codice}</span>
-              ${badge}
-              <span style="font-size:20px;font-weight:800;color:${col}">${r.pct}%</span>
-              <span style="font-size:11px;color:#888">${r.totale}/${r.su} risposte</span>
-            </div>
-            <div style="font-size:11px;color:#888">Sessione: ${r.sessione} · ${new Date(r.data).toLocaleDateString('it-IT')}</div>
-          </div>
-          <div style="font-size:22px">${r.pct>=70?'🌟':r.pct>=40?'👍':'💪'}</div>
-        </div>`;
-      });
-      elDis.innerHTML=disH;
-    }
-  }
-}
 
 // ── SUGGERIMENTI ──────────────────────────────────────────────
 function renderSuggerimenti(elId, compDeboli, globale=false){
@@ -4251,32 +4312,6 @@ function renderSuggerimenti(elId, compDeboli, globale=false){
           <div style="font-size:13px;color:#444;line-height:1.6">${SUGG[c]||'Vedi quadro di riferimento INVALSI.'}</div>
         </div>`).join('')
     : '<p style="color:var(--verde);font-weight:700">✅ Nessuna area critica in questa sessione.</p>';
-}
-
-// ── MINI TORTA SVG PER ALUNNO ─────────────────────────────────
-function miniTorta(errori, nProve){
-  const COMP_COLORI={
-    comprensione_globale:'#1565c0', comprensione_locale:'#1976d2',
-    inferenza:'#42a5f5', struttura_testo:'#26a69a',
-    lessico:'#66bb6a', lessico_contesto:'#a5d6a7',
-    morfologia:'#ffa726', sintassi:'#ef5350',
-    ortografia:'#ec407a', punteggiatura:'#ab47bc', coesione:'#78909c'
-  };
-  const entries=Object.entries(errori).filter(([,n])=>n>0);
-  if(!entries.length) return `<svg width="54" height="54" viewBox="0 0 54 54"><circle cx="27" cy="27" r="24" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/><text x="27" y="31" text-anchor="middle" font-size="11" fill="#2e7d32" font-weight="700">✓</text></svg>`;
-  const tot=entries.reduce((s,[,n])=>s+n,0);
-  let svgPath='',start=0;
-  const R=24,cx=27,cy=27;
-  entries.forEach(([c,n],i)=>{
-    const ang=(n/tot)*Math.PI*2;
-    const x1=cx+R*Math.cos(start), y1=cy+R*Math.sin(start);
-    const x2=cx+R*Math.cos(start+ang), y2=cy+R*Math.sin(start+ang);
-    const large=ang>Math.PI?1:0;
-    const col=COMP_COLORI[c]||'#90a4ae';
-    svgPath+=`<path d="M${cx},${cy} L${x1.toFixed(1)},${y1.toFixed(1)} A${R},${R} 0 ${large},1 ${x2.toFixed(1)},${y2.toFixed(1)} Z" fill="${col}" opacity="0.85"/>`;
-    start+=ang;
-  });
-  return `<svg width="54" height="54" viewBox="0 0 54 54" style="border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.15)">${svgPath}<circle cx="${cx}" cy="${cy}" r="10" fill="white"/><text x="${cx}" y="${cy+4}" text-anchor="middle" font-size="9" fill="#444" font-weight="700">${nProve}p</text></svg>`;
 }
 
 // ── POPOLADOCENTE ─────────────────────────────────────────────
@@ -4482,16 +4517,9 @@ function mostraSubTab(id, btn){
 }
 
 function creaSessioneCAA(){
-  const provaId = parseInt(document.getElementById('caa-sel-prova').value);
+  const provaId = document.getElementById('caa-sel-prova').value;
   const classe  = document.getElementById('caa-classe').value;
   const nome    = document.getElementById('caa-nome').value.trim();
-
-  if(!classe){
-    const el = document.getElementById('caa-succ');
-    el.innerHTML = '<div style="color:#7b1fa2;font-weight:700">⚠️ Seleziona una classe per registrare la sessione.</div>';
-    el.style.display='block';
-    return;
-  }
 
   const ticExtra = [];
   if(document.getElementById('caa-tic-grande')?.checked)    ticExtra.push('grande');
@@ -4502,41 +4530,15 @@ function creaSessioneCAA(){
   // CAA sempre inclusa
   const ticAll = ['caa', ...ticExtra];
 
-  // Registra sessione nel DB locale
-  const sessKey  = `caa-${provaId}-${classe}`;
-  const sessData = {
-    provaId, classe, tipo: 'caa', tic: {caa:true},
-    data: new Date().toISOString(),
-    studenti: 0, chiusa: false
-  };
-  DB.sessioni[sessKey] = sessData;
-  saveDB();
-  try{
-    fetch(SCRIPT_URL, {
-      method:'POST', mode:'no-cors',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        action:'salvaSessione', sessione:sessKey,
-        classe, provaId, provaTitolo:`CAA – prova ${provaId}`,
-        data: sessData.data
-      })
-    }).catch(()=>{});
-  }catch(e){}
-
   const base = window.location.href.replace(/[^/]*$/, '') + 'grado8_dis.html';
   const params = new URLSearchParams();
   params.set('prova', provaId);
-  params.set('classe', classe);
-  params.set('sessione', sessKey);          // ← passa la chiave sessione
-  if(nome) params.set('nome', nome);
+  if(classe) params.set('classe', classe);
+  if(nome)   params.set('nome', nome);
   params.set('tic', ticAll.join(','));
 
   const link = base + '?' + params.toString();
   window._linkCAA = link;
-
-  // Aggiorna UI docente
-  try{ aggiornaTabellaSessioni(); }catch(e){}
-  try{ aggSelSessioni(); }catch(e){}
 
   const nomiProve = {
     '11':'La colazione di Marco','12':'Al parco con Bello',
@@ -4544,7 +4546,7 @@ function creaSessioneCAA(){
   };
 
   const el = document.getElementById('caa-succ');
-  el.innerHTML = `✅ Sessione <strong>${sessKey}</strong> registrata:<br>
+  el.innerHTML = `✅ Link prova CAA generato:<br>
     <div style="margin-top:8px;padding:8px 12px;background:#fff;border:1px solid #9c27b0;border-radius:6px;word-break:break-all;font-size:12px;font-family:monospace">${link}</div>
     <button onclick="navigator.clipboard.writeText(window._linkCAA).then(()=>alert('✅ Link copiato!'))"
       style="margin-top:10px;width:100%;padding:9px;font-family:var(--font);font-weight:700;font-size:13px;border:none;border-radius:6px;cursor:pointer;background:#7b1fa2;color:#fff">
@@ -4552,361 +4554,128 @@ function creaSessioneCAA(){
     </button>
     <div style="margin-top:8px;font-size:11px;color:#555">
       Prova: <strong>${nomiProve[provaId]||provaId}</strong>
-      &nbsp;|&nbsp; Classe: <strong>${classe}</strong>
-      ${nome ? ' &nbsp;|&nbsp; Alunno: <strong>'+nome+'</strong>' : ''}<br>
-      TIC: <strong>${ticAll.join(', ')}</strong><br>
-      I risultati appariranno in <strong>Analisi sessione → ${sessKey}</strong>
+      ${classe ? ' &nbsp;|&nbsp; Classe: <strong>'+classe+'</strong>' : ''}
+      ${nome   ? ' &nbsp;|&nbsp; Alunno: <strong>'+nome+'</strong>' : ''}<br>
+      TIC: <strong>${ticAll.join(', ')}</strong>
     </div>`;
   el.style.display='block';
 }
 
-
-// ══════════════════════════════════════════════════════════════
-//  GEMINI API — CHIAVE + HELPER
-// ══════════════════════════════════════════════════════════════
-const GEMINI_KEY_LS = 'gemini_api_key_invalsi';
-
-function getChiaveGemini(){
-  return localStorage.getItem(GEMINI_KEY_LS) || '';
+// ── ALLEGA PROVA PERSONALIZZATA ──────────────────────────────────
+let _apDomN = 0;
+function toggleAllegaProva(header){
+  const form = document.getElementById('allega-form');
+  const arrow = document.getElementById('allega-arrow');
+  const open = form.style.display==='none';
+  form.style.display = open ? 'block' : 'none';
+  arrow.style.transform = open ? 'rotate(90deg)' : '';
+  if(open && _apDomN===0){ addDomandaForm(); addDomandaForm(); addDomandaForm(); }
 }
 
-function toggleGeminiSetup(){
-  const el = document.getElementById('gemini-setup');
-  const arrow = document.getElementById('gemini-arrow');
-  const open = el.style.display === 'none';
-  el.style.display = open ? 'block' : 'none';
-  if(arrow) arrow.style.transform = open ? 'rotate(90deg)' : '';
-  if(open){
-    const k = getChiaveGemini();
-    const inp = document.getElementById('gemini-key-input');
-    if(inp && k) inp.value = k;
-  }
-}
-
-function salvaChiaveGemini(){
-  const k = (document.getElementById('gemini-key-input')?.value || '').trim();
-  const msg = document.getElementById('gemini-key-msg');
-  if(!k || !k.startsWith('AIza')){
-    if(msg){ msg.textContent = '\u26a0\ufe0f La chiave deve iniziare con AIza\u2026'; msg.style.color='#c62828'; }
-    return;
-  }
-  localStorage.setItem(GEMINI_KEY_LS, k);
-  if(msg){ msg.textContent = '\u2705 Chiave salvata!'; msg.style.color='#2e7d32'; }
-  aggiornaStatoGemini();
-  setTimeout(()=>{ document.getElementById('gemini-setup').style.display='none';
-    document.getElementById('gemini-arrow').style.transform=''; }, 800);
-}
-
-function cancellaChiaveGemini(){
-  localStorage.removeItem(GEMINI_KEY_LS);
-  const inp = document.getElementById('gemini-key-input');
-  if(inp) inp.value = '';
-  aggiornaStatoGemini();
-}
-
-function aggiornaStatoGemini(){
-  const k = getChiaveGemini();
-  const lbl = document.getElementById('gemini-status-lbl');
-  if(lbl) lbl.textContent = k
-    ? '\u2705 Chiave API configurata \u2014 pronto per generare'
-    : 'Inserisci la tua chiave API gratuita \u2014 si salva automaticamente sul browser';
-}
-
-async function callGemini(prompt){
-  const key = getChiaveGemini();
-  if(!key) throw new Error('Nessuna chiave Gemini. Clicca "Configurazione AI" e inserisci la chiave gratuita da aistudio.google.com/app/apikey');
-  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + key;
-  const body = {
-    contents:[{parts:[{text:prompt}]}],
-    generationConfig:{temperature:0.4, maxOutputTokens:4000}
-  };
-  const res = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
-  if(!res.ok){
-    const err = await res.json().catch(()=>({}));
-    throw new Error(err?.error?.message || 'Errore HTTP ' + res.status);
-  }
-  const data = await res.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-}
-
-// ══════════════════════════════════════════════════════════════
-//  AI QUESTION GENERATOR — Disabilita
-// ══════════════════════════════════════════════════════════════
-let _disAIProva = null;
-let _caaAIParas = [], _caaAIDomande = [];
-
-async function generaDomandeAI(tipo){
-  if(tipo === 'caa'){ alert('Generazione CAA in sviluppo.'); return; }
-  const loadEl = document.getElementById('dis-ai-loading');
-  const errEl  = document.getElementById('dis-ai-err');
-  const prevEl = document.getElementById('dis-ai-preview');
-  const testo  = document.getElementById('dis-ai-testo')?.value.trim();
-  const titolo = document.getElementById('dis-ai-titolo')?.value.trim() || 'Prova personalizzata';
-  const ndom   = Math.min(40, Math.max(3, parseInt(document.getElementById('dis-ai-ndom')?.value)||10));
-
-  if(!testo){ errEl.textContent='\u26a0\ufe0f Incolla un testo prima di generare.'; errEl.style.display='block'; return; }
-  errEl.style.display='none';
-  loadEl.style.display='block';
-  prevEl.style.display='none';
-
-  const tipiRich = [];
-  if(document.getElementById('dis-tipo-sm')?.checked)   tipiRich.push('SM');
-  if(document.getElementById('dis-tipo-vf')?.checked)   tipiRich.push('VF');
-  if(document.getElementById('dis-tipo-ap')?.checked)   tipiRich.push('AP');
-  if(document.getElementById('dis-tipo-comp')?.checked) tipiRich.push('COMP');
-  if(document.getElementById('dis-tipo-col')?.checked)  tipiRich.push('COL');
-  if(!tipiRich.length) tipiRich.push('SM');
-  const inferenza = document.getElementById('dis-ai-inferenza')?.checked;
-
-  const prompt = 'Sei un esperto di didattica inclusiva per alunni con disabilita di scuola media italiana.\n\nTESTO:\n"""\n' + testo + '\n"""\n\nCOMPITO: Genera esattamente ' + ndom + ' domande sul testo.\nTipi da usare (distribuisci equamente): ' + tipiRich.join(', ') + '\n' + (inferenza ? '- Includi almeno 2 domande inferenziali (risposta non letterale nel testo)\n' : '') + '- Suddividi il testo in paragrafi numerati da 1 a N (ogni ~80 parole o cambio argomento).\n- Usa frasi brevi e chiare, lessico semplice.\n\nTipi di domanda:\n- SM: scelta multipla, 4 opzioni (opts), ok=indice risposta corretta (0-3)\n- VF: vero/falso, righeVF=[{t:"affermazione",ok:true/false}] (3-5 affermazioni)\n- AP: aperta breve, solo campo testo domanda (no opts)\n- COMP: frase con lacuna, "frase":"testo con ___ al posto mancante", "parole":["corretta","distr1","distr2","distr3"]\n- COL: collegamento, "sinistra":["el1","el2","el3"], "destra":["corr1","corr2","corr3"]\n\nRispondi SOLO con JSON valido, senza markdown:\n{\n  "paragrafi": [{"n":1,"testo":"..."}],\n  "domande": [\n    {"n":1,"par":1,"tipo":"sm","sez":0,"testo":"Chi e il protagonista?","opts":["Marco","Luca","Sara","Paolo"],"ok":0},\n    {"n":2,"par":2,"tipo":"vf","sez":0,"testo":"Segna V o F","righeVF":[{"t":"Marco va a scuola","ok":true},{"t":"Piove","ok":false}]},\n    {"n":3,"par":1,"tipo":"ap","sez":0,"testo":"Perche Marco era felice?"},\n    {"n":4,"par":3,"tipo":"comp","sez":1,"testo":"Completa","frase":"Marco era molto ___ di tornare.","parole":["felice","triste","stanco","arrabbiato"]},\n    {"n":5,"par":2,"tipo":"col","sez":0,"testo":"Collega","sinistra":["Marco","La quercia"],"destra":["e il protagonista","e un albero"]}\n  ]\n}';
-
-  try{
-    const raw = await callGemini(prompt);
-    const match = raw.match(/\{[\s\S]*\}/);
-    if(!match) throw new Error('Formato risposta non valido. Riprova.');
-    const parsed = JSON.parse(match[0]);
-    if(!parsed.paragrafi || !parsed.domande) throw new Error('Struttura JSON incompleta');
-    _disAIProva = {titolo, sottotitolo:'Prova personalizzata', glossario:[], paragrafi:parsed.paragrafi, domande:parsed.domande};
-    renderPreviewDis(parsed.domande);
-    loadEl.style.display='none';
-    prevEl.style.display='block';
-  } catch(e){
-    loadEl.style.display='none';
-    errEl.textContent = '\u26a0\ufe0f ' + e.message;
-    errEl.style.display='block';
-  }
-}
-
-// Badge colori per tipo
-const TIPO_BADGE = {
-  sm:   ['SM',   '#1565c0','#e3f2fd'],
-  vf:   ['VF',   '#2e7d32','#e8f5e9'],
-  ap:   ['AP',   '#e65100','#fff3e0'],
-  comp: ['COMP', '#6a1b9a','#f3e5f5'],
-  col:  ['COL',  '#880e4f','#fce4ec'],
-};
-
-function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-function makeDomCardDis(d, idx){
-  const tipo = (d.tipo||'sm').toLowerCase();
-  const [lbl, fg, bg] = TIPO_BADGE[tipo] || TIPO_BADGE.sm;
+function addDomandaForm(){
+  const wrap = document.getElementById('ap-domande-wrap');
+  if(!wrap) return;
+  const existing = wrap.querySelectorAll('.ap-dom').length;
+  if(existing >= 6){ alert('Massimo 6 domande.'); return; }
+  _apDomN++;
+  const n = _apDomN;
   const div = document.createElement('div');
-  div.className = 'ap-dom';
-  div.dataset.idx = idx;
-  div.style.cssText = 'background:#f7f9ff;border:1.5px solid #d0d9f0;border-radius:8px;padding:14px;position:relative';
-
-  const sezOpts = '<option value="0">Comprensione</option><option value="1">Lessico</option><option value="2">Grammatica</option>';
-
-  let html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
-    + '<div style="display:flex;align-items:center;gap:8px">'
-    + '<span class="tipo-badge" style="background:'+bg+';color:'+fg+';border-radius:4px;padding:2px 8px;font-size:11px;font-weight:800">'+lbl+'</span>'
-    + '<span style="font-size:11px;color:#888">Dom. '+(idx+1)+' \xb7 Par.</span>'
-    + '<input type="number" class="dom-par" value="'+(d.par||1)+'" min="1" max="20" style="width:45px;padding:2px 5px;border:1px solid #ccc;border-radius:4px;font-size:12px;text-align:center">'
-    + '<select class="dom-sez" style="padding:3px 6px;border:1px solid #ccc;border-radius:4px;font-size:11px">'+sezOpts+'</select>'
-    + '</div>'
-    + '<button onclick="this.closest(\'.ap-dom\').remove()" style="background:none;border:none;color:#c62828;cursor:pointer;font-size:14px;padding:2px 6px">\u2715</button>'
-    + '</div>'
-    + '<div style="margin-bottom:8px">'
-    + '<label style="font-size:10px;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:.5px">Testo domanda</label>'
-    + '<input type="text" class="finp dom-testo" value="'+escHtml(d.testo||'')+'" style="padding:7px 10px;font-size:13px;margin-top:3px">'
-    + '</div>';
-
-  if(tipo === 'sm'){
-    const opts = d.opts || ['','','',''];
-    const ok = d.ok ?? 0;
-    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">'
-      + ['A','B','C','D'].map((l,i) => '<div><label style="font-size:10px;font-weight:700;color:#666">'+l+'</label>'
-        + '<input type="text" class="finp dom-opt" data-i="'+i+'" value="'+escHtml(opts[i]||'')+'" style="padding:6px 9px;font-size:12px;margin-top:2px"></div>').join('')
-      + '</div><div><label style="font-size:10px;font-weight:700;color:#666">Risposta corretta</label>'
-      + '<select class="finp dom-ok" style="padding:5px 9px;font-size:12px;margin-top:2px">'
-      + ['A','B','C','D'].map((l,i) => '<option value="'+i+'"'+(ok===i?' selected':'')+'>'+l+'</option>').join('')
-      + '</select></div>';
-  } else if(tipo === 'vf'){
-    const righe = d.righeVF || [{t:'',ok:true}];
-    html += '<div class="vf-rows">'
-      + righe.map(r => '<div class="vf-row" style="display:flex;align-items:center;gap:6px;margin-bottom:5px">'
-        + '<input type="text" class="finp vf-testo" value="'+escHtml(r.t||'')+'" style="flex:1;padding:5px 9px;font-size:12px">'
-        + '<select class="vf-ok" style="padding:5px 8px;border:1px solid #ccc;border-radius:4px;font-size:12px">'
-        + '<option value="true"'+(r.ok?' selected':'')+'>Vero</option>'
-        + '<option value="false"'+(!r.ok?' selected':'')+'>Falso</option>'
-        + '</select>'
-        + '<button onclick="this.closest(\'.vf-row\').remove()" style="background:none;border:none;color:#c62828;cursor:pointer;font-size:12px">\u2715</button>'
-        + '</div>').join('')
-      + '</div><button onclick="aggiungiRigaVF(this)" style="margin-top:4px;padding:4px 10px;background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;border-radius:4px;font-size:11px;cursor:pointer;font-family:var(--font)">+ Aggiungi riga</button>';
-  } else if(tipo === 'ap'){
-    html += '<div style="background:#fff3e0;border-radius:6px;padding:8px 10px;font-size:11px;color:#7a4000">'
-      + '\u270f\ufe0f L\'alunno scriver\xe0 la risposta nel campo testo. Non servono opzioni.</div>';
-  } else if(tipo === 'comp'){
-    const parole = d.parole || ['','','',''];
-    html += '<div style="margin-bottom:6px">'
-      + '<label style="font-size:10px;font-weight:700;color:#666">Frase con ___ al posto della parola mancante</label>'
-      + '<input type="text" class="finp dom-frase" value="'+escHtml(d.frase||'')+'" placeholder="es. Marco era molto ___ di tornare." style="padding:7px 10px;font-size:12px;margin-top:3px">'
-      + '</div><div><label style="font-size:10px;font-weight:700;color:#666">Parole (la prima \xe8 la risposta corretta)</label>'
-      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:3px">'
-      + parole.map((p,i) => '<input type="text" class="finp dom-parola" data-i="'+i+'" value="'+escHtml(p)+'" placeholder="'+(i===0?'\u2705 Corretta':'Distrattore '+i)+'" style="padding:5px 9px;font-size:12px;'+(i===0?'border-color:var(--verde);':'')+'">' ).join('')
-      + '</div></div>';
-  } else if(tipo === 'col'){
-    const sx = d.sinistra || ['','',''];
-    const dx = d.destra   || ['','',''];
-    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
-      + '<div><label style="font-size:10px;font-weight:700;color:#666">Colonna sinistra</label>'
-      + '<div class="col-sx" style="display:flex;flex-direction:column;gap:4px;margin-top:3px">'
-      + sx.map(v => '<input type="text" class="finp col-item-sx" value="'+escHtml(v)+'" style="padding:5px 9px;font-size:12px">').join('')
-      + '</div></div>'
-      + '<div><label style="font-size:10px;font-weight:700;color:#666">Colonna destra (stessa riga = coppia corretta)</label>'
-      + '<div class="col-dx" style="display:flex;flex-direction:column;gap:4px;margin-top:3px">'
-      + dx.map(v => '<input type="text" class="finp col-item-dx" value="'+escHtml(v)+'" style="padding:5px 9px;font-size:12px">').join('')
-      + '</div></div>'
-      + '</div><button onclick="aggiungiCoppia(this)" style="margin-top:6px;padding:4px 10px;background:#fce4ec;color:#880e4f;border:1px solid #f48fb1;border-radius:4px;font-size:11px;cursor:pointer;font-family:var(--font)">+ Aggiungi coppia</button>';
-  }
-
-  div.innerHTML = html;
-  setTimeout(()=>{ const s = div.querySelector('.dom-sez'); if(s) s.value = d.sez||0; }, 0);
-  return div;
+  div.className='ap-dom';
+  div.dataset.n=n;
+  div.style.cssText='background:#f7f9ff;border:1.5px solid #d0d9f0;border-radius:8px;padding:12px';
+  div.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <span style="font-size:11px;font-weight:800;color:var(--blu)">Domanda ${existing+1}</span>
+      <button onclick="this.closest('.ap-dom').remove()"
+        style="background:none;border:none;color:#c62828;cursor:pointer;font-size:12px">✕ Rimuovi</button>
+    </div>
+    <div class="fg" style="margin-bottom:8px">
+      <label class="flbl" style="font-size:11px">Testo domanda</label>
+      <input type="text" class="finp ap-tdom" placeholder="es. Chi è il protagonista?" style="padding:8px 10px;font-size:13px">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
+      <div><label class="flbl" style="font-size:10px">Opzione A</label><input type="text" class="finp ap-opA" placeholder="Risposta A" style="padding:7px 10px;font-size:12px"></div>
+      <div><label class="flbl" style="font-size:10px">Opzione B</label><input type="text" class="finp ap-opB" placeholder="Risposta B" style="padding:7px 10px;font-size:12px"></div>
+      <div><label class="flbl" style="font-size:10px">Opzione C</label><input type="text" class="finp ap-opC" placeholder="Risposta C" style="padding:7px 10px;font-size:12px"></div>
+      <div><label class="flbl" style="font-size:10px">Opzione D</label><input type="text" class="finp ap-opD" placeholder="Risposta D" style="padding:7px 10px;font-size:12px"></div>
+    </div>
+    <div class="fg">
+      <label class="flbl" style="font-size:11px">Risposta corretta</label>
+      <select class="finp ap-ok" style="padding:7px 10px;font-size:12px">
+        <option value="0">A</option><option value="1">B</option>
+        <option value="2">C</option><option value="3">D</option>
+      </select>
+    </div>`;
+  wrap.appendChild(div);
 }
 
-function aggiungiRigaVF(btn){
-  const rows = btn.previousElementSibling;
-  const div = document.createElement('div');
-  div.className = 'vf-row';
-  div.style.cssText = 'display:flex;align-items:center;gap:6px;margin-bottom:5px';
-  div.innerHTML = '<input type="text" class="finp vf-testo" value="" style="flex:1;padding:5px 9px;font-size:12px" placeholder="Nuova affermazione...">'
-    + '<select class="vf-ok" style="padding:5px 8px;border:1px solid #ccc;border-radius:4px;font-size:12px"><option value="true">Vero</option><option value="false">Falso</option></select>'
-    + '<button onclick="this.closest(\'.vf-row\').remove()" style="background:none;border:none;color:#c62828;cursor:pointer;font-size:12px">\u2715</button>';
-  rows.appendChild(div);
-}
+function generaProvaCustom(){
+  const err = document.getElementById('ap-err');
+  const succ = document.getElementById('ap-succ');
+  err.style.display='none'; succ.style.display='none';
 
-function aggiungiCoppia(btn){
-  const grid = btn.previousElementSibling;
-  const sx = grid.querySelector('.col-sx');
-  const dx = grid.querySelector('.col-dx');
-  [sx,dx].forEach((col,ci) => {
-    const i = document.createElement('input');
-    i.type='text'; i.className='finp '+(ci===0?'col-item-sx':'col-item-dx');
-    i.style.cssText='padding:5px 9px;font-size:12px';
-    col.appendChild(i);
-  });
-}
+  const titolo = document.getElementById('ap-titolo').value.trim();
+  if(!titolo){ err.textContent='⚠️ Inserisci il titolo del testo.'; err.style.display='block'; return; }
 
-function aggiungiDomandaManuale(tipo){
-  const list = document.getElementById('dis-dom-list');
-  if(!list) return;
-  const idx = list.querySelectorAll('.ap-dom').length;
-  const tmpl = {
-    sm:   {tipo:'sm',  par:1,sez:0,testo:'',opts:['','','',''],ok:0},
-    vf:   {tipo:'vf',  par:1,sez:0,testo:'Segna Vero o Falso',righeVF:[{t:'',ok:true},{t:'',ok:false}]},
-    ap:   {tipo:'ap',  par:1,sez:0,testo:''},
-    comp: {tipo:'comp',par:1,sez:1,testo:'Completa la frase',frase:'',parole:['','','','']},
-    col:  {tipo:'col', par:1,sez:0,testo:'Collega',sinistra:['',''],destra:['','']},
-  };
-  list.appendChild(makeDomCardDis(tmpl[tipo]||tmpl.sm, idx));
-  document.getElementById('dis-ai-preview').style.display='block';
-}
+  const par1 = document.getElementById('ap-par1').value.trim();
+  if(!par1){ err.textContent='⚠️ Inserisci almeno il primo paragrafo.'; err.style.display='block'; return; }
 
-function aggiungiDomandaDis(tipo){ aggiungiDomandaManuale(tipo||'sm'); }
+  const paragrafi = [];
+  [par1, document.getElementById('ap-par2').value.trim(), document.getElementById('ap-par3').value.trim()]
+    .forEach((t,i)=>{ if(t) paragrafi.push({n:i+1, testo:t}); });
 
-function apriFinestraManuale(){
-  if(!_disAIProva){
-    const titolo = document.getElementById('dis-ai-titolo')?.value.trim()||'Prova';
-    const testo  = document.getElementById('dis-ai-testo')?.value.trim()||'';
-    const paras  = testo.split(/\n\n+/).filter(Boolean).map((t,i)=>({n:i+1,testo:t.trim()}));
-    _disAIProva  = {titolo, sottotitolo:'Prova personalizzata', glossario:[], paragrafi:paras.length?paras:[{n:1,testo:testo}], domande:[]};
-  }
-  const list = document.getElementById('dis-dom-list');
-  if(list && !list.children.length) aggiungiDomandaManuale('sm');
-  document.getElementById('dis-ai-preview').style.display='block';
-}
-
-function raccogliDomandeDis(){
   const domande = [];
-  document.querySelectorAll('#dis-dom-list .ap-dom').forEach((card)=>{
-    const badge = card.querySelector('.tipo-badge')?.textContent?.trim().toLowerCase() || 'sm';
-    const testo = card.querySelector('.dom-testo')?.value.trim()||'';
-    const sez   = parseInt(card.querySelector('.dom-sez')?.value||'0');
-    const par   = parseInt(card.querySelector('.dom-par')?.value||'1');
-    const d = {n:domande.length+1, par, sez, testo, tipo:badge};
-    if(badge==='sm'){
-      d.opts = [...card.querySelectorAll('.dom-opt')].map(i=>i.value.trim());
-      d.ok   = parseInt(card.querySelector('.dom-ok')?.value||'0');
-    } else if(badge==='vf'){
-      d.righeVF = [...card.querySelectorAll('.vf-row')].map(r=>({
-        t: r.querySelector('.vf-testo')?.value.trim()||'',
-        ok: r.querySelector('.vf-ok')?.value==='true'
-      })).filter(r=>r.t);
-    } else if(badge==='comp'){
-      d.frase  = card.querySelector('.dom-frase')?.value.trim()||'';
-      d.parole = [...card.querySelectorAll('.dom-parola')].map(i=>i.value.trim());
-    } else if(badge==='col'){
-      d.sinistra = [...card.querySelectorAll('.col-item-sx')].map(i=>i.value.trim()).filter(Boolean);
-      d.destra   = [...card.querySelectorAll('.col-item-dx')].map(i=>i.value.trim()).filter(Boolean);
-    }
-    domande.push(d);
+  let idx=1;
+  document.querySelectorAll('#ap-domande-wrap .ap-dom').forEach(div=>{
+    const tdom = div.querySelector('.ap-tdom')?.value.trim();
+    const A = div.querySelector('.ap-opA')?.value.trim();
+    const B = div.querySelector('.ap-opB')?.value.trim();
+    const C = div.querySelector('.ap-opC')?.value.trim();
+    const D = div.querySelector('.ap-opD')?.value.trim();
+    const ok = parseInt(div.querySelector('.ap-ok')?.value||'0');
+    if(!tdom||!A||!B){ return; } // salta vuote
+    const opts=[A,B];
+    if(C) opts.push(C); if(D) opts.push(D);
+    domande.push({n:idx++,par:1,tipo:'sm',sez:0,testo:tdom,opts,ok});
   });
-  return domande;
-}
 
-function raccogliDomande(listId){ return raccogliDomandeDis(); }
-function makeDomCard(d,idx){ return makeDomCardDis(d,idx); }
-function toggleOpts(){}
-function renderPreviewDis(domande){
-  const list=document.getElementById('dis-dom-list');
-  if(!list) return;
-  list.innerHTML='';
-  domande.forEach((d,i)=>list.appendChild(makeDomCardDis(d,i)));
-}
-function renderPreviewCAA(titolo,paragrafi,domande){
-  const pDiv=document.getElementById('caa-testo-preview');
-  if(pDiv) pDiv.innerHTML=paragrafi.map(p=>'<div style="background:var(--grigio-ch);border-radius:8px;padding:10px 14px"><div style="font-size:10px;font-weight:700;color:var(--blu);margin-bottom:5px">Paragrafo '+p.n+'</div><textarea data-par="'+p.n+'" style="width:100%;border:1px solid #d0d9f0;border-radius:6px;padding:8px 10px;font-size:13px;line-height:1.7;resize:vertical;font-family:inherit" rows="3">'+p.testo+'</textarea></div>').join('');
-  const list=document.getElementById('caa-dom-list');
-  if(list){ list.innerHTML=''; domande.forEach((d,i)=>list.appendChild(makeDomCardDis(d,i))); }
-}
+  if(!domande.length){ err.textContent='⚠️ Inserisci almeno una domanda completa (testo + A + B).'; err.style.display='block'; return; }
 
-function creaLinkDisAI(){
-  const classe = document.getElementById('dis-classe')?.value;
-  const nome   = document.getElementById('dis-nome')?.value.trim()||'';
-  if(!classe){ alert('\u26a0\ufe0f Seleziona una classe.'); return; }
-  if(!_disAIProva){ alert('\u26a0\ufe0f Prima genera o crea le domande.'); return; }
-  const domande = raccogliDomandeDis();
-  if(!domande.length){ alert('\u26a0\ufe0f Aggiungi almeno una domanda.'); return; }
-  const prova = Object.assign({}, _disAIProva, {domande});
-  const b64   = btoa(unescape(encodeURIComponent(JSON.stringify(prova))));
+  const provaObj = { titolo, sottotitolo:'Testo personalizzato', glossario:[], paragrafi, domande };
+  const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(provaObj))));
+
+  // Costruisci link con TIC attivi
   const ticMap = {
-    grande:    document.getElementById('dis-tic-grande')?.checked||false,
-    maiuscolo: document.getElementById('dis-tic-maiuscolo')?.checked||false,
-    contrasto: document.getElementById('dis-tic-contrasto')?.checked||false,
-    spaziatura:document.getElementById('dis-tic-spaziatura')?.checked||false,
-    font:      document.getElementById('dis-tic-font')?.checked||false,
-    bes:       document.getElementById('dis-tic-bes')?.checked||false,
+    grande: document.getElementById('dis-tic-grande')?.checked,
+    maiuscolo: document.getElementById('dis-tic-maiuscolo')?.checked,
+    contrasto: document.getElementById('dis-tic-contrasto')?.checked,
+    spaziatura: document.getElementById('dis-tic-spaziatura')?.checked,
+    font: document.getElementById('dis-tic-font')?.checked,
+    bes: document.getElementById('dis-tic-bes')?.checked,
+    caa: document.getElementById('dis-tic-caa')?.checked,
   };
   const ticAttivi = Object.keys(ticMap).filter(k=>ticMap[k]);
-  const sessKey = 'dis-' + classe + '-' + Date.now();
-  DB.sessioni[sessKey] = {provaId:'custom', classe, tipo:'disabilita', tic:ticMap, data:new Date().toISOString(), studenti:0, chiusa:false};
-  saveDB();
-  try{ fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({action:'salvaSessione',sessione:sessKey,classe,provaId:'custom',provaTitolo:prova.titolo,data:new Date().toISOString()})}).catch(()=>{}); }catch(e){}
-  const base = window.location.href.replace(/[^/]*$/, '') + 'grado8_dis.html';
+  const base = window.location.href.replace(/[^/]*$/,'') + 'grado8_dis.html';
   const params = new URLSearchParams();
-  params.set('prova','custom'); params.set('data',b64);
-  params.set('sessione',sessKey); params.set('classe',classe);
-  if(nome) params.set('nome',nome);
+  params.set('prova','custom');
+  params.set('data',b64);
+  const classe = document.getElementById('dis-classe')?.value;
+  const nome = document.getElementById('dis-nome')?.value.trim();
+  if(classe) params.set('classe',classe);
+  if(nome)   params.set('nome',nome);
   if(ticAttivi.length) params.set('tic',ticAttivi.join(','));
-  const link = base + '?' + params.toString();
-  window._linkDisAI = link;
-  try{ aggiornaTabellaSessioni(); }catch(e){}
-  try{ aggSelSessioni(); }catch(e){}
-  const el = document.getElementById('dis-succ');
-  el.innerHTML = '\u2705 Sessione <strong>' + sessKey + '</strong> creata!<br>'
-    + '<div style="margin-top:8px;padding:8px 12px;background:#fff;border:1px solid var(--verde);border-radius:6px;word-break:break-all;font-size:11px;font-family:monospace">' + link.substring(0,200) + '\u2026</div>'
-    + '<button onclick="navigator.clipboard.writeText(window._linkDisAI).then(()=>alert(\'\u2705 Copiato!\'))" class="btn btn-g" style="margin-top:10px;width:100%;padding:9px;font-weight:700;font-size:13px">\ud83d\udccb Copia link</button>'
-    + '<div style="margin-top:6px;font-size:11px;color:#555">Classe: <strong>' + classe + '</strong> \xb7 Domande: <strong>' + domande.length + '</strong> \xb7 Sessione: ' + sessKey + '</div>';
-  el.style.display = 'block';
-}
+  const link = base+'?'+params.toString();
 
-function creaLinkCaaAI(){
-  alert('Funzione CAA in sviluppo nella prossima versione.');
+  window._linkCustom = link;
+  succ.innerHTML=`✅ Link prova personalizzata:<br>
+    <div style="margin-top:8px;padding:8px 12px;background:#fff;border:1px solid var(--verde);border-radius:6px;word-break:break-all;font-size:11px;font-family:monospace">${link.substring(0,120)}…</div>
+    <button onclick="navigator.clipboard.writeText(window._linkCustom).then(()=>alert('✅ Link copiato!'))"
+      class="btn btn-g" style="margin-top:10px;width:100%;padding:9px;font-family:var(--font);font-size:13px;font-weight:700;border:none;border-radius:6px;cursor:pointer;background:var(--verde);color:#fff">
+      📋 Copia link
+    </button>
+    <div style="margin-top:6px;font-size:11px;color:#555">Prova: <strong>${titolo}</strong> — ${domande.length} domande — ${ticAttivi.length?'TIC: '+ticAttivi.join(', '):'nessun TIC'}</div>`;
+  succ.style.display='block';
 }
-
 
 function cambiaClasse(cl){
   S.classe = cl;
@@ -4923,134 +4692,34 @@ function cambiaClasse(cl){
   try{ popolaSelImport(); }catch(e){}
   try{ popolaSelProvaAnalisi(); }catch(e){}
   try{ aggiornaGenerale(); }catch(e){}
-  try{ aggiornaAnalisiGenerale(); }catch(e){}
 }
 
+// CARICA ANALISI SESSIONE (alias di caricaRis)
 
-// caricaAnalisi definita in precedenza (unica versione)
 
-function aggiornaAnalisiGenerale(){
-  // Questa funzione ora delega tutto ad aggiornaGenerale()
-  // che legge i dati autonomamente e scrive nei nuovi ID corretti.
-  try{ aggiornaGenerale(); }catch(e){ console.warn('aggiornaGenerale error',e); }
+
+// GESTIONE PASSWORD UNICA
+function costruisciPwRows(){ /* non più usata */ }
+
+function togglePwVis(id){
+  const inp=$(`pw-${id}`);
+  if(inp) inp.type = inp.type==='password'?'text':'password';
 }
 
-function mostraDetDoc(codice, sessione){
-  const r=DB.risultati.find(x=>x.codice===codice&&x.sessione===sessione);
-  if(!r) return;
-  $('doc-det-title').textContent=`Dettaglio – ${codice}`;
-
-  // ── Grafico a torta competenze per questo alunno in questa prova ──
-  const COMP_LABEL={
-    comprensione_globale:'Compr. globale', comprensione_locale:'Compr. locale',
-    inferenza:'Inferenza', struttura_testo:'Struttura testo',
-    lessico:'Lessico', lessico_contesto:'Lessico in cont.',
-    morfologia:'Morfologia', sintassi:'Sintassi',
-    ortografia:'Ortografia', punteggiatura:'Punteggiatura', coesione:'Coesione'
-  };
-  const COMP_COLORI={
-    comprensione_globale:'#1565c0', comprensione_locale:'#1976d2',
-    inferenza:'#42a5f5', struttura_testo:'#26a69a',
-    lessico:'#66bb6a', lessico_contesto:'#a5d6a7',
-    morfologia:'#ffa726', sintassi:'#ef5350',
-    ortografia:'#ec407a', punteggiatura:'#ab47bc', coesione:'#78909c'
-  };
-  const errori=r.errori||{};
-  const entries=Object.entries(errori).filter(([,n])=>n>0).sort((a,b)=>b[1]-a[1]);
-  let tortaHTML='';
-  if(entries.length){
-    const tot=entries.reduce((s,[,n])=>s+n,0);
-    let paths=''; let start=-Math.PI/2;
-    const R=70, cx=80, cy=80;
-    entries.forEach(([c,n])=>{
-      const ang=(n/tot)*Math.PI*2;
-      const x1=cx+R*Math.cos(start), y1=cy+R*Math.sin(start);
-      const x2=cx+R*Math.cos(start+ang), y2=cy+R*Math.sin(start+ang);
-      const large=ang>Math.PI?1:0;
-      const col=COMP_COLORI[c]||'#90a4ae';
-      paths+=`<path d="M${cx},${cy} L${x1.toFixed(1)},${y1.toFixed(1)} A${R},${R} 0 ${large},1 ${x2.toFixed(1)},${y2.toFixed(1)} Z" fill="${col}"><title>${COMP_LABEL[c]||c}: ${n} err.</title></path>`;
-      start+=ang;
-    });
-    const legenda=entries.map(([c,n])=>`
-      <div style="display:flex;align-items:center;gap:6px;font-size:11px;margin-bottom:4px">
-        <div style="width:12px;height:12px;border-radius:2px;background:${COMP_COLORI[c]||'#90a4ae'};flex-shrink:0"></div>
-        <span>${COMP_LABEL[c]||c}</span>
-        <span style="margin-left:auto;font-weight:700;color:${COMP_COLORI[c]||'#444'}">${n}</span>
-      </div>`).join('');
-    tortaHTML=`
-    <div style="background:var(--grigio-ch);border-radius:10px;padding:16px;margin-bottom:16px">
-      <div style="font-size:12px;font-weight:700;color:var(--blu);margin-bottom:12px">📊 Distribuzione errori per competenza</div>
-      <div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap">
-        <svg width="160" height="160" viewBox="0 0 160 160" style="flex-shrink:0">
-          ${paths}
-          <circle cx="${cx}" cy="${cy}" r="28" fill="white"/>
-          <text x="${cx}" y="${cy-5}" text-anchor="middle" font-size="14" font-weight="800" fill="var(--rosso)">${tot}</text>
-          <text x="${cx}" y="${cy+10}" text-anchor="middle" font-size="9" fill="#888">errori</text>
-        </svg>
-        <div style="flex:1;min-width:140px">${legenda}</div>
-      </div>
-    </div>`;
-  } else {
-    tortaHTML=`<div style="background:#e8f5e9;border-radius:10px;padding:14px;margin-bottom:16px;text-align:center;color:var(--verde);font-weight:700">✅ Nessun errore registrato in questa prova!</div>`;
-  }
-
-  // ── Dettaglio domande per sezione ──
-  let html='';
-  [0,1,2].forEach(iSez=>{
-    const ds=(r.det||[]).filter(x=>x.sez===iSez); if(!ds.length) return;
-    const ok=ds.filter(x=>x.ok).length;
-    const pctSez=Math.round(ok/ds.length*100);
-    const colSez=pctSez>=70?'var(--verde)':pctSez>=40?'var(--giallo)':'var(--rosso)';
-    html+=`<div style="margin-bottom:16px">
-      <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--blu);margin-bottom:7px;padding:6px 10px;background:var(--grigio-ch);border-radius:6px">
-        <span>${CFG.sezNomi[iSez]}</span>
-        <span style="color:${colSez}">${ok}/${ds.length} (${pctSez}%)</span>
-      </div>`;
-    ds.forEach((x,i)=>{
-      const c=x.ok?'var(--verde)':'var(--rosso)';
-      html+=`<div style="padding:7px 4px;border-bottom:1px solid #eee;font-size:12px">
-        <span style="color:${c};font-weight:800">${x.ok?'✓':'✗'}</span>&nbsp;
-        <strong>${i+1}.</strong> ${(x.testo||'').substring(0,70)}…<br>
-        <span style="color:${c};font-size:11px">Risposta: ${x.mia||'—'}</span>
-        ${!x.ok?`&nbsp;→&nbsp;<span style="color:var(--verde);font-size:11px">✓ ${x.corretta}</span>`:''}
-      </div>`;
-    });
-    html+=`</div>`;
-  });
-
-  $('doc-det-body').innerHTML=tortaHTML+html;
-  $('doc-ris-wrap').classList.remove('hidden');
+function salvaPW(){
+  const n1 = ($('pw-nuova')||{}).value||'';
+  const n2 = ($('pw-conferma')||{}).value||'';
+  const errEl=$('err-pw'), sucEl=$('succ-pw');
+  if(errEl) errEl.style.display='none';
+  if(!n1){ if(errEl){errEl.textContent='Inserisci la nuova password.';errEl.style.display='block';} return; }
+  if(n1!==n2){ if(errEl){errEl.textContent='Le password non coincidono.';errEl.style.display='block';} return; }
+  if(n1.length<6){ if(errEl){errEl.textContent='La password deve avere almeno 6 caratteri.';errEl.style.display='block';} return; }
+  setPW_doc(n1);
+  if(sucEl){ sucEl.textContent='✅ Password aggiornata!'; sucEl.style.display='block'; }
+  setTimeout(()=>{ if(sucEl) sucEl.style.display='none'; },3000);
+  if($('pw-nuova')) $('pw-nuova').value='';
+  if($('pw-conferma')) $('pw-conferma').value='';
 }
-
-// ── ESPORTA CSV — tutti i risultati della classe (o tutte) ───
-function esportaCSV(){
-  // Esporta TUTTI i risultati della classe corrente (non solo sessione aperta)
-  const risultati = getRisultatiClasse();
-  if(!risultati.length){ alert('Nessun risultato da esportare per questa classe.'); return; }
-  const COMP_KEYS=['comprensione_globale','comprensione_locale','inferenza','struttura_testo','lessico','lessico_contesto','morfologia','sintassi','ortografia','punteggiatura','coesione'];
-  const hdr=['Codice','Sessione','Classe','DataProva','Totale','Su','Percentuale','Lettura','Lessico','Grammatica','CompetenzaDebole',...COMP_KEYS.map(k=>nC(k)+'_err')].join(',');
-  const rows=risultati.map(r=>{
-    const deb=Object.entries(r.errori||{}).sort((a,b)=>b[1]-a[1])[0];
-    const compVals=COMP_KEYS.map(k=>r.errori?.(k)||0);
-    return [
-      `"${r.codice}"`,`"${r.sessione}"`,r.classe||'',
-      new Date(r.data).toLocaleDateString('it-IT'),
-      r.totale,r.su,r.pct,
-      `"${r.sezioni[0]?.c??''}/${r.sezioni[0]?.t??''}"`,
-      `"${r.sezioni[1]?.c??''}/${r.sezioni[1]?.t??''}"`,
-      `"${r.sezioni[2]?.c??''}/${r.sezioni[2]?.t??''}"`,
-      deb?`"${nC(deb[0])}"`:'',...compVals
-    ].join(',');
-  });
-  const csv=[hdr,...rows].join('\n');
-  const label=S.classe==='ALL'?'tutte_classi':S.classe;
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}));
-  a.download=`INVALSI_risultati_${label}_${new Date().toLocaleDateString('it-IT').replace(/\//g,'-')}.csv`;
-  a.click();
-}
-
-// togglePwVis e salvaPW definite in precedenza
 
 // CAMBIO CLASSE DENTRO IL PANNELLO
 function cambiaClassePanel(cl){
@@ -5604,21 +5273,10 @@ window.addEventListener('load', () => {
 // ══════════════════════════════════════════════════════════════
 //  SESSIONE PERSONALIZZATA DISABILITÀ → grado8_dis.html
 // ══════════════════════════════════════════════════════════════
-// creaSessDisabilita → sostituita da creaLinkDisAI (pannello AI)
 function creaSessDisabilita(){
-  creaLinkDisAI(); // delega al nuovo sistema AI
-  return;
-  // codice legacy disattivato — la variabile _disAIProva gestisce il link
-  const provaId = parseInt(document.getElementById('dis-sel-prova').value);
+  const provaId = document.getElementById('dis-sel-prova').value;
   const classe  = document.getElementById('dis-classe').value;
   const nome    = document.getElementById('dis-nome').value.trim();
-
-  if(!classe){
-    const el = document.getElementById('dis-succ');
-    el.innerHTML = '<div style="color:var(--rosso);font-weight:700">⚠️ Seleziona una classe per registrare la sessione.</div>';
-    el.style.display='block';
-    return;
-  }
 
   const ticMap = {
     grande:    document.getElementById('dis-tic-grande').checked,
@@ -5631,33 +5289,10 @@ function creaSessDisabilita(){
   };
   const ticAttivi = Object.keys(ticMap).filter(k => ticMap[k]);
 
-  // Registra sessione nel DB locale (come le sessioni standard)
-  const sessKey  = `dis-${provaId}-${classe}`;
-  const sessData = {
-    provaId, classe, tic: ticMap, tipo: 'disabilita',
-    data: new Date().toISOString(),
-    studenti: 0, chiusa: false
-  };
-  DB.sessioni[sessKey] = sessData;
-  saveDB();
-  // Notifica lo sheet
-  try{
-    fetch(SCRIPT_URL, {
-      method:'POST', mode:'no-cors',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        action:'salvaSessione', sessione:sessKey,
-        classe, provaId, provaTitolo:`Disabilità – prova ${provaId}`,
-        data: sessData.data
-      })
-    }).catch(()=>{});
-  }catch(e){}
-
   const base = window.location.href.replace(/[^/]*$/, '') + 'grado8_dis.html';
   const params = new URLSearchParams();
   params.set('prova', provaId);
-  params.set('classe', classe);
-  params.set('sessione', sessKey);          // ← passa la chiave sessione
+  if(classe) params.set('classe', classe);
   if(nome)   params.set('nome', nome);
   if(ticAttivi.length) params.set('tic', ticAttivi.join(','));
 
@@ -5678,12 +5313,8 @@ function creaSessDisabilita(){
     '10':'L\'aquilone di Tommaso'
   };
 
-  // Aggiorna UI
-  try{ aggiornaTabellaSessioni(); }catch(e){}
-  try{ aggSelSessioni(); }catch(e){}
-
   const el = document.getElementById('dis-succ');
-  el.innerHTML = `✅ Sessione <strong>${sessKey}</strong> registrata e link generato:<br>
+  el.innerHTML = `✅ Link prova personalizzata generato:<br>
     <div style="margin-top:8px;padding:8px 12px;background:#fff;border:1px solid var(--verde);
       border-radius:6px;word-break:break-all;font-size:12px;font-family:monospace">${link}</div>
     <button onclick="navigator.clipboard.writeText('${link.replace(/'/g,"\\'")}').then(()=>alert('✅ Link copiato!'))"
@@ -5694,10 +5325,9 @@ function creaSessDisabilita(){
     </button>
     <div style="margin-top:8px;font-size:11px;color:#555">
       Prova: <strong>${nomiProve[provaId]||provaId}</strong><br>
-      Classe: <strong>${classe}</strong><br>
-      ${nome ? 'Alunno: <strong>'+nome+'</strong><br>' : ''}
-      TIC attivi: <strong>${ticLabel}</strong><br>
-      I risultati appariranno nella sezione <strong>Analisi sessione → ${sessKey}</strong>
+      ${classe ? 'Classe: <strong>'+classe+'</strong><br>' : ''}
+      ${nome   ? 'Alunno: <strong>'+nome+'</strong><br>' : ''}
+      TIC attivi: <strong>${ticLabel}</strong>
     </div>`;
   el.style.display='block';
 }
