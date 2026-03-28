@@ -1,241 +1,170 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#001f5c">
-<title>Grado 8 – Simulazione INVALSI</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700;800&display=swap" rel="stylesheet">
-<style>
-/* ── VARIABILI E COLORI ORIGINALI ────────────────────────── */
-:root{
-  --blu:#003f8a;--blu-s:#001f5c;--blu-m:#1a5fa8;--az:#4a90d9;
-  --verde:#2e7d32;--rosso:#c62828;--giallo:#f9a825;--arancio:#e65100;
-  --grigio-ch:#f0f4f8;--grigio:#dde4ed;--testo:#1a2436;
-  --font:'Lexend', sans-serif;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--font);background:var(--grigio-ch);color:var(--testo);overflow-x:hidden}
-.hidden{display:none!important}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Grado 8 – Simulatore INVALSI 2026</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --blu:#003f8a; --blu-s:#001f5c; --blu-m:#1a5fa8; --az:#4a90d9;
+            --verde:#2e7d32; --rosso:#c62828; --giallo:#f9a825; --grigio:#dde4ed;
+            --testo:#1a2436; --font:'Lexend', sans-serif;
+        }
+        * { box-sizing:border-box; margin:0; padding:0; }
+        body { font-family:var(--font); background:#f0f4f8; color:var(--testo); line-height:1.6; overflow-x:hidden; }
+        .hidden { display:none !important; }
 
-/* ── ANIMAZIONE BENVENUTO E PARTICELLE ──────────────────── */
-#scr-benvenuto{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,var(--blu-s) 0%,var(--blu) 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff}
-.particella{position:absolute;border-radius:50%;background:rgba(255,255,255,.1);animation:flotta linear infinite}
-@keyframes flotta{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:1}90%{opacity:.5}100%{transform:translateY(-10vh) scale(1.2);opacity:0}}
+        /* ── ANIMAZIONE BENVENUTO ── */
+        #scr-benvenuto { position:fixed; inset:0; z-index:9999; background:linear-gradient(135deg,var(--blu-s) 0%,var(--blu) 100%); display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; }
+        .particella { position:absolute; border-radius:50%; background:rgba(255,255,255,.1); animation:flotta linear infinite; }
+        @keyframes flotta { 0% { transform:translateY(100vh) scale(0); opacity:0; } 10% { opacity:1; } 100% { transform:translateY(-10vh) scale(1.2); opacity:0; } }
 
-/* ── GRAFICI A DONUT (STUDENTE) ─────────────────────────── */
-.donut-wrap { width: 100px; height: 100px; margin: 10px auto; position: relative; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-.donut-inner { width: 75px; height: 75px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; color: var(--blu-s); }
+        /* ── GRAFICI DONUT CSS ── */
+        .donut-wrap { width:100px; height:100px; margin:10px auto; position:relative; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .donut-inner { width:75px; height:75px; background:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:16px; color:var(--blu-s); }
 
-/* ── LAYOUT TRE COLONNE (PROVA) ─────────────────────────── */
-.hdr{background:var(--blu-s);color:#fff;padding:10px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
-.layout{display:grid;grid-template-columns:220px 1fr 1fr;height:calc(100vh - 60px)}
-.sidebar{background:#fff;border-right:2px solid var(--grigio);padding:15px;overflow-y:auto}
-.testo-col{background:#fff;border-right:2px solid var(--grigio);padding:25px;overflow-y:auto}
-.dom-col{padding:25px;overflow-y:auto}
+        /* ── PANNELLO DOCENTE ── */
+        .scr-doc { padding:20px; max-width:1200px; margin:0 auto; }
+        .doc-hdr { background:var(--blu-s); color:white; padding:20px; border-radius:12px; display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+        .doc-tabs { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
+        .tab-btn { padding:10px 18px; border:none; border-radius:8px; background:white; color:var(--blu); cursor:pointer; font-weight:600; transition:0.3s; }
+        .tab-btn.att { background:var(--blu); color:white; }
+        
+        .panel-card { background:white; padding:25px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.05); margin-bottom:20px; }
+        .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:15px; margin-bottom:20px; }
+        .kpi-box { background:#f8f9fa; padding:15px; border-radius:10px; text-align:center; border-bottom:4px solid var(--az); }
+        .kpi-box span { display:block; font-size:11px; text-transform:uppercase; color:#666; }
+        .kpi-box strong { font-size:24px; color:var(--blu-s); }
 
-/* ── PANNELLO DOCENTE 2.0 ──────────────────────────────── */
-.scr-doc{padding:20px; max-width: 1200px; margin: 0 auto;}
-.doc-hdr{background:var(--blu-s); color:white; padding:20px; border-radius:12px; display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;}
-.doc-tabs{display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap;}
-.tab-btn{padding:10px 18px; border:none; border-radius:8px; background:white; color:var(--blu); cursor:pointer; font-weight:600; transition:0.3s;}
-.tab-btn.att{background:var(--blu); color:white;}
-.panel-card{background:white; padding:25px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.05); margin-bottom:20px;}
-.kpi-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:15px; margin-bottom:20px;}
-.kpi-box{background:#f8f9fa; padding:15px; border-radius:10px; text-align:center; border-bottom:4px solid var(--az);}
-.kpi-box span{display:block; font-size:11px; text-transform:uppercase; color:#666; margin-bottom:5px;}
-.kpi-box strong{font-size:24px; color:var(--blu-s);}
+        table { width:100%; border-collapse:collapse; }
+        th { text-align:left; padding:12px; background:#f4f7f9; font-size:12px; color:#555; }
+        td { padding:12px; border-bottom:1px solid #eee; font-size:14px; }
+        
+        .badge { padding:4px 8px; border-radius:4px; font-size:11px; font-weight:bold; }
+        .badge-v { background:#e8f5e9; color:#2e7d32; }
+        .badge-r { background:#ffebee; color:#c62828; }
 
-table{width:100%; border-collapse:collapse;}
-th{text-align:left; padding:12px; background:#f4f7f9; font-size:12px; text-transform:uppercase; color:#555;}
-td{padding:12px; border-bottom:1px solid #eee; font-size:14px;}
-tr:hover td{background:#fcfdfe;}
+        /* ── MODALE ── */
+        .modal { position:fixed; inset:0; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; z-index:2000; }
+        .modal-content { background:white; padding:30px; border-radius:15px; width:90%; max-width:550px; position:relative; }
+        .close-btn { position:absolute; top:15px; right:15px; cursor:pointer; font-size:24px; }
 
-.badge{padding:4px 8px; border-radius:4px; font-size:11px; font-weight:bold;}
-.badge-v{background:#e8f5e9; color:#2e7d32;}
-.badge-r{background:#ffebee; color:#c62828;}
-
-/* ── MODALE ALUNNO ── */
-.modal{position:fixed; inset:0; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; z-index:2000;}
-.modal-content{background:white; padding:30px; border-radius:15px; width:90%; max-width:550px; position:relative; max-height:90vh; overflow-y:auto;}
-.close-btn{position:absolute; top:15px; right:15px; cursor:pointer; font-size:24px;}
-
-/* ── UTILS ── */
-.btn-cl{margin-right:5px; font-size:12px; padding:6px 12px;}
-.btn-p{background:var(--blu); color:white; border:none; padding:10px 20px; border-radius:6px; cursor:pointer; font-weight:bold;}
-.btn-s{background:var(--grigio); color:var(--testo); border:none; padding:10px 20px; border-radius:6px; cursor:pointer;}
-</style>
+        .btn-p { background:var(--blu); color:white; border:none; padding:10px 20px; border-radius:6px; cursor:pointer; font-weight:bold; }
+        .btn-s { background:var(--grigio); color:var(--testo); border:none; padding:10px 20px; border-radius:6px; cursor:pointer; }
+    </style>
 </head>
 <body>
 
-<!-- ═══ SCHERMATA BENVENUTO ════════════════════════════════ -->
 <div id="scr-benvenuto">
     <div id="particelle-container"></div>
     <div style="text-align:center; z-index:10;">
-        <h1 style="font-size:3rem; font-weight:900; margin-bottom:10px;">GRADO 8</h1>
+        <h1 style="font-size:3rem; font-weight:900;">GRADO 8</h1>
         <p style="font-size:1.2rem; opacity:0.8;">Simulatore INVALSI 2026</p>
-        <div id="bv-loading" style="margin-top:30px; font-size:0.9rem; letter-spacing:2px;">CARICAMENTO...</div>
+        <div id="bv-loading" style="margin-top:30px; font-size:0.9rem; letter-spacing:2px;">CONNESSIONE AL DATABASE...</div>
     </div>
 </div>
 
-<!-- ═══ SCHERMATA ACCESSO ══════════════════════════════════ -->
 <div id="scr-acc" class="hidden" style="min-height:100vh; display:flex; align-items:center; justify-content:center;">
     <div class="panel-card" style="width:400px; text-align:center;">
         <h2 style="color:var(--blu-s); margin-bottom:25px;">Area Docente</h2>
-        <div style="margin-bottom:15px; text-align:left;">
-            <label style="font-size:12px; font-weight:bold; color:#555;">PASSWORD</label>
-            <input type="password" id="pw-doc" style="width:100%; padding:12px; border-radius:8px; border:2px solid var(--grigio); margin-top:5px;">
-        </div>
+        <input type="password" id="pw-doc" placeholder="Password" style="width:100%; padding:12px; border-radius:8px; border:2px solid var(--grigio); margin-bottom:15px;">
         <button class="btn-p" style="width:100%;" onclick="loginDocente()">ACCEDI</button>
-        <p id="err-login" style="color:var(--rosso); font-size:12px; margin-top:10px; display:none;">Password errata. Riprova.</p>
+        <p id="err-login" style="color:var(--rosso); font-size:12px; margin-top:10px; display:none;">Password errata!</p>
     </div>
 </div>
 
-<!-- ═══ PANNELLO DOCENTE ═══════════════════════════════════ -->
 <div id="scr-doc" class="hidden scr-doc">
     <div class="doc-hdr">
         <div>
             <h2 id="titolo-ruolo">Referente INVALSI</h2>
-            <p>Istituto Comprensivo Pasquale Sottocorno</p>
+            <p>IC Pasquale Sottocorno - Milano</p>
         </div>
-        <div style="display:flex; gap:10px; align-items:center;">
-            <div style="background:rgba(255,255,255,0.1); padding:8px 15px; border-radius:20px; font-size:13px;">
-                Classe: <strong id="lbl-classe-top">Tutte</strong>
-            </div>
-            <button class="btn-s" onclick="location.reload()">Esci</button>
-        </div>
+        <button class="btn-s" onclick="location.reload()">Esci</button>
     </div>
 
     <div class="doc-tabs">
         <button class="tab-btn att" onclick="mostraTab('tab-analisi', this)">📊 Analisi Generale</button>
-        <button class="tab-btn" onclick="mostraTab('tab-analisi-sessione', this)">📋 Analisi Prova</button>
         <button class="tab-btn" onclick="mostraTab('tab-sess', this)">⚙️ Gestione Link</button>
         <button class="tab-btn" onclick="mostraTab('tab-import', this)">☁️ Sincronizza Sheet</button>
     </div>
 
-    <!-- TAB 1: ANALISI GENERALE (VISTA DIRIGENTE/CLASSI) -->
     <div id="tab-analisi" class="panel">
         <div class="panel-card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
-                <h3>Dashboard Andamento Alunni</h3>
-                <div id="box-filtri">
-                    <button class="btn-s btn-cl" id="btn-cl-3A" onclick="cambiaClasse('3A')">Classe 3A</button>
-                    <button class="btn-s btn-cl" id="btn-cl-3E" onclick="cambiaClasse('3E')">Classe 3E</button>
-                    <button class="btn-s btn-cl att-cl" id="btn-cl-ALL" onclick="cambiaClasse('ALL')">Tutte le Classi</button>
+                <h3>Dashboard Andamento</h3>
+                <div>
+                    <button class="btn-s btn-cl" id="btn-cl-3A" onclick="cambiaClasse('3A')">3A</button>
+                    <button class="btn-s btn-cl" id="btn-cl-3E" onclick="cambiaClasse('3E')">3E</button>
+                    <button class="btn-s btn-cl" id="btn-cl-ALL" onclick="cambiaClasse('ALL')">Tutte</button>
                 </div>
             </div>
-
-            <div class="kpi-grid" id="gen-kpi">
+            <div class="kpi-grid">
                 <div class="kpi-box"><span>Media Generale</span><strong id="gen-media">--</strong></div>
-                <div class="kpi-box"><span>Prove Svolte</span><strong id="gen-tot">--</strong></div>
-                <div class="kpi-box"><span>Eccellenze (>85%)</span><strong id="gen-ecc">--</strong></div>
-                <div class="kpi-box"><span>Sotto Soglia (<50%)</span><strong id="gen-sos">--</strong></div>
+                <div class="kpi-box"><span>Totale Prove</span><strong id="gen-tot">--</strong></div>
+                <div class="kpi-box"><span>Sotto Soglia</span><strong id="gen-sos" style="color:var(--rosso)">--</strong></div>
             </div>
-
-            <div style="overflow-x:auto;">
-                <table id="table-alunni-agg">
-                    <thead>
-                        <tr>
-                            <th>Alunno</th>
-                            <th>Classe</th>
-                            <th>Prove</th>
-                            <th>Media %</th>
-                            <th>Punto Debole Prevalente</th>
-                            <th>Azioni</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbody-alunni-gen"></tbody>
-                </table>
-            </div>
+            <table>
+                <thead>
+                    <tr><th>Alunno</th><th>Classe</th><th>Prove</th><th>Media %</th><th>Dettaglio</th></tr>
+                </thead>
+                <tbody id="tbody-alunni-gen"></tbody>
+            </table>
         </div>
     </div>
 
-    <!-- TAB 2: GESTIONE LINK (NUOVA PROVA) -->
-    <div id="tab-sess" class="panel hidden">
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
-            <div class="panel-card">
-                <h3>📋 Generatore Link Standard (DSA/BES)</h3>
-                <p style="font-size:12px; color:#666; margin-bottom:15px;">Per prove normali con supporti tempo ed estetica.</p>
-                <div style="margin-bottom:10px;">
-                    <label class="flbl">Seleziona Prova</label>
-                    <select id="sel-prova-std" class="btn-s" style="width:100%; text-align:left; margin-top:5px;">
-                        <option value="1">1. Rosso Malpelo</option>
-                        <option value="2">2. La strada</option>
-                        <option value="3">3. L'ultimo volo</option>
-                        <!-- ... altre prove ... -->
-                    </select>
-                </div>
-                <label class="check-label"><input type="checkbox" id="chk-dys"> Font Lexend (Dislessia)</label>
-                <label class="check-label"><input type="checkbox" id="chk-big"> Testo Ingrandito</label>
-                <label class="check-label"><input type="checkbox" id="chk-tm"> Tempo Esteso (117 min)</label>
-                <button class="btn-p" style="width:100%; margin-top:15px;" onclick="generaLink('std')">GENERA LINK</button>
-            </div>
-
-            <div class="panel-card">
-                <h3>🌟 Generatore Link Adattato (Ob. Minimi)</h3>
-                <p style="font-size:12px; color:#666; margin-bottom:15px;">Testi semplificati, audio Babaluka e layout split.</p>
-                <div style="margin-bottom:10px;">
-                    <label class="flbl">Seleziona Prova Adattata</label>
-                    <select id="sel-prova-dis" class="btn-s" style="width:100%; text-align:left; margin-top:5px;">
-                        <option value="1">1. Il cane di Lorenzo</option>
-                        <option value="2">2. La torta di Giulia</option>
-                    </select>
-                </div>
-                <label class="check-label"><input type="checkbox" id="chk-caa"> Includi Pittogrammi CAA</label>
-                <button class="btn-p" style="width:100%; margin-top:40px;" onclick="generaLink('dis')">GENERA LINK DIS/CAA</button>
-            </div>
-        </div>
-        <div id="box-link-res" class="panel-card hidden" style="border:2px solid var(--verde); background:#e8f5e9;">
-            <p><strong>Link pronto da inviare agli studenti:</strong></p>
-            <input type="text" id="res-link-val" readonly style="width:100%; padding:10px; margin:10px 0; border:1px solid #ccc; border-radius:5px;">
-            <button class="btn-p" onclick="copiaLink()">COPIA LINK</button>
-        </div>
-    </div>
-
-    <!-- TAB 4: IMPORT (LOGICA SHEET) -->
     <div id="tab-import" class="panel hidden">
         <div class="panel-card" style="text-align:center;">
-            <h3>☁️ Sincronizzazione Dati Google Sheet</h3>
-            <p style="margin:15px 0; color:#555;">Usa questo pulsante per scaricare gli ultimi risultati registrati dagli studenti.</p>
-            <button class="btn-p" onclick="importaDaSheetReal()">🔄 AVVIA SINCRONIZZAZIONE ORA</button>
-            <div id="import-status" style="margin-top:20px; font-weight:bold;"></div>
+            <h3>Sincronizzazione Google Sheet</h3>
+            <p style="margin:15px 0;">Scarica i risultati aggiornati dal database di istituto.</p>
+            <button class="btn-p" onclick="importaDaSheetReal()">🔄 AGGIORNA DATI ORA</button>
+            <div id="import-status" style="margin-top:20px;"></div>
+        </div>
+    </div>
+
+    <!-- TAB GESTIONE LINK (Come richiesto, separata e pulita) -->
+    <div id="tab-sess" class="panel hidden">
+        <div class="panel-card">
+            <h3>Generatore Link</h3>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-top:20px;">
+                <div style="border-right: 1px solid #eee; padding-right:20px;">
+                    <h4>Standard / DSA</h4>
+                    <select id="sel-p-std" class="btn-s" style="width:100%; margin-top:10px;">
+                        <option value="1">1. Rosso Malpelo</option>
+                        <option value="2">2. La strada</option>
+                    </select>
+                    <button class="btn-p" style="width:100%; margin-top:15px;" onclick="generaLink('std')">Crea Link</button>
+                </div>
+                <div>
+                    <h4>Adattate / CAA</h4>
+                    <select id="sel-p-dis" class="btn-s" style="width:100%; margin-top:10px;">
+                        <option value="1">1. Il cane di Lorenzo (DIS)</option>
+                        <option value="11">11. La colazione (CAA)</option>
+                    </select>
+                    <button class="btn-p" style="width:100%; margin-top:15px;" onclick="generaLink('dis')">Crea Link Speciale</button>
+                </div>
+            </div>
+            <div id="res-link-box" class="hidden" style="margin-top:20px; padding:15px; background:#e3f2fd; border-radius:8px;">
+                <input type="text" id="final-link" readonly style="width:80%; padding:8px;">
+                <button class="btn-p" onclick="copiaLink()">Copia</button>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- ═══ MODALE DETTAGLIO STUDENTE ══════════════════════════ -->
 <div id="modal-stud" class="modal hidden">
     <div class="modal-content">
         <span class="close-btn" onclick="$('modal-stud').classList.add('hidden')">&times;</span>
         <h2 id="mod-nome">Studente</h2>
-        <p id="mod-classe">Classe</p>
-        
-        <div id="mod-donut" class="donut-wrap">
-            <div class="donut-inner" id="mod-pct">0%</div>
-        </div>
-        <p style="text-align:center; font-size:12px; color:#666; margin-bottom:20px;">Media Score Totale</p>
-        
-        <div style="text-align:left;">
-            <h4>Analisi Competenze</h4>
-            <div id="mod-competenze" style="margin-top:10px;">
-                <!-- Barre progresso -->
-            </div>
-            
-            <h4 style="margin-top:20px;">Storico Prove</h4>
-            <div id="mod-storico" style="max-height:150px; overflow-y:auto; margin-top:10px; border-top:1px solid #eee;">
-                <!-- Lista prove -->
-            </div>
-        </div>
+        <div id="mod-donut" class="donut-wrap"><div class="donut-inner" id="mod-pct">0%</div></div>
+        <div id="mod-info" style="margin-top:20px; text-align:left;"></div>
     </div>
 </div>
 
 <script>
-/* ══ CONFIGURAZIONE E MOTORE JS ══════════════════════════ */
 const $ = id => document.getElementById(id);
-let DB = { risultati: [], sessioni: {} };
-let RUOLO_ATTIVO = ""; 
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyi3j1opanbfed0PuGITdHE4f8BHjPBwWEKuSubnKr4kJjvgfGIXZMUOTfEoXDBvRSu/exec";
+let DB = { risultati: [] };
 let CLASSE_VISTA = "ALL";
 
 // 1. ANIMAZIONE PARTICELLE
@@ -245,47 +174,66 @@ function avviaParticelle() {
         const p = document.createElement('div');
         p.className = 'particella';
         const size = Math.random() * 15 + 5;
-        p.style.width = size + 'px';
-        p.style.height = size + 'px';
+        p.style.width = size + 'px'; p.style.height = size + 'px';
         p.style.left = Math.random() * 100 + '%';
         p.style.animationDuration = (Math.random() * 5 + 5) + 's';
-        p.style.animationDelay = (Math.random() * 5) + 's';
         container.appendChild(p);
     }
 }
 
-// 2. LOGIN CON RUOLI
+// 2. LOGIN & RUOLI
 function loginDocente() {
     const pw = $('pw-doc').value;
     if(pw === "referente2026") {
-        RUOLO_ATTIVO = "referente";
-        $('titolo-ruolo').textContent = "Referente INVALSI (Visione Totale)";
+        $('titolo-ruolo').textContent = "Referente INVALSI (Tutte)";
         $('scr-acc').classList.add('hidden');
         $('scr-doc').classList.remove('hidden');
-        cambiaClasse('ALL');
+        importaDaSheetReal();
     } else if(pw === "docente2026") {
-        RUOLO_ATTIVO = "docente";
         $('titolo-ruolo').textContent = "Pannello Docente";
-        $('btn-cl-ALL').classList.add('hidden'); // I docenti non vedono "Tutte"
+        $('btn-cl-ALL').style.display = "none";
         $('scr-acc').classList.add('hidden');
         $('scr-doc').classList.remove('hidden');
         cambiaClasse('3A');
+        importaDaSheetReal();
     } else {
         $('err-login').style.display = "block";
     }
-    caricaDatiEsempio(); // Qui chiamerai importaDaSheetReal() nel sistema vero
 }
 
-// 3. SWITCH CLASSE E FILTRO REALE
+// 3. FETCH REALE DAL TUO GOOGLE SHEET
+async function importaDaSheetReal() {
+    const status = $('import-status');
+    if(status) status.innerHTML = "⏳ Sincronizzazione con Google Sheet...";
+    
+    try {
+        const response = await fetch(SCRIPT_URL + "?action=leggiTutto");
+        const data = await response.json();
+        
+        if(data.risultati) {
+            DB.risultati = data.risultati.map(r => ({
+                codice: r['Codice studente'],
+                classe: r['Classe'],
+                pct: parseInt(r['Percentuale']),
+                provaId: r['Prova'],
+                debole: r['Competenza debole 1'],
+                lettura: r['Lettura corr.'] + "/" + r['Lettura tot.'],
+                lessico: r['Lessico corr.'] + "/" + r['Lessico tot.'],
+                grammatica: r['Grammatica corr.'] + "/" + r['Grammatica tot.']
+            }));
+            aggiornaAnalisiGenerale();
+            if(status) status.innerHTML = "<span style='color:green'>✅ Database Sincronizzato!</span>";
+        }
+    } catch (e) {
+        if(status) status.innerHTML = "<span style='color:red'>❌ Errore di connessione. Riprova.</span>";
+    }
+}
+
+// 4. ANALISI AGGREGATA
 function cambiaClasse(cl) {
     CLASSE_VISTA = cl;
-    $('lbl-classe-top').textContent = cl === 'ALL' ? "Tutte le Terze" : "Classe " + cl;
-    
-    // UI Bottoni
-    document.querySelectorAll('.btn-cl').forEach(b => b.style.background = "var(--grigio)");
+    document.querySelectorAll('.btn-cl').forEach(b => b.style.background = "white");
     if($('btn-cl-'+cl)) $('btn-cl-'+cl).style.background = "var(--az)";
-    if($('btn-cl-'+cl)) $('btn-cl-'+cl).style.color = "white";
-
     aggiornaAnalisiGenerale();
 }
 
@@ -293,106 +241,56 @@ function aggiornaAnalisiGenerale() {
     const ris = CLASSE_VISTA === 'ALL' ? DB.risultati : DB.risultati.filter(r => r.classe === CLASSE_VISTA);
     
     if(!ris.length) {
-        $('tbody-alunni-gen').innerHTML = "<tr><td colspan='6' style='text-align:center'>Nessun dato trovato per questa selezione.</td></tr>";
+        $('tbody-alunni-gen').innerHTML = "<tr><td colspan='5' style='text-align:center'>Nessun dato trovato.</td></tr>";
         return;
     }
 
-    // KPI Aggregati
     const media = Math.round(ris.reduce((s, r) => s + r.pct, 0) / ris.length);
-    const eccellenze = ris.filter(r => r.pct >= 85).length;
-    const sos = ris.filter(r => r.pct < 50).length;
-
     $('gen-media').textContent = media + "%";
     $('gen-tot').textContent = ris.length;
-    $('gen-ecc').textContent = eccellenze;
-    $('gen-sos').textContent = sos;
+    $('gen-sos').textContent = ris.filter(r => r.pct < 50).length;
 
-    // Raggruppamento per Alunno
     const mappaAlunni = {};
     ris.forEach(r => {
-        if(!mappaAlunni[r.codice]) mappaAlunni[r.codice] = { nome: r.codice, cl: r.classe, prove: 0, somma: 0, deboli: [] };
+        if(!mappaAlunni[r.codice]) mappaAlunni[r.codice] = { nome:r.codice, cl:r.classe, prove:0, somma:0 };
         mappaAlunni[r.codice].prove++;
         mappaAlunni[r.codice].somma += r.pct;
-        if(r.debole) mappaAlunni[r.codice].deboli.push(r.debole);
     });
 
     let html = "";
     for(let id in mappaAlunni) {
         const a = mappaAlunni[id];
         const mediaA = Math.round(a.somma / a.prove);
-        const pDebole = a.deboli.length ? a.deboli[a.deboli.length-1] : "Nessuno";
         html += `<tr>
             <td><strong>${a.nome}</strong></td>
             <td>${a.cl}</td>
             <td>${a.prove}</td>
             <td><span class="badge ${mediaA >= 60 ? 'badge-v' : 'badge-r'}">${mediaA}%</span></td>
-            <td>${pDebole}</td>
-            <td><button class="btn-s" style="padding:4px 8px; font-size:11px;" onclick="apriDettaglioStudente('${a.nome}')">Dettaglio</button></td>
+            <td><button class="btn-s" style="padding:4px 8px; font-size:11px;" onclick="apriDettaglioStudente('${a.nome}')">Vedi Donut</button></td>
         </tr>`;
     }
     $('tbody-alunni-gen').innerHTML = html;
 }
 
-// 4. DETTAGLIO STUDENTE CON DONUT CSS
+// 5. DETTAGLIO CON DONUT
 function apriDettaglioStudente(nome) {
-    const risStud = DB.risultati.filter(r => r.codice === nome);
-    const media = Math.round(risStud.reduce((s,r)=>s+r.pct,0) / risStud.length);
+    const proveAlunno = DB.risultati.filter(r => r.codice === nome);
+    const media = Math.round(proveAlunno.reduce((s,r)=>s+r.pct,0) / proveAlunno.length);
     
     $('mod-nome').textContent = nome;
-    $('mod-classe').textContent = "Classe " + risStud[0].classe;
     $('mod-pct').textContent = media + "%";
-    
-    // Disegna Donut
     const col = media >= 75 ? '#2e7d32' : media >= 55 ? '#f9a825' : '#c62828';
     $('mod-donut').style.background = `conic-gradient(${col} ${media * 3.6}deg, #eee 0deg)`;
 
-    // Storico
-    $('mod-storico').innerHTML = risStud.map(r => `
-        <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #f0f0f0;">
-            <span style="font-size:13px;">Prova ${r.provaId}</span>
-            <span style="font-weight:bold; color:${r.pct >= 60 ? 'green':'red'}">${r.pct}%</span>
+    $('mod-info').innerHTML = proveAlunno.map(p => `
+        <div style="border-bottom:1px solid #eee; padding:10px 0;">
+            <strong>Prova: ${p.provaId}</strong> - Score: ${p.pct}%<br>
+            <small>Lettura: ${p.lettura} | Lessico: ${p.lessico} | Gram: ${p.grammatica}</small><br>
+            <span style="color:var(--rosso); font-size:11px;">Debolezza: ${p.debole}</span>
         </div>
     `).join('');
 
     $('modal-stud').classList.remove('hidden');
-}
-
-// 5. GENERATORE LINK
-function generaLink(tipo) {
-    const base = window.location.href.split('index.html')[0];
-    let link = "";
-    if(tipo === 'std') {
-        const id = $('sel-prova-std').value;
-        const tic = [];
-        if($('chk-dys').checked) tic.push('font');
-        if($('chk-big').checked) tic.push('large');
-        if($('chk-tm').checked) tic.push('tempo=dsa');
-        link = `${base}index.html?prova=${id}&tic=${tic.join(',')}`;
-    } else {
-        const id = $('sel-prova-dis').value;
-        const caa = $('chk-caa').checked ? "&tic=caa" : "";
-        link = `${base}grado8_dis.html?prova=${id}${caa}`;
-    }
-    $('res-link-val').value = link;
-    $('box-link-res').classList.remove('hidden');
-}
-
-function copiaLink() {
-    $('res-link-val').select();
-    document.execCommand('copy');
-    alert("Link copiato! Incollalo su Classroom.");
-}
-
-// 6. DATI MOCKUP (Per test immediato)
-function caricaDatiEsempio() {
-    DB.risultati = [
-        { codice: "Mario R.", classe: "3A", pct: 88, provaId: "1", debole: "Lessico" },
-        { codice: "Mario R.", classe: "3A", pct: 72, provaId: "2", debole: "Lessico" },
-        { codice: "Elena V.", classe: "3E", pct: 45, provaId: "1", debole: "Grammatica" },
-        { codice: "Luigi B.", classe: "3A", pct: 94, provaId: "1", debole: "Nessuno" },
-        { codice: "Sofia G.", classe: "3E", pct: 68, provaId: "1", debole: "Comprensione" }
-    ];
-    aggiornaAnalisiGenerale();
 }
 
 function mostraTab(id, btn) {
@@ -402,18 +300,28 @@ function mostraTab(id, btn) {
     btn.classList.add('att');
 }
 
+function generaLink(tipo) {
+    const id = tipo === 'std' ? $('sel-p-std').value : $('sel-p-dis').value;
+    const base = window.location.href.split('index.html')[0];
+    const file = tipo === 'std' ? "index.html" : "grado8_dis.html";
+    $('final-link').value = `${base}${file}?prova=${id}`;
+    $('res-link-box').classList.remove('hidden');
+}
+
+function copiaLink() {
+    $('final-link').select();
+    document.execCommand('copy');
+    alert("Link copiato!");
+}
+
 window.onload = () => {
     avviaParticelle();
     setTimeout(() => {
-        $('scr-benvenuto').style.transition = "0.8s";
+        $('scr-benvenuto').style.transition = "1s";
         $('scr-benvenuto').style.opacity = "0";
-        setTimeout(() => {
-            $('scr-benvenuto').classList.add('hidden');
-            $('scr-acc').classList.remove('hidden');
-        }, 800);
-    }, 2000);
+        setTimeout(() => { $('scr-benvenuto').style.display="none"; $('scr-acc').classList.remove('hidden'); }, 1000);
+    }, 2500);
 };
-
 </script>
 </body>
 </html>
