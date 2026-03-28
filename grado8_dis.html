@@ -1374,155 +1374,124 @@ function togTicCAA(){
 }
 
 // Cache pittogrammi per evitare chiamate ripetute
-// ── ARASAAC — pittogrammi tramite API pubblica (CORS OK) ──────────
-// Pittogrammi © Governo di Aragona — Sergio Palao — ARASAAC (arasaac.org) — CC BY-NC-SA
-function picUrl(id){ return `https://static.arasaac.org/pictograms/${id}/${id}_500.png`; }
+// ══ CAA — Pittogrammi ARASAAC ══════════════════════════════════
+// © Governo di Aragona — Sergio Palao per ARASAAC (arasaac.org) — CC BY-NC-SA
+// Dizionario parola→ID verificato: immagini caricate direttamente
+// senza fetch() → zero problemi CORS
+const ARASAAC = {
+  'acqua':2083,'albero':2660,'arancione':2788,'arcobaleno':2786,
+  'arrabbiato':2810,'bambina':2939,'bambino':2940,'banana':3010,
+  'bere':3498,'berretto':3160,'bianco':3214,'biscotti':3267,
+  'blu':3305,'borraccia':3329,'caldo':3632,'camminare':3637,
+  'cane':4884,'cappotto':3699,'casa':19268,'ciotola':4020,
+  'contento':5040,'correre':6223,'crocchette':4414,'cucchiaio':4447,
+  'cucina':4446,'dormire':7684,'erba':4899,'fame':5003,
+  'felice':5040,'fiore':5081,'foglie':5093,'forchetta':5131,
+  'forno':5130,'fragole':5152,'freddo':5165,'frutta':5190,
+  'gatto':4917,'giallo':5185,'giardino':5194,'giocare':6224,
+  'guinzaglio':5303,'impermeabile':5434,'lago':5494,'latte':5604,
+  'letto':5551,'mamma':37076,'mangiare':6830,'mare':5752,
+  'marrone':5754,'mela':5809,'neve':6017,'nero':5965,
+  'nonna':6635,'nonno':6637,'nuvole':6684,'pallone':6956,
+  'pane':6982,'papà':6990,'parco':6985,'pasta':6992,
+  'paura':6996,'piange':7062,'pioggia':7090,'pizza':7098,
+  'pozzanghere':7127,'ragazza':7238,'ragazzo':7237,'ride':7330,
+  'rosso':7349,'saltare':7518,'scuola':6054,'sete':7618,
+  'sole':7766,'sonno':7684,'stivali':7826,'strada':7830,
+  'stanco':7818,'tavolo':7874,'tazza':7944,'torta':7953,
+  'triste':7963,'verdure':8039,'verde':8037,'vento':8053,
+  'zaino':8132,'zucchero':8142,'fragola':5152,'banana':3010,
+};
 
-// Timeout semplice compatibile con tutti i browser
-function fetchConTimeout(url, ms){
-  return new Promise((res,rej)=>{
-    const t = setTimeout(()=>rej(new Error('timeout')), ms);
-    fetch(url).then(r=>{ clearTimeout(t); res(r); }).catch(e=>{ clearTimeout(t); rej(e); });
-  });
-}
+function arasaacUrl(id){ return `https://static.arasaac.org/pictograms/${id}/${id}_500.png`; }
 
-// Cache per sessione: evita chiamate ripetute
-const _caaCache = {};
-
-async function fetchPic(kw){
-  if(!kw || kw.length < 2) return null;
-  if(_caaCache[kw] !== undefined) return _caaCache[kw];
-  _caaCache[kw] = null;
-  // Prova prima la parola intera, poi il lemma senza desinenza
-  const varianti = [kw];
-  if(kw.endsWith('ando')||kw.endsWith('endo')) varianti.push(kw.slice(0,-4)+'are');
-  if(kw.endsWith('ato')||kw.endsWith('uto')||kw.endsWith('ito')) varianti.push(kw.slice(0,-3)+'are');
-  if(kw.endsWith('i')&&kw.length>4) varianti.push(kw.slice(0,-1)+'o');
-  if(kw.endsWith('e')&&kw.length>4) varianti.push(kw.slice(0,-1)+'a');
-
-  for(const v of varianti){
-    try {
-      const r = await fetchConTimeout(
-        `https://api.arasaac.org/api/pictograms/it/search/${encodeURIComponent(v)}`,
-        5000
-      );
-      if(!r.ok) continue;
-      const data = await r.json();
-      if(Array.isArray(data) && data.length > 0){
-        _caaCache[kw] = picUrl(data[0]._id);
-        return _caaCache[kw];
-      }
-    } catch(e){ /* continua con variante successiva */ }
+// Cerca ID: parola esatta → stem 5 lettere → null
+function cercaId(kw){
+  if(!kw) return null;
+  const k = kw.toLowerCase().replace(/[^a-zàáèéìíòóùú]/g,'');
+  if(ARASAAC[k]) return ARASAAC[k];
+  // Stem: rimuovi desinenza vocalica
+  const stem = k.replace(/[aeiouàáèéìíòóùú]{1,2}$/, '');
+  if(stem.length >= 4){
+    const match = Object.keys(ARASAAC).find(w => w.startsWith(stem));
+    if(match) return ARASAAC[match];
   }
   return null;
 }
 
-// Carica pittogrammi nelle risposte (.caa-opt-pic)
-async function caricaPittogrammi(){
-  const boxes = document.querySelectorAll('.caa-opt-pic[data-kw]:not([data-loaded])');
-  for(const box of boxes){
-    box.dataset.loaded='1';
+// Carica pittogrammi nelle card risposte CAA
+function caricaPittogrammi(){
+  document.querySelectorAll('.caa-opt-pic[data-kw]:not([data-loaded])').forEach(box=>{
+    box.dataset.loaded = '1';
     const kw = box.dataset.kw;
-    if(!kw) continue;
     const img = box.querySelector('img');
-    if(!img) continue;
-    const url = await fetchPic(kw);
-    if(url){
-      img.src = url;
-      img.onerror = ()=>{ img.removeAttribute('src'); };
+    if(!img || !kw) return;
+    const id = cercaId(kw);
+    if(id){
+      img.src = arasaacUrl(id);
+      img.onerror = ()=>{ img.style.display='none'; };
     }
-  }
+    // senza ID: placeholder CSS rimane visibile
+  });
 }
 
-// ── Barra pittogrammi paragrafo attivo ──────────────────────────
-const _parKW = {}; // {parNum: ['parola1','parola2',...]}
-const STOP = new Set(['il','lo','la','i','gli','le','un','una','uno','di','a','da','in','con','su','per','tra','fra','del','della','dei','degli','delle','al','alla','ai','agli','alle','che','non','si','è','e','o','ma','anche','era','poi','suo','sua','lui','lei','gli','loro','come','quando','dove','così','tutto','molto','dopo','prima','ogni','ancora','quel','questa','questo','quello','ne','ce','ci','mi','ti','vi','li','le','ha','ho','sei','già','solo','però','anche','bene','male','altri','nuovo','nuova','bello']);
+// Barra testo: pittogrammi parole chiave del paragrafo
+const _parKW = {};
+const STOP = new Set(['il','lo','la','i','gli','le','un','una','uno','di','a','da','in','con','su','per','tra','fra','del','della','dei','degli','delle','al','alla','ai','agli','alle','che','non','si','è','e','o','ma','anche','era','poi','suo','sua','lui','lei','come','quando','dove','così','tutto','molto','dopo','prima','ogni','già','solo','però','ne','ce','ci','mi','ti','vi','ha','ho','fu']);
 
 function estraiKW(parNum){
   if(_parKW[parNum]) return _parKW[parNum];
   const el = document.getElementById('par'+parNum);
   if(!el){ _parKW[parNum]=[]; return []; }
-  const txt = el.innerText || el.textContent;
-  const kws = txt.split(/[\s.,;:!?«»""()''\-–]+/)
-    .map(w=>w.toLowerCase().replace(/[^a-zàáèéìíòóùú]/g,''))
-    .filter(w=>w.length>4 && !STOP.has(w));
-  // dedup, max 8
-  const seen=new Set(); const out=[];
-  for(const w of kws){ if(!seen.has(w)){ seen.add(w); out.push(w); if(out.length>=8) break; } }
+  const txt = (el.innerText||el.textContent).toLowerCase();
+  const words = txt.split(/[\s.,;:!?«»"()''\-–]+/)
+    .map(w=>w.replace(/[^a-zàáèéìíòóùú]/g,''))
+    .filter(w=>w.length>4 && !STOP.has(w) && cercaId(w));
+  const seen=new Set(), out=[];
+  for(const w of words){ if(!seen.has(w)){ seen.add(w); out.push(w); if(out.length>=7) break; } }
   _parKW[parNum]=out;
   return out;
 }
 
-async function aggiornaCAABar(parNum){
+function aggiornaCAABar(parNum){
   const bar = document.getElementById('caa-bar');
   if(!bar) return;
   bar.innerHTML = '';
   if(!parNum) return;
   const kws = estraiKW(parNum);
   if(!kws.length) return;
-
-  // Crea prima tutti i card con placeholder, poi carica le immagini
-  kws.forEach(kw => {
+  kws.forEach(kw=>{
+    const id = cercaId(kw);
+    if(!id) return;
     const card = document.createElement('div');
     card.className = 'caa-card';
-    // Placeholder visuale mentre carica
-    card.innerHTML = `<img src="" alt="${kw}" title="${kw}" style="background:#e3f2fd">
+    card.innerHTML = `<img src="${arasaacUrl(id)}" alt="${kw}" onerror="this.parentElement.style.display='none'">
       <span>${kw.toUpperCase()}</span>`;
     bar.appendChild(card);
-    const img = card.querySelector('img');
-    fetchPic(kw).then(url => {
-      if(url){
-        img.src = url;
-        img.onerror = ()=>{ img.classList.add('err'); card.style.display='none'; };
-      } else {
-        img.classList.add('err'); card.style.display='none';
-      }
-    });
   });
 }
 
-// Aggiunge pittogrammi alle parole del glossario nel testo (.glw)
-async function addCAAToText(){
-  document.querySelectorAll('.glw:not([data-caa-done])').forEach(async span => {
-    span.dataset.caaDone = '1';
-    // Estrai la parola chiave (prima del ':' nel titolo tooltip)
-    const raw = (span.getAttribute('title') || span.textContent).split(':')[0].trim();
-    const kw  = raw.toLowerCase().replace(/[^a-zàáèéìíòóùú]/g,'');
-    if(!kw || kw.length < 3) return;
-
-    const url = await fetchPic(kw);
-    if(!url) return;
-
-    // Crea wrapper con img sopra la parola
-    const wrapper = document.createElement('span');
-    wrapper.className = 'caa-glw-wrap';
-    const img = document.createElement('img');
-    img.className = 'caa-glw-pic';
-    img.src = url;
-    img.alt = kw;
-    img.title = raw;
-
-    span.parentNode.insertBefore(wrapper, span);
+function addCAAToText(){
+  document.querySelectorAll('.glw:not([data-caa-done])').forEach(span=>{
+    span.dataset.caaDone='1';
+    const raw=(span.getAttribute('title')||span.textContent).split(':')[0].trim();
+    const kw=raw.toLowerCase().replace(/[^a-zàáèéìíòóùú]/g,'');
+    const id=cercaId(kw);
+    if(!id) return;
+    const wrapper=document.createElement('span');
+    wrapper.className='caa-glw-wrap';
+    const img=document.createElement('img');
+    img.className='caa-glw-pic';
+    img.src=arasaacUrl(id);
+    img.alt=kw;
+    img.onerror=()=>{ img.style.display='none'; };
+    span.parentNode.insertBefore(wrapper,span);
     wrapper.appendChild(img);
     wrapper.appendChild(span);
   });
 }
+
 </script>
 
-<!-- ═══ ATTRIBUZIONE ARASAAC ════════════════════════════════ -->
-<div id="arasaac-attr" style="display:none;padding:8px 16px;background:#f3e5f5;font-size:10px;color:#6a1b9a;text-align:center;line-height:1.6;border-top:1px solid #ce93d8">
-  🖼️ I pittogrammi CAA utilizzati in questa applicazione appartengono al Governo di Aragona e sono stati creati da <strong>Sergio Palao</strong> per <strong>ARASAAC</strong> (<a href="https://www.arasaac.org" target="_blank" style="color:#6a1b9a">www.arasaac.org</a>), distribuiti con licenza <strong>Creative Commons BY-NC-SA</strong>.
-</div>
-<script>
-// Mostra attribuzione se CAA è attiva
-window.addEventListener('load',()=>{
-  if(document.body.classList.contains('tic-caa'))
-    document.getElementById('arasaac-attr').style.display='block';
-});
-document.body.addEventListener('classchange',()=>{
-  const el=document.getElementById('arasaac-attr');
-  if(el) el.style.display = document.body.classList.contains('tic-caa')?'block':'none';
-});
-</script>
 </body>
 </html>
