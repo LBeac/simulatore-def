@@ -1024,24 +1024,21 @@ function buildTestoCAA(testo){
   return html;
 }
 
-async function caricaTestoCAA(){
-  const toks = document.querySelectorAll('.caa-tok[data-kw]:not([data-loaded])');
-  // carica in batch per non saturare l'API
-  for(const tok of toks){
+function caricaTestoCAA(){
+  document.querySelectorAll('.caa-tok[data-kw]:not([data-loaded])').forEach(tok=>{
     tok.dataset.loaded='1';
     const kw = tok.dataset.kw;
-    if(!kw) continue;
+    if(!kw) return;
     const img = tok.querySelector('img');
-    if(!img) continue;
-    const url = await fetchPic(kw);
-    if(url){
-      img.src = url;
+    if(!img) return;
+    const id = cercaId(kw);
+    if(id){
+      img.src = arasaacUrl(id);
       img.onerror = ()=>{ img.style.display='none'; };
     } else {
       img.style.display='none';
     }
-    await new Promise(r=>setTimeout(r,30)); // piccolo delay per non martellare l'API
-  }
+  });
 }
 
 function renderProva(prova){
@@ -1373,7 +1370,6 @@ function togTicCAA(){
   }
 }
 
-// Cache pittogrammi per evitare chiamate ripetute
 // ══ CAA — Pittogrammi ARASAAC ══════════════════════════════════
 // © Governo di Aragona — Sergio Palao per ARASAAC (arasaac.org) — CC BY-NC-SA
 // Dizionario parola→ID verificato: immagini caricate direttamente
