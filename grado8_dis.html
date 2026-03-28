@@ -49,6 +49,8 @@ body.tic-caa #caa-bar{display:flex}
 .caa-card img{width:76px;height:76px;object-fit:contain;border-radius:8px;
   background:#fff;border:2px solid #90caf9;padding:3px}
 .caa-card img.err{display:none}
+.caa-skel{width:76px;height:76px;border-radius:8px;background:linear-gradient(90deg,#e3f2fd 25%,#bbdefb 50%,#e3f2fd 75%);background-size:200% 100%;animation:skel-shine 1.2s infinite}
+@keyframes skel-shine{0%{background-position:200%}100%{background-position:-200%}}
 .caa-card span{font-size:.58rem;font-weight:800;color:var(--c1);
   text-align:center;text-transform:uppercase;letter-spacing:.3px;
   line-height:1.2;max-width:86px;word-break:break-word}
@@ -910,11 +912,7 @@ window.addEventListener('load', () => {
     document.body.classList.add('tic-caa');
     const btn = document.getElementById('ticb-caa');
     if(btn) btn.classList.add('on');
-    setTimeout(async () => {
-      const ok = await testAPIArasaac();
-      if(ok){ caricaPittogrammi(); addCAAToText(); aggiornaCAABar(1); }
-      else { mostraAvvisoAPIOffline(); }
-    }, 200);
+    setTimeout(()=>{ caricaPittogrammi(); addCAAToText(); aggiornaCAABar(1); }, 200);
   }
 });
 
@@ -942,7 +940,7 @@ const STOP_FN = new Set([
   'già','poi','però','allora','quando','dove','come','così',
   'ogni','tutto','molto','poco','più','meno','ancora',
   'questo','questa','questi','queste','quello','quella','quelli','quelle',
-  'c'è','c'erano','l'','d'','dell'','all'','dall'','nell'','sull''
+  "c'è","c'erano","l'","d'","dell'","all'","dall'","nell'","sull'"
 ]);
 
 // Parola → keyword semplificata per ARASAAC
@@ -1336,29 +1334,8 @@ function togTic(nome, btnId){
   if(btn) btn.classList.toggle('on', document.body.classList.contains('tic-'+nome));
 }
 
-// ── Test connessione ARASAAC ─────────────────────────────────────
-async function testAPIArasaac(){
-  try {
-    const r = await fetchConTimeout('https://api.arasaac.org/api/pictograms/it/search/cane', 6000);
-    if(!r.ok) return false;
-    const d = await r.json();
-    return Array.isArray(d) && d.length > 0;
-  } catch(e){ return false; }
-}
-
-function mostraAvvisoAPIOffline(){
-  const bar = document.getElementById('caa-bar');
-  if(bar) bar.innerHTML = `<div style="padding:8px 12px;background:#fff3cd;border:2px solid #ffc107;border-radius:8px;font-size:.8rem;color:#856404;width:100%">
-    ⚠️ <strong>Pittogrammi non disponibili</strong> — L'API ARASAAC non risponde. 
-    Controlla la connessione internet e ricarica la pagina.
-  </div>`;
-  // Nei box risposte metti solo la parola
-  document.querySelectorAll('.caa-opt-pic').forEach(box=>{
-    const img = box.querySelector('img');
-    if(img){ img.style.display='none'; }
-    box.style.background='#f0f4ff';
-  });
-}
+// ── CAA utilities ────────────────────────────────────────────────
+// (API test rimosso: le immagini gestiscono i fallback singolarmente)
 
 function togTicCAA(){
   document.body.classList.toggle('tic-caa');
@@ -1372,41 +1349,115 @@ function togTicCAA(){
 
 // ══ CAA — Pittogrammi ARASAAC ══════════════════════════════════
 // © Governo di Aragona — Sergio Palao per ARASAAC (arasaac.org) — CC BY-NC-SA
-// Dizionario parola→ID verificato: immagini caricate direttamente
-// senza fetch() → zero problemi CORS
+// Dizionario statico espanso + lookup dinamico API per parole mancanti
 const ARASAAC = {
-  'acqua':2083,'albero':2660,'arancione':2788,'arcobaleno':2786,
-  'arrabbiato':2810,'bambina':2939,'bambino':2940,'banana':3010,
-  'bere':3498,'berretto':3160,'bianco':3214,'biscotti':3267,
-  'blu':3305,'borraccia':3329,'caldo':3632,'camminare':3637,
-  'cane':4884,'cappotto':3699,'casa':19268,'ciotola':4020,
-  'contento':5040,'correre':6223,'crocchette':4414,'cucchiaio':4447,
-  'cucina':4446,'dormire':7684,'erba':4899,'fame':5003,
-  'felice':5040,'fiore':5081,'foglie':5093,'forchetta':5131,
-  'forno':5130,'fragole':5152,'freddo':5165,'frutta':5190,
-  'gatto':4917,'giallo':5185,'giardino':5194,'giocare':6224,
-  'guinzaglio':5303,'impermeabile':5434,'lago':5494,'latte':5604,
-  'letto':5551,'mamma':37076,'mangiare':6830,'mare':5752,
-  'marrone':5754,'mela':5809,'neve':6017,'nero':5965,
-  'nonna':6635,'nonno':6637,'nuvole':6684,'pallone':6956,
-  'pane':6982,'papà':6990,'parco':6985,'pasta':6992,
-  'paura':6996,'piange':7062,'pioggia':7090,'pizza':7098,
-  'pozzanghere':7127,'ragazza':7238,'ragazzo':7237,'ride':7330,
-  'rosso':7349,'saltare':7518,'scuola':6054,'sete':7618,
-  'sole':7766,'sonno':7684,'stivali':7826,'strada':7830,
-  'stanco':7818,'tavolo':7874,'tazza':7944,'torta':7953,
-  'triste':7963,'verdure':8039,'verde':8037,'vento':8053,
-  'zaino':8132,'zucchero':8142,'fragola':5152,'banana':3010,
+  // ── PERSONE & FAMIGLIA
+  'mamma':37076,'papà':6990,'nonno':6637,'nonna':6635,
+  'bambino':2940,'bambina':2939,'ragazzo':7237,'ragazza':7238,
+  'bambini':2940,'uomo':8073,'donna':4632,'persona':7024,
+  'amico':27851,'amica':27851,'professore':7139,'professoressa':7139,
+  'insegnante':7139,'studente':7803,'studentessa':7803,
+  // ── ANIMALI
+  'cane':4884,'gatto':4917,'rana':7245,'pesce':7027,
+  'uccello':8071,'coniglio':4087,'cavallo':3870,'labrador':4884,
+  // ── NATURA & AMBIENTE
+  'acqua':2083,'albero':2660,'erba':4899,'fiore':5081,
+  'foglie':5093,'lago':5494,'mare':5752,'fiume':5083,
+  'montagna':5898,'cielo':4003,'sole':7766,'luna':5665,
+  'nuvole':6684,'pioggia':7090,'neve':6017,'vento':8053,
+  'arcobaleno':2786,'quercia':2660,'parco':6985,'giardino':5194,
+  'strada':7830,'prato':7130,'bosco':3330,
+  // ── CASA & LUOGHI
+  'casa':19268,'cucina':4446,'letto':5551,'tavolo':7874,
+  'porta':7108,'finestra':5069,'tetto':7907,'forno':5130,
+  'scuola':6054,'supermercato':7833,'cancello':3670,
+  'recinzione':3670,'rimessa':19268,
+  // ── CIBO & BEVANDE
+  'mangiare':6830,'bere':3498,'fame':5003,'sete':7618,
+  'pane':6982,'pasta':6992,'pizza':7098,'torta':7953,
+  'biscotti':3267,'frutta':5190,'verdure':8039,'mela':5809,
+  'banana':3010,'fragola':5152,'fragole':5152,'latte':5604,
+  'zucchero':8142,'cioccolato':4001,'ciotola':4020,'tazza':7944,
+  'cucchiaio':4447,'forchetta':5131,'teglia':7874,'forno':5130,
+  'pranzo':7129,'merenda':5813,'cena':3876,'colazione':4041,
+  'farina':5003,'burro':3617,'ingredienti':5992,'impasto':5992,
+  // ── AZIONI
+  'correre':6223,'camminare':3637,'saltare':7518,'giocare':6224,
+  'dormire':7684,'leggere':5519,'scrivere':7581,'disegnare':4576,
+  'costruire':4405,'lavorare':5519,'guardare':5288,'parlare':6993,
+  'aiutare':2650,'cercare':3882,'trovare':7965,'tornare':7951,
+  'andare':8141,'uscire':8095,'salire':7519,'abbracciare':2083,
+  'sorridere':7780,'aspettare':2897,'riparare':7298,
+  // ── EMOZIONI & STATI
+  'felice':5040,'contento':5040,'triste':7963,'arrabbiato':2810,
+  'paura':6996,'stanco':7818,'piange':7062,'ride':7330,'sonno':7684,
+  'curioso':5040,'imbarazzato':7963,'solo':7769,'sorpresa':7779,
+  // ── OGGETTI & STRUMENTI
+  'zaino':8132,'borraccia':3329,'pallone':6956,'libro':5584,
+  'penna':6998,'quaderno':7228,'martello':5755,'scala':7564,
+  'legno':5545,'chiodo':3990,'cartellone':3785,'fumetto':5191,
+  'berretto':3160,'cappotto':3699,'stivali':7826,'impermeabile':5434,
+  'guinzaglio':5303,'crocchette':4414,'pozzanghere':7127,
+  // ── COLORI
+  'rosso':7349,'blu':3305,'verde':8037,'giallo':5185,
+  'arancione':2788,'bianco':3214,'nero':5965,'marrone':5754,
+  // ── TEMPO
+  'giorno':5200,'notte':6015,'mattina':5757,'sera':7608,
+  'domani':4640,'settimana':7611,'anno':2769,'compleanno':4056,
+  // ── VEICOLI
+  'macchina':5701,'autobus':2931,'pullman':2931,'treno':7964,
+  'bicicletta':3193,'barca':3131,
+  // ── AGGETTIVI COMUNI
+  'grande':5243,'piccolo':7071,'bello':3143,'caldo':3632,'freddo':5165,
+  'nuovo':6681,'vecchio':8032,
 };
 
 function arasaacUrl(id){ return `https://static.arasaac.org/pictograms/${id}/${id}_500.png`; }
 
-// Cerca ID: parola esatta → stem 5 lettere → null
+// ── Cache dinamica API ──────────────────────────────────────────
+const _apiCache = {};
+const _apiPending = {};
+
+async function cercaIdAsync(kw){
+  if(!kw) return null;
+  const k = kw.toLowerCase().replace(/[^a-zàáèéìíòóùú]/g,'');
+  if(k.length < 2) return null;
+  if(ARASAAC[k]) return ARASAAC[k];
+  const stem = k.replace(/[aeiouàáèéìíòóùú]{1,2}$/, '');
+  if(stem.length >= 4){
+    const match = Object.keys(ARASAAC).find(w => w.startsWith(stem));
+    if(match) return ARASAAC[match];
+  }
+  if(_apiCache[k] !== undefined) return _apiCache[k];
+  if(_apiPending[k]) return _apiPending[k];
+  _apiPending[k] = (async () => {
+    try {
+      const ctrl = new AbortController();
+      const timer = setTimeout(()=>ctrl.abort(), 5000);
+      const r = await fetch(
+        `https://api.arasaac.org/api/pictograms/it/search/${encodeURIComponent(k)}`,
+        { signal: ctrl.signal }
+      );
+      clearTimeout(timer);
+      if(r.ok){
+        const data = await r.json();
+        const id = Array.isArray(data) && data.length > 0 ? data[0]._id : null;
+        _apiCache[k] = id;
+        delete _apiPending[k];
+        return id;
+      }
+    } catch(e){}
+    _apiCache[k] = null;
+    delete _apiPending[k];
+    return null;
+  })();
+  return _apiPending[k];
+}
+
 function cercaId(kw){
   if(!kw) return null;
   const k = kw.toLowerCase().replace(/[^a-zàáèéìíòóùú]/g,'');
   if(ARASAAC[k]) return ARASAAC[k];
-  // Stem: rimuovi desinenza vocalica
   const stem = k.replace(/[aeiouàáèéìíòóùú]{1,2}$/, '');
   if(stem.length >= 4){
     const match = Object.keys(ARASAAC).find(w => w.startsWith(stem));
@@ -1415,79 +1466,134 @@ function cercaId(kw){
   return null;
 }
 
-// Carica pittogrammi nelle card risposte CAA
-function caricaPittogrammi(){
-  document.querySelectorAll('.caa-opt-pic[data-kw]:not([data-loaded])').forEach(box=>{
+const EMOJI_FB = {
+  'cane':'🐕','gatto':'🐱','rana':'🐸','pesce':'🐟','uccello':'🐦',
+  'casa':'🏠','scuola':'🏫','lago':'🏞️','mare':'🌊','fiume':'🌊',
+  'albero':'🌳','fiore':'🌸','sole':'☀️','pioggia':'🌧️','neve':'❄️',
+  'mangiare':'🍽️','bere':'💧','dormire':'😴','correre':'🏃','leggere':'📖',
+  'scrivere':'✏️','giocare':'🎮','ridere':'😄','piangere':'😢',
+  'felice':'😊','triste':'😢','arrabbiato':'😠','paura':'😨',
+  'mamma':'👩','papà':'👨','nonno':'👴','nonna':'👵','bambino':'👦',
+  'ragazzo':'👦','ragazza':'👧','amico':'🤝',
+  'torta':'🎂','pizza':'🍕','mela':'🍎','banana':'🍌','pane':'🍞',
+  'latte':'🥛','cioccolato':'🍫','pranzo':'🍴','merenda':'🥪',
+  'zaino':'🎒','libro':'📚','penna':'✏️','martello':'🔨','scala':'🪜',
+  'pallone':'⚽','bicicletta':'🚲','macchina':'🚗','pullman':'🚌',
+  'notte':'🌙','giorno':'☀️','compleanno':'🎂','finestra':'🪟',
+  'porta':'🚪','tetto':'🏠','legno':'🪵','chiodo':'🔩',
+};
+
+function _mostraEmoji(container, kw){
+  const k = kw.toLowerCase().replace(/[^a-zàáèéìíòóùú]/g,'');
+  const em = EMOJI_FB[k] || '🖼️';
+  const span = document.createElement('span');
+  span.textContent = em;
+  span.style.cssText = 'font-size:2.2rem;line-height:1;display:block;text-align:center';
+  const firstChild = container.querySelector('img');
+  if(firstChild) container.insertBefore(span, firstChild);
+  else container.appendChild(span);
+}
+
+async function caricaPittogrammi(){
+  const boxes = document.querySelectorAll('.caa-opt-pic[data-kw]:not([data-loaded])');
+  for(const box of boxes){
     box.dataset.loaded = '1';
     const kw = box.dataset.kw;
     const img = box.querySelector('img');
-    if(!img || !kw) return;
-    const id = cercaId(kw);
+    if(!img || !kw) continue;
+    const id = await cercaIdAsync(kw);
     if(id){
+      img.onerror = ()=>{ img.style.display='none'; _mostraEmoji(box, kw); };
+      img.onload = ()=>{ img.style.display='block'; };
       img.src = arasaacUrl(id);
-      img.onerror = ()=>{ img.style.display='none'; };
+    } else {
+      img.style.display='none';
+      _mostraEmoji(box, kw);
     }
-    // senza ID: placeholder CSS rimane visibile
-  });
+  }
 }
 
-// Barra testo: pittogrammi parole chiave del paragrafo
 const _parKW = {};
-const STOP = new Set(['il','lo','la','i','gli','le','un','una','uno','di','a','da','in','con','su','per','tra','fra','del','della','dei','degli','delle','al','alla','ai','agli','alle','che','non','si','è','e','o','ma','anche','era','poi','suo','sua','lui','lei','come','quando','dove','così','tutto','molto','dopo','prima','ogni','già','solo','però','ne','ce','ci','mi','ti','vi','ha','ho','fu']);
+const STOP = new Set(['il','lo','la','i','gli','le','un','una','uno','di','a','da','in','con','su','per','tra','fra','del','della','dei','degli','delle','al','alla','ai','agli','alle','che','non','si','è','e','o','ma','anche','era','poi','suo','sua','lui','lei','come','quando','dove','così','tutto','molto','dopo','prima','ogni','già','solo','però','ne','ce','ci','mi','ti','vi','ha','ho','fu','se','al','col','coi','dai','dagli','dalle','nel','negli','nelle','sul','sugli','sulle','quel','quella','quei','quegli','quelle','questo','questa','questi','queste','quello']);
 
 function estraiKW(parNum){
   if(_parKW[parNum]) return _parKW[parNum];
   const el = document.getElementById('par'+parNum);
   if(!el){ _parKW[parNum]=[]; return []; }
   const txt = (el.innerText||el.textContent).toLowerCase();
-  const words = txt.split(/[\s.,;:!?«»"()''\-–]+/)
+  const words = txt.split(/[\s.,;:!?«»"()'''\-–]+/)
     .map(w=>w.replace(/[^a-zàáèéìíòóùú]/g,''))
-    .filter(w=>w.length>4 && !STOP.has(w) && cercaId(w));
+    .filter(w=>w.length>3 && !STOP.has(w));
   const seen=new Set(), out=[];
-  for(const w of words){ if(!seen.has(w)){ seen.add(w); out.push(w); if(out.length>=7) break; } }
+  for(const w of words){
+    if(!seen.has(w)){ seen.add(w); out.push(w); if(out.length>=8) break; }
+  }
   _parKW[parNum]=out;
   return out;
 }
 
-function aggiornaCAABar(parNum){
+async function aggiornaCAABar(parNum){
   const bar = document.getElementById('caa-bar');
   if(!bar) return;
   bar.innerHTML = '';
   if(!parNum) return;
   const kws = estraiKW(parNum);
   if(!kws.length) return;
+
+  const cards = [];
   kws.forEach(kw=>{
-    const id = cercaId(kw);
-    if(!id) return;
     const card = document.createElement('div');
     card.className = 'caa-card';
-    card.innerHTML = `<img src="${arasaacUrl(id)}" alt="${kw}" onerror="this.parentElement.style.display='none'">
-      <span>${kw.toUpperCase()}</span>`;
+    card.innerHTML = `<div class="caa-skel"></div><span>${kw.toUpperCase()}</span>`;
     bar.appendChild(card);
+    cards.push({card, kw});
   });
+
+  for(const {card, kw} of cards){
+    const id = await cercaIdAsync(kw);
+    const skel = card.querySelector('.caa-skel');
+    if(id){
+      const img = document.createElement('img');
+      img.alt = kw;
+      img.onerror = ()=>{
+        if(skel) skel.remove();
+        _mostraEmoji(card, kw);
+      };
+      img.onload = ()=>{ if(skel) skel.remove(); };
+      img.src = arasaacUrl(id);
+      if(skel) card.insertBefore(img, skel);
+      else card.insertBefore(img, card.querySelector('span'));
+    } else {
+      if(skel) skel.remove();
+      const k = kw.toLowerCase().replace(/[^a-zàáèéìíòóùú]/g,'');
+      if(EMOJI_FB[k]){
+        _mostraEmoji(card, kw);
+      } else {
+        card.style.display='none';
+      }
+    }
+  }
 }
 
-function addCAAToText(){
-  document.querySelectorAll('.glw:not([data-caa-done])').forEach(span=>{
+async function addCAAToText(){
+  const spans = document.querySelectorAll('.glw:not([data-caa-done])');
+  for(const span of spans){
     span.dataset.caaDone='1';
     const raw=(span.getAttribute('title')||span.textContent).split(':')[0].trim();
     const kw=raw.toLowerCase().replace(/[^a-zàáèéìíòóùú]/g,'');
-    const id=cercaId(kw);
-    if(!id) return;
+    const id = await cercaIdAsync(kw);
+    if(!id) continue;
     const wrapper=document.createElement('span');
     wrapper.className='caa-glw-wrap';
     const img=document.createElement('img');
     img.className='caa-glw-pic';
-    img.src=arasaacUrl(id);
     img.alt=kw;
     img.onerror=()=>{ img.style.display='none'; };
+    img.src=arasaacUrl(id);
     span.parentNode.insertBefore(wrapper,span);
     wrapper.appendChild(img);
     wrapper.appendChild(span);
-  });
+  }
 }
 
 </script>
-
-</body>
-</html>
