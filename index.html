@@ -1033,8 +1033,134 @@ tr:hover td{background:var(--grigio-ch)}
     <!-- ══ SOTTO-PANNELLO 2: PER DISABILITÀ ══════════════════ -->
     <div class="sub-panel" id="st-dis">
       <div class="info-panel" style="background:#e8f5e9;border-color:#a5d6a7;color:#1b5e20">
-        🌟 <strong>Prove adattate per alunni con disabilità</strong> — Incolla qualsiasi testo: la piattaforma genera domande con AI e produce un link con illuminazione paragrafi, audio, glossario e tutti gli strumenti TIC.
+        🌟 <strong>Prove adattate per alunni con disabilità</strong> — Incolla un testo: l'AI (Google Gemini, gratuito) genera domande di 5 tipi diversi. Puoi modificarle o crearne di nuove manualmente.
       </div>
+
+      <!-- CONFIGURAZIONE AI GEMINI -->
+      <div class="panel-card" style="max-width:none;margin-top:14px;border:2px solid #e8f0fe">
+        <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleGeminiSetup()">
+          <div>
+            <div style="font-size:13px;font-weight:800;color:#1a73e8">🔑 Configurazione AI — Google Gemini (gratuito)</div>
+            <div id="gemini-status-lbl" style="font-size:11px;color:#888;margin-top:2px">Inserisci la tua chiave API gratuita — si salva automaticamente sul browser</div>
+          </div>
+          <span id="gemini-arrow" style="font-size:16px;color:#1a73e8;transition:transform .2s">▸</span>
+        </div>
+        <div id="gemini-setup" style="display:none;margin-top:12px">
+          <div style="background:#e8f0fe;border-radius:8px;padding:10px 14px;font-size:12px;color:#1a4896;margin-bottom:10px;line-height:1.6">
+            📌 <strong>Come ottenere la chiave gratuita (1 minuto):</strong><br>
+            1. Vai su <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#1a73e8;font-weight:700">aistudio.google.com/app/apikey</a> con il tuo account Google<br>
+            2. Clicca <strong>"Create API key"</strong> → copia la chiave<br>
+            3. Incollala qui sotto. Piano gratuito: 1500 richieste/giorno, più che sufficiente.
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="password" id="gemini-key-input" class="finp" placeholder="AIza..." style="padding:9px 12px;flex:1;font-family:monospace">
+            <button onclick="salvaChiaveGemini()" style="padding:9px 16px;background:#1a73e8;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:var(--font)">💾 Salva</button>
+            <button onclick="cancellaChiaveGemini()" style="padding:9px 12px;background:#fce8e6;color:#c62828;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-family:var(--font)" title="Cancella chiave salvata">🗑️</button>
+          </div>
+          <div id="gemini-key-msg" style="font-size:11px;margin-top:6px"></div>
+        </div>
+      </div>
+
+      <!-- STEP 1: testo -->
+      <div class="panel-card" style="max-width:none;margin-top:10px">
+        <h3 style="margin-bottom:12px">📄 Passo 1 — Incolla il testo</h3>
+        <div class="fg" style="margin-bottom:10px">
+          <label class="flbl">Titolo del testo</label>
+          <input type="text" id="dis-ai-titolo" class="finp" placeholder="es. La quercia di Samuele" style="padding:9px 12px">
+        </div>
+        <div class="fg">
+          <label class="flbl">Testo (verrà suddiviso in paragrafi automaticamente)</label>
+          <textarea id="dis-ai-testo" class="finp" rows="7" placeholder="Incolla qui il testo..." style="padding:9px 12px;resize:vertical;font-size:13px;line-height:1.7"></textarea>
+        </div>
+      </div>
+
+      <!-- STEP 2: opzioni -->
+      <div class="panel-card" style="max-width:none;margin-top:10px">
+        <h3 style="margin-bottom:12px">⚙️ Passo 2 — Opzioni domande</h3>
+        <div style="display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start">
+          <div>
+            <label class="flbl" style="display:block;margin-bottom:6px">N° domande (max 40)</label>
+            <input type="number" id="dis-ai-ndom" class="finp" value="10" min="3" max="40" style="padding:9px 12px;width:100px">
+          </div>
+          <div>
+            <label class="flbl" style="display:block;margin-bottom:8px">Tipi di domanda da includere</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 20px">
+              <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tipo-sm" style="width:14px;height:14px;accent-color:var(--blu)" checked> <span style="background:#e3f2fd;border-radius:4px;padding:1px 8px;font-size:11px;font-weight:800;color:#1565c0">SM</span> Scelta multipla (4 opzioni)</label>
+              <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tipo-vf" style="width:14px;height:14px;accent-color:var(--blu)" checked> <span style="background:#e8f5e9;border-radius:4px;padding:1px 8px;font-size:11px;font-weight:800;color:#2e7d32">VF</span> Vero/Falso (tabella)</label>
+              <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tipo-ap" style="width:14px;height:14px;accent-color:var(--blu)"> <span style="background:#fff3e0;border-radius:4px;padding:1px 8px;font-size:11px;font-weight:800;color:#e65100">AP</span> Aperta breve</label>
+              <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tipo-comp" style="width:14px;height:14px;accent-color:var(--blu)"> <span style="background:#f3e5f5;border-radius:4px;padding:1px 8px;font-size:11px;font-weight:800;color:#6a1b9a">COMP</span> Completamento</label>
+              <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tipo-col" style="width:14px;height:14px;accent-color:var(--blu)"> <span style="background:#fce4ec;border-radius:4px;padding:1px 8px;font-size:11px;font-weight:800;color:#880e4f">COL</span> Collegamento (2 colonne)</label>
+              <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-ai-inferenza" style="width:14px;height:14px;accent-color:var(--blu)" checked> 🧠 Include inferenziali</label>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:14px">
+          <button onclick="generaDomandeAI('dis')" style="flex:1;padding:12px;background:var(--blu);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:800;cursor:pointer;font-family:var(--font)">
+            🤖 Genera con AI
+          </button>
+          <button onclick="apriFinestraManuale()" style="padding:12px 18px;background:var(--grigio-ch);color:var(--blu);border:2px solid var(--az);border-radius:var(--r);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">
+            ✏️ Crea manualmente
+          </button>
+        </div>
+        <div id="dis-ai-loading" style="display:none;margin-top:12px;text-align:center;color:var(--blu);font-size:13px;font-weight:700">
+          ⏳ Gemini sta generando le domande…
+        </div>
+        <div id="dis-ai-err" class="err-msg" style="display:none;margin-top:8px"></div>
+      </div>
+
+      <!-- STEP 3: anteprima + modifica domande -->
+      <div id="dis-ai-preview" style="display:none">
+        <div class="panel-card" style="max-width:none;margin-top:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+            <h3>📝 Passo 3 — Rivedi e modifica le domande</h3>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button onclick="aggiungiDomandaManuale('sm')" style="padding:5px 10px;background:#e3f2fd;color:#1565c0;border:1px solid #90caf9;border-radius:5px;font-size:11px;font-weight:800;cursor:pointer;font-family:var(--font)">+SM</button>
+              <button onclick="aggiungiDomandaManuale('vf')" style="padding:5px 10px;background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;border-radius:5px;font-size:11px;font-weight:800;cursor:pointer;font-family:var(--font)">+VF</button>
+              <button onclick="aggiungiDomandaManuale('ap')" style="padding:5px 10px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:5px;font-size:11px;font-weight:800;cursor:pointer;font-family:var(--font)">+AP</button>
+              <button onclick="aggiungiDomandaManuale('comp')" style="padding:5px 10px;background:#f3e5f5;color:#6a1b9a;border:1px solid #ce93d8;border-radius:5px;font-size:11px;font-weight:800;cursor:pointer;font-family:var(--font)">+COMP</button>
+              <button onclick="aggiungiDomandaManuale('col')" style="padding:5px 10px;background:#fce4ec;color:#880e4f;border:1px solid #f48fb1;border-radius:5px;font-size:11px;font-weight:800;cursor:pointer;font-family:var(--font)">+COL</button>
+            </div>
+          </div>
+          <div id="dis-dom-list" style="display:flex;flex-direction:column;gap:10px"></div>
+        </div>
+
+        <!-- STEP 4: TIC + classe + genera link -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px">
+          <div class="panel-card" style="max-width:none">
+            <h3 style="margin-bottom:10px">👤 Dati sessione</h3>
+            <div class="fg" style="margin-bottom:10px">
+              <label class="flbl">Classe</label>
+              <select id="dis-classe" class="finp" style="padding:9px 12px">
+                <option value="">— Nessuna —</option>
+                <option value="3A">3A</option><option value="3B">3B</option>
+                <option value="3C">3C</option><option value="3D">3D</option><option value="3E">3E</option>
+              </select>
+            </div>
+            <div class="fg">
+              <label class="flbl">Nome alunno (opzionale)</label>
+              <input type="text" id="dis-nome" placeholder="es. Mario R." maxlength="40" class="finp" style="padding:9px 12px">
+            </div>
+          </div>
+          <div class="panel-card" style="max-width:none">
+            <h3 style="margin-bottom:10px">⚙️ Strumenti TIC</h3>
+            <div style="display:flex;flex-direction:column;gap:7px">
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-grande" style="width:14px;height:14px;accent-color:var(--verde)"> 🔍 Testo grande</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-maiuscolo" style="width:14px;height:14px;accent-color:var(--verde)"> 🔠 Stampato maiuscolo</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-contrasto" style="width:14px;height:14px;accent-color:var(--verde)"> 🌗 Alto contrasto</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-spaziatura" style="width:14px;height:14px;accent-color:var(--verde)"> ↔️ Spaziatura aumentata</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-font" style="width:14px;height:14px;accent-color:var(--verde)"> ✒️ Font dislessia (Lexend)</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-bes" style="width:14px;height:14px;accent-color:var(--verde)"> 📘 Modalità BES</label>
+            </div>
+          </div>
+        </div>
+        <button onclick="creaLinkDisAI()" style="width:100%;margin-top:14px;padding:13px;background:var(--verde);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:800;cursor:pointer;font-family:var(--font)">
+          🔗 Genera link prova adattata
+        </button>
+        <div id="dis-succ" class="succ-msg" style="display:none;margin-top:12px"></div>
+      </div>
+    </div><!-- fine st-dis -->
+
 
       <!-- STEP 1: testo -->
       <div class="panel-card" style="max-width:none;margin-top:14px">
@@ -4434,271 +4560,353 @@ function creaSessioneCAA(){
   el.style.display='block';
 }
 
+
 // ══════════════════════════════════════════════════════════════
-//  AI QUESTION GENERATOR — Disabilità & CAA
+//  GEMINI API — CHIAVE + HELPER
 // ══════════════════════════════════════════════════════════════
-let _disAIProva   = null;
-let _caaAIParas   = [];
-let _caaAIDomande = [];
+const GEMINI_KEY_LS = 'gemini_api_key_invalsi';
+
+function getChiaveGemini(){
+  return localStorage.getItem(GEMINI_KEY_LS) || '';
+}
+
+function toggleGeminiSetup(){
+  const el = document.getElementById('gemini-setup');
+  const arrow = document.getElementById('gemini-arrow');
+  const open = el.style.display === 'none';
+  el.style.display = open ? 'block' : 'none';
+  if(arrow) arrow.style.transform = open ? 'rotate(90deg)' : '';
+  if(open){
+    const k = getChiaveGemini();
+    const inp = document.getElementById('gemini-key-input');
+    if(inp && k) inp.value = k;
+  }
+}
+
+function salvaChiaveGemini(){
+  const k = (document.getElementById('gemini-key-input')?.value || '').trim();
+  const msg = document.getElementById('gemini-key-msg');
+  if(!k || !k.startsWith('AIza')){
+    if(msg){ msg.textContent = '\u26a0\ufe0f La chiave deve iniziare con AIza\u2026'; msg.style.color='#c62828'; }
+    return;
+  }
+  localStorage.setItem(GEMINI_KEY_LS, k);
+  if(msg){ msg.textContent = '\u2705 Chiave salvata!'; msg.style.color='#2e7d32'; }
+  aggiornaStatoGemini();
+  setTimeout(()=>{ document.getElementById('gemini-setup').style.display='none';
+    document.getElementById('gemini-arrow').style.transform=''; }, 800);
+}
+
+function cancellaChiaveGemini(){
+  localStorage.removeItem(GEMINI_KEY_LS);
+  const inp = document.getElementById('gemini-key-input');
+  if(inp) inp.value = '';
+  aggiornaStatoGemini();
+}
+
+function aggiornaStatoGemini(){
+  const k = getChiaveGemini();
+  const lbl = document.getElementById('gemini-status-lbl');
+  if(lbl) lbl.textContent = k
+    ? '\u2705 Chiave API configurata \u2014 pronto per generare'
+    : 'Inserisci la tua chiave API gratuita \u2014 si salva automaticamente sul browser';
+}
+
+async function callGemini(prompt){
+  const key = getChiaveGemini();
+  if(!key) throw new Error('Nessuna chiave Gemini. Clicca "Configurazione AI" e inserisci la chiave gratuita da aistudio.google.com/app/apikey');
+  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + key;
+  const body = {
+    contents:[{parts:[{text:prompt}]}],
+    generationConfig:{temperature:0.4, maxOutputTokens:4000}
+  };
+  const res = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+  if(!res.ok){
+    const err = await res.json().catch(()=>({}));
+    throw new Error(err?.error?.message || 'Errore HTTP ' + res.status);
+  }
+  const data = await res.json();
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+}
+
+// ══════════════════════════════════════════════════════════════
+//  AI QUESTION GENERATOR — Disabilita
+// ══════════════════════════════════════════════════════════════
+let _disAIProva = null;
+let _caaAIParas = [], _caaAIDomande = [];
 
 async function generaDomandeAI(tipo){
-  const isCaa = tipo === 'caa';
-  const testoEl   = document.getElementById(isCaa ? 'caa-ai-testo'   : 'dis-ai-testo');
-  const titoloEl  = document.getElementById(isCaa ? 'caa-ai-titolo'  : 'dis-ai-titolo');
-  const ndomEl    = document.getElementById(isCaa ? 'caa-ai-ndom'    : 'dis-ai-ndom');
-  const loadEl    = document.getElementById(isCaa ? 'caa-ai-loading' : 'dis-ai-loading');
-  const errEl     = document.getElementById(isCaa ? 'caa-ai-err'     : 'dis-ai-err');
-  const previewEl = document.getElementById(isCaa ? 'caa-ai-preview' : 'dis-ai-preview');
+  if(tipo === 'caa'){ alert('Generazione CAA in sviluppo.'); return; }
+  const loadEl = document.getElementById('dis-ai-loading');
+  const errEl  = document.getElementById('dis-ai-err');
+  const prevEl = document.getElementById('dis-ai-preview');
+  const testo  = document.getElementById('dis-ai-testo')?.value.trim();
+  const titolo = document.getElementById('dis-ai-titolo')?.value.trim() || 'Prova personalizzata';
+  const ndom   = Math.min(40, Math.max(3, parseInt(document.getElementById('dis-ai-ndom')?.value)||10));
 
-  const testo  = testoEl?.value.trim();
-  const titolo = titoloEl?.value.trim() || 'Testo personalizzato';
-  const ndom   = Math.min(40, Math.max(3, parseInt(ndomEl?.value)||10));
-
-  if(!testo){ errEl.textContent='⚠️ Incolla un testo prima di generare.'; errEl.style.display='block'; return; }
+  if(!testo){ errEl.textContent='\u26a0\ufe0f Incolla un testo prima di generare.'; errEl.style.display='block'; return; }
   errEl.style.display='none';
   loadEl.style.display='block';
-  previewEl.style.display='none';
+  prevEl.style.display='none';
 
-  const inferenza = document.getElementById('dis-ai-inferenza')?.checked ?? true;
-  const aperte    = document.getElementById('dis-ai-aperte')?.checked ?? false;
-  const lessico   = document.getElementById('dis-ai-lessico')?.checked ?? true;
-  const gram      = document.getElementById('dis-ai-gram')?.checked ?? false;
+  const tipiRich = [];
+  if(document.getElementById('dis-tipo-sm')?.checked)   tipiRich.push('SM');
+  if(document.getElementById('dis-tipo-vf')?.checked)   tipiRich.push('VF');
+  if(document.getElementById('dis-tipo-ap')?.checked)   tipiRich.push('AP');
+  if(document.getElementById('dis-tipo-comp')?.checked) tipiRich.push('COMP');
+  if(document.getElementById('dis-tipo-col')?.checked)  tipiRich.push('COL');
+  if(!tipiRich.length) tipiRich.push('SM');
+  const inferenza = document.getElementById('dis-ai-inferenza')?.checked;
 
-  let prompt;
-  if(isCaa){
-    prompt = `Sei un esperto di CAA (Comunicazione Aumentativa Alternativa) per alunni con disabilità cognitive.
-
-TESTO ORIGINALE:
-"""
-${testo}
-"""
-
-Hai due compiti:
-1. SEMPLIFICA il testo in al massimo 6 paragrafi brevi (3-5 frasi ciascuno), usando parole semplici e concrete, frasi corte, soggetto-verbo-complemento.
-2. Genera esattamente ${ndom} domande di comprensione MOLTO SEMPLICI in stile CAA: domande brevi, risposte concrete, 4 opzioni (A/B/C/D).
-
-Rispondi SOLO con JSON valido, senza markdown, senza backtick:
-{"paragrafi":[{"n":1,"testo":"..."}],"domande":[{"n":1,"par":1,"tipo":"sm","sez":0,"testo":"Chi è il protagonista?","opts":["Marco","Luca","Sara","Paolo"],"ok":0}]}`;
-  } else {
-    const sezioni = [];
-    if(lessico) sezioni.push('lessico (sez:1)');
-    if(gram) sezioni.push('grammatica base soggetto/predicato (sez:2)');
-    prompt = `Sei un esperto di didattica inclusiva per alunni con disabilità di scuola media.
-
-TESTO:
-"""
-${testo}
-"""
-
-Genera esattamente ${ndom} domande sul testo. Comprensione (sez:0) è obbligatoria.${inferenza?' Includi 2-3 domande INFERENZIALI (logicamente deducibili, non letterali).':''}${aperte?' Includi 2-3 domande APERTE (tipo:"ap", senza opts).':''}${sezioni.length?' Aggiungi anche: '+sezioni.join('; ')+'.':''}
-
-Per scelta multipla: tipo:"sm", 4 opts, ok=indice corretto (0-3). Per domanda aperta: tipo:"ap", no opts. Il campo par indica il paragrafo di riferimento.
-
-Suddividi il testo in paragrafi numerati.
-
-Rispondi SOLO con JSON valido, senza markdown:
-{"paragrafi":[{"n":1,"testo":"..."}],"domande":[{"n":1,"par":1,"tipo":"sm","sez":0,"testo":"...","opts":["A","B","C","D"],"ok":0}]}`;
-  }
+  const prompt = 'Sei un esperto di didattica inclusiva per alunni con disabilita di scuola media italiana.\n\nTESTO:\n"""\n' + testo + '\n"""\n\nCOMPITO: Genera esattamente ' + ndom + ' domande sul testo.\nTipi da usare (distribuisci equamente): ' + tipiRich.join(', ') + '\n' + (inferenza ? '- Includi almeno 2 domande inferenziali (risposta non letterale nel testo)\n' : '') + '- Suddividi il testo in paragrafi numerati da 1 a N (ogni ~80 parole o cambio argomento).\n- Usa frasi brevi e chiare, lessico semplice.\n\nTipi di domanda:\n- SM: scelta multipla, 4 opzioni (opts), ok=indice risposta corretta (0-3)\n- VF: vero/falso, righeVF=[{t:"affermazione",ok:true/false}] (3-5 affermazioni)\n- AP: aperta breve, solo campo testo domanda (no opts)\n- COMP: frase con lacuna, "frase":"testo con ___ al posto mancante", "parole":["corretta","distr1","distr2","distr3"]\n- COL: collegamento, "sinistra":["el1","el2","el3"], "destra":["corr1","corr2","corr3"]\n\nRispondi SOLO con JSON valido, senza markdown:\n{\n  "paragrafi": [{"n":1,"testo":"..."}],\n  "domande": [\n    {"n":1,"par":1,"tipo":"sm","sez":0,"testo":"Chi e il protagonista?","opts":["Marco","Luca","Sara","Paolo"],"ok":0},\n    {"n":2,"par":2,"tipo":"vf","sez":0,"testo":"Segna V o F","righeVF":[{"t":"Marco va a scuola","ok":true},{"t":"Piove","ok":false}]},\n    {"n":3,"par":1,"tipo":"ap","sez":0,"testo":"Perche Marco era felice?"},\n    {"n":4,"par":3,"tipo":"comp","sez":1,"testo":"Completa","frase":"Marco era molto ___ di tornare.","parole":["felice","triste","stanco","arrabbiato"]},\n    {"n":5,"par":2,"tipo":"col","sez":0,"testo":"Collega","sinistra":["Marco","La quercia"],"destra":["e il protagonista","e un albero"]}\n  ]\n}';
 
   try{
-    const res = await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:4000,messages:[{role:'user',content:prompt}]})
-    });
-    const data = await res.json();
-    const raw = data.content?.[0]?.text||'';
+    const raw = await callGemini(prompt);
     const match = raw.match(/\{[\s\S]*\}/);
-    if(!match) throw new Error('Risposta AI non valida');
+    if(!match) throw new Error('Formato risposta non valido. Riprova.');
     const parsed = JSON.parse(match[0]);
-    if(!parsed.paragrafi||!parsed.domande) throw new Error('Struttura JSON incompleta');
+    if(!parsed.paragrafi || !parsed.domande) throw new Error('Struttura JSON incompleta');
+    _disAIProva = {titolo, sottotitolo:'Prova personalizzata', glossario:[], paragrafi:parsed.paragrafi, domande:parsed.domande};
+    renderPreviewDis(parsed.domande);
     loadEl.style.display='none';
-    if(isCaa){
-      _caaAIParas=parsed.paragrafi; _caaAIDomande=parsed.domande;
-      renderPreviewCAA(titolo,parsed.paragrafi,parsed.domande);
-    } else {
-      _disAIProva={titolo,sottotitolo:'Prova personalizzata',glossario:[],paragrafi:parsed.paragrafi,domande:parsed.domande};
-      renderPreviewDis(parsed.domande);
-    }
-    previewEl.style.display='block';
+    prevEl.style.display='block';
   } catch(e){
     loadEl.style.display='none';
-    errEl.textContent='⚠️ Errore AI: '+e.message+'. Riprova o controlla la connessione.';
+    errEl.textContent = '\u26a0\ufe0f ' + e.message;
     errEl.style.display='block';
   }
 }
 
-function renderPreviewDis(domande){
-  const list=$('dis-dom-list'); if(!list) return;
-  list.innerHTML='';
-  domande.forEach((d,i)=>list.appendChild(makeDomCard(d,i,'dis')));
-}
+// Badge colori per tipo
+const TIPO_BADGE = {
+  sm:   ['SM',   '#1565c0','#e3f2fd'],
+  vf:   ['VF',   '#2e7d32','#e8f5e9'],
+  ap:   ['AP',   '#e65100','#fff3e0'],
+  comp: ['COMP', '#6a1b9a','#f3e5f5'],
+  col:  ['COL',  '#880e4f','#fce4ec'],
+};
 
-function renderPreviewCAA(titolo,paragrafi,domande){
-  const pDiv=$('caa-testo-preview');
-  if(pDiv) pDiv.innerHTML=paragrafi.map(p=>`
-    <div style="background:var(--grigio-ch);border-radius:8px;padding:10px 14px;margin-bottom:8px">
-      <div style="font-size:10px;font-weight:700;color:var(--blu);margin-bottom:5px">Paragrafo ${p.n}</div>
-      <textarea data-par="${p.n}" style="width:100%;border:1px solid #d0d9f0;border-radius:6px;padding:8px 10px;font-size:13px;line-height:1.7;resize:vertical;font-family:inherit" rows="3">${p.testo}</textarea>
-    </div>`).join('');
-  const list=$('caa-dom-list'); if(!list) return;
-  list.innerHTML='';
-  domande.forEach((d,i)=>list.appendChild(makeDomCard(d,i,'caa')));
-}
+function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-function makeDomCard(d,idx,tipo){
-  const div=document.createElement('div');
-  div.className='ap-dom'; div.dataset.idx=idx; div.dataset.tipo=tipo;
-  const col=tipo==='caa'?'#7b1fa2':'var(--blu)';
-  const sezOpts=tipo==='caa'
-    ?'<option value="0">Comprensione</option>'
-    :'<option value="0">Comprensione</option><option value="1">Lessico</option><option value="2">Grammatica</option>';
-  const isAp=d.tipo==='ap';
-  div.style.cssText='background:#f7f9ff;border:1.5px solid #d0d9f0;border-radius:8px;padding:14px;margin-bottom:2px';
-  div.innerHTML=`
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <span style="font-size:11px;font-weight:800;color:${col}">Dom. ${idx+1} · Par. ${d.par||1}</span>
-      <button onclick="this.closest('.ap-dom').remove()" style="background:none;border:none;color:#c62828;cursor:pointer;font-size:13px">✕</button>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 60px;gap:8px;margin-bottom:8px">
-      <div class="fg" style="margin:0"><label class="flbl" style="font-size:10px">Domanda</label>
-        <input type="text" class="finp dom-testo" value="${(d.testo||'').replace(/"/g,'&quot;')}" style="padding:7px 10px;font-size:13px"></div>
-      <div><label class="flbl" style="font-size:10px">Par.</label>
-        <input type="number" class="finp dom-par" value="${d.par||1}" min="1" max="20" style="padding:7px 8px;font-size:12px;width:100%"></div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-      <div><label class="flbl" style="font-size:10px">Tipo</label>
-        <select class="finp dom-tipo" style="padding:7px 10px;font-size:12px" onchange="toggleOpts(this)">
-          <option value="sm" ${!isAp?'selected':''}>Scelta multipla</option>
-          <option value="ap" ${isAp?'selected':''}>Aperta</option></select></div>
-      <div><label class="flbl" style="font-size:10px">Sezione</label>
-        <select class="finp dom-sez" style="padding:7px 10px;font-size:12px">${sezOpts}</select></div>
-    </div>
-    <div class="opts-block" style="${isAp?'display:none':''}">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
-        <div><label class="flbl" style="font-size:10px">A</label><input type="text" class="finp dom-optA" value="${(d.opts?.[0]||'').replace(/"/g,'&quot;')}" style="padding:6px 9px;font-size:12px"></div>
-        <div><label class="flbl" style="font-size:10px">B</label><input type="text" class="finp dom-optB" value="${(d.opts?.[1]||'').replace(/"/g,'&quot;')}" style="padding:6px 9px;font-size:12px"></div>
-        <div><label class="flbl" style="font-size:10px">C</label><input type="text" class="finp dom-optC" value="${(d.opts?.[2]||'').replace(/"/g,'&quot;')}" style="padding:6px 9px;font-size:12px"></div>
-        <div><label class="flbl" style="font-size:10px">D</label><input type="text" class="finp dom-optD" value="${(d.opts?.[3]||'').replace(/"/g,'&quot;')}" style="padding:6px 9px;font-size:12px"></div>
-      </div>
-      <div><label class="flbl" style="font-size:10px">Risposta corretta</label>
-        <select class="finp dom-ok" style="padding:6px 9px;font-size:12px">
-          <option value="0" ${d.ok===0?'selected':''}>A</option><option value="1" ${d.ok===1?'selected':''}>B</option>
-          <option value="2" ${d.ok===2?'selected':''}>C</option><option value="3" ${d.ok===3?'selected':''}>D</option>
-        </select></div>
-    </div>`;
-  div.querySelector('.dom-sez').value=d.sez||0;
+function makeDomCardDis(d, idx){
+  const tipo = (d.tipo||'sm').toLowerCase();
+  const [lbl, fg, bg] = TIPO_BADGE[tipo] || TIPO_BADGE.sm;
+  const div = document.createElement('div');
+  div.className = 'ap-dom';
+  div.dataset.idx = idx;
+  div.style.cssText = 'background:#f7f9ff;border:1.5px solid #d0d9f0;border-radius:8px;padding:14px;position:relative';
+
+  const sezOpts = '<option value="0">Comprensione</option><option value="1">Lessico</option><option value="2">Grammatica</option>';
+
+  let html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
+    + '<div style="display:flex;align-items:center;gap:8px">'
+    + '<span class="tipo-badge" style="background:'+bg+';color:'+fg+';border-radius:4px;padding:2px 8px;font-size:11px;font-weight:800">'+lbl+'</span>'
+    + '<span style="font-size:11px;color:#888">Dom. '+(idx+1)+' \xb7 Par.</span>'
+    + '<input type="number" class="dom-par" value="'+(d.par||1)+'" min="1" max="20" style="width:45px;padding:2px 5px;border:1px solid #ccc;border-radius:4px;font-size:12px;text-align:center">'
+    + '<select class="dom-sez" style="padding:3px 6px;border:1px solid #ccc;border-radius:4px;font-size:11px">'+sezOpts+'</select>'
+    + '</div>'
+    + '<button onclick="this.closest(\'.ap-dom\').remove()" style="background:none;border:none;color:#c62828;cursor:pointer;font-size:14px;padding:2px 6px">\u2715</button>'
+    + '</div>'
+    + '<div style="margin-bottom:8px">'
+    + '<label style="font-size:10px;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:.5px">Testo domanda</label>'
+    + '<input type="text" class="finp dom-testo" value="'+escHtml(d.testo||'')+'" style="padding:7px 10px;font-size:13px;margin-top:3px">'
+    + '</div>';
+
+  if(tipo === 'sm'){
+    const opts = d.opts || ['','','',''];
+    const ok = d.ok ?? 0;
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">'
+      + ['A','B','C','D'].map((l,i) => '<div><label style="font-size:10px;font-weight:700;color:#666">'+l+'</label>'
+        + '<input type="text" class="finp dom-opt" data-i="'+i+'" value="'+escHtml(opts[i]||'')+'" style="padding:6px 9px;font-size:12px;margin-top:2px"></div>').join('')
+      + '</div><div><label style="font-size:10px;font-weight:700;color:#666">Risposta corretta</label>'
+      + '<select class="finp dom-ok" style="padding:5px 9px;font-size:12px;margin-top:2px">'
+      + ['A','B','C','D'].map((l,i) => '<option value="'+i+'"'+(ok===i?' selected':'')+'>'+l+'</option>').join('')
+      + '</select></div>';
+  } else if(tipo === 'vf'){
+    const righe = d.righeVF || [{t:'',ok:true}];
+    html += '<div class="vf-rows">'
+      + righe.map(r => '<div class="vf-row" style="display:flex;align-items:center;gap:6px;margin-bottom:5px">'
+        + '<input type="text" class="finp vf-testo" value="'+escHtml(r.t||'')+'" style="flex:1;padding:5px 9px;font-size:12px">'
+        + '<select class="vf-ok" style="padding:5px 8px;border:1px solid #ccc;border-radius:4px;font-size:12px">'
+        + '<option value="true"'+(r.ok?' selected':'')+'>Vero</option>'
+        + '<option value="false"+(!r.ok?' selected':'')+">Falso</option>'
+        + '</select>'
+        + '<button onclick="this.closest(\'.vf-row\').remove()" style="background:none;border:none;color:#c62828;cursor:pointer;font-size:12px">\u2715</button>'
+        + '</div>').join('')
+      + '</div><button onclick="aggiungiRigaVF(this)" style="margin-top:4px;padding:4px 10px;background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;border-radius:4px;font-size:11px;cursor:pointer;font-family:var(--font)">+ Aggiungi riga</button>';
+  } else if(tipo === 'ap'){
+    html += '<div style="background:#fff3e0;border-radius:6px;padding:8px 10px;font-size:11px;color:#7a4000">'
+      + '\u270f\ufe0f L\'alunno scriver\xe0 la risposta nel campo testo. Non servono opzioni.</div>';
+  } else if(tipo === 'comp'){
+    const parole = d.parole || ['','','',''];
+    html += '<div style="margin-bottom:6px">'
+      + '<label style="font-size:10px;font-weight:700;color:#666">Frase con ___ al posto della parola mancante</label>'
+      + '<input type="text" class="finp dom-frase" value="'+escHtml(d.frase||'')+'" placeholder="es. Marco era molto ___ di tornare." style="padding:7px 10px;font-size:12px;margin-top:3px">'
+      + '</div><div><label style="font-size:10px;font-weight:700;color:#666">Parole (la prima \xe8 la risposta corretta)</label>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:3px">'
+      + parole.map((p,i) => '<input type="text" class="finp dom-parola" data-i="'+i+'" value="'+escHtml(p)+'" placeholder="'+(i===0?'\u2705 Corretta':'Distrattore '+i)+'" style="padding:5px 9px;font-size:12px;'+(i===0?'border-color:var(--verde);':'')+'">' ).join('')
+      + '</div></div>';
+  } else if(tipo === 'col'){
+    const sx = d.sinistra || ['','',''];
+    const dx = d.destra   || ['','',''];
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+      + '<div><label style="font-size:10px;font-weight:700;color:#666">Colonna sinistra</label>'
+      + '<div class="col-sx" style="display:flex;flex-direction:column;gap:4px;margin-top:3px">'
+      + sx.map(v => '<input type="text" class="finp col-item-sx" value="'+escHtml(v)+'" style="padding:5px 9px;font-size:12px">').join('')
+      + '</div></div>'
+      + '<div><label style="font-size:10px;font-weight:700;color:#666">Colonna destra (stessa riga = coppia corretta)</label>'
+      + '<div class="col-dx" style="display:flex;flex-direction:column;gap:4px;margin-top:3px">'
+      + dx.map(v => '<input type="text" class="finp col-item-dx" value="'+escHtml(v)+'" style="padding:5px 9px;font-size:12px">').join('')
+      + '</div></div>'
+      + '</div><button onclick="aggiungiCoppia(this)" style="margin-top:6px;padding:4px 10px;background:#fce4ec;color:#880e4f;border:1px solid #f48fb1;border-radius:4px;font-size:11px;cursor:pointer;font-family:var(--font)">+ Aggiungi coppia</button>';
+  }
+
+  div.innerHTML = html;
+  setTimeout(()=>{ const s = div.querySelector('.dom-sez'); if(s) s.value = d.sez||0; }, 0);
   return div;
 }
 
-function toggleOpts(sel){
-  const block=sel.closest('.ap-dom')?.querySelector('.opts-block');
-  if(block) block.style.display=sel.value==='ap'?'none':'';
+function aggiungiRigaVF(btn){
+  const rows = btn.previousElementSibling;
+  const div = document.createElement('div');
+  div.className = 'vf-row';
+  div.style.cssText = 'display:flex;align-items:center;gap:6px;margin-bottom:5px';
+  div.innerHTML = '<input type="text" class="finp vf-testo" value="" style="flex:1;padding:5px 9px;font-size:12px" placeholder="Nuova affermazione...">'
+    + '<select class="vf-ok" style="padding:5px 8px;border:1px solid #ccc;border-radius:4px;font-size:12px"><option value="true">Vero</option><option value="false">Falso</option></select>'
+    + '<button onclick="this.closest(\'.vf-row\').remove()" style="background:none;border:none;color:#c62828;cursor:pointer;font-size:12px">\u2715</button>';
+  rows.appendChild(div);
 }
 
-function aggiungiDomandaDis(tipo){
-  tipo=tipo||'dis';
-  const list=$(tipo==='caa'?'caa-dom-list':'dis-dom-list'); if(!list) return;
-  const idx=list.querySelectorAll('.ap-dom').length;
-  list.appendChild(makeDomCard({n:idx+1,par:1,tipo:'sm',sez:0,testo:'',opts:['','','',''],ok:0},idx,tipo));
+function aggiungiCoppia(btn){
+  const grid = btn.previousElementSibling;
+  const sx = grid.querySelector('.col-sx');
+  const dx = grid.querySelector('.col-dx');
+  [sx,dx].forEach((col,ci) => {
+    const i = document.createElement('input');
+    i.type='text'; i.className='finp '+(ci===0?'col-item-sx':'col-item-dx');
+    i.style.cssText='padding:5px 9px;font-size:12px';
+    col.appendChild(i);
+  });
 }
 
-function raccogliDomande(listId){
-  const domande=[];
-  document.querySelectorAll(`#${listId} .ap-dom`).forEach((card)=>{
-    const testo=card.querySelector('.dom-testo')?.value.trim(); if(!testo) return;
-    const tipo=card.querySelector('.dom-tipo')?.value||'sm';
-    const sez=parseInt(card.querySelector('.dom-sez')?.value||'0');
-    const par=parseInt(card.querySelector('.dom-par')?.value||'1');
-    if(tipo==='ap'){
-      domande.push({n:domande.length+1,par,tipo:'ap',sez,testo});
-    } else {
-      const A=card.querySelector('.dom-optA')?.value.trim()||'';
-      const B=card.querySelector('.dom-optB')?.value.trim()||'';
-      const C=card.querySelector('.dom-optC')?.value.trim()||'';
-      const D=card.querySelector('.dom-optD')?.value.trim()||'';
-      const ok=parseInt(card.querySelector('.dom-ok')?.value||'0');
-      const opts=[A,B]; if(C) opts.push(C); if(D) opts.push(D);
-      domande.push({n:domande.length+1,par,tipo:'sm',sez,testo,opts,ok});
+function aggiungiDomandaManuale(tipo){
+  const list = document.getElementById('dis-dom-list');
+  if(!list) return;
+  const idx = list.querySelectorAll('.ap-dom').length;
+  const tmpl = {
+    sm:   {tipo:'sm',  par:1,sez:0,testo:'',opts:['','','',''],ok:0},
+    vf:   {tipo:'vf',  par:1,sez:0,testo:'Segna Vero o Falso',righeVF:[{t:'',ok:true},{t:'',ok:false}]},
+    ap:   {tipo:'ap',  par:1,sez:0,testo:''},
+    comp: {tipo:'comp',par:1,sez:1,testo:'Completa la frase',frase:'',parole:['','','','']},
+    col:  {tipo:'col', par:1,sez:0,testo:'Collega',sinistra:['',''],destra:['','']},
+  };
+  list.appendChild(makeDomCardDis(tmpl[tipo]||tmpl.sm, idx));
+  document.getElementById('dis-ai-preview').style.display='block';
+}
+
+function aggiungiDomandaDis(tipo){ aggiungiDomandaManuale(tipo||'sm'); }
+
+function apriFinestraManuale(){
+  if(!_disAIProva){
+    const titolo = document.getElementById('dis-ai-titolo')?.value.trim()||'Prova';
+    const testo  = document.getElementById('dis-ai-testo')?.value.trim()||'';
+    const paras  = testo.split(/\n\n+/).filter(Boolean).map((t,i)=>({n:i+1,testo:t.trim()}));
+    _disAIProva  = {titolo, sottotitolo:'Prova personalizzata', glossario:[], paragrafi:paras.length?paras:[{n:1,testo:testo}], domande:[]};
+  }
+  const list = document.getElementById('dis-dom-list');
+  if(list && !list.children.length) aggiungiDomandaManuale('sm');
+  document.getElementById('dis-ai-preview').style.display='block';
+}
+
+function raccogliDomandeDis(){
+  const domande = [];
+  document.querySelectorAll('#dis-dom-list .ap-dom').forEach((card)=>{
+    const badge = card.querySelector('.tipo-badge')?.textContent?.trim().toLowerCase() || 'sm';
+    const testo = card.querySelector('.dom-testo')?.value.trim()||'';
+    const sez   = parseInt(card.querySelector('.dom-sez')?.value||'0');
+    const par   = parseInt(card.querySelector('.dom-par')?.value||'1');
+    const d = {n:domande.length+1, par, sez, testo, tipo:badge};
+    if(badge==='sm'){
+      d.opts = [...card.querySelectorAll('.dom-opt')].map(i=>i.value.trim());
+      d.ok   = parseInt(card.querySelector('.dom-ok')?.value||'0');
+    } else if(badge==='vf'){
+      d.righeVF = [...card.querySelectorAll('.vf-row')].map(r=>({
+        t: r.querySelector('.vf-testo')?.value.trim()||'',
+        ok: r.querySelector('.vf-ok')?.value==='true'
+      })).filter(r=>r.t);
+    } else if(badge==='comp'){
+      d.frase  = card.querySelector('.dom-frase')?.value.trim()||'';
+      d.parole = [...card.querySelectorAll('.dom-parola')].map(i=>i.value.trim());
+    } else if(badge==='col'){
+      d.sinistra = [...card.querySelectorAll('.col-item-sx')].map(i=>i.value.trim()).filter(Boolean);
+      d.destra   = [...card.querySelectorAll('.col-item-dx')].map(i=>i.value.trim()).filter(Boolean);
     }
+    domande.push(d);
   });
   return domande;
 }
 
+function raccogliDomande(listId){ return raccogliDomandeDis(); }
+function makeDomCard(d,idx){ return makeDomCardDis(d,idx); }
+function toggleOpts(){}
+function renderPreviewDis(domande){
+  const list=document.getElementById('dis-dom-list');
+  if(!list) return;
+  list.innerHTML='';
+  domande.forEach((d,i)=>list.appendChild(makeDomCardDis(d,i)));
+}
+function renderPreviewCAA(titolo,paragrafi,domande){
+  const pDiv=document.getElementById('caa-testo-preview');
+  if(pDiv) pDiv.innerHTML=paragrafi.map(p=>'<div style="background:var(--grigio-ch);border-radius:8px;padding:10px 14px"><div style="font-size:10px;font-weight:700;color:var(--blu);margin-bottom:5px">Paragrafo '+p.n+'</div><textarea data-par="'+p.n+'" style="width:100%;border:1px solid #d0d9f0;border-radius:6px;padding:8px 10px;font-size:13px;line-height:1.7;resize:vertical;font-family:inherit" rows="3">'+p.testo+'</textarea></div>').join('');
+  const list=document.getElementById('caa-dom-list');
+  if(list){ list.innerHTML=''; domande.forEach((d,i)=>list.appendChild(makeDomCardDis(d,i))); }
+}
+
 function creaLinkDisAI(){
-  const classe=$('dis-classe')?.value; const nome=$('dis-nome')?.value.trim()||'';
-  if(!classe){alert('⚠️ Seleziona una classe.'); return;}
-  if(!_disAIProva){alert('⚠️ Prima genera le domande con AI.'); return;}
-  const domande=raccogliDomande('dis-dom-list');
-  if(!domande.length){alert('⚠️ Aggiungi almeno una domanda.'); return;}
-  const prova={..._disAIProva,domande};
-  const b64=btoa(unescape(encodeURIComponent(JSON.stringify(prova))));
-  const ticMap={
-    grande:$('dis-tic-grande')?.checked||false, maiuscolo:$('dis-tic-maiuscolo')?.checked||false,
-    contrasto:$('dis-tic-contrasto')?.checked||false, spaziatura:$('dis-tic-spaziatura')?.checked||false,
-    font:$('dis-tic-font')?.checked||false, bes:$('dis-tic-bes')?.checked||false
+  const classe = document.getElementById('dis-classe')?.value;
+  const nome   = document.getElementById('dis-nome')?.value.trim()||'';
+  if(!classe){ alert('\u26a0\ufe0f Seleziona una classe.'); return; }
+  if(!_disAIProva){ alert('\u26a0\ufe0f Prima genera o crea le domande.'); return; }
+  const domande = raccogliDomandeDis();
+  if(!domande.length){ alert('\u26a0\ufe0f Aggiungi almeno una domanda.'); return; }
+  const prova = Object.assign({}, _disAIProva, {domande});
+  const b64   = btoa(unescape(encodeURIComponent(JSON.stringify(prova))));
+  const ticMap = {
+    grande:    document.getElementById('dis-tic-grande')?.checked||false,
+    maiuscolo: document.getElementById('dis-tic-maiuscolo')?.checked||false,
+    contrasto: document.getElementById('dis-tic-contrasto')?.checked||false,
+    spaziatura:document.getElementById('dis-tic-spaziatura')?.checked||false,
+    font:      document.getElementById('dis-tic-font')?.checked||false,
+    bes:       document.getElementById('dis-tic-bes')?.checked||false,
   };
-  const ticAttivi=Object.keys(ticMap).filter(k=>ticMap[k]);
-  const sessKey=`dis-custom-${classe}-${Date.now()}`;
-  DB.sessioni[sessKey]={provaId:'custom',classe,tipo:'disabilita',tic:ticMap,data:new Date().toISOString(),studenti:0,chiusa:false};
+  const ticAttivi = Object.keys(ticMap).filter(k=>ticMap[k]);
+  const sessKey = 'dis-' + classe + '-' + Date.now();
+  DB.sessioni[sessKey] = {provaId:'custom', classe, tipo:'disabilita', tic:ticMap, data:new Date().toISOString(), studenti:0, chiusa:false};
   saveDB();
-  try{fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'salvaSessione',sessione:sessKey,classe,provaId:'custom',provaTitolo:prova.titolo,data:new Date().toISOString()})}).catch(()=>{});}catch(e){}
-  const base=window.location.href.replace(/[^/]*$/,'')+'grado8_dis.html';
-  const params=new URLSearchParams();
+  try{ fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action:'salvaSessione',sessione:sessKey,classe,provaId:'custom',provaTitolo:prova.titolo,data:new Date().toISOString()})}).catch(()=>{}); }catch(e){}
+  const base = window.location.href.replace(/[^/]*$/, '') + 'grado8_dis.html';
+  const params = new URLSearchParams();
   params.set('prova','custom'); params.set('data',b64);
   params.set('sessione',sessKey); params.set('classe',classe);
   if(nome) params.set('nome',nome);
   if(ticAttivi.length) params.set('tic',ticAttivi.join(','));
-  const link=base+'?'+params.toString();
-  try{aggiornaTabellaSessioni();}catch(e){} try{aggSelSessioni();}catch(e){}
-  const el=$('dis-succ');
-  el.innerHTML=`✅ Sessione <strong>${sessKey}</strong> creata!<br>
-    <div style="margin-top:8px;padding:8px 12px;background:#fff;border:1px solid var(--verde);border-radius:6px;word-break:break-all;font-size:11px;font-family:monospace">${link.substring(0,180)}…</div>
-    <button onclick="navigator.clipboard.writeText('${link.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}').then(()=>alert('✅ Copiato!'))" class="btn btn-g" style="margin-top:10px;width:100%;padding:9px;font-weight:700;font-size:13px">📋 Copia link</button>
-    <div style="margin-top:6px;font-size:11px;color:#555">Classe: <strong>${classe}</strong> · Domande: <strong>${domande.length}</strong></div>`;
-  el.style.display='block';
+  const link = base + '?' + params.toString();
+  window._linkDisAI = link;
+  try{ aggiornaTabellaSessioni(); }catch(e){}
+  try{ aggSelSessioni(); }catch(e){}
+  const el = document.getElementById('dis-succ');
+  el.innerHTML = '\u2705 Sessione <strong>' + sessKey + '</strong> creata!<br>'
+    + '<div style="margin-top:8px;padding:8px 12px;background:#fff;border:1px solid var(--verde);border-radius:6px;word-break:break-all;font-size:11px;font-family:monospace">' + link.substring(0,200) + '\u2026</div>'
+    + '<button onclick="navigator.clipboard.writeText(window._linkDisAI).then(()=>alert(\'\u2705 Copiato!\'))" class="btn btn-g" style="margin-top:10px;width:100%;padding:9px;font-weight:700;font-size:13px">\ud83d\udccb Copia link</button>'
+    + '<div style="margin-top:6px;font-size:11px;color:#555">Classe: <strong>' + classe + '</strong> \xb7 Domande: <strong>' + domande.length + '</strong> \xb7 Sessione: ' + sessKey + '</div>';
+  el.style.display = 'block';
 }
 
 function creaLinkCaaAI(){
-  const classe=$('caa-classe')?.value; const nome=$('caa-nome')?.value.trim()||'';
-  if(!classe){alert('⚠️ Seleziona una classe.'); return;}
-  if(!_caaAIParas.length){alert('⚠️ Prima genera le domande con AI.'); return;}
-  const titolo=$('caa-ai-titolo')?.value.trim()||'Prova CAA';
-  const paragrafi=[];
-  document.querySelectorAll('#caa-testo-preview textarea[data-par]').forEach(ta=>{
-    const n=parseInt(ta.dataset.par), testo=ta.value.trim();
-    if(testo) paragrafi.push({n,testo});
-  });
-  const domande=raccogliDomande('caa-dom-list');
-  if(!domande.length){alert('⚠️ Aggiungi almeno una domanda.'); return;}
-  const prova={titolo,sottotitolo:'Testo in CAA',glossario:[],paragrafi,domande};
-  const b64=btoa(unescape(encodeURIComponent(JSON.stringify(prova))));
-  const ticExtra=[];
-  if($('caa-tic-grande')?.checked) ticExtra.push('grande');
-  if($('caa-tic-maiuscolo')?.checked) ticExtra.push('maiuscolo');
-  if($('caa-tic-spaziatura')?.checked) ticExtra.push('spaziatura');
-  if($('caa-tic-bes')?.checked) ticExtra.push('bes');
-  const ticAll=['caa',...ticExtra];
-  const sessKey=`caa-custom-${classe}-${Date.now()}`;
-  DB.sessioni[sessKey]={provaId:'custom',classe,tipo:'caa',data:new Date().toISOString(),studenti:0,chiusa:false};
-  saveDB();
-  try{fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'salvaSessione',sessione:sessKey,classe,provaId:'custom',provaTitolo:titolo,data:new Date().toISOString()})}).catch(()=>{});}catch(e){}
-  const base=window.location.href.replace(/[^/]*$/,'')+'grado8_dis.html';
-  const params=new URLSearchParams();
-  params.set('prova','custom'); params.set('data',b64);
-  params.set('sessione',sessKey); params.set('classe',classe);
-  if(nome) params.set('nome',nome);
-  params.set('tic',ticAll.join(','));
-  const link=base+'?'+params.toString();
-  window._linkCAA=link;
-  try{aggiornaTabellaSessioni();}catch(e){} try{aggSelSessioni();}catch(e){}
-  const el=$('caa-succ');
-  el.innerHTML=`✅ Sessione <strong>${sessKey}</strong> creata!<br>
-    <div style="margin-top:8px;padding:8px 12px;background:#fff;border:1px solid #9c27b0;border-radius:6px;word-break:break-all;font-size:11px;font-family:monospace">${link.substring(0,180)}…</div>
-    <button onclick="navigator.clipboard.writeText(window._linkCAA).then(()=>alert('✅ Copiato!'))" style="margin-top:10px;width:100%;padding:9px;background:#7b1fa2;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">📋 Copia link</button>
-    <div style="margin-top:6px;font-size:11px;color:#555">Classe: <strong>${classe}</strong> · Domande: <strong>${domande.length}</strong></div>`;
-  el.style.display='block';
+  alert('Funzione CAA in sviluppo nella prossima versione.');
 }
+
 
 function cambiaClasse(cl){
   S.classe = cl;
@@ -4718,7 +4926,7 @@ function cambiaClasse(cl){
   try{ aggiornaAnalisiGenerale(); }catch(e){}
 }
 
-// CARICA ANALISI SESSIONE (alias di caricaRis)
+
 // caricaAnalisi definita in precedenza (unica versione)
 
 function aggiornaAnalisiGenerale(){
@@ -5396,7 +5604,11 @@ window.addEventListener('load', () => {
 // ══════════════════════════════════════════════════════════════
 //  SESSIONE PERSONALIZZATA DISABILITÀ → grado8_dis.html
 // ══════════════════════════════════════════════════════════════
+// creaSessDisabilita → sostituita da creaLinkDisAI (pannello AI)
 function creaSessDisabilita(){
+  creaLinkDisAI(); // delega al nuovo sistema AI
+  return;
+  // codice legacy disattivato — la variabile _disAIProva gestisce il link
   const provaId = parseInt(document.getElementById('dis-sel-prova').value);
   const classe  = document.getElementById('dis-classe').value;
   const nome    = document.getElementById('dis-nome').value.trim();
