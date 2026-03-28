@@ -1,398 +1,419 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Grado 8 – Simulatore INVALSI</title>
-    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        /* ══ VARIABILI E STILI BASE ════════════════ */
-        :root {
-            --blu: #003f8a; --blu-s: #001f5c; --blu-m: #1a5fa8; --az: #4a90d9;
-            --verde: #2e7d32; --rosso: #c62828; --giallo: #f9a825; --grigio: #dde4ed;
-            --testo: #1a2436; --font: 'Lexend', sans-serif;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#001f5c">
+<title>Grado 8 – Simulazione INVALSI</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ── VARIABILI E COLORI ORIGINALI ────────────────────────── */
+:root{
+  --blu:#003f8a;--blu-s:#001f5c;--blu-m:#1a5fa8;--az:#4a90d9;
+  --verde:#2e7d32;--rosso:#c62828;--giallo:#f9a825;--arancio:#e65100;
+  --grigio-ch:#f0f4f8;--grigio:#dde4ed;--testo:#1a2436;
+  --font:'Lexend', sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--grigio-ch);color:var(--testo);overflow-x:hidden}
+.hidden{display:none!important}
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: var(--font); background: #f0f4f8; color: var(--testo); line-height: 1.6; }
-        .hidden { display: none !important; }
+/* ── ANIMAZIONE BENVENUTO E PARTICELLE ──────────────────── */
+#scr-benvenuto{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,var(--blu-s) 0%,var(--blu) 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff}
+.particella{position:absolute;border-radius:50%;background:rgba(255,255,255,.1);animation:flotta linear infinite}
+@keyframes flotta{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:1}90%{opacity:.5}100%{transform:translateY(-10vh) scale(1.2);opacity:0}}
 
-        /* ══ GRAFICI A DONUT (STUDENTE) ════════════ */
-        .donut-chart {
-            width: 80px; height: 80px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            margin: 10px auto; position: relative;
-        }
-        .donut-inner {
-            width: 60px; height: 60px; background: white; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 14px; font-weight: bold; color: var(--blu-s);
-        }
+/* ── GRAFICI A DONUT (STUDENTE) ─────────────────────────── */
+.donut-wrap { width: 100px; height: 100px; margin: 10px auto; position: relative; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.donut-inner { width: 75px; height: 75px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; color: var(--blu-s); }
 
-        /* ══ PANNELLO DOCENTE ══════════════════════ */
-        .scr-doc { padding: 20px; max-width: 1200px; margin: 0 auto; }
-        .doc-hdr { 
-            background: var(--blu-s); color: white; padding: 20px; 
-            border-radius: 12px; display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 20px;
-        }
-        .doc-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab-btn { 
-            padding: 10px 20px; border: none; border-radius: 8px; 
-            background: white; color: var(--blu); cursor: pointer; font-weight: 600;
-            transition: 0.3s;
-        }
-        .tab-btn.att { background: var(--blu); color: white; }
+/* ── LAYOUT TRE COLONNE (PROVA) ─────────────────────────── */
+.hdr{background:var(--blu-s);color:#fff;padding:10px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
+.layout{display:grid;grid-template-columns:220px 1fr 1fr;height:calc(100vh - 60px)}
+.sidebar{background:#fff;border-right:2px solid var(--grigio);padding:15px;overflow-y:auto}
+.testo-col{background:#fff;border-right:2px solid var(--grigio);padding:25px;overflow-y:auto}
+.dom-col{padding:25px;overflow-y:auto}
 
-        .panel-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .kpi-box { background: #e3f2fd; padding: 15px; border-radius: 10px; text-align: center; border-left: 5px solid var(--az); }
-        .kpi-box span { display: block; font-size: 12px; text-transform: uppercase; color: #555; }
-        .kpi-box strong { font-size: 24px; color: var(--blu-s); }
+/* ── PANNELLO DOCENTE 2.0 ──────────────────────────────── */
+.scr-doc{padding:20px; max-width: 1200px; margin: 0 auto;}
+.doc-hdr{background:var(--blu-s); color:white; padding:20px; border-radius:12px; display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;}
+.doc-tabs{display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap;}
+.tab-btn{padding:10px 18px; border:none; border-radius:8px; background:white; color:var(--blu); cursor:pointer; font-weight:600; transition:0.3s;}
+.tab-btn.att{background:var(--blu); color:white;}
+.panel-card{background:white; padding:25px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.05); margin-bottom:20px;}
+.kpi-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:15px; margin-bottom:20px;}
+.kpi-box{background:#f8f9fa; padding:15px; border-radius:10px; text-align:center; border-bottom:4px solid var(--az);}
+.kpi-box span{display:block; font-size:11px; text-transform:uppercase; color:#666; margin-bottom:5px;}
+.kpi-box strong{font-size:24px; color:var(--blu-s);}
 
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { text-align: left; padding: 12px; background: #f8f9fa; border-bottom: 2px solid #eee; font-size: 13px; }
-        td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
+table{width:100%; border-collapse:collapse;}
+th{text-align:left; padding:12px; background:#f4f7f9; font-size:12px; text-transform:uppercase; color:#555;}
+td{padding:12px; border-bottom:1px solid #eee; font-size:14px;}
+tr:hover td{background:#fcfdfe;}
 
-        .sub-nav { display: flex; gap: 5px; background: #eee; padding: 5px; border-radius: 8px; margin-bottom: 15px; }
-        .sub-nav-btn { flex: 1; padding: 8px; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; }
-        .sub-nav-btn.att { background: white; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+.badge{padding:4px 8px; border-radius:4px; font-size:11px; font-weight:bold;}
+.badge-v{background:#e8f5e9; color:#2e7d32;}
+.badge-r{background:#ffebee; color:#c62828;}
 
-        .check-label { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 14px; cursor: pointer; }
-        .btn { padding: 12px 24px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .btn-p { background: var(--blu); color: white; }
-        .btn-g { background: var(--verde); color: white; }
-        .btn-s { background: var(--grigio); color: var(--testo); }
+/* ── MODALE ALUNNO ── */
+.modal{position:fixed; inset:0; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; z-index:2000;}
+.modal-content{background:white; padding:30px; border-radius:15px; width:90%; max-width:550px; position:relative; max-height:90vh; overflow-y:auto;}
+.close-btn{position:absolute; top:15px; right:15px; cursor:pointer; font-size:24px;}
 
-        .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
-        .badge-v { background: #e8f5e9; color: #2e7d32; }
-        .badge-r { background: #ffebee; color: #c62828; }
-
-        /* ══ DETTAGLIO ALUNNO ══════════════════════ */
-        #modal-alunno {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.7); 
-            display: flex; align-items: center; justify-content: center; z-index: 1000;
-        }
-        .modal-content { background: white; padding: 30px; border-radius: 15px; width: 90%; max-width: 500px; text-align: center; }
-        
-    </style>
+/* ── UTILS ── */
+.btn-cl{margin-right:5px; font-size:12px; padding:6px 12px;}
+.btn-p{background:var(--blu); color:white; border:none; padding:10px 20px; border-radius:6px; cursor:pointer; font-weight:bold;}
+.btn-s{background:var(--grigio); color:var(--testo); border:none; padding:10px 20px; border-radius:6px; cursor:pointer;}
+</style>
 </head>
 <body>
 
-<!-- ══ SCHERMATA LOGIN ════════════════════════ -->
-<div id="scr-acc" class="scr-doc" style="max-width:400px; margin: 100px auto;">
-    <div class="panel-card">
-        <h2 style="text-align:center; margin-bottom:20px;">Acceso Docenti</h2>
-        <div style="margin-bottom:15px;">
-            <label style="font-size:12px; font-weight:bold;">Password</label>
-            <input type="password" id="pw-doc" style="width:100%; padding:10px; border-radius:6px; border:1px solid #ccc;">
-        </div>
-        <button class="btn btn-p" style="width:100%" onclick="loginDocente()">Accedi</button>
-        <p id="err-login" style="color:red; font-size:12px; margin-top:10px; display:none;">Password errata!</p>
+<!-- ═══ SCHERMATA BENVENUTO ════════════════════════════════ -->
+<div id="scr-benvenuto">
+    <div id="particelle-container"></div>
+    <div style="text-align:center; z-index:10;">
+        <h1 style="font-size:3rem; font-weight:900; margin-bottom:10px;">GRADO 8</h1>
+        <p style="font-size:1.2rem; opacity:0.8;">Simulatore INVALSI 2026</p>
+        <div id="bv-loading" style="margin-top:30px; font-size:0.9rem; letter-spacing:2px;">CARICAMENTO...</div>
     </div>
 </div>
 
-<!-- ══ PANNELLO DOCENTE REALE ═════════════════ -->
-<div id="scr-doc" class="scr-doc hidden">
+<!-- ═══ SCHERMATA ACCESSO ══════════════════════════════════ -->
+<div id="scr-acc" class="hidden" style="min-height:100vh; display:flex; align-items:center; justify-content:center;">
+    <div class="panel-card" style="width:400px; text-align:center;">
+        <h2 style="color:var(--blu-s); margin-bottom:25px;">Area Docente</h2>
+        <div style="margin-bottom:15px; text-align:left;">
+            <label style="font-size:12px; font-weight:bold; color:#555;">PASSWORD</label>
+            <input type="password" id="pw-doc" style="width:100%; padding:12px; border-radius:8px; border:2px solid var(--grigio); margin-top:5px;">
+        </div>
+        <button class="btn-p" style="width:100%;" onclick="loginDocente()">ACCEDI</button>
+        <p id="err-login" style="color:var(--rosso); font-size:12px; margin-top:10px; display:none;">Password errata. Riprova.</p>
+    </div>
+</div>
+
+<!-- ═══ PANNELLO DOCENTE ═══════════════════════════════════ -->
+<div id="scr-doc" class="hidden scr-doc">
     <div class="doc-hdr">
         <div>
             <h2 id="titolo-ruolo">Referente INVALSI</h2>
-            <p id="nome-scuola">IC Pasquale Sottocorno - Milano</p>
+            <p>Istituto Comprensivo Pasquale Sottocorno</p>
         </div>
-        <button class="btn btn-s" onclick="location.reload()">Esci</button>
+        <div style="display:flex; gap:10px; align-items:center;">
+            <div style="background:rgba(255,255,255,0.1); padding:8px 15px; border-radius:20px; font-size:13px;">
+                Classe: <strong id="lbl-classe-top">Tutte</strong>
+            </div>
+            <button class="btn-s" onclick="location.reload()">Esci</button>
+        </div>
     </div>
 
     <div class="doc-tabs">
-        <button class="tab-btn att" onclick="mostraTab('tab-analisi')">📊 Analisi Generale</button>
-        <button class="tab-btn" onclick="mostraTab('tab-sess')">📋 Sessioni</button>
-        <button class="tab-btn" onclick="mostraTab('tab-new')">➕ Nuova Prova</button>
+        <button class="tab-btn att" onclick="mostraTab('tab-analisi', this)">📊 Analisi Generale</button>
+        <button class="tab-btn" onclick="mostraTab('tab-analisi-sessione', this)">📋 Analisi Prova</button>
+        <button class="tab-btn" onclick="mostraTab('tab-sess', this)">⚙️ Gestione Link</button>
+        <button class="tab-btn" onclick="mostraTab('tab-import', this)">☁️ Sincronizza Sheet</button>
     </div>
 
-    <!-- TAB 1: ANALISI GENERALE -->
-    <div class="panel" id="tab-analisi">
+    <!-- TAB 1: ANALISI GENERALE (VISTA DIRIGENTE/CLASSI) -->
+    <div id="tab-analisi" class="panel">
         <div class="panel-card">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                <h3>Andamento Classi</h3>
-                <div id="filtri-classi">
-                    <button class="btn btn-s btn-cl" id="btn-cl-3A" onclick="switchClasse('3A')">3A</button>
-                    <button class="btn btn-s btn-cl" id="btn-cl-3E" onclick="switchClasse('3E')">3E</button>
-                    <button class="btn btn-s btn-cl" id="btn-cl-ALL" onclick="switchClasse('ALL')">Tutte (Aggregato)</button>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+                <h3>Dashboard Andamento Alunni</h3>
+                <div id="box-filtri">
+                    <button class="btn-s btn-cl" id="btn-cl-3A" onclick="cambiaClasse('3A')">Classe 3A</button>
+                    <button class="btn-s btn-cl" id="btn-cl-3E" onclick="cambiaClasse('3E')">Classe 3E</button>
+                    <button class="btn-s btn-cl att-cl" id="btn-cl-ALL" onclick="cambiaClasse('ALL')">Tutte le Classi</button>
                 </div>
             </div>
 
             <div class="kpi-grid" id="gen-kpi">
-                <!-- Riempito via JS -->
+                <div class="kpi-box"><span>Media Generale</span><strong id="gen-media">--</strong></div>
+                <div class="kpi-box"><span>Prove Svolte</span><strong id="gen-tot">--</strong></div>
+                <div class="kpi-box"><span>Eccellenze (>85%)</span><strong id="gen-ecc">--</strong></div>
+                <div class="kpi-box"><span>Sotto Soglia (<50%)</span><strong id="gen-sos">--</strong></div>
             </div>
 
-            <h4>Andamento Alunni</h4>
             <div style="overflow-x:auto;">
-                <table>
+                <table id="table-alunni-agg">
                     <thead>
                         <tr>
                             <th>Alunno</th>
                             <th>Classe</th>
-                            <th>Prove Fatte</th>
-                            <th>Media Score</th>
-                            <th>Punto Debole</th>
-                            <th>Dettaglio</th>
+                            <th>Prove</th>
+                            <th>Media %</th>
+                            <th>Punto Debole Prevalente</th>
+                            <th>Azioni</th>
                         </tr>
                     </thead>
-                    <tbody id="tbody-alunni">
-                        <!-- Riempito via JS -->
-                    </tbody>
+                    <tbody id="tbody-alunni-gen"></tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- TAB 2: SESSIONI -->
-    <div class="panel hidden" id="tab-sess">
-        <div class="panel-card">
-            <h3>Storico Sessioni Attive</h3>
-            <table id="table-sessioni">
-                <thead>
-                    <tr>
-                        <th>ID Sessione</th>
-                        <th>Prova</th>
-                        <th>Classe</th>
-                        <th>Studenti</th>
-                        <th>Azioni</th>
-                    </tr>
-                </thead>
-                <tbody id="tbody-sess"></tbody>
-            </table>
+    <!-- TAB 2: GESTIONE LINK (NUOVA PROVA) -->
+    <div id="tab-sess" class="panel hidden">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+            <div class="panel-card">
+                <h3>📋 Generatore Link Standard (DSA/BES)</h3>
+                <p style="font-size:12px; color:#666; margin-bottom:15px;">Per prove normali con supporti tempo ed estetica.</p>
+                <div style="margin-bottom:10px;">
+                    <label class="flbl">Seleziona Prova</label>
+                    <select id="sel-prova-std" class="btn-s" style="width:100%; text-align:left; margin-top:5px;">
+                        <option value="1">1. Rosso Malpelo</option>
+                        <option value="2">2. La strada</option>
+                        <option value="3">3. L'ultimo volo</option>
+                        <!-- ... altre prove ... -->
+                    </select>
+                </div>
+                <label class="check-label"><input type="checkbox" id="chk-dys"> Font Lexend (Dislessia)</label>
+                <label class="check-label"><input type="checkbox" id="chk-big"> Testo Ingrandito</label>
+                <label class="check-label"><input type="checkbox" id="chk-tm"> Tempo Esteso (117 min)</label>
+                <button class="btn-p" style="width:100%; margin-top:15px;" onclick="generaLink('std')">GENERA LINK</button>
+            </div>
+
+            <div class="panel-card">
+                <h3>🌟 Generatore Link Adattato (Ob. Minimi)</h3>
+                <p style="font-size:12px; color:#666; margin-bottom:15px;">Testi semplificati, audio Babaluka e layout split.</p>
+                <div style="margin-bottom:10px;">
+                    <label class="flbl">Seleziona Prova Adattata</label>
+                    <select id="sel-prova-dis" class="btn-s" style="width:100%; text-align:left; margin-top:5px;">
+                        <option value="1">1. Il cane di Lorenzo</option>
+                        <option value="2">2. La torta di Giulia</option>
+                    </select>
+                </div>
+                <label class="check-label"><input type="checkbox" id="chk-caa"> Includi Pittogrammi CAA</label>
+                <button class="btn-p" style="width:100%; margin-top:40px;" onclick="generaLink('dis')">GENERA LINK DIS/CAA</button>
+            </div>
+        </div>
+        <div id="box-link-res" class="panel-card hidden" style="border:2px solid var(--verde); background:#e8f5e9;">
+            <p><strong>Link pronto da inviare agli studenti:</strong></p>
+            <input type="text" id="res-link-val" readonly style="width:100%; padding:10px; margin:10px 0; border:1px solid #ccc; border-radius:5px;">
+            <button class="btn-p" onclick="copiaLink()">COPIA LINK</button>
         </div>
     </div>
 
-    <!-- TAB 3: NUOVA SESSIONE -->
-    <div class="panel hidden" id="tab-new">
-        <div class="sub-nav">
-            <button class="sub-nav-btn att" onclick="mostraSubTab('st-standard',this)">📋 Standard (DSA/BES)</button>
-            <button class="sub-nav-btn" onclick="mostraSubTab('st-dis',this)">🌟 Disabilità (Ob. Minimi)</button>
-            <button class="sub-nav-btn" onclick="mostraSubTab('st-caa',this)">🖼️ CAA (Pittogrammi)</button>
-        </div>
-
-        <div class="sub-panel" id="st-standard">
-            <div class="panel-card">
-                <h3>Crea Prova Standard</h3>
-                <label class="flbl">Seleziona Prova</label>
-                <select class="finp" id="sel-prova-std" style="width:100%; padding:10px; margin-bottom:15px;">
-                    <option value="1">1. Rosso Malpelo</option>
-                    <option value="2">2. La strada</option>
-                    <option value="3">3. L'ultimo volo</option>
-                </select>
-                <div style="background:#f9f9f9; padding:15px; border-radius:8px;">
-                    <p style="font-size:11px; font-weight:bold; margin-bottom:10px;">TIC DISPONIBILI</p>
-                    <label class="check-label"><input type="checkbox" id="std-large"> Testo Grande</label>
-                    <label class="check-label"><input type="checkbox" id="std-dys"> Font Lexend (Dislessia)</label>
-                    <label class="check-label"><input type="checkbox" id="std-maiuscolo"> Tutto Maiuscolo</label>
-                </div>
-                <button class="btn btn-g" style="width:100%; margin-top:15px;" onclick="generaLink('std')">Genera Link Prova</button>
-            </div>
-        </div>
-
-        <div class="sub-panel hidden" id="st-dis">
-            <div class="panel-card">
-                <h3>Crea Prova Adattata (Disabilità)</h3>
-                <p style="font-size:12px; color:#666; margin-bottom:15px;">Testi semplificati, domande facilitate e audiolettura Babaluka.</p>
-                <select class="finp" id="sel-prova-dis" style="width:100%; padding:10px; margin-bottom:15px;">
-                    <option value="1">1. Il cane di Lorenzo</option>
-                    <option value="2">2. La torta di Giulia</option>
-                </select>
-                <button class="btn btn-p" style="width:100%;" onclick="generaLink('dis')">Genera Link Disabilità</button>
-            </div>
-        </div>
-
-        <div class="sub-panel hidden" id="st-caa">
-            <div class="panel-card">
-                <h3>Crea Prova in CAA</h3>
-                <p style="font-size:12px; color:#666; margin-bottom:15px;">Pittogrammi ARASAAC su ogni parola chiave.</p>
-                <select class="finp" id="sel-prova-caa" style="width:100%; padding:10px; margin-bottom:15px;">
-                    <option value="11">1. La colazione di Marco</option>
-                    <option value="12">2. Al parco con Bello</option>
-                </select>
-                <button class="btn btn-p" style="width:100%;" onclick="generaLink('caa')">Genera Link CAA</button>
-            </div>
-        </div>
-
-        <div id="link-risultato" class="panel-card hidden" style="background:#e8f5e9; border:2px solid var(--verde);">
-            <p style="font-weight:bold; color:var(--verde);">Link Generato con Successo!</p>
-            <input type="text" id="input-link" readonly style="width:100%; padding:10px; margin:10px 0;">
-            <button class="btn btn-s" onclick="copiaLink()">Copia negli appunti</button>
+    <!-- TAB 4: IMPORT (LOGICA SHEET) -->
+    <div id="tab-import" class="panel hidden">
+        <div class="panel-card" style="text-align:center;">
+            <h3>☁️ Sincronizzazione Dati Google Sheet</h3>
+            <p style="margin:15px 0; color:#555;">Usa questo pulsante per scaricare gli ultimi risultati registrati dagli studenti.</p>
+            <button class="btn-p" onclick="importaDaSheetReal()">🔄 AVVIA SINCRONIZZAZIONE ORA</button>
+            <div id="import-status" style="margin-top:20px; font-weight:bold;"></div>
         </div>
     </div>
 </div>
 
-<!-- ══ MODALE DETTAGLIO ALUNNO ════════════════ -->
-<div id="modal-alunno" class="hidden">
+<!-- ═══ MODALE DETTAGLIO STUDENTE ══════════════════════════ -->
+<div id="modal-stud" class="modal hidden">
     <div class="modal-content">
-        <h3 id="m-nome">Nome Alunno</h3>
-        <div id="m-donut" class="donut-chart">
-            <div class="donut-inner" id="m-pct">0%</div>
+        <span class="close-btn" onclick="$('modal-stud').classList.add('hidden')">&times;</span>
+        <h2 id="mod-nome">Studente</h2>
+        <p id="mod-classe">Classe</p>
+        
+        <div id="mod-donut" class="donut-wrap">
+            <div class="donut-inner" id="mod-pct">0%</div>
         </div>
-        <div id="m-info" style="text-align:left; margin-top:20px;"></div>
-        <button class="btn btn-s" style="margin-top:20px;" onclick="$('modal-alunno').classList.add('hidden')">Chiudi</button>
+        <p style="text-align:center; font-size:12px; color:#666; margin-bottom:20px;">Media Score Totale</p>
+        
+        <div style="text-align:left;">
+            <h4>Analisi Competenze</h4>
+            <div id="mod-competenze" style="margin-top:10px;">
+                <!-- Barre progresso -->
+            </div>
+            
+            <h4 style="margin-top:20px;">Storico Prove</h4>
+            <div id="mod-storico" style="max-height:150px; overflow-y:auto; margin-top:10px; border-top:1px solid #eee;">
+                <!-- Lista prove -->
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
-    // ══ CONFIGURAZIONE E DATI ════════════════════
-    const $ = id => document.getElementById(id);
-    let RUOLO = ""; 
-    let CLASSE_ATTUALE = "ALL";
-    let DB = { risultati: [], sessioni: {} };
+/* ══ CONFIGURAZIONE E MOTORE JS ══════════════════════════ */
+const $ = id => document.getElementById(id);
+let DB = { risultati: [], sessioni: {} };
+let RUOLO_ATTIVO = ""; 
+let CLASSE_VISTA = "ALL";
 
-    // Mockup Dati (In un sistema reale questi vengono dallo Sheet)
-    function caricaDatiDaSheet() {
-        // Simulazione caricamento
-        DB.risultati = [
-            { nome: "Mario R.", classe: "3A", prova: "1", pct: 85, debole: "Grammatica" },
-            { nome: "Mario R.", classe: "3A", prova: "2", pct: 70, debole: "Lessico" },
-            { nome: "Elena V.", classe: "3E", prova: "1", pct: 40, debole: "Comprensione" },
-            { nome: "Luigi B.", classe: "3A", prova: "1", pct: 95, debole: "Nessuno" }
-        ];
-        aggiornaAnalisiGenerale();
+// 1. ANIMAZIONE PARTICELLE
+function avviaParticelle() {
+    const container = $('particelle-container');
+    for(let i=0; i<15; i++) {
+        const p = document.createElement('div');
+        p.className = 'particella';
+        const size = Math.random() * 15 + 5;
+        p.style.width = size + 'px';
+        p.style.height = size + 'px';
+        p.style.left = Math.random() * 100 + '%';
+        p.style.animationDuration = (Math.random() * 5 + 5) + 's';
+        p.style.animationDelay = (Math.random() * 5) + 's';
+        container.appendChild(p);
+    }
+}
+
+// 2. LOGIN CON RUOLI
+function loginDocente() {
+    const pw = $('pw-doc').value;
+    if(pw === "referente2026") {
+        RUOLO_ATTIVO = "referente";
+        $('titolo-ruolo').textContent = "Referente INVALSI (Visione Totale)";
+        $('scr-acc').classList.add('hidden');
+        $('scr-doc').classList.remove('hidden');
+        cambiaClasse('ALL');
+    } else if(pw === "docente2026") {
+        RUOLO_ATTIVO = "docente";
+        $('titolo-ruolo').textContent = "Pannello Docente";
+        $('btn-cl-ALL').classList.add('hidden'); // I docenti non vedono "Tutte"
+        $('scr-acc').classList.add('hidden');
+        $('scr-doc').classList.remove('hidden');
+        cambiaClasse('3A');
+    } else {
+        $('err-login').style.display = "block";
+    }
+    caricaDatiEsempio(); // Qui chiamerai importaDaSheetReal() nel sistema vero
+}
+
+// 3. SWITCH CLASSE E FILTRO REALE
+function cambiaClasse(cl) {
+    CLASSE_VISTA = cl;
+    $('lbl-classe-top').textContent = cl === 'ALL' ? "Tutte le Terze" : "Classe " + cl;
+    
+    // UI Bottoni
+    document.querySelectorAll('.btn-cl').forEach(b => b.style.background = "var(--grigio)");
+    if($('btn-cl-'+cl)) $('btn-cl-'+cl).style.background = "var(--az)";
+    if($('btn-cl-'+cl)) $('btn-cl-'+cl).style.color = "white";
+
+    aggiornaAnalisiGenerale();
+}
+
+function aggiornaAnalisiGenerale() {
+    const ris = CLASSE_VISTA === 'ALL' ? DB.risultati : DB.risultati.filter(r => r.classe === CLASSE_VISTA);
+    
+    if(!ris.length) {
+        $('tbody-alunni-gen').innerHTML = "<tr><td colspan='6' style='text-align:center'>Nessun dato trovato per questa selezione.</td></tr>";
+        return;
     }
 
-    // ══ LOGICA LOGIN RUOLI ═══════════════════════
-    function loginDocente() {
-        const pw = $("pw-doc").value;
-        if(pw === "referente2026") {
-            RUOLO = "referente";
-            $("titolo-ruolo").innerText = "Referente INVALSI (Tutte le classi)";
-            $("scr-acc").classList.add("hidden");
-            $("scr-doc").classList.remove("hidden");
-            switchClasse("ALL");
-        } else if (pw === "docente2026") {
-            RUOLO = "docente";
-            $("titolo-ruolo").innerText = "Docente di Classe";
-            $("btn-cl-ALL").style.display = "none"; // Nasconde visione globale
-            $("scr-acc").classList.add("hidden");
-            $("scr-doc").classList.remove("hidden");
-            switchClasse("3A");
-        } else {
-            $("err-login").style.display = "block";
-        }
-        caricaDatiDaSheet();
+    // KPI Aggregati
+    const media = Math.round(ris.reduce((s, r) => s + r.pct, 0) / ris.length);
+    const eccellenze = ris.filter(r => r.pct >= 85).length;
+    const sos = ris.filter(r => r.pct < 50).length;
+
+    $('gen-media').textContent = media + "%";
+    $('gen-tot').textContent = ris.length;
+    $('gen-ecc').textContent = eccellenze;
+    $('gen-sos').textContent = sos;
+
+    // Raggruppamento per Alunno
+    const mappaAlunni = {};
+    ris.forEach(r => {
+        if(!mappaAlunni[r.codice]) mappaAlunni[r.codice] = { nome: r.codice, cl: r.classe, prove: 0, somma: 0, deboli: [] };
+        mappaAlunni[r.codice].prove++;
+        mappaAlunni[r.codice].somma += r.pct;
+        if(r.debole) mappaAlunni[r.codice].deboli.push(r.debole);
+    });
+
+    let html = "";
+    for(let id in mappaAlunni) {
+        const a = mappaAlunni[id];
+        const mediaA = Math.round(a.somma / a.prove);
+        const pDebole = a.deboli.length ? a.deboli[a.deboli.length-1] : "Nessuno";
+        html += `<tr>
+            <td><strong>${a.nome}</strong></td>
+            <td>${a.cl}</td>
+            <td>${a.prove}</td>
+            <td><span class="badge ${mediaA >= 60 ? 'badge-v' : 'badge-r'}">${mediaA}%</span></td>
+            <td>${pDebole}</td>
+            <td><button class="btn-s" style="padding:4px 8px; font-size:11px;" onclick="apriDettaglioStudente('${a.nome}')">Dettaglio</button></td>
+        </tr>`;
     }
+    $('tbody-alunni-gen').innerHTML = html;
+}
 
-    // ══ ANALISI E FILTRI ═════════════════════════
-    function switchClasse(cl) {
-        CLASSE_ATTUALE = cl;
-        document.querySelectorAll('.btn-cl').forEach(b => b.classList.replace('btn-p', 'btn-s'));
-        $('btn-cl-' + cl).classList.replace('btn-s', 'btn-p');
-        aggiornaAnalisiGenerale();
+// 4. DETTAGLIO STUDENTE CON DONUT CSS
+function apriDettaglioStudente(nome) {
+    const risStud = DB.risultati.filter(r => r.codice === nome);
+    const media = Math.round(risStud.reduce((s,r)=>s+r.pct,0) / risStud.length);
+    
+    $('mod-nome').textContent = nome;
+    $('mod-classe').textContent = "Classe " + risStud[0].classe;
+    $('mod-pct').textContent = media + "%";
+    
+    // Disegna Donut
+    const col = media >= 75 ? '#2e7d32' : media >= 55 ? '#f9a825' : '#c62828';
+    $('mod-donut').style.background = `conic-gradient(${col} ${media * 3.6}deg, #eee 0deg)`;
+
+    // Storico
+    $('mod-storico').innerHTML = risStud.map(r => `
+        <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #f0f0f0;">
+            <span style="font-size:13px;">Prova ${r.provaId}</span>
+            <span style="font-weight:bold; color:${r.pct >= 60 ? 'green':'red'}">${r.pct}%</span>
+        </div>
+    `).join('');
+
+    $('modal-stud').classList.remove('hidden');
+}
+
+// 5. GENERATORE LINK
+function generaLink(tipo) {
+    const base = window.location.href.split('index.html')[0];
+    let link = "";
+    if(tipo === 'std') {
+        const id = $('sel-prova-std').value;
+        const tic = [];
+        if($('chk-dys').checked) tic.push('font');
+        if($('chk-big').checked) tic.push('large');
+        if($('chk-tm').checked) tic.push('tempo=dsa');
+        link = `${base}index.html?prova=${id}&tic=${tic.join(',')}`;
+    } else {
+        const id = $('sel-prova-dis').value;
+        const caa = $('chk-caa').checked ? "&tic=caa" : "";
+        link = `${base}grado8_dis.html?prova=${id}${caa}`;
     }
+    $('res-link-val').value = link;
+    $('box-link-res').classList.remove('hidden');
+}
 
-    function aggiornaAnalisiGenerale() {
-        const dati = CLASSE_ATTUALE === "ALL" ? DB.risultati : DB.risultati.filter(r => r.classe === CLASSE_ATTUALE);
-        
-        // Calcolo KPI
-        const media = dati.length ? Math.round(dati.reduce((s,r)=>s+r.pct,0)/dati.length) : 0;
-        const totali = dati.length;
-        const eccellenze = dati.filter(r => r.pct >= 80).length;
+function copiaLink() {
+    $('res-link-val').select();
+    document.execCommand('copy');
+    alert("Link copiato! Incollalo su Classroom.");
+}
 
-        $("gen-kpi").innerHTML = `
-            <div class="kpi-box"><span>Media Score</span><strong>${media}%</strong></div>
-            <div class="kpi-box"><span>Prove Svolte</span><strong>${totali}</strong></div>
-            <div class="kpi-box"><span>Eccellenze (>=80%)</span><strong>${eccellenze}</strong></div>
-        `;
+// 6. DATI MOCKUP (Per test immediato)
+function caricaDatiEsempio() {
+    DB.risultati = [
+        { codice: "Mario R.", classe: "3A", pct: 88, provaId: "1", debole: "Lessico" },
+        { codice: "Mario R.", classe: "3A", pct: 72, provaId: "2", debole: "Lessico" },
+        { codice: "Elena V.", classe: "3E", pct: 45, provaId: "1", debole: "Grammatica" },
+        { codice: "Luigi B.", classe: "3A", pct: 94, provaId: "1", debole: "Nessuno" },
+        { codice: "Sofia G.", classe: "3E", pct: 68, provaId: "1", debole: "Comprensione" }
+    ];
+    aggiornaAnalisiGenerale();
+}
 
-        // Tabella Alunni (Aggregata per nome)
-        const alunniMappa = {};
-        dati.forEach(r => {
-            if(!alunniMappa[r.nome]) alunniMappa[r.nome] = { nome: r.nome, classe: r.classe, prove: 0, somma: 0, deboli: [] };
-            alunniMappa[r.nome].prove++;
-            alunniMappa[r.nome].somma += r.pct;
-            alunniMappa[r.nome].deboli.push(r.debole);
-        });
+function mostraTab(id, btn) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
+    $(id).classList.remove('hidden');
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('att'));
+    btn.classList.add('att');
+}
 
-        let html = "";
-        for(let nome in alunniMappa) {
-            const a = alunniMappa[nome];
-            const mediaA = Math.round(a.somma / a.prove);
-            html += `<tr>
-                <td><strong>${a.nome}</strong></td>
-                <td>${a.classe}</td>
-                <td>${a.prove}</td>
-                <td><span class="badge ${mediaA >= 60 ? 'badge-v' : 'badge-r'}">${mediaA}%</span></td>
-                <td>${a.deboli[a.deboli.length-1]}</td>
-                <td><button class="btn btn-s" style="padding:5px 10px; font-size:12px;" onclick="mostraDettaglioAlunno('${a.nome}')">Dettaglio</button></td>
-            </tr>`;
-        }
-        $("tbody-alunni").innerHTML = html;
-    }
+window.onload = () => {
+    avviaParticelle();
+    setTimeout(() => {
+        $('scr-benvenuto').style.transition = "0.8s";
+        $('scr-benvenuto').style.opacity = "0";
+        setTimeout(() => {
+            $('scr-benvenuto').classList.add('hidden');
+            $('scr-acc').classList.remove('hidden');
+        }, 800);
+    }, 2000);
+};
 
-    // ══ GRAFICO DONUT E MODALE ═══════════════════
-    function mostraDettaglioAlunno(nome) {
-        const dati = DB.risultati.filter(r => r.nome === nome);
-        const media = Math.round(dati.reduce((s,r)=>s+r.pct,0)/dati.length);
-        
-        $("m-nome").innerText = nome;
-        $("m-pct").innerText = media + "%";
-        
-        // Colore Donut
-        const col = media >= 75 ? '#2e7d32' : media >= 50 ? '#f9a825' : '#c62828';
-        $("m-donut").style.background = `conic-gradient(${col} ${media * 3.6}deg, #eee 0deg)`;
-
-        let info = "<h4>Storico Prove:</h4><ul style='list-style:none; padding:0;'>";
-        dati.forEach(d => {
-            info += `<li style='margin-bottom:10px; border-bottom:1px solid #eee; padding-bottom:5px;'>
-                Prova ${d.prova}: <strong>${d.pct}%</strong><br>
-                <small>Migliorare in: ${d.debole}</small>
-            </li>`;
-        });
-        info += "</ul>";
-        $("m-info").innerHTML = info;
-        $("modal-alunno").classList.remove("hidden");
-    }
-
-    // ══ GENERAZIONE LINK PROVE ═══════════════════
-    function generaLink(tipo) {
-        const base = "https://lbeac.github.io/simulatore-def/";
-        let link = "";
-        
-        if(tipo === 'std') {
-            const p = $("sel-prova-std").value;
-            const tic = [];
-            if($("std-large").checked) tic.push("large");
-            if($("std-dys").checked) tic.push("font");
-            if($("std-maiuscolo").checked) tic.push("maiuscolo");
-            link = `${base}index.html?prova=${p}&tic=${tic.join(",")}`;
-        } else if(tipo === 'dis') {
-            const p = $("sel-prova-dis").value;
-            link = `${base}grado8_dis.html?prova=${p}`; // Le DIS (1-10) non hanno CAA
-        } else if(tipo === 'caa') {
-            const p = $("sel-prova-caa").value;
-            link = `${base}grado8_dis.html?prova=${p}&tic=caa`;
-        }
-
-        $("input-link").value = link;
-        $("link-risultato").classList.remove("hidden");
-    }
-
-    function copiaLink() {
-        const copyText = $("input-link");
-        copyText.select();
-        document.execCommand("copy");
-        alert("Link copiato!");
-    }
-
-    // ══ GESTIONE TAB ═════════════════════════════
-    function mostraTab(id) {
-        document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
-        $(id).classList.remove('hidden');
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('att'));
-        event.target.classList.add('att');
-    }
-
-    function mostraSubTab(id, btn) {
-        document.querySelectorAll('.sub-panel').forEach(p => p.classList.add('hidden'));
-        $(id).classList.remove('hidden');
-        document.querySelectorAll('.sub-nav-btn').forEach(b => b.classList.remove('att'));
-        btn.classList.add('att');
-    }
 </script>
-
 </body>
 </html>
