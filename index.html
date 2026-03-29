@@ -3480,21 +3480,16 @@ function aggiornaStatoGemini(){
 }
 
 async function callGemini(prompt){
-  var key=getChiaveGemini();
-  if(!key) throw new Error('Nessuna chiave Gemini. Clicca "Configurazione AI" e inserisci la chiave gratuita da aistudio.google.com/app/apikey');
-  var url='https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key='+key;
-  var body=JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.4,maxOutputTokens:4000}});
-  var res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:body});
-  if(!res.ok){
-    var err=await res.json().catch(function(){return {};});
-    var msg=(err.error&&err.error.message)||'Errore HTTP '+res.status;
-    if(msg.indexOf('quota')!==-1||msg.indexOf('Quota')!==-1||res.status===429){
-      throw new Error('Quota API esaurita. Attendi qualche minuto e riprova, oppure vai su aistudio.google.com per verificare i limiti della tua chiave gratuita (1500 richieste/giorno).');
-    }
-    throw new Error(msg);
-  }
+  // Usa il Google Apps Script come proxy — nessuna chiave necessaria lato docente
+  var res=await fetch(SCRIPT_URL,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action:'gemini',prompt:prompt})
+  });
+  if(!res.ok) throw new Error('Errore comunicazione con il server: HTTP '+res.status);
   var data=await res.json();
-  return data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts&&data.candidates[0].content.parts[0]&&data.candidates[0].content.parts[0].text||'';
+  if(data.error) throw new Error(data.error);
+  return data.testo||'';
 }
 
 var _disAIProva=null;
