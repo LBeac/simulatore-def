@@ -1017,24 +1017,25 @@ tr:hover td{background:var(--grigio-ch)}
       </div>
 
       <!-- Configurazione Gemini -->
-      <div class="panel-card" style="max-width:none;margin-top:14px;border:2px solid #e8f0fe">
+      <div class="panel-card" style="max-width:none;margin-top:14px;border:2px solid #f0e6ff">
         <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleGeminiSetup()">
           <div>
-            <div style="font-size:13px;font-weight:800;color:#1a73e8">🔑 Configurazione AI — Google Gemini (gratuito)</div>
+            <div style="font-size:13px;font-weight:800;color:#6b21a8">🔑 Configurazione AI — Groq (gratuito)</div>
             <div id="gemini-status-lbl" style="font-size:11px;color:#888;margin-top:2px">Inserisci la tua chiave API gratuita — si salva automaticamente nel browser</div>
           </div>
-          <span id="gemini-arrow" style="font-size:16px;color:#1a73e8;transition:transform .2s">▸</span>
+          <span id="gemini-arrow" style="font-size:16px;color:#6b21a8;transition:transform .2s">▸</span>
         </div>
         <div id="gemini-setup" style="display:none;margin-top:12px">
-          <div style="background:#e8f0fe;border-radius:8px;padding:10px 14px;font-size:12px;color:#1a4896;margin-bottom:10px;line-height:1.6">
-            📌 <strong>Come ottenere la chiave gratuita (1 minuto):</strong><br>
-            1. Vai su <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#1a73e8;font-weight:700">aistudio.google.com/app/apikey</a> con il tuo account Google<br>
-            2. Clicca <strong>"Create API key"</strong> → copia la chiave<br>
-            3. Incollala qui sotto. Piano gratuito: 1500 richieste/giorno.
+          <div style="background:#f5f0ff;border-radius:8px;padding:10px 14px;font-size:12px;color:#4a1580;margin-bottom:10px;line-height:1.6">
+            📌 <strong>Come ottenere la chiave gratuita (2 minuti):</strong><br>
+            1. Vai su <a href="https://console.groq.com" target="_blank" style="color:#6b21a8;font-weight:700">console.groq.com</a> → crea un account gratuito<br>
+            2. Clicca <strong>"API Keys"</strong> nel menu → <strong>"Create API Key"</strong><br>
+            3. Copia la chiave (inizia con <code>gsk_</code>) e incollala qui sotto.<br>
+            ✅ Piano gratuito: 14.400 richieste/giorno — nessuna carta di credito richiesta.
           </div>
           <div style="display:flex;gap:8px;align-items:center">
-            <input type="password" id="gemini-key-input" class="finp" placeholder="AIza..." style="padding:9px 12px;flex:1;font-family:monospace">
-            <button onclick="salvaChiaveGemini()" style="padding:9px 16px;background:#1a73e8;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">💾 Salva</button>
+            <input type="password" id="gemini-key-input" class="finp" placeholder="gsk_..." style="padding:9px 12px;flex:1;font-family:monospace">
+            <button onclick="salvaChiaveGemini()" style="padding:9px 16px;background:#6b21a8;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">💾 Salva</button>
             <button onclick="cancellaChiaveGemini()" style="padding:9px 12px;background:#fce8e6;color:#c62828;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-family:var(--font)" title="Cancella chiave">🗑️</button>
           </div>
           <div id="gemini-key-msg" style="font-size:11px;margin-top:6px"></div>
@@ -1078,7 +1079,7 @@ tr:hover td{background:var(--grigio-ch)}
           <button onclick="generaDomandeAI()" style="flex:1;padding:12px;background:var(--blu);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:800;cursor:pointer;font-family:var(--font)">🤖 Genera con AI</button>
           <button onclick="apriFinestraManuale()" style="padding:12px 18px;background:var(--grigio-ch);color:var(--blu);border:2px solid var(--az);border-radius:var(--r);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">✏️ Crea manualmente</button>
         </div>
-        <div id="dis-ai-loading" style="display:none;margin-top:12px;text-align:center;color:var(--blu);font-size:13px;font-weight:700">⏳ Gemini sta generando le domande…</div>
+        <div id="dis-ai-loading" style="display:none;margin-top:12px;text-align:center;color:var(--blu);font-size:13px;font-weight:700">⏳ Groq sta generando le domande…</div>
         <div id="dis-ai-err" class="err-msg" style="display:none;margin-top:8px"></div>
       </div>
 
@@ -3454,8 +3455,8 @@ function salvaChiaveGemini(){
   var inp=document.getElementById('gemini-key-input');
   var k=inp?inp.value.trim():'';
   var msg=document.getElementById('gemini-key-msg');
-  if(!k||k.indexOf('AIza')!==0){
-    if(msg){msg.textContent='\u26a0\ufe0f La chiave deve iniziare con AIza\u2026';msg.style.color='#c62828';}
+  if(!k||k.indexOf('gsk_')!==0){
+    if(msg){msg.textContent='\u26a0\ufe0f La chiave Groq deve iniziare con gsk_\u2026';msg.style.color='#c62828';}
     return;
   }
   localStorage.setItem(GEMINI_KEY_LS,k);
@@ -3476,33 +3477,37 @@ function cancellaChiaveGemini(){
 function aggiornaStatoGemini(){
   var k=getChiaveGemini();
   var lbl=document.getElementById('gemini-status-lbl');
-  if(lbl) lbl.textContent=k?'\u2705 Chiave API configurata \u2014 pronto per generare':'Inserisci la tua chiave API gratuita \u2014 si salva automaticamente nel browser';
+  if(lbl) lbl.textContent=k?'\u2705 Chiave Groq configurata \u2014 pronto per generare':'Inserisci la tua chiave API Groq gratuita \u2014 si salva automaticamente nel browser';
 }
 
 async function callGemini(prompt){
-  // Chiamata diretta a Gemini dal browser — nessun proxy Apps Script
+  // Chiamata diretta a Groq dal browser — veloce, gratuita, nessun proxy
   var chiave = getChiaveGemini();
-  if(!chiave) throw new Error('Chiave API Gemini non configurata.');
-  var url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + chiave;
-  var risposta = await fetch(url, {
+  if(!chiave) throw new Error('Chiave API Groq non configurata.');
+  var risposta = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + chiave
+    },
     body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.4, maxOutputTokens: 4000 }
+      model: 'llama-3.3-70b-versatile',
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.4,
+      max_tokens: 4000
     })
   });
   var dati = await risposta.json();
   if(dati.error){
-    var msg = dati.error.message || 'Errore Gemini';
-    if(dati.error.code === 429) throw new Error('Quota API esaurita. Attendi qualche minuto e riprova, oppure verifica la tua chiave su aistudio.google.com.');
-    if(dati.error.code === 400) throw new Error('Chiave API non valida. Controlla che sia corretta su aistudio.google.com.');
-    throw new Error('Errore Gemini: ' + msg);
+    var msg = dati.error.message || 'Errore Groq';
+    if(risposta.status === 429) throw new Error('Quota Groq esaurita per oggi. Riprova domani oppure attendi qualche minuto.');
+    if(risposta.status === 401) throw new Error('Chiave API Groq non valida. Controlla su console.groq.com.');
+    throw new Error('Errore Groq: ' + msg);
   }
-  if(!dati.candidates || !dati.candidates[0] || !dati.candidates[0].content){
-    throw new Error('Risposta Gemini vuota. Riprova.');
+  if(!dati.choices || !dati.choices[0] || !dati.choices[0].message){
+    throw new Error('Risposta Groq vuota. Riprova.');
   }
-  return dati.candidates[0].content.parts[0].text || '';
+  return dati.choices[0].message.content || '';
 }
 
 var _disAIProva=null;
@@ -3519,7 +3524,7 @@ async function generaDomandeAI(){
   var ndom=Math.min(40,Math.max(3,parseInt(ndomEl?ndomEl.value:'10')||10));
   var chiaveDoc=getChiaveGemini();
   if(!chiaveDoc){
-    if(errEl){errEl.textContent='\u26a0\ufe0f Inserisci prima la tua chiave API Gemini: clicca su "Configurazione AI" qui sopra, poi "Salva chiave".';errEl.style.display='block';}
+    if(errEl){errEl.textContent='\u26a0\ufe0f Inserisci prima la tua chiave API Groq: clicca su "Configurazione AI" qui sopra, poi "Salva chiave".';errEl.style.display='block';}
     return;
   }
   if(!testo){
