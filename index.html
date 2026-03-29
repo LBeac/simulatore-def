@@ -165,6 +165,31 @@ body.acc-spaziatura .opzione {
 body{font-family:var(--font);background:var(--grigio-ch);color:var(--testo);font-size:15px;line-height:1.65;min-height:100vh}
 .hidden{display:none!important}
 
+/* ── AUDIO TTS ──────────────────────────────────────────── */
+.tts-bar{
+  display:flex;align-items:center;gap:8px;
+  background:#f0f7ff;border:2px solid var(--az);
+  border-radius:10px;padding:8px 12px;margin-bottom:14px;
+  flex-wrap:wrap;
+}
+.tts-btn{
+  width:38px;height:38px;border-radius:50%;border:none;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;cursor:pointer;transition:all .15s;flex-shrink:0;
+}
+.tts-play{background:var(--blu);color:#fff;}
+.tts-play:hover{background:var(--blu-m);transform:scale(1.08);}
+.tts-play.in-pausa{background:var(--verde);}
+.tts-stop{background:var(--grigio-ch);color:#555;border:2px solid var(--grigio);}
+.tts-stop:hover{background:var(--grigio);}
+.tts-vel{display:flex;align-items:center;gap:5px;font-size:11px;color:#555;font-family:var(--font);}
+.tts-vel select{padding:4px 6px;border:2px solid var(--grigio);border-radius:6px;font-size:12px;font-family:var(--font);background:#fff;cursor:pointer;}
+.tts-lbl{font-size:11px;color:var(--blu);font-weight:700;flex:1;min-width:100px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tts-q-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;border:2px solid var(--az);background:#f0f7ff;color:var(--blu);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .15s;margin-bottom:10px;}
+.tts-q-btn:hover{background:var(--az);color:#fff;}
+.tts-q-btn.legge{background:var(--verde);color:#fff;border-color:var(--verde);}
+
+
 /* ── HEADER ────────────────────────────────────────────── */
 .hdr{background:var(--blu-s);color:#fff;position:sticky;top:0;z-index:900;box-shadow:0 2px 10px rgba(0,0,0,.4)}
 .hdr-top{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;border-bottom:3px solid var(--az)}
@@ -2435,11 +2460,27 @@ function renderDom(idx){
 
   // ── BLOCCO TESTO PURO ─────────────────────────────────
   if(d.tipo==='testo'){
+    const _ttsBarBrano = S.provaIdDaURL==='custom' ? `
+      <div class="tts-bar">
+        <button class="tts-btn tts-play" id="tts-play-btn" onclick="ttsToggle('brano')" title="Ascolta il testo">▶</button>
+        <button class="tts-btn tts-stop" onclick="ttsStop()" title="Ferma">■</button>
+        <span class="tts-lbl" id="tts-lbl">🔊 Ascolta il testo</span>
+        <div class="tts-vel">
+          <span>Velocità:</span>
+          <select id="tts-speed" onchange="ttsSetSpeed(this.value)">
+            <option value="0.75">🐢 Lenta</option>
+            <option value="1" selected>🚶 Normale</option>
+            <option value="1.3">🏃 Veloce</option>
+          </select>
+        </div>
+      </div>` : '';
     colTesto.innerHTML=`<div class="brano-wrap">
+      ${_ttsBarBrano}
       <div class="brano-tit">📄 ${d.tit||'Testo'}</div>
-      <div class="brano-body">${d.testo}</div>
+      <div class="brano-body" id="tts-brano-text">${d.testo}</div>
       ${d.fonte?`<div class="fonte-txt">${d.fonte}</div>`:''}
     </div>`;
+    if(S.provaIdDaURL==='custom') ttsSetTesto(d.testo);
 
     // Su mobile: bottone Avanti dentro col-dom sotto al testo
     if(mobile){
@@ -2466,11 +2507,27 @@ function renderDom(idx){
   // ── DOMANDA: aggiorna colonna testo con brano di riferimento ──
   const ref=trovaRef(domande,idx);
   if(ref){
+    const _ttsBarRef = S.provaIdDaURL==='custom' ? `
+      <div class="tts-bar">
+        <button class="tts-btn tts-play" id="tts-play-btn" onclick="ttsToggle('brano')" title="Ascolta il testo">▶</button>
+        <button class="tts-btn tts-stop" onclick="ttsStop()" title="Ferma">■</button>
+        <span class="tts-lbl" id="tts-lbl">🔊 Ascolta il testo</span>
+        <div class="tts-vel">
+          <span>Velocità:</span>
+          <select id="tts-speed" onchange="ttsSetSpeed(this.value)">
+            <option value="0.75">🐢 Lenta</option>
+            <option value="1" selected>🚶 Normale</option>
+            <option value="1.3">🏃 Veloce</option>
+          </select>
+        </div>
+      </div>` : '';
     colTesto.innerHTML=`<div class="brano-wrap">
+      ${_ttsBarRef}
       <div class="brano-tit">📄 ${ref.tit||'Testo'}</div>
-      <div class="brano-body">${ref.testo}</div>
+      <div class="brano-body" id="tts-brano-text">${ref.testo}</div>
       ${ref.fonte?`<div class="fonte-txt">${ref.fonte}</div>`:''}
     </div>`;
+    if(S.provaIdDaURL==='custom') ttsSetTesto(ref.testo);
   } else {
     colTesto.innerHTML=`<div class="no-testo">
       <div class="no-testo-ico">📝</div>
@@ -2499,7 +2556,9 @@ function renderDom(idx){
       ${S.segnati.has(d.id)?'⭐':'☆ Segna'}
     </button>
   </div>
+  ${S.provaIdDaURL==='custom' ? `<button class="tts-q-btn" id="tts-q-btn" onclick="ttsToggle('domanda')">🔊 Ascolta la domanda</button>` : ''}
   <div class="d-testo">${d.testo}</div>`;
+  if(S.provaIdDaURL==='custom') ttsPrepDomanda(d);
 
   if(d.tipo==='sm'){
     html+=`<div class="opzioni">`+d.ops.map((op,i)=>`
@@ -2808,6 +2867,7 @@ function colReset(id){
   renderDom(S.cur);
 }
 function avanti(){
+  ttsStop();
   if(S.cur>=S.prova.domande.length-1) return;
   let next = S.cur+1;
   if(isMobileLayout()){
@@ -2822,6 +2882,7 @@ function avanti(){
 }
 
 function indietro(){
+  ttsStop();
   if(S.cur<=0) return;
   let prev = S.cur-1;
   if(isMobileLayout()){
@@ -3438,6 +3499,156 @@ function studenteCard(r, rank, tipo){
 // ══════════════════════════════════════════════════════════════
 //  GEMINI + GENERATORE DOMANDE DISABILITÀ
 // ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════
+//  MOTORE AUDIO TTS — Web Speech API con selezione voce ottimale
+// ══════════════════════════════════════════════════════════════
+var _ttsVoce = null;
+var _ttsUtterance = null;
+var _ttsTesto = '';
+var _ttsSpeed = 1;
+var _ttsPausa = false;
+var _ttsCtx = ''; // 'brano' | 'domanda'
+var _ttsDomId = '';
+
+// Selezione automatica della voce italiana migliore disponibile
+function ttsGetVoce(){
+  if(_ttsVoce) return _ttsVoce;
+  var voci = window.speechSynthesis.getVoices();
+  if(!voci.length) return null;
+  // Priorità: voci neurali/premium italiane
+  var priorita = [
+    v => v.name.includes('Elsa'),           // Microsoft Elsa (Edge) — la migliore
+    v => v.name.includes('Elisa'),          // Microsoft Elisa
+    v => v.name.includes('Alice'),          // Alice (Safari/Mac)
+    v => v.name.includes('Google italiano'),
+    v => v.lang==='it-IT' && v.name.toLowerCase().includes('female'),
+    v => v.lang==='it-IT' && v.name.toLowerCase().includes('donna'),
+    v => v.lang==='it-IT',
+    v => v.lang.startsWith('it'),
+  ];
+  for(var fn of priorita){
+    var trovata = voci.find(fn);
+    if(trovata){ _ttsVoce = trovata; return trovata; }
+  }
+  return voci[0]; // fallback
+}
+
+function ttsSetTesto(testo){
+  _ttsTesto = testo;
+  ttsStop();
+}
+
+function ttsPrepDomanda(d){
+  // Prepara il testo della domanda (incluse opzioni per SM)
+  var t = d.testo || '';
+  if(d.tipo === 'sm' && d.ops){
+    t += '. Le opzioni sono: ';
+    var lettere = ['A','B','C','D'];
+    d.ops.forEach(function(op, i){ t += lettere[i] + ': ' + op + '. '; });
+  } else if(d.tipo === 'vf' && d.righe){
+    t += '. Indica vero o falso per: ';
+    d.righe.forEach(function(r, i){ t += (i+1) + ': ' + r.t + '. '; });
+  }
+  _ttsDomId = d.id;
+  window._ttsDomTesto = t;
+}
+
+function ttsSetSpeed(v){
+  _ttsSpeed = parseFloat(v);
+  if(window.speechSynthesis.speaking){
+    ttsStop();
+  }
+}
+
+function ttsToggle(ctx, domId){
+  if(window.speechSynthesis.speaking && !_ttsPausa){
+    // Metti in pausa
+    window.speechSynthesis.pause();
+    _ttsPausa = true;
+    ttsAggBtn(ctx, 'pausa');
+    return;
+  }
+  if(_ttsPausa && _ttsCtx === ctx){
+    // Riprendi
+    window.speechSynthesis.resume();
+    _ttsPausa = false;
+    ttsAggBtn(ctx, 'play');
+    return;
+  }
+  // Nuova lettura
+  ttsStop();
+  _ttsCtx = ctx;
+  var testo = ctx === 'brano' ? _ttsTesto : (window._ttsDomTesto || '');
+  if(!testo) return;
+  
+  var utt = new SpeechSynthesisUtterance(testo);
+  utt.lang = 'it-IT';
+  utt.rate = _ttsSpeed;
+  utt.pitch = 1;
+  var voce = ttsGetVoce();
+  if(voce) utt.voice = voce;
+  
+  utt.onstart = function(){ ttsAggBtn(ctx, 'play'); };
+  utt.onend = function(){ _ttsPausa = false; ttsAggBtn(ctx, 'fermo'); };
+  utt.onerror = function(){ _ttsPausa = false; ttsAggBtn(ctx, 'fermo'); };
+  utt.onpause = function(){ ttsAggBtn(ctx, 'pausa'); };
+  utt.onresume = function(){ ttsAggBtn(ctx, 'play'); };
+  
+  _ttsUtterance = utt;
+  _ttsPausa = false;
+  window.speechSynthesis.speak(utt);
+}
+
+function ttsStop(){
+  window.speechSynthesis.cancel();
+  _ttsPausa = false;
+  ttsAggBtn(_ttsCtx, 'fermo');
+}
+
+function ttsAggBtn(ctx, stato){
+  if(ctx === 'brano'){
+    var btn = document.getElementById('tts-play-btn');
+    var lbl = document.getElementById('tts-lbl');
+    if(btn){
+      if(stato === 'play'){
+        btn.textContent = '⏸'; btn.title = 'Pausa';
+        btn.classList.add('in-pausa');
+      } else if(stato === 'pausa'){
+        btn.textContent = '▶'; btn.title = 'Riprendi';
+        btn.classList.remove('in-pausa');
+      } else {
+        btn.textContent = '▶'; btn.title = 'Ascolta il testo';
+        btn.classList.remove('in-pausa');
+      }
+    }
+    if(lbl){
+      lbl.textContent = stato==='play' ? '🔊 Lettura in corso…' : stato==='pausa' ? '⏸ In pausa' : '🔊 Ascolta il testo';
+    }
+  } else if(ctx === 'domanda'){
+    var qbtn = document.getElementById('tts-q-btn');
+    if(qbtn){
+      if(stato === 'play'){
+        qbtn.textContent = '⏸ Pausa'; qbtn.classList.add('legge');
+      } else if(stato === 'pausa'){
+        qbtn.textContent = '▶ Riprendi'; qbtn.classList.add('legge');
+      } else {
+        qbtn.textContent = '🔊 Ascolta la domanda'; qbtn.classList.remove('legge');
+      }
+    }
+  }
+}
+
+// Precarica le voci appena disponibili
+if(window.speechSynthesis){
+  window.speechSynthesis.getVoices();
+  window.speechSynthesis.onvoiceschanged = function(){
+    _ttsVoce = null; // reset per ricalcolare
+    ttsGetVoce();
+  };
+  // Ferma audio quando si cambia domanda
+  document.addEventListener('tts-stop', function(){ ttsStop(); });
+}
+
 var GEMINI_KEY_LS = 'gemini_api_key_invalsi';
 
 function getChiaveGemini(){ return localStorage.getItem(GEMINI_KEY_LS)||''; }
