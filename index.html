@@ -3479,16 +3479,33 @@ function aggiornaStatoGemini(){
   if(lbl) lbl.textContent=k?'\u2705 Chiave API configurata \u2014 pronto per generare':'Inserisci la tua chiave API gratuita \u2014 si salva automaticamente nel browser';
 }
 
-async function callGemini(prompt){
-  // Invia prompt via GET (nessun preflight CORS, massima compatibilità)
-  var encoded = encodeURIComponent(JSON.stringify({action:'gemini', prompt:prompt}));
-  var url = SCRIPT_URL + '?call=gemini&payload=' + encoded;
-  var res = await fetch(url, {method:'GET'});
-  if(!res.ok) throw new Error('Errore server: HTTP ' + res.status);
-  var text = await res.text();
-  var data = JSON.parse(text);
-  if(data.error) throw new Error(data.error);
-  return data.testo || '';
+function callGemini(prompt){
+  // JSONP: bypassa completamente il CORS usando un tag script
+  return new Promise(function(resolve, reject){
+    var cbName = 'cb_' + Date.now();
+    var encoded = encodeURIComponent(JSON.stringify({action:'gemini', prompt:prompt}));
+    var url = SCRIPT_URL + '?call=gemini&payload=' + encoded + '&callback=' + cbName;
+    var timeout = setTimeout(function(){
+      delete window[cbName];
+      if(script.parentNode) script.parentNode.removeChild(script);
+      reject(new Error('Timeout — lo script non ha risposto entro 60 secondi.'));
+    }, 60000);
+    window[cbName] = function(data){
+      clearTimeout(timeout);
+      delete window[cbName];
+      if(script.parentNode) script.parentNode.removeChild(script);
+      if(data.error) reject(new Error(data.error));
+      else resolve(data.testo || '');
+    };
+    var script = document.createElement('script');
+    script.src = url;
+    script.onerror = function(){
+      clearTimeout(timeout);
+      delete window[cbName];
+      reject(new Error('Errore nel caricamento dello script.'));
+    };
+    document.head.appendChild(script);
+  });
 }
 
 var _disAIProva=null;
