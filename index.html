@@ -3483,7 +3483,8 @@ function callGemini(prompt){
   // JSONP: bypassa completamente il CORS usando un tag script
   return new Promise(function(resolve, reject){
     var cbName = 'cb_' + Date.now();
-    var encoded = encodeURIComponent(JSON.stringify({action:'gemini', prompt:prompt}));
+    var chiave = getChiaveGemini();
+    var encoded = encodeURIComponent(JSON.stringify({action:'gemini', prompt:prompt, key:chiave}));
     var url = SCRIPT_URL + '?call=gemini&payload=' + encoded + '&callback=' + cbName;
     var timeout = setTimeout(function(){
       delete window[cbName];
@@ -3520,6 +3521,11 @@ async function generaDomandeAI(){
   var testo=testoEl?testoEl.value.trim():'';
   var titolo=titoloEl?titoloEl.value.trim():'Prova personalizzata';
   var ndom=Math.min(40,Math.max(3,parseInt(ndomEl?ndomEl.value:'10')||10));
+  var chiaveDoc=getChiaveGemini();
+  if(!chiaveDoc){
+    if(errEl){errEl.textContent='\u26a0\ufe0f Inserisci prima la tua chiave API Gemini: clicca su "Configurazione AI" qui sopra, poi "Salva chiave".';errEl.style.display='block';}
+    return;
+  }
   if(!testo){
     if(errEl){errEl.textContent='\u26a0\ufe0f Incolla un testo prima di generare.';errEl.style.display='block';}
     return;
