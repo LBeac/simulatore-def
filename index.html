@@ -3482,12 +3482,16 @@ function aggiornaStatoGemini(){
 async function callGemini(prompt){
   var key=getChiaveGemini();
   if(!key) throw new Error('Nessuna chiave Gemini. Clicca "Configurazione AI" e inserisci la chiave gratuita da aistudio.google.com/app/apikey');
-  var url='https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+key;
+  var url='https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key='+key;
   var body=JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.4,maxOutputTokens:4000}});
   var res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:body});
   if(!res.ok){
     var err=await res.json().catch(function(){return {};});
-    throw new Error((err.error&&err.error.message)||'Errore HTTP '+res.status);
+    var msg=(err.error&&err.error.message)||'Errore HTTP '+res.status;
+    if(msg.indexOf('quota')!==-1||msg.indexOf('Quota')!==-1||res.status===429){
+      throw new Error('Quota API esaurita. Attendi qualche minuto e riprova, oppure vai su aistudio.google.com per verificare i limiti della tua chiave gratuita (1500 richieste/giorno).');
+    }
+    throw new Error(msg);
   }
   var data=await res.json();
   return data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts&&data.candidates[0].content.parts[0]&&data.candidates[0].content.parts[0].text||'';
