@@ -3480,15 +3480,13 @@ function aggiornaStatoGemini(){
 }
 
 async function callGemini(prompt){
-  // Proxy via Apps Script — text/plain evita il preflight CORS
-  var payload = JSON.stringify({action:'gemini', prompt:prompt});
-  var res = await fetch(SCRIPT_URL, {
-    method: 'POST',
-    headers: {'Content-Type': 'text/plain'},
-    body: payload
-  });
+  // Invia prompt via GET (nessun preflight CORS, massima compatibilità)
+  var encoded = encodeURIComponent(JSON.stringify({action:'gemini', prompt:prompt}));
+  var url = SCRIPT_URL + '?call=gemini&payload=' + encoded;
+  var res = await fetch(url, {method:'GET'});
   if(!res.ok) throw new Error('Errore server: HTTP ' + res.status);
-  var data = await res.json();
+  var text = await res.text();
+  var data = JSON.parse(text);
   if(data.error) throw new Error(data.error);
   return data.testo || '';
 }
