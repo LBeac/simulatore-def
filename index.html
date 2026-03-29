@@ -3482,7 +3482,7 @@ function aggiornaStatoGemini(){
 async function callGemini(prompt){
   var key=getChiaveGemini();
   if(!key) throw new Error('Nessuna chiave Gemini. Clicca "Configurazione AI" e inserisci la chiave gratuita da aistudio.google.com/app/apikey');
-  var url='https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key='+key;
+  var url='https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key='+key;
   var body=JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.4,maxOutputTokens:4000}});
   var res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:body});
   if(!res.ok){
