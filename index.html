@@ -3479,34 +3479,30 @@ function aggiornaStatoGemini(){
   if(lbl) lbl.textContent=k?'\u2705 Chiave API configurata \u2014 pronto per generare':'Inserisci la tua chiave API gratuita \u2014 si salva automaticamente nel browser';
 }
 
-function callGemini(prompt){
-  // JSONP: bypassa completamente il CORS usando un tag script
-  return new Promise(function(resolve, reject){
-    var cbName = 'cb_' + Date.now();
-    var chiave = getChiaveGemini();
-    var encoded = encodeURIComponent(JSON.stringify({action:'gemini', prompt:prompt, key:chiave}));
-    var url = SCRIPT_URL + '?call=gemini&payload=' + encoded + '&callback=' + cbName;
-    var timeout = setTimeout(function(){
-      delete window[cbName];
-      if(script.parentNode) script.parentNode.removeChild(script);
-      reject(new Error('Timeout — lo script non ha risposto entro 60 secondi.'));
-    }, 60000);
-    window[cbName] = function(data){
-      clearTimeout(timeout);
-      delete window[cbName];
-      if(script.parentNode) script.parentNode.removeChild(script);
-      if(data.error) reject(new Error(data.error));
-      else resolve(data.testo || '');
-    };
-    var script = document.createElement('script');
-    script.src = url;
-    script.onerror = function(){
-      clearTimeout(timeout);
-      delete window[cbName];
-      reject(new Error('Errore nel caricamento dello script.'));
-    };
-    document.head.appendChild(script);
+async function callGemini(prompt){
+  // Chiamata diretta a Gemini dal browser — nessun proxy Apps Script
+  var chiave = getChiaveGemini();
+  if(!chiave) throw new Error('Chiave API Gemini non configurata.');
+  var url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + chiave;
+  var risposta = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { temperature: 0.4, maxOutputTokens: 4000 }
+    })
   });
+  var dati = await risposta.json();
+  if(dati.error){
+    var msg = dati.error.message || 'Errore Gemini';
+    if(dati.error.code === 429) throw new Error('Quota API esaurita. Attendi qualche minuto e riprova, oppure verifica la tua chiave su aistudio.google.com.');
+    if(dati.error.code === 400) throw new Error('Chiave API non valida. Controlla che sia corretta su aistudio.google.com.');
+    throw new Error('Errore Gemini: ' + msg);
+  }
+  if(!dati.candidates || !dati.candidates[0] || !dati.candidates[0].content){
+    throw new Error('Risposta Gemini vuota. Riprova.');
+  }
+  return dati.candidates[0].content.parts[0].text || '';
 }
 
 var _disAIProva=null;
