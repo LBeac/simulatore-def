@@ -3480,16 +3480,17 @@ function aggiornaStatoGemini(){
 }
 
 async function callGemini(prompt){
-  // Usa il Google Apps Script come proxy — nessuna chiave necessaria lato docente
-  var res=await fetch(SCRIPT_URL,{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({action:'gemini',prompt:prompt})
+  // Proxy via Apps Script — text/plain evita il preflight CORS
+  var payload = JSON.stringify({action:'gemini', prompt:prompt});
+  var res = await fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: {'Content-Type': 'text/plain'},
+    body: payload
   });
-  if(!res.ok) throw new Error('Errore comunicazione con il server: HTTP '+res.status);
-  var data=await res.json();
+  if(!res.ok) throw new Error('Errore server: HTTP ' + res.status);
+  var data = await res.json();
   if(data.error) throw new Error(data.error);
-  return data.testo||'';
+  return data.testo || '';
 }
 
 var _disAIProva=null;
