@@ -3524,9 +3524,13 @@ async function generaDomandeAI(){
 
   try{
     var raw=await callGemini(prompt);
-    var match=raw.match(/\{[\s\S]*\}/);
-    if(!match) throw new Error('Formato risposta non valido. Riprova.');
-    var parsed=JSON.parse(match[0]);
+    // Pulisce markdown e cerca il JSON nella risposta
+    var cleaned = raw.replace(/```json/g,'').replace(/```/g,'').trim();
+    var match = cleaned.match(/\{[\s\S]*\}/);
+    if(!match) throw new Error('Gemini non ha restituito un JSON valido. Riprova con meno tipi di domanda.');
+    var parsed;
+    try { parsed = JSON.parse(match[0]); }
+    catch(je) { throw new Error('Errore nel formato JSON. Riprova.'); }
     if(!parsed.paragrafi||!parsed.domande) throw new Error('Struttura JSON incompleta');
     _disAIProva={titolo:titolo||'Prova personalizzata',sottotitolo:'Prova personalizzata',glossario:[],paragrafi:parsed.paragrafi,domande:parsed.domande};
     renderPreviewDisAI(parsed.domande);
