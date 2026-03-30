@@ -185,6 +185,9 @@ body{font-family:var(--font);background:var(--grigio-ch);color:var(--testo);font
 .tts-vel{display:flex;align-items:center;gap:5px;font-size:11px;color:#555;font-family:var(--font);}
 .tts-vel select{padding:4px 6px;border:2px solid var(--grigio);border-radius:6px;font-size:12px;font-family:var(--font);background:#fff;cursor:pointer;}
 .tts-lbl{font-size:11px;color:var(--blu);font-weight:700;flex:1;min-width:100px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tts-frase-hl{background:#fff59d;border-radius:3px;padding:1px 2px;border-bottom:2px solid #f9a825;transition:background .2s;}
+.mini-torta-wrap{cursor:pointer;display:inline-block;border-radius:50%;transition:transform .15s;}.mini-torta-wrap:hover{transform:scale(1.14);}
+#tts-browser-hint{display:none;background:#e3f2fd;border:1px solid #90caf9;border-radius:6px;padding:6px 10px;font-size:11px;color:#01579b;margin-bottom:6px;align-items:center;gap:6px;}
 .tts-q-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;border:2px solid var(--az);background:#f0f7ff;color:var(--blu);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .15s;margin-bottom:10px;}
 .tts-q-btn:hover{background:var(--az);color:#fff;}
 .tts-q-btn.legge{background:var(--verde);color:#fff;border-color:var(--verde);}
@@ -1008,7 +1011,7 @@ tr:hover td{background:var(--grigio-ch)}
     <div class="sub-nav">
       <button class="sub-nav-btn att" onclick="mostraSubTab('st-standard',this)">📋 Prove standard</button>
       <button class="sub-nav-btn" onclick="mostraSubTab('st-dis',this)">🌟 Per disabilità</button>
-      <button class="sub-nav-btn" onclick="mostraSubTab('st-caa',this)">🖼️ Prove CAA</button>
+      <!-- CAA: gestita in pagina separata -->
     </div>
 
     <!-- ══ SOTTO-PANNELLO 1: PROVE STANDARD ══════════════════ -->
@@ -1100,6 +1103,25 @@ tr:hover td{background:var(--grigio-ch)}
             </div>
           </div>
         </div>
+        <!-- Livello grammaticale: TIC per personalizzare le domande grammaticali -->
+        <div style="margin-top:14px;padding:12px 14px;background:#fff3e0;border-radius:8px;border:2px solid #ffcc80">
+          <div style="font-size:12px;font-weight:800;color:#7a4000;margin-bottom:8px">📐 Livello grammaticale (per domande in Sezione Grammatica)</div>
+          <div style="font-size:11px;color:#a05000;margin-bottom:10px">Seleziona su quale aspetto grammaticale Groq deve concentrarsi per questo alunno. Se non selezioni nulla, distribuisce automaticamente.</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;background:#fff8f0;border:1.5px solid #ffb74d;border-radius:6px;padding:7px 10px;transition:background .15s" onclick="this.style.background=document.getElementById('dis-gram-morfo').checked?'#fff3e0':''" >
+              <input type="checkbox" id="dis-gram-morfo" style="width:14px;height:14px;accent-color:#e65100">
+              <span><strong>🔤 Morfologia</strong><br><span style="font-size:10px;color:#888">Parti del discorso</span></span>
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;background:#f3e5f5;border:1.5px solid #ce93d8;border-radius:6px;padding:7px 10px">
+              <input type="checkbox" id="dis-gram-logica" style="width:14px;height:14px;accent-color:#6a1b9a">
+              <span><strong>🔍 Analisi Logica</strong><br><span style="font-size:10px;color:#888">Soggetto / predicato</span></span>
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;background:#e8f5e9;border:1.5px solid #a5d6a7;border-radius:6px;padding:7px 10px">
+              <input type="checkbox" id="dis-gram-periodo" style="width:14px;height:14px;accent-color:#2e7d32">
+              <span><strong>🔗 Analisi del Periodo</strong><br><span style="font-size:10px;color:#888">Proposizioni / frasi</span></span>
+            </label>
+          </div>
+        </div>
         <div style="display:flex;gap:10px;margin-top:14px">
           <button onclick="generaDomandeAI()" style="flex:1;padding:12px;background:var(--blu);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:800;cursor:pointer;font-family:var(--font)">🤖 Genera con AI</button>
           <button onclick="apriFinestraManuale()" style="padding:12px 18px;background:var(--grigio-ch);color:var(--blu);border:2px solid var(--az);border-radius:var(--r);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">✏️ Crea manualmente</button>
@@ -1156,63 +1178,7 @@ tr:hover td{background:var(--grigio-ch)}
       </div>
     </div><!-- fine st-dis -->
 
-    <!-- ══ SOTTO-PANNELLO 3: PROVE CAA ═══════════════════════ -->
-    <div class="sub-panel" id="st-caa">
-      <div class="info-panel" style="background:#f3e5f5;border-color:#ce93d8;color:#4a148c">
-        🖼️ <strong>Prove in Comunicazione Aumentativa Alternativa (CAA)</strong><br>
-        5 testi narrativi originali con pittogrammi ARASAAC su ogni parola chiave del testo e su ogni risposta. La modalità CAA è sempre attiva. Calibrate sugli Obiettivi Minimi: comprensione, lessico, soggetto/predicato/oggetto.
-      </div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;margin-top:16px">
-        <div class="panel-card" style="max-width:none">
-          <h3>📋 Dati sessione</h3>
-          <div class="fg" style="margin-bottom:14px">
-            <label class="flbl">Prova CAA</label>
-            <select id="caa-sel-prova" class="finp" style="padding:9px 12px">
-              <option value="11">1 — La colazione di Marco</option>
-              <option value="12">2 — Al parco con Bello</option>
-              <option value="13">3 — La pioggia di Luca</option>
-              <option value="14">4 — Il cane e il pallone</option>
-              <option value="15">5 — La torta del nonno</option>
-            </select>
-          </div>
-          <div class="fg" style="margin-bottom:14px">
-            <label class="flbl">Classe</label>
-            <select id="caa-classe" class="finp" style="padding:9px 12px">
-              <option value="">— Nessuna —</option>
-              <option value="3A">3A</option><option value="3B">3B</option>
-              <option value="3C">3C</option><option value="3D">3D</option><option value="3E">3E</option>
-            </select>
-          </div>
-          <div class="fg">
-            <label class="flbl">Nome alunno (opzionale)</label>
-            <input type="text" id="caa-nome" placeholder="es. Mario R." maxlength="40" class="finp" style="padding:9px 12px">
-          </div>
-        </div>
-
-        <div class="panel-card" style="max-width:none">
-          <h3>🖼️ Strumenti aggiuntivi</h3>
-          <div style="display:flex;flex-direction:column;gap:10px">
-            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="caa-tic-grande" style="width:16px;height:16px;accent-color:#9c27b0"> 🔍 <strong>Testo grande</strong></label>
-            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="caa-tic-maiuscolo" style="width:16px;height:16px;accent-color:#9c27b0"> 🔠 <strong>Stampato maiuscolo</strong></label>
-            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="caa-tic-spaziatura" style="width:16px;height:16px;accent-color:#9c27b0"> ↔️ <strong>Spaziatura aumentata</strong></label>
-            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="caa-tic-bes" style="width:16px;height:16px;accent-color:#9c27b0"> 📘 <strong>Modalità BES</strong></label>
-          </div>
-          <div style="margin-top:12px;padding:10px 12px;background:#f3e5f5;border-radius:6px;font-size:11px;color:#6a1b9a">
-            🖼️ <strong>Pittogrammi ARASAAC sempre attivi</strong> su testo e risposte.<br>
-            <span style="opacity:.8">Richiede connessione internet per caricare le immagini.</span>
-          </div>
-          <div style="margin-top:8px;padding:8px 12px;background:#ede7f6;border-radius:6px;font-size:10px;color:#4a148c;line-height:1.5">
-            Pittogrammi © Governo di Aragona — Sergio Palao per <strong>ARASAAC</strong> (arasaac.org), licenza CC BY-NC-SA.
-          </div>
-        </div>
-      </div>
-
-      <button onclick="creaSessioneCAA()" style="width:100%;margin-top:16px;padding:13px;background:#7b1fa2;color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:800;cursor:pointer;font-family:var(--font)">
-        🖼️ Genera link prova CAA
-      </button>
-      <div id="caa-succ" class="succ-msg" style="display:none;margin-top:12px"></div>
-    </div><!-- fine st-caa -->
+    <!-- Pannello CAA rimosso: gestito in pagina dedicata -->
 
   </div><!-- fine tab-new -->
 
@@ -2461,6 +2427,7 @@ function renderDom(idx){
   // ── BLOCCO TESTO PURO ─────────────────────────────────
   if(d.tipo==='testo'){
     const _ttsBarBrano = S.provaIdDaURL==='custom' ? `
+      <div id="tts-browser-hint"></div>
       <div class="tts-bar">
         <button class="tts-btn tts-play" id="tts-play-btn" onclick="ttsToggle('brano')" title="Ascolta il testo">▶</button>
         <button class="tts-btn tts-stop" onclick="ttsStop()" title="Ferma">■</button>
@@ -2508,6 +2475,7 @@ function renderDom(idx){
   const ref=trovaRef(domande,idx);
   if(ref){
     const _ttsBarRef = S.provaIdDaURL==='custom' ? `
+      <div id="tts-browser-hint"></div>
       <div class="tts-bar">
         <button class="tts-btn tts-play" id="tts-play-btn" onclick="ttsToggle('brano')" title="Ascolta il testo">▶</button>
         <button class="tts-btn tts-stop" onclick="ttsStop()" title="Ferma">■</button>
@@ -3539,23 +3507,96 @@ function getRisultatiDis(){
   return getRisultatiClasse().filter(r => r.flag_dis);
 }
 // ── ANALISI GENERALE ─────────────────────────────────────────────
-function miniTorta(errori, nProve){
-  const CC={'comprensione_globale':'#1565c0','comprensione_locale':'#1976d2','inferenza':'#42a5f5','struttura_testo':'#26a69a','lessico':'#66bb6a','lessico_contesto':'#a5d6a7','morfologia':'#ffa726','sintassi':'#ef5350','ortografia':'#ec407a','punteggiatura':'#ab47bc','coesione':'#78909c'};
+// Dizionario nomi competenze per legenda grafico
+const CC_NOMI={
+  'comprensione_globale':'Comprensione globale','comprensione_locale':'Comprensione locale',
+  'inferenza':'Inferenza','struttura_testo':'Struttura testo',
+  'lessico':'Lessico','lessico_contesto':'Lessico in contesto',
+  'morfologia':'Morfologia','sintassi':'Sintassi','ortografia':'Ortografia',
+  'punteggiatura':'Punteggiatura','coesione':'Coesione'
+};
+const CC={'comprensione_globale':'#1565c0','comprensione_locale':'#1976d2','inferenza':'#42a5f5','struttura_testo':'#26a69a','lessico':'#66bb6a','lessico_contesto':'#a5d6a7','morfologia':'#ffa726','sintassi':'#ef5350','ortografia':'#ec407a','punteggiatura':'#ab47bc','coesione':'#78909c'};
+
+function _buildTortaSVG(errori, nProve, size, innerR, fontSize){
   const entries=Object.entries(errori).filter(([,n])=>n>0);
-  if(!entries.length) return '<svg width="54" height="54" viewBox="0 0 54 54"><circle cx="27" cy="27" r="24" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/><text x="27" y="31" text-anchor="middle" font-size="11" fill="#2e7d32" font-weight="700">✓</text></svg>';
+  const cx=size/2, cy=size/2, R=size/2-4;
+  if(!entries.length){
+    return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'">'+
+      '<circle cx="'+cx+'" cy="'+cy+'" r="'+(R)+'" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>'+
+      '<text x="'+cx+'" y="'+(cy+5)+'" text-anchor="middle" font-size="'+fontSize+'" fill="#2e7d32" font-weight="700">✓</text></svg>';
+  }
   const tot=entries.reduce((s,[,n])=>s+n,0);
-  let svg='',start=0;
-  const R=24,cx=27,cy=27;
+  let svg='',start=-Math.PI/2; // inizia dall'alto
   entries.forEach(([c,n])=>{
     const ang=(n/tot)*Math.PI*2;
     const x1=cx+R*Math.cos(start),y1=cy+R*Math.sin(start);
     const x2=cx+R*Math.cos(start+ang),y2=cy+R*Math.sin(start+ang);
     const large=ang>Math.PI?1:0;
-    svg+='<path d="M'+cx+','+cy+' L'+x1.toFixed(1)+','+y1.toFixed(1)+' A'+R+','+R+' 0 '+large+',1 '+x2.toFixed(1)+','+y2.toFixed(1)+' Z" fill="'+(CC[c]||'#90a4ae')+'" opacity="0.85"/>';
+    svg+='<path d="M'+cx+','+cy+' L'+x1.toFixed(1)+','+y1.toFixed(1)+' A'+R+','+R+' 0 '+large+',1 '+x2.toFixed(1)+','+y2.toFixed(1)+' Z" fill="'+(CC[c]||'#90a4ae')+'" opacity="0.88"/>';
     start+=ang;
   });
-  return '<svg width="54" height="54" viewBox="0 0 54 54" style="border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.15)">'+svg+'<circle cx="'+cx+'" cy="'+cy+'" r="10" fill="white"/><text x="'+cx+'" y="'+(cy+4)+'" text-anchor="middle" font-size="9" fill="#444" font-weight="700">'+nProve+'p</text></svg>';
+  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'" style="border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.18)">'+
+    svg+'<circle cx="'+cx+'" cy="'+cy+'" r="'+innerR+'" fill="white"/>'+
+    '<text x="'+cx+'" y="'+(cy+4)+'" text-anchor="middle" font-size="'+fontSize+'" fill="#444" font-weight="700">'+nProve+'p</text></svg>';
 }
+
+function miniTorta(errori, nProve){
+  // Serializza errori per passarli al modal via data attribute
+  var dataStr = encodeURIComponent(JSON.stringify({errori:errori,nProve:nProve}));
+  var svg = _buildTortaSVG(errori, nProve, 64, 12, 9);
+  return '<div onclick="apriModaleGrafico(this)" data-torta="'+dataStr+'" class="mini-torta-wrap" title="Clicca per ingrandire">'+svg+'</div>';
+}
+
+// ── Modal grafico a torta ingrandito ────────────────────────────────
+function apriModaleGrafico(el){
+  var raw = el && el.dataset && el.dataset.torta ? decodeURIComponent(el.dataset.torta) : null;
+  if(!raw) return;
+  var dati; try{ dati=JSON.parse(raw); }catch(e){ return; }
+  var errori=dati.errori||{}, nProve=dati.nProve||1;
+  var entries=Object.entries(errori).filter(function(x){return x[1]>0;});
+
+  var svgGrande = _buildTortaSVG(errori, nProve, 260, 55, 18);
+
+  // Legenda
+  var tot=entries.reduce(function(s,x){return s+x[1];},0);
+  var legenda = entries.map(function(x){
+    var c=x[0],n=x[1];
+    var pct=tot>0?Math.round(n/tot*100):0;
+    return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'+
+      '<span style="width:12px;height:12px;border-radius:50%;background:'+(CC[c]||'#90a4ae')+';flex-shrink:0;display:inline-block"></span>'+
+      '<span style="font-size:12px;color:#333;flex:1">'+(CC_NOMI[c]||c)+'</span>'+
+      '<span style="font-size:12px;font-weight:700;color:#555">'+pct+'%</span>'+
+      '</div>';
+  }).join('');
+  if(!entries.length) legenda='<div style="color:#2e7d32;font-weight:700">✅ Nessun errore registrato</div>';
+
+  // Overlay
+  var ov = document.createElement('div');
+  ov.id='torta-modal-overlay';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+  ov.onclick=function(e){ if(e.target===ov) chiudiModaleGrafico(); };
+  ov.innerHTML='<div style="background:#fff;border-radius:16px;padding:24px;max-width:540px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.25);position:relative">'+
+    '<button onclick="chiudiModaleGrafico()" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:22px;cursor:pointer;color:#888" title="Chiudi">✕</button>'+
+    '<div style="font-size:15px;font-weight:800;color:var(--blu);margin-bottom:16px">📊 Distribuzione errori per competenza</div>'+
+    '<div style="display:flex;gap:24px;align-items:center;flex-wrap:wrap">'+
+      '<div style="flex-shrink:0">'+svgGrande+'</div>'+
+      '<div style="flex:1;min-width:180px">'+legenda+'</div>'+
+    '</div>'+
+    '<div style="margin-top:14px;font-size:11px;color:#aaa;text-align:center">'+nProve+' prov'+(nProve===1?'a':'e')+' analizzat'+(nProve===1?'a':'e')+' — Clicca fuori per chiudere</div>'+
+  '</div>';
+  document.body.appendChild(ov);
+  ov.focus();
+}
+
+function chiudiModaleGrafico(){
+  var ov=document.getElementById('torta-modal-overlay');
+  if(ov) ov.remove();
+}
+
+// Chiudi modal con ESC
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape') chiudiModaleGrafico();
+});
 
 function aggiornaGenerale(){
   const ris = typeof getRisultatiStandard === 'function' ? getRisultatiStandard() : getRisultatiClasse().filter(r=>!r.flag_dis);
@@ -3695,37 +3736,74 @@ function studenteCard(r, rank, tipo){
 //  GEMINI + GENERATORE DOMANDE DISABILITÀ
 // ══════════════════════════════════════════════════════════════
 // ══════════════════════════════════════════════════════════════
-//  MOTORE AUDIO TTS — Web Speech API con selezione voce ottimale
+//  MOTORE AUDIO TTS — Prove personalizzate (custom/Groq)
 // ══════════════════════════════════════════════════════════════
+// Nota tecnica: questo motore serve SOLO le prove con ?prova=custom
+// (generate da Groq). Le prove standard DSA usano audio pre-registrati.
+//
+// QUALITÀ VOCE: dipende dal browser.
+//   🏆 MIGLIORE: Microsoft Edge  → voce "Microsoft Elsa Online (Natural)"
+//   ✅ BUONO:    Chrome Mac/iOS  → voce "Google italiano"
+//   ⚠️  DISCRETO: Chrome Windows → voce "Google italiano" (standard)
+//   ❌ METALLICA: Firefox        → voce eSpeak (sintetica)
+//
+// UPGRADE FACILE: per ottenere qualità professionale con Google Cloud TTS,
+// imposta TTS_BACKEND = 'gcloud' e aggiungi il token in SCRIPT_URL.
+// Il flag TTS_BACKEND = 'webspeech' usa la Web Speech API (default).
+// ─────────────────────────────────────────────────────────────
+var TTS_BACKEND = 'webspeech'; // 'webspeech' | 'gcloud'
+
 var _ttsVoce = null;
+var _ttsVociPronti = false;
 var _ttsUtterance = null;
 var _ttsTesto = '';
 var _ttsSpeed = 1;
 var _ttsPausa = false;
 var _ttsCtx = ''; // 'brano' | 'domanda'
 var _ttsDomId = '';
+var _ttsKeepAliveTimer = null;
+var _ttsFrasi = [];      // array di frasi per lettura sentence-by-sentence
+var _ttsFraseIdx = 0;
+var _ttsSentenceMode = false;
+
+// ── Inizializzazione lazy voci (risolve il bug Chrome onvoiceschanged) ──
+function _ttsInitVoci(callback){
+  var voci = window.speechSynthesis.getVoices();
+  if(voci.length > 0){ _ttsVociPronti = true; if(callback) callback(voci); return; }
+  // Aspetta che le voci vengano caricate (fino a 3 tentativi × 300ms)
+  var tentativi = 0;
+  var iv = setInterval(function(){
+    voci = window.speechSynthesis.getVoices();
+    tentativi++;
+    if(voci.length > 0 || tentativi > 10){
+      clearInterval(iv);
+      _ttsVociPronti = true;
+      if(callback) callback(voci);
+    }
+  }, 300);
+}
 
 // Selezione automatica della voce italiana migliore disponibile
 function ttsGetVoce(){
   if(_ttsVoce) return _ttsVoce;
   var voci = window.speechSynthesis.getVoices();
   if(!voci.length) return null;
-  // Priorità: voci neurali/premium italiane
+  // Priorità decrescente: voci neurali/cloud prima, eSpeak ultima
   var priorita = [
-    v => v.name.includes('Elsa'),           // Microsoft Elsa (Edge) — la migliore
-    v => v.name.includes('Elisa'),          // Microsoft Elisa
-    v => v.name.includes('Alice'),          // Alice (Safari/Mac)
-    v => v.name.includes('Google italiano'),
-    v => v.lang==='it-IT' && v.name.toLowerCase().includes('female'),
-    v => v.lang==='it-IT' && v.name.toLowerCase().includes('donna'),
-    v => v.lang==='it-IT',
-    v => v.lang.startsWith('it'),
+    function(v){ return v.lang==='it-IT' && /natural|neural|premium|online/i.test(v.name); },
+    function(v){ return v.name.includes('Elsa'); },           // Edge Neural — la migliore
+    function(v){ return v.name.includes('Elisa'); },          // Edge alternativa
+    function(v){ return v.name.includes('Alice'); },          // Safari/Mac
+    function(v){ return v.name.includes('Google italiano'); },// Chrome (discreta)
+    function(v){ return v.lang==='it-IT' && !/espeak|eSpeak/i.test(v.name); },
+    function(v){ return v.lang==='it-IT'; },
+    function(v){ return v.lang.startsWith('it'); },
   ];
-  for(var fn of priorita){
-    var trovata = voci.find(fn);
+  for(var i=0; i<priorita.length; i++){
+    var trovata = voci.find(priorita[i]);
     if(trovata){ _ttsVoce = trovata; return trovata; }
   }
-  return voci[0]; // fallback
+  return voci[0];
 }
 
 function ttsSetTesto(testo){
@@ -3755,48 +3833,149 @@ function ttsSetSpeed(v){
   }
 }
 
+// ── Avviso browser non ottimale ─────────────────────────────────────
+function ttsMostraAvvisoBrowser(){
+  var ua = navigator.userAgent;
+  var isEdge = /Edg\//.test(ua);
+  var isChrome = /Chrome\//.test(ua) && !isEdge;
+  if(isEdge) return; // Edge è già ottimale
+  var msg = document.getElementById('tts-browser-hint');
+  if(!msg) return;
+  if(!isChrome){
+    msg.style.display = 'flex';
+    msg.innerHTML = '💡 Per la migliore qualità audio usa <strong>Microsoft Edge</strong> — ha voci italiane neurali gratuite.';
+  }
+}
+
+// ── Keep-alive Chrome (fix: speech si interrompe dopo ~15s) ─────────
+function _ttsStartKeepAlive(){
+  _ttsStopKeepAlive();
+  _ttsKeepAliveTimer = setInterval(function(){
+    if(!window.speechSynthesis.speaking || _ttsPausa) return;
+    window.speechSynthesis.pause();
+    window.speechSynthesis.resume();
+  }, 12000);
+}
+function _ttsStopKeepAlive(){ clearInterval(_ttsKeepAliveTimer); }
+
+// ── Split testo in frasi per lettura frase-per-frase ────────────────
+function _ttsSplitFrasi(testo){
+  // Divide su ., !, ?, ; preservando abbreviazioni comuni
+  return testo.replace(/<[^>]+>/g,' ')
+    .split(/(?<=[.!?;])\s+(?=[A-Z«""]|\d)/)
+    .map(function(s){ return s.trim(); })
+    .filter(function(s){ return s.length > 3; });
+}
+
 function ttsToggle(ctx, domId){
   if(window.speechSynthesis.speaking && !_ttsPausa){
-    // Metti in pausa
     window.speechSynthesis.pause();
     _ttsPausa = true;
+    _ttsStopKeepAlive();
     ttsAggBtn(ctx, 'pausa');
     return;
   }
   if(_ttsPausa && _ttsCtx === ctx){
-    // Riprendi
     window.speechSynthesis.resume();
     _ttsPausa = false;
+    _ttsStartKeepAlive();
     ttsAggBtn(ctx, 'play');
     return;
   }
-  // Nuova lettura
+  // Nuova lettura — carica voci se non ancora pronte
   ttsStop();
   _ttsCtx = ctx;
   var testo = ctx === 'brano' ? _ttsTesto : (window._ttsDomTesto || '');
-  if(!testo) return;
-  
-  var utt = new SpeechSynthesisUtterance(testo);
+  if(!testo){ ttsAggBtn(ctx, 'fermo'); return; }
+
+  ttsMostraAvvisoBrowser();
+
+  // Decide se usare sentence mode (testi > 300 chars) per highlight paragrafo
+  _ttsSentenceMode = (testo.length > 300 && ctx === 'brano');
+
+  function _avviaLettura(voci){
+    var voce = ttsGetVoce();
+
+    if(_ttsSentenceMode){
+      // Lettura frase-per-frase con highlight nel testo
+      _ttsFrasi = _ttsSplitFrasi(testo);
+      _ttsFraseIdx = 0;
+      _leggiProssimaFrase(ctx, voce);
+    } else {
+      // Lettura unica (domande brevi)
+      var utt = new SpeechSynthesisUtterance(testo);
+      utt.lang = 'it-IT';
+      utt.rate = _ttsSpeed;
+      utt.pitch = 1;
+      if(voce) utt.voice = voce;
+      utt.onstart  = function(){ ttsAggBtn(ctx, 'play'); _ttsStartKeepAlive(); };
+      utt.onend    = function(){ _ttsPausa = false; _ttsStopKeepAlive(); ttsAggBtn(ctx, 'fermo'); };
+      utt.onerror  = function(){ _ttsPausa = false; _ttsStopKeepAlive(); ttsAggBtn(ctx, 'fermo'); };
+      utt.onpause  = function(){ ttsAggBtn(ctx, 'pausa'); };
+      utt.onresume = function(){ ttsAggBtn(ctx, 'play'); };
+      _ttsUtterance = utt;
+      _ttsPausa = false;
+      window.speechSynthesis.speak(utt);
+    }
+  }
+
+  _ttsInitVoci(_avviaLettura);
+}
+
+// Legge una frase, poi passa alla successiva — crea effetto karaoke
+function _leggiProssimaFrase(ctx, voce){
+  if(_ttsFraseIdx >= _ttsFrasi.length || !_ttsSentenceMode){
+    _ttsStopKeepAlive();
+    _ttsPausa = false;
+    _ttsSentenceMode = false;
+    _highlightFrase(-1); // rimuovi highlight
+    ttsAggBtn(ctx, 'fermo');
+    return;
+  }
+  var frase = _ttsFrasi[_ttsFraseIdx];
+  _highlightFrase(_ttsFraseIdx);
+
+  var utt = new SpeechSynthesisUtterance(frase);
   utt.lang = 'it-IT';
   utt.rate = _ttsSpeed;
   utt.pitch = 1;
-  var voce = ttsGetVoce();
   if(voce) utt.voice = voce;
-  
-  utt.onstart = function(){ ttsAggBtn(ctx, 'play'); };
-  utt.onend = function(){ _ttsPausa = false; ttsAggBtn(ctx, 'fermo'); };
-  utt.onerror = function(){ _ttsPausa = false; ttsAggBtn(ctx, 'fermo'); };
-  utt.onpause = function(){ ttsAggBtn(ctx, 'pausa'); };
-  utt.onresume = function(){ ttsAggBtn(ctx, 'play'); };
-  
+
+  utt.onstart = function(){
+    if(_ttsFraseIdx === 0) ttsAggBtn(ctx, 'play');
+    _ttsStartKeepAlive();
+  };
+  utt.onend = function(){
+    _ttsFraseIdx++;
+    _leggiProssimaFrase(ctx, voce);
+  };
+  utt.onerror = function(){ _ttsStopKeepAlive(); ttsAggBtn(ctx, 'fermo'); };
   _ttsUtterance = utt;
-  _ttsPausa = false;
   window.speechSynthesis.speak(utt);
+}
+
+// Highlight visivo frase in lettura nel testo del brano
+function _highlightFrase(idx){
+  var el = document.getElementById('tts-brano-text');
+  if(!el) return;
+  // Reset: rimuovi spans precedenti
+  el.innerHTML = el.innerHTML.replace(/<span class="tts-frase-hl"[^>]*>(.*?)<\/span>/g, '$1');
+  if(idx < 0 || !_ttsFrasi[idx]) return;
+  var frase = _ttsFrasi[idx];
+  // Sostituisce la prima occorrenza della frase con span evidenziato
+  var escaped = frase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  el.innerHTML = el.innerHTML.replace(
+    new RegExp('(' + escaped + ')'),
+    '<span class="tts-frase-hl">$1</span>'
+  );
 }
 
 function ttsStop(){
   window.speechSynthesis.cancel();
   _ttsPausa = false;
+  _ttsSentenceMode = false;
+  _ttsStopKeepAlive();
+  _highlightFrase(-1);
   ttsAggBtn(_ttsCtx, 'fermo');
 }
 
@@ -3950,24 +4129,74 @@ async function generaDomandeAI(){
   if(!tipiRich.length) tipiRich.push('SM');
   var inferenza=document.getElementById('dis-ai-inferenza')&&document.getElementById('dis-ai-inferenza').checked;
 
-  var prompt='Sei un esperto di didattica inclusiva per alunni con disabilita di scuola media italiana.\n\nTESTO:\n"""\n'+testo+'\n"""\n\nCOMPITO: Genera esattamente '+ndom+' domande sul testo.\nTipi da usare (distribuisci equamente): '+tipiRich.join(', ')+(inferenza?'\nIncludi almeno 2 domande inferenziali.':'')+'\nSuddividi il testo in paragrafi numerati (ogni ~80 parole). Usa frasi semplici e chiare.\n\nDescrizione tipi:\n- SM: scelta multipla, opts=[A,B,C,D], ok=indice risposta corretta (0-3)\n- VF: vero/falso, righeVF=[{"t":"affermazione","ok":true}] con 3-5 righe\n- AP: aperta breve, solo campo testo\n- COMP: completamento, frase="testo con ___ mancante", parole=["corretta","distr1","distr2","distr3"]\n- COL: collegamento, sinistra=["el1","el2"], destra=["corr1","corr2"] stesso ordine\n\nRispondi SOLO con JSON valido senza markdown:\n{"paragrafi":[{"n":1,"testo":"..."}],"domande":[{"n":1,"par":1,"tipo":"sm","sez":0,"testo":"...","opts":["A","B","C","D"],"ok":0}]}';
+  // Sottocategorie grammaticali (TIC docente)
+  var gramMorfo   = document.getElementById('dis-gram-morfo') && document.getElementById('dis-gram-morfo').checked;
+  var gramLogica  = document.getElementById('dis-gram-logica') && document.getElementById('dis-gram-logica').checked;
+  var gramPeriodo = document.getElementById('dis-gram-periodo') && document.getElementById('dis-gram-periodo').checked;
+  var gramTIC = [];
+  if(gramMorfo)   gramTIC.push('Morfologia (analisi parti del discorso: nome, verbo, aggettivo)');
+  if(gramLogica)  gramTIC.push('Analisi Logica (soggetto, predicato verbale, complemento oggetto)');
+  if(gramPeriodo) gramTIC.push('Analisi del Periodo (proposizioni principali e secondarie)');
+  var gramInstr = gramTIC.length > 0
+    ? '\nDomande GRAMMATICA (sez:2) devono coprire: ' + gramTIC.join('; ') + '.'
+    : '\nDomande GRAMMATICA (sez:2): distribuisci tra morfologia, analisi logica e del periodo.';
 
-  try{
-    var raw=await callGemini(prompt);
-    // Pulisce markdown e cerca il JSON nella risposta
-    var cleaned = raw.replace(/```json/g,'').replace(/```/g,'').trim();
-    var match = cleaned.match(/\{[\s\S]*\}/);
-    if(!match) throw new Error('Gemini non ha restituito un JSON valido. Riprova con meno tipi di domanda.');
-    var parsed;
-    try { parsed = JSON.parse(match[0]); }
-    catch(je) { throw new Error('Errore nel formato JSON. Riprova.'); }
-    if(!parsed.paragrafi||!parsed.domande) throw new Error('Struttura JSON incompleta');
-    _disAIProva={titolo:titolo||'Prova personalizzata',sottotitolo:'Prova personalizzata',glossario:[],paragrafi:parsed.paragrafi,domande:parsed.domande};
-    renderPreviewDisAI(parsed.domande);
-    if(loadEl) loadEl.style.display='none';
-    if(prevEl) prevEl.style.display='block';
-  } catch(e){
-    if(loadEl) loadEl.style.display='none';
+  // Distribuzione automatica sezioni (circa 1/3 ciascuna)
+  var nComp = Math.ceil(ndom * 0.34);
+  var nLess = Math.ceil(ndom * 0.33);
+  var nGram = ndom - nComp - nLess;
+  var distrStr = 'DISTRIBUZIONE OBBLIGATORIA: ' + nComp + ' dom sez:0 (Comprensione), ' +
+    nLess + ' sez:1 (Lessico), ' + nGram + ' sez:2 (Grammatica). Rispetta esattamente.';
+
+  var BATCH_SIZE = 10;
+  var tuttiDomande = [];
+  var parsedParagrafi = null;
+  var nBatch = Math.ceil(ndom / BATCH_SIZE);
+
+  function buildPromptDis(numDom, offsetN, includePar) {
+    var p = 'Sei esperto didattica inclusiva scuola media italiana.\n';
+    p += 'TESTO (max ~500 parole mostrato):\n"""\n' + testo.substring(0,2000) + '\n"""\n';
+    p += 'Genera esattamente ' + numDom + ' domande. Numera da ' + (offsetN+1) + '.\n';
+    p += 'Tipi: ' + tipiRich.join(',') + (inferenza?' (+2 inferenziali)':'') + '\n';
+    p += distrStr + gramInstr + '\n';
+    p += 'Linguaggio semplice per alunni con disabilita.\n';
+    p += 'Formati: SM={tipo,opts[4],ok:0-3} VF={tipo,righeVF[{t,ok}]} AP={tipo} COMP={tipo,frase,parole[4]} COL={tipo,sinistra[],destra[]}\n';
+    if(includePar){
+      p += 'Rispondi SOLO JSON: {"paragrafi":[{"n":1,"testo":"..."}],"domande":[{"n":1,"par":1,"tipo":"sm","sez":0,"testo":"?","opts":["A","B","C","D"],"ok":0}]}';
+    } else {
+      p += 'Paragrafi gia definiti, usa stessi numeri. SOLO JSON: {"domande":[{"n":' + (offsetN+1) + ',"par":1,"tipo":"sm","sez":0,"testo":"?","opts":["A","B","C","D"],"ok":0}]}';
+    }
+    return p;
+  }
+
+  try {
+    for (var b = 0; b < nBatch; b++) {
+      var nDomBatch = Math.min(BATCH_SIZE, ndom - b * BATCH_SIZE);
+      var offsetN = b * BATCH_SIZE;
+      var isFirst = (b === 0);
+      if(loadEl) loadEl.textContent = '\u23f3 Groq: batch ' + (b+1) + '/' + nBatch + ' (' + nDomBatch + ' domande)...';
+      var raw = await callGemini(buildPromptDis(nDomBatch, offsetN, isFirst));
+      var cleaned = raw.replace(/```json/g,'').replace(/```/g,'').trim();
+      var matchJ = cleaned.match(/\{[\s\S]*\}/);
+      if (!matchJ) throw new Error('Batch ' + (b+1) + ': JSON non trovato. Riduci le domande o riprova.');
+      var parsed;
+      try { parsed = JSON.parse(matchJ[0]); } catch(je) { throw new Error('Batch ' + (b+1) + ': JSON malformato.'); }
+      if (isFirst && parsed.paragrafi) parsedParagrafi = parsed.paragrafi;
+      if (!parsed.domande) throw new Error('Batch ' + (b+1) + ': struttura incompleta.');
+      parsed.domande.forEach(function(d,i){ d.n = offsetN + i + 1; });
+      tuttiDomande = tuttiDomande.concat(parsed.domande);
+      if (b < nBatch - 1) await new Promise(function(r){ setTimeout(r, 900); });
+    }
+    if (!parsedParagrafi) throw new Error('Paragrafi mancanti. Riprova.');
+    _disAIProva = {
+      titolo: titolo || 'Prova personalizzata', sottotitolo: 'Prova personalizzata',
+      glossario: [], paragrafi: parsedParagrafi, domande: tuttiDomande
+    };
+    renderPreviewDisAI(tuttiDomande);
+    if(loadEl) loadEl.style.display = 'none';
+    if(prevEl) prevEl.style.display = 'block';
+  } catch(e) {
+    if(loadEl) loadEl.style.display = 'none';
     if(errEl){errEl.textContent='\u26a0\ufe0f '+e.message;errEl.style.display='block';}
   }
 }
@@ -3992,7 +4221,15 @@ function makeDomCardDis(d,idx){
   div.className='ap-dom';
   div.dataset.idx=String(idx);
   div.style.cssText='background:#f7f9ff;border:1.5px solid #d0d9f0;border-radius:8px;padding:14px;position:relative';
-  var sezOpts='<option value="0">Comprensione</option><option value="1">Lessico</option><option value="2">Grammatica</option>';
+  // Auto-assegna sezione se non esplicita (1/3 per area)
+  var totalCards = document.querySelectorAll('#dis-dom-list .ap-dom').length;
+  var autoSez = d.sez !== undefined ? d.sez : (
+    idx < Math.ceil(totalCards * 0.34) ? 0 :
+    idx < Math.ceil(totalCards * 0.34) + Math.ceil(totalCards * 0.33) ? 1 : 2
+  );
+  var sezOpts='<option value="0"'+(autoSez===0?' selected':'')+'>Comprensione</option>'+
+    '<option value="1"'+(autoSez===1?' selected':'')+'>Lessico</option>'+
+    '<option value="2"'+(autoSez===2?' selected':'')+'>Grammatica</option>';
   var html='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
     +'<div style="display:flex;align-items:center;gap:8px">'
     +'<span class="tipo-badge" style="background:'+bg+';color:'+fg+';border-radius:4px;padding:2px 8px;font-size:11px;font-weight:800">'+lbl+'</span>'
@@ -4181,7 +4418,14 @@ function creaLinkDisAI(){
   var domande=raccogliDomandeDis();
   if(!domande.length){alert('\u26a0\ufe0f Aggiungi almeno una domanda.');return;}
   var prova=Object.assign({},_disAIProva,{domande:domande});
-  var b64=btoa(unescape(encodeURIComponent(JSON.stringify(prova))));
+  // Comprime il JSON prima di encodarlo (rimuove whitespace, limita glossario)
+  var provaMin = {
+    titolo: prova.titolo, sottotitolo: prova.sottotitolo,
+    glossario: (prova.glossario||[]).slice(0,5), // max 5 voci glossario
+    paragrafi: prova.paragrafi,
+    domande: prova.domande
+  };
+  var b64=btoa(unescape(encodeURIComponent(JSON.stringify(provaMin))));
   var ticMap={
     grande:!!(document.getElementById('dis-tic-grande')&&document.getElementById('dis-tic-grande').checked),
     maiuscolo:!!(document.getElementById('dis-tic-maiuscolo')&&document.getElementById('dis-tic-maiuscolo').checked),
@@ -4207,6 +4451,21 @@ function creaLinkDisAI(){
   if(ticAttivi.length) params.set('tic',ticAttivi.join(','));
   var link=base+'?'+params.toString();
   window._linkDisAI=link;
+  // Avviso se link troppo lungo (> 6000 char = rischio errore 400)
+  if(link.length > 6000){
+    console.warn('[TTS] Link troppo lungo: ' + link.length + ' chars. Considera di ridurre le domande.');
+    var warnEl = document.getElementById('dis-url-warn');
+    if(!warnEl){
+      warnEl = document.createElement('div');
+      warnEl.id = 'dis-url-warn';
+      warnEl.style.cssText = 'margin-top:8px;padding:8px 12px;background:#fff3cd;border:1px solid #ffc107;border-radius:6px;font-size:12px;color:#856404';
+      var btn = document.getElementById('dis-succ');
+      if(btn && btn.parentNode) btn.parentNode.insertBefore(warnEl, btn);
+    }
+    warnEl.innerHTML = '⚠️ <strong>Link molto lungo</strong> (' + link.length + ' caratteri). Su alcuni server potrebbe dare errore 400. ' +
+      'Soluzione: riduci le domande a max 15-20 oppure elimina le domande COL/COMP che aumentano la dimensione.';
+    warnEl.style.display = 'block';
+  }
   try{aggiornaTabellaSessioni();}catch(e){}
   try{aggSelSessioni();}catch(e){}
   var el=document.getElementById('dis-succ');
@@ -4948,50 +5207,7 @@ function mostraSubTab(id, btn){
   if(btn) btn.classList.add('att');
 }
 
-function creaSessioneCAA(){
-  const provaId = document.getElementById('caa-sel-prova').value;
-  const classe  = document.getElementById('caa-classe').value;
-  const nome    = document.getElementById('caa-nome').value.trim();
-
-  const ticExtra = [];
-  if(document.getElementById('caa-tic-grande')?.checked)    ticExtra.push('grande');
-  if(document.getElementById('caa-tic-maiuscolo')?.checked)  ticExtra.push('maiuscolo');
-  if(document.getElementById('caa-tic-spaziatura')?.checked) ticExtra.push('spaziatura');
-  if(document.getElementById('caa-tic-bes')?.checked)        ticExtra.push('bes');
-
-  // CAA sempre inclusa
-  const ticAll = ['caa', ...ticExtra];
-
-  const base = window.location.href.replace(/[^/]*$/, '') + 'grado8_dis.html';
-  const params = new URLSearchParams();
-  params.set('prova', provaId);
-  if(classe) params.set('classe', classe);
-  if(nome)   params.set('nome', nome);
-  params.set('tic', ticAll.join(','));
-
-  const link = base + '?' + params.toString();
-  window._linkCAA = link;
-
-  const nomiProve = {
-    '11':'La colazione di Marco','12':'Al parco con Bello',
-    '13':'La pioggia di Luca','14':'Il cane e il pallone','15':'La torta del nonno'
-  };
-
-  const el = document.getElementById('caa-succ');
-  el.innerHTML = `✅ Link prova CAA generato:<br>
-    <div style="margin-top:8px;padding:8px 12px;background:#fff;border:1px solid #9c27b0;border-radius:6px;word-break:break-all;font-size:12px;font-family:monospace">${link}</div>
-    <button onclick="navigator.clipboard.writeText(window._linkCAA).then(()=>alert('✅ Link copiato!'))"
-      style="margin-top:10px;width:100%;padding:9px;font-family:var(--font);font-weight:700;font-size:13px;border:none;border-radius:6px;cursor:pointer;background:#7b1fa2;color:#fff">
-      📋 Copia link
-    </button>
-    <div style="margin-top:8px;font-size:11px;color:#555">
-      Prova: <strong>${nomiProve[provaId]||provaId}</strong>
-      ${classe ? ' &nbsp;|&nbsp; Classe: <strong>'+classe+'</strong>' : ''}
-      ${nome   ? ' &nbsp;|&nbsp; Alunno: <strong>'+nome+'</strong>' : ''}<br>
-      TIC: <strong>${ticAll.join(', ')}</strong>
-    </div>`;
-  el.style.display='block';
-}
+// creaSessioneCAA rimossa
 
 // ── ALLEGA PROVA PERSONALIZZATA ──────────────────────────────────
 let _apDomN = 0;
@@ -5084,7 +5300,6 @@ function generaProvaCustom(){
     spaziatura: document.getElementById('dis-tic-spaziatura')?.checked,
     font: document.getElementById('dis-tic-font')?.checked,
     bes: document.getElementById('dis-tic-bes')?.checked,
-    caa: document.getElementById('dis-tic-caa')?.checked,
   };
   const ticAttivi = Object.keys(ticMap).filter(k=>ticMap[k]);
   const base = window.location.href.replace(/[^/]*$/,'') + 'grado8_dis.html';
@@ -5717,7 +5932,6 @@ function creaSessDisabilita(){
     spaziatura:document.getElementById('dis-tic-spaziatura').checked,
     font:      document.getElementById('dis-tic-font').checked,
     bes:       document.getElementById('dis-tic-bes').checked,
-    caa:       document.getElementById('dis-tic-caa')?.checked || false,
   };
   const ticAttivi = Object.keys(ticMap).filter(k => ticMap[k]);
 
