@@ -2935,7 +2935,202 @@ function calcolaRisultati(){
     } else if(d.tipo==='ap'){
       tot++; sez[d.sez].t++;
       const v=(mia||'').toLowerCase().trim();
-      const ok=d.ok_open&&d.ok_open.some(k=>v.includes(k.toLowerCase()));
+
+      /* ── STEMMER ITALIANO ───────────────────────────────────────
+         Tronca suffissi comuni → pratica/praticato/pratiche
+         confrontano tutti sulla stessa radice.
+      ────────────────────────────────────────────────────────────── */
+      const _stemIT = w => {
+        const sfx = [
+          'azione','azioni','mente','issimo','issima','issimi','issime',
+          'atore','atrice','atori','atrici',
+          'ando','endo','ava','evi','iva','avi','evo','ivo',
+          'are','ere','ire','oso','osa','osi','ose',
+          'ale','ali','ivo','iva','ivi','ive','ità','tà',
+          'ione','ioni','ore','ori','ante','anti',
+          'ato','ata','ati','ate','uto','uta','uti','ute',
+          'ito','ita','iti','ite','ano','ono','ndo'
+        ];
+        for(const s of sfx){
+          if(w.length > s.length+3 && w.endsWith(s))
+            return w.slice(0, w.length - s.length);
+        }
+        if(w.length > 5 && /[aeiouàèéìòù]$/.test(w)) return w.slice(0,-1);
+        return w;
+      };
+
+      /* ── STOPWORDS ──────────────────────────────────────────────── */
+      const _stop = new Set([
+        'di','a','da','in','con','su','per','tra','fra',
+        'il','lo','la','i','gli','le','un','uno','una','e','è','o','ma','se',
+        'che','non','mi','ti','si','ci','vi','del','della','dei','degli','delle',
+        'al','alla','ai','agli','alle','dal','dalla','dai','dagli','nel','nella',
+        'nei','negli','nelle','sul','sulla','sui','sugli','sulle','col','coi',
+        'come','anche','già','più','così','però','quindi','quando','dove',
+        'questo','questa','questi','queste','quello','quella','quelli','quelle',
+        'ho','hai','ha','abbiamo','avete','hanno','sono','sei','siamo','siete',
+        'era','ero','eri','erano','suo','sua','suoi','sue','mio','mia','loro',
+        'poi','ora','allora','fatto','modo','tipo','cosa','parte','molto','poco',
+        'tutto','tutti','tutte','volta','volte','fare','dice','dici','detto'
+      ]);
+
+      /* ── DIZIONARIO SINONIMI (vocabolario INVALSI/analisi testo) ──
+         Ogni voce: parola canonica → array di sinonimi.
+         Tutti i termini vengono già stemmatizzati prima del confronto,
+         quindi è sufficiente la forma base.
+         Copertura: carattere personaggi, sentimenti, struttura testo,
+         grammatica, argomentazione, analisi stilistica.
+      ────────────────────────────────────────────────────────────── */
+      const _SYN = {
+        /* CARATTERE / SENTIMENTI */
+        'irascibil':['arrabbia','arrabbiato','arrabb','irasc','collera','colleroso','furioso','infuriato','aggressivo','agit','impulsivo','impaziente','nervoso','irat','sdegnoso','brusco'],
+        'avar':['tirchio','spilorcio','attacc','denaro','soldi','avido','gretto','meschino','econom'],
+        /* SENTIMENTI / STATI D'ANIMO */
+        'vendett':['rancore','risentimento','ira','odio','rivalsa','ritorsione'],
+        'rabb':['ira','furia','collera','rancore','sdegno','furore','adirato','irato'],
+        'preoccup':['ansioso','ansia','inquieto','agitato','turbato','teso','in pensiero','apprensione'],
+        'sensibil':['premuroso','empatico','empatia','attento','delicato','gentile'],
+        'generos':['premuroso','altruista','benevolo','caritatevole','munifico','prodigo'],
+        'umilt':['modestia','umile','modesto','non si vanta','semplicità','schivo'],
+        /* VALORI / VIRTÙ */
+        'dovere':['obbligo','responsabilità','impegno','compito','missione'],
+        'coraggio':['ardire','audacia','bravura','eroismo','valoroso','coraggioso'],
+        /* CONDIZIONI SOCIALI */
+        'sfrutt':['abuso','abusare','oppressione','opprimere','sopruso','sfruttato'],
+        'miseri':['povertà','povero','poveri','indigenza','bisogno','indigente'],
+        'libert':['autonomia','indipendenza','emancipazione','libero','affrancamento'],
+        /* MEMORIA / CONSERVAZIONE */
+        'conserv':['preservare','salvare','custodire','mantenere','tenere','preserv'],
+        'preserv':['conservare','salvare','custodire','conserv','salv'],
+        'memori':['ricordo','ricordare','rammentare','rammento','ricordarsi'],
+        /* IDENTITÀ */
+        'identit':['appartenenza','riconoscimento','nome','persona','sé','chi si è'],
+        /* NORME / LEGGI */
+        'regol':['legge','leggi','norma','norme','contratt','disposizione','regolamento'],
+        'legge':['leggi','regol','norma','norme','contratt','disposizione','regolamento'],
+        'leggi':['legge','regol','norma','norme','contratt','disposizione','regolamento'],
+        'triste':['malinconico','melanconico','malinconia','malincon','mestizia','tristezza','abbattuto','depresso','afflitto','dispiaciuto','addolorato'],
+        'felice':['contento','allegro','gioioso','gioia','entusiasta','lieto','soddisfatto','euforico','esultante'],
+        'paura':['spavento','terrore','angoscia','timore','ansia','preoccupazione','apprensione','timido','impaurito','atterrito'],
+        'coraggio':['coraggioso','audace','ardito','intrepido','valoroso','determinato','deciso','risoluto'],
+        'pigro':['indolente','apatico','svogliato','inerte','passivo','neghittoso'],
+        'generoso':['altruista','munifico','liberale','prodigo','disinteressato'],
+        'onesto':['integro','retto','leale','sincero','trasparente','corretto'],
+        'furbo':['astuto','scaltro','sagace','malizioso','accorto','intelligente'],
+        'ingenuo':['sprovveduto','candido','semplice','credulone','fiducioso','spontaneo'],
+        'curioso':['interessato','attento','investigatore','indagatore','inquisitivo'],
+        'solo':['solitario','isolato','escluso','emarginato','abbandonato','separato'],
+        'nostalgia':['rimpianto','malinconia','ricordo','memoria','passato','perdita'],
+        /* MEMORIA / CONOSCENZA */
+        'memori':['ricordo','ricordare','rammentare','rammento','ricordarsi','mente','mente'],
+        'saper':['conosc','capire','capisce','comprend','comprensione','conoscenza','consapevol','consapevole'],
+        'impar':['apprender','acquisire','acquisito','acquis','studiare','assimilare','assimil'],
+        'tramand':['trasmetter','trasmissione','insegnar','insegnamento','trasfer','passare','eredit'],
+        'esperienz':['pratica','pratico','esperienza','vissuto','esperito','concreto','reale','acquis','acquisito'],
+        'corpore':['fisico','corpo','corporeo','corporale','fisicamente','gesto','gestuale','mani','manuale'],
+        /* STRUTTURA / STILE */
+        'narrat':['racconto','storia','narratore','narratrice','narra','descrive','racconta'],
+        'rifless':['meditazione','pensiero','considera','considera','pensa','medita','ragiona'],
+        'descritt':['descrive','descrizione','dipinge','illustra','rappresenta','raffigura'],
+        'argomentat':['argomentazione','ragionamento','tesi','sostiene','dimostra','afferma','argue'],
+        'contrast':['opposto','contrasto','contrario','antitesi','differenza','divergenza','diverso'],
+        'metafor':['figura','immagine','paragone','similitudine','analogia','simbolo','simbolico'],
+        'tono':['registro','stile','modo','atteggiamento','voce','postura','approccio'],
+        'ironia':['ironico','sarcastico','sarcasmo','umorismo','comico','paradoss'],
+        'paradoss':['assurdo','contraddi','contraddizione','impossibile','incongruente','illogico'],
+        'simbolo':['simbolico','rappresenta','significa','metafora','allegoria','emblema'],
+        'climax':['crescendo','apice','culmine','picco','massimo','culminante'],
+        'flashback':['retrospettiva','salto','passato','ricordo','anacronia','rimembranza'],
+        /* ANALISI GRAMMATICALE */
+        'principal':['reggente','principale','matrice','indipendente'],
+        'subordinat':['dipendente','secondaria','subordinata','relativa','completiva'],
+        'causal':['causale','perché','poiché','siccome','causa','motivo','ragione'],
+        'final':['finale','scopo','affinché','perché','obiettivo','per'],
+        'temporal':['temporale','quando','mentre','dopo','prima','appena','tempo'],
+        'relativ':['relativa','che','il quale','la quale','i quali','le quali'],
+        'concess':['concessiva','sebbene','benché','nonostante','quantunque'],
+        'condizional':['condizionale','ipotetica','se','qualora','purché','condizione'],
+        'complement':['complemento','specificazione','termine','oggetto','agente'],
+        'soggett':['soggetto','chi fa','chi compie','protagonista','attante'],
+        'predicat':['predicato','verbale','nominale','verbo','copula'],
+        'aggett':['aggettivo','qualificativo','qualità','attributo','determinativo'],
+        'avverb':['avverbio','modo','luogo','tempo','quantità','avverbiale'],
+        'congiunz':['congiunzione','connettivo','coordinante','subordinante','coniung'],
+        'participi':['participio','participio passato','participio presente'],
+        'gerundi':['gerundio','gerundivo','aspetto'],
+        'infinit':['infinito','infinitivo','forma nominale'],
+        'congiuntiv':['congiuntivo','modo congiuntivo','soggiuntivo'],
+        'condizional':['condizionale','modo condizionale'],
+        /* ARGOMENTAZIONE / TESI */
+        'tesi':['idea principale','idea centrale','argomento','concetto','posizione','punto di vista','opinione'],
+        'argomento':['prova','esempio','dimostrazione','evidenza','dato','fatto','sostegno'],
+        'concession':['pur','anche se','nonostante','sebbene','certo','ammesso'],
+        'conclus':['quindi','dunque','perciò','di conseguenza','pertanto','conclusione'],
+        'esempi':['esempio','caso','istanza','illustrazione','dimostrazione','prova'],
+        /* TEMI RICORRENTI NELLE PROVE 6-10 */
+        'mediterrane':['sud','meridionale','italia','grecia','spagna','cibo','dieta'],
+        'tradizion':['cultura','usanza','costume','patrimonio','eredità','identità'],
+        'ambient':['natura','paesaggio','ecosistema','territorio','contesto'],
+        'emigrazion':['immigrazione','migrazione','straniero','spostamento','viaggio'],
+        'identit':['appartenenza','origine','radici','se stesso','sé','chi si è'],
+        'digital':['tecnologia','internet','social','rete','virtuale','online'],
+        'salute':['benessere','malattia','cura','medico','terapia','psicologico'],
+        'mental':['psicologico','psiche','emozione','sentimento','interiore','animo'],
+        'ghiacciai':['clima','cambiamento climatico','riscaldamento','montagna','neve','ghiaccio'],
+        'serv':['servire','servitore','schiavo','devoto','dedizione','fedeltà','obbedienza']
+      };
+
+      /* ── ESPANSIONE SINONIMI ────────────────────────────────────
+         Dato uno stem, restituisce tutti gli stem equivalenti
+         (incluso sé stesso) tramite il dizionario _SYN.
+      ────────────────────────────────────────────────────────────── */
+      const _expand = st => {
+        const set = new Set([st]);
+        for(const [canon, syns] of Object.entries(_SYN)){
+          const canonStem = _stemIT(canon);
+          const allStems = [canonStem, ...syns.map(_stemIT)];
+          if(allStems.includes(st)){
+            allStems.forEach(s => set.add(s));
+          }
+        }
+        return set;
+      };
+
+      /* ── TOKENIZER ──────────────────────────────────────────────── */
+      const _tok = s => s.toLowerCase()
+        .replace(/[^a-zàèéìòù\s]/g,' ')
+        .split(/\s+/)
+        .filter(w => w.length > 2 && !_stop.has(w))
+        .map(_stemIT);
+
+      /* ── CONFRONTO CON SOGLIA ───────────────────────────────────
+         Per ogni gruppo ok_open controlla che le parole chiave
+         (già stemmatizzate + espanse con sinonimi) siano presenti
+         nella risposta dell'alunno.
+         Soglia: 100% per gruppi brevi (1-3 parole chiave)
+                  75% per gruppi medi  (4-5 parole chiave)
+                  60% per gruppi lunghi (6+ parole chiave)
+         → evita che un singolo termine mancante faccia saltare
+           risposte che dimostrano chiaramente la comprensione.
+      ────────────────────────────────────────────────────────────── */
+      const vTok = _tok(v);
+      const _match = (kt) => {
+        const expanded = _expand(kt);
+        return vTok.some(vt => {
+          if(expanded.has(vt)) return true;
+          for(const es of expanded){
+            if(vt.startsWith(es) || es.startsWith(vt)) return true;
+          }
+          return false;
+        });
+      };
+      const ok = d.ok_open && d.ok_open.some(k => {
+        const kTok = _tok(k);
+        if(kTok.length === 0) return false;
+        const matches = kTok.filter(_match).length;
+        const soglia = kTok.length >= 6 ? 0.60 : kTok.length >= 4 ? 0.75 : 1.0;
+        return matches / kTok.length >= soglia;
+      });
       if(ok){corrette++;sez[d.sez].c++;}
       else errComp[d.comp]=(errComp[d.comp]||0)+1;
       det.push({d, ok, mia, miaLbl:mia||'— Senza risposta —', okLbl:d.ok_open?d.ok_open[0]:'–'});
