@@ -8,6 +8,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <title>Grado 8 – Simulazione INVALSI</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
@@ -4425,7 +4426,14 @@ function creaLinkDisAI(){
     paragrafi: prova.paragrafi,
     domande: prova.domande
   };
-  var b64=btoa(unescape(encodeURIComponent(JSON.stringify(provaMin))));
+  // Compressione LZString (riduce ~65%): da ~9000 a ~3000 chars
+  var dataEncoded;
+  var useLZ = (typeof LZString !== "undefined");
+  if(useLZ){
+    dataEncoded = LZString.compressToEncodedURIComponent(JSON.stringify(provaMin));
+  } else {
+    dataEncoded = btoa(unescape(encodeURIComponent(JSON.stringify(provaMin))));
+  }
   var ticMap={
     grande:!!(document.getElementById('dis-tic-grande')&&document.getElementById('dis-tic-grande').checked),
     maiuscolo:!!(document.getElementById('dis-tic-maiuscolo')&&document.getElementById('dis-tic-maiuscolo').checked),
@@ -4445,27 +4453,34 @@ function creaLinkDisAI(){
   }catch(e){}
   var base=window.location.href.replace(/[^/]*$/,'')+'grado8_dis.html';
   var params=new URLSearchParams();
-  params.set('prova','custom');params.set('data',b64);
+  params.set('prova','custom');
+  params.set('data',dataEncoded);
+  if(useLZ) params.set('fmt','lz'); // flag per decompress in grado8_dis.html
   params.set('sessione',sessKey);params.set('classe',classe);
   if(nome) params.set('nome',nome);
   if(ticAttivi.length) params.set('tic',ticAttivi.join(','));
   var link=base+'?'+params.toString();
   window._linkDisAI=link;
-  // Avviso se link troppo lungo (> 6000 char = rischio errore 400)
-  if(link.length > 6000){
-    console.warn('[TTS] Link troppo lungo: ' + link.length + ' chars. Considera di ridurre le domande.');
-    var warnEl = document.getElementById('dis-url-warn');
-    if(!warnEl){
-      warnEl = document.createElement('div');
-      warnEl.id = 'dis-url-warn';
-      warnEl.style.cssText = 'margin-top:8px;padding:8px 12px;background:#fff3cd;border:1px solid #ffc107;border-radius:6px;font-size:12px;color:#856404';
-      var btn = document.getElementById('dis-succ');
-      if(btn && btn.parentNode) btn.parentNode.insertBefore(warnEl, btn);
-    }
-    warnEl.innerHTML = '⚠️ <strong>Link molto lungo</strong> (' + link.length + ' caratteri). Su alcuni server potrebbe dare errore 400. ' +
-      'Soluzione: riduci le domande a max 15-20 oppure elimina le domande COL/COMP che aumentano la dimensione.';
-    warnEl.style.display = 'block';
+  // Mostra dimensione link (informativo)
+  var warnEl = document.getElementById('dis-url-warn');
+  if(!warnEl){
+    warnEl = document.createElement('div');
+    warnEl.id = 'dis-url-warn';
+    warnEl.style.cssText = 'margin-top:8px;padding:6px 12px;border-radius:6px;font-size:11px;';
+    var succEl = document.getElementById('dis-succ');
+    if(succEl && succEl.parentNode) succEl.parentNode.insertBefore(warnEl, succEl);
   }
+  if(link.length > 6000){
+    warnEl.style.background = '#fff3cd'; warnEl.style.border = '1px solid #ffc107'; warnEl.style.color = '#856404';
+    warnEl.innerHTML = '⚠️ Link: <strong>' + link.length + ' caratteri</strong>' +
+      (useLZ ? ' (compresso LZ)' : ' — installa LZString per ridurre') +
+      (link.length > 8000 ? ' — considera di ridurre le domande a max 20.' : ' — dovrebbe funzionare.');
+  } else {
+    warnEl.style.background = '#e8f5e9'; warnEl.style.border = '1px solid #a5d6a7'; warnEl.style.color = '#2e7d32';
+    warnEl.innerHTML = '✅ Link: <strong>' + link.length + ' caratteri</strong>' +
+      (useLZ ? ' (compresso LZ — ottimo!)' : '') + ' — dimensione OK.';
+  }
+  warnEl.style.display = 'block';
   try{aggiornaTabellaSessioni();}catch(e){}
   try{aggSelSessioni();}catch(e){}
   var el=document.getElementById('dis-succ');
