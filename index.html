@@ -1257,14 +1257,12 @@ tr:hover td{background:var(--grigio-ch)}
           </div>
           <div class="panel-card" style="max-width:none">
             <h3 style="margin-bottom:10px">⚙️ Strumenti TIC</h3>
-            <div style="font-size:11px;color:#888;margin-bottom:8px">Impostazioni attive all'apertura. L'alunno potrà modificarle durante la prova se abiliti l'opzione sotto.</div>
+            <div style="font-size:11px;color:#888;margin-bottom:8px">Attivi all'apertura — l'alunno può cambiarli se abiliti l'opzione sotto. BES e font inclusivo sono sempre attivi di default.</div>
             <div style="display:flex;flex-direction:column;gap:7px">
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-grande" style="width:14px;height:14px;accent-color:var(--verde)"> 🔍 Testo grande</label>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-maiuscolo" style="width:14px;height:14px;accent-color:var(--verde)"> 🔠 Maiuscolo</label>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-contrasto" style="width:14px;height:14px;accent-color:var(--verde)"> 🌗 Alto contrasto</label>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-spaziatura" style="width:14px;height:14px;accent-color:var(--verde)"> ↔️ Spaziatura+</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-font" style="width:14px;height:14px;accent-color:var(--verde)"> ✒️ Font dislessia</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-bes" style="width:14px;height:14px;accent-color:var(--verde)"> 📘 Modalità BES</label>
             </div>
             <!-- Opzione TIC modificabili dall'alunno -->
             <div style="margin-top:10px;padding:8px 10px;background:#e8f5e9;border-radius:6px;border:1.5px solid #a5d6a7">
@@ -4329,16 +4327,25 @@ async function generaDomandeAI(){
 
   function buildPromptDis(numDom, offsetN, includePar) {
     var p = 'Sei esperto didattica inclusiva scuola media italiana.\n';
-    p += 'TESTO (max ~500 parole mostrato):\n"""\n' + testo.substring(0,2000) + '\n"""\n';
+    p += 'TESTO:\n"""\n' + testo.substring(0,2500) + '\n"""\n';
     p += 'Genera esattamente ' + numDom + ' domande. Numera da ' + (offsetN+1) + '.\n';
     p += 'Tipi: ' + tipiRich.join(',') + (inferenza?' (+2 inferenziali)':'') + '\n';
     p += distrStr + gramInstr + '\n';
-    p += 'Linguaggio semplice per alunni con disabilita.\n';
-    p += 'Formati: SM={tipo,opts[4],ok:0-3} VF={tipo,righeVF[{t,ok}]} AP={tipo} COMP={tipo,frase,parole[4]} COL={tipo,sinistra[],destra[]}\n';
+    p += 'Linguaggio SEMPLICE per alunni con disabilita. Frasi brevi, parole facili.\n';
+    p += 'FORMATI DOMANDE:\n';
+    p += '  SM: {tipo:"sm", testo:"?", opts:["A","B","C","D"], ok:0-3}\n';
+    p += '  VF: {tipo:"vf", testo:"Segna V (vero) o F (falso)", righeVF:[{t:"affermazione",ok:true/false}]}\n';
+    p += '  AP: {tipo:"ap", testo:"Domanda aperta breve"}\n';
+    p += '  COMP: {tipo:"comp", testo:"Completa la frase scegliendo la parola giusta:", frase:"La ___ e bella", parole:["parola_corretta","distrat1","distrat2","distrat3"], ok:0}\n';
+    p += '    REGOLA COMP: "frase" deve contenere ESATTAMENTE ___ (tre underscore) nel punto da completare. ok=0 significa che parole[0] e la risposta corretta.\n';
+    p += '  COL: {tipo:"col", testo:"Collega ogni elemento:", sinistra:["A","B"], destra:["X","Y"], coppie:[0,1]}\n';
     if(includePar){
-      p += 'Rispondi SOLO JSON: {"paragrafi":[{"n":1,"testo":"..."}],"domande":[{"n":1,"par":1,"tipo":"sm","sez":0,"testo":"?","opts":["A","B","C","D"],"ok":0}]}';
+      p += 'REGOLA PARAGRAFI: dividi il testo in 4-6 paragrafi di 2-4 frasi ciascuno. '
+        + 'Ogni paragrafo deve contenere un\'idea completa. Non fare paragrafi di una sola riga.\n';
+      p += 'Ogni domanda deve avere "par" = numero paragrafo di riferimento (1-N).\n';
+      p += 'SOLO JSON, niente altro: {"paragrafi":[{"n":1,"testo":"..."}],"domande":[{"n":1,"par":1,"tipo":"sm","sez":0,"testo":"?","opts":["A","B","C","D"],"ok":0}]}';
     } else {
-      p += 'Paragrafi gia definiti, usa stessi numeri. SOLO JSON: {"domande":[{"n":' + (offsetN+1) + ',"par":1,"tipo":"sm","sez":0,"testo":"?","opts":["A","B","C","D"],"ok":0}]}';
+      p += 'Paragrafi gia definiti, usa stessi numeri par. SOLO JSON: {"domande":[{"n":' + (offsetN+1) + ',"par":1,"tipo":"sm","sez":0,"testo":"?","opts":["A","B","C","D"],"ok":0}]}';
     }
     return p;
   }
