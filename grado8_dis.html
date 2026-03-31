@@ -19,12 +19,12 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--font);font-size:15px;line-height:1.85;background:#e8f4fd;color:var(--tx);overflow-x:hidden}
 
-/* ── TIC CLASSES ─────────────────────────────────────────── */
+/* ── TIC CLASSES (4 attivi: grande, maiuscolo, spaziatura, contrasto) ── */
 body.tic-maiuscolo .tpar,body.tic-maiuscolo .tdom,body.tic-maiuscolo .opt{text-transform:uppercase!important}
-body.tic-grande .tpar{font-size:1.25rem!important;line-height:2.2!important}
-body.tic-grande .tdom{font-size:1.1rem!important}
-body.tic-grande .opt{font-size:1rem!important;padding:11px 14px!important}
-body.tic-spaziatura .tpar,body.tic-spaziatura .tdom,body.tic-spaziatura .opt{letter-spacing:.08em!important;word-spacing:.18em!important;line-height:2.6!important}
+body.tic-grande .tpar{font-size:1.3rem!important;line-height:2.6!important}
+body.tic-grande .tdom{font-size:1.15rem!important}
+body.tic-grande .opt{font-size:1.05rem!important;padding:12px 16px!important}
+body.tic-spaziatura .tpar,body.tic-spaziatura .tdom,body.tic-spaziatura .opt{letter-spacing:.12em!important;word-spacing:.25em!important;line-height:3!important}
 body.tic-contrasto{background:#111!important}
 body.tic-contrasto .pt{background:#000!important}
 body.tic-contrasto .tpar{color:#fff!important}
@@ -34,9 +34,6 @@ body.tic-contrasto .pd{background:#111!important}
 body.tic-contrasto .sez{background:#1a1a1a!important}
 body.tic-contrasto .tdom{color:#fff!important}
 body.tic-contrasto .opt{background:#222!important;color:#fff!important;border-color:#555!important}
-body.tic-font .tpar,body.tic-font .tdom,body.tic-font .opt{font-family:'Lexend',sans-serif!important}
-body.tic-bes .tpar{font-size:1.1rem!important;line-height:2.4!important;letter-spacing:.06em!important;word-spacing:.15em!important}
-body.tic-bes .opt{font-size:1rem!important;line-height:1.9!important;padding:12px 14px!important}
 
 /* ── HEADER ─────────────────────────────────────────────── */
 .hdr{background:var(--c1);color:#fff;text-align:center;padding:14px 20px 10px;border-bottom:5px solid var(--ob);position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,.28)}
@@ -65,7 +62,14 @@ body.tic-bes .opt{font-size:1rem!important;line-height:1.9!important;padding:12p
 .plbl .dot{width:8px;height:8px;border-radius:50%;background:var(--cb);flex-shrink:0;transition:background .3s}
 .par.att .dot{background:var(--ob)}
 .par.att .plbl{color:#7a5000}
-.tpar{font-size:.93rem;line-height:1.9}
+/* STILE BASE INCLUSIVO — interlinea e spaziatura già ottimali per disabilità */
+.tpar{
+  font-size:1rem;
+  line-height:2.3;
+  letter-spacing:.04em;
+  word-spacing:.1em;
+  font-family:'Lexend',Verdana,sans-serif;
+}
 .glw{border-bottom:2.5px dashed var(--c2);cursor:help;font-weight:700;color:var(--c1)}
 .gl-p{background:#fff8e1;border-top:3px solid var(--ob);padding:11px 16px}
 .glt{font-size:.72rem;font-weight:800;color:#7a5000;margin-bottom:8px}
@@ -94,7 +98,7 @@ body.tic-bes .opt{font-size:1rem!important;line-height:1.9!important;padding:12p
 .tdom{font-size:.92rem;font-weight:700;margin-bottom:10px;line-height:1.52}
 .hint{font-size:.78rem;font-weight:700;background:#fff3e0;border:1.5px solid #ffb74d;border-radius:7px;padding:7px 11px;margin-bottom:10px;color:#7a4000;line-height:1.55}
 .opts{display:flex;flex-direction:column;gap:7px}
-.opt{display:flex;align-items:flex-start;gap:9px;background:var(--bi);border:2.5px solid var(--cb);border-radius:8px;padding:9px 12px;cursor:pointer;transition:all .15s;font-size:.9rem;line-height:1.48}
+.opt{display:flex;align-items:flex-start;gap:9px;background:var(--bi);border:2.5px solid var(--cb);border-radius:8px;padding:12px 14px;cursor:pointer;transition:all .15s;font-size:.95rem;line-height:1.6}
 .opt:hover{border-color:var(--c2);background:var(--cl)}
 .opt.sel{border-color:var(--c2);background:var(--cl)}
 .opt.ok{border-color:var(--gbord);background:var(--gok)}
@@ -250,12 +254,10 @@ let TOT_DOM = 0;
 //  PALLINI TIC — definizione
 // ══════════════════════════════════════════════════════════════
 const TIC_DEF = [
-  {id:'grande',    emoji:'🔍', label:'Testo grande',    col:'#01579b'},
-  {id:'maiuscolo', emoji:'🔠', label:'Maiuscolo',        col:'#6a1b9a'},
-  {id:'contrasto', emoji:'🌗', label:'Alto contrasto',   col:'#37474f'},
-  {id:'spaziatura',emoji:'↔',  label:'Spaziatura+',     col:'#00838f'},
-  {id:'font',      emoji:'✒',  label:'Font leggibile',  col:'#e65100'},
-  {id:'bes',       emoji:'📘', label:'Modalità BES',    col:'#1565c0'},
+  {id:'grande',    emoji:'🔍', label:'Testo grande',   col:'#01579b'},
+  {id:'maiuscolo', emoji:'🔠', label:'Maiuscolo',       col:'#6a1b9a'},
+  {id:'spaziatura',emoji:'↔',  label:'Spaziatura+',    col:'#00838f'},
+  {id:'contrasto', emoji:'🌗', label:'Alto contrasto',  col:'#37474f'},
 ];
 
 function buildTicDots(){
@@ -487,32 +489,41 @@ function renderDomanda(d, tutte){
 
   } else if(tipo==='comp'){
     var parole = (d.parole||[]).slice();
-    var frase = d.frase || d.testo || '';
-    // Formato strutturato con gaps
+    var frase = d.frase || '';
+    // Se non c'è frase separata, usa il testo della domanda
+    if(!frase) frase = d.testo || '';
+    // Garantisci che ci sia ___ nella frase
+    if(frase && frase.indexOf('___') === -1 && frase.indexOf('[___]') === -1){
+      // Cerca di riconoscere la lacuna: se la frase finisce con parola, aggiungi ___ alla fine
+      frase = frase.replace(/\s+$/, '') + ' ___';
+    }
+    frase = frase.replace('[___]', '___');
+
+    var istruzione = '<div style="font-size:.78rem;font-weight:700;background:#e3f2fd;border:1.5px solid #90caf9;border-radius:7px;padding:7px 11px;margin-bottom:10px;color:#01579b">💡 <strong>Scegli la parola giusta</strong> per completare la frase dal menù a tendina.</div>';
+
     if(d.gaps && d.gaps.length){
+      // Formato strutturato con gaps multipli
       var gapsHtml = '';
       d.gaps.forEach(function(g,gi){
         var opts2 = (d.parole||[]).map(function(pw,pi){
           return '<option value="'+pi+'">'+pw+'</option>';
         }).join('');
         gapsHtml += (g.prima||'')
-          + ' <select name="comp'+d.n+'_'+gi+'" style="border:2px solid var(--c2);border-radius:6px;padding:4px 8px;font-size:13px;font-family:inherit;cursor:pointer" onchange="aggBarra()">'
+          + ' <select name="comp'+d.n+'_'+gi+'" style="border:2px solid var(--c2);border-radius:6px;padding:4px 8px;font-size:13px;font-family:inherit;cursor:pointer;background:#e8f4ff" onchange="aggBarra()">'
           + '<option value="">— scegli —</option>'+opts2+'</select> '
           + (g.dopo||'');
       });
-      inner = '<div style="margin-top:8px"><div style="font-size:13px;line-height:2.4">' + gapsHtml + '</div></div>';
+      inner = istruzione + '<div style="margin-top:8px"><div style="font-size:1rem;line-height:2.6;padding:4px 0;font-weight:600">' + gapsHtml + '</div></div>';
     } else {
       // Formato semplice: frase con ___
-      var opts2 = parole.slice().sort(function(){ return Math.random()-.5; })
-        .map(function(pw){ return '<option value="'+pw+'">'+pw+'</option>'; }).join('');
-      var fraseConSel = frase.replace('___',
-        '<select name="comp'+d.n+'" style="border:2px solid var(--c2);border-radius:6px;padding:4px 8px;font-size:13px;font-family:inherit;cursor:pointer" onchange="aggBarra()">'
-        +'<option value="">— scegli —</option>'+opts2+'</select>');
-      inner = '<div style="margin-top:8px">'
-        +'<div style="font-size:13px;line-height:2.2;margin-bottom:10px">'+fraseConSel+'</div>'
-        +'<div style="font-size:11px;color:#888">Parole: '
-        + parole.map(function(pw){ return '<span style="background:#f0f4f8;border-radius:4px;padding:1px 8px;margin:2px;display:inline-block">'+pw+'</span>'; }).join('')
-        +'</div></div>';
+      var shuffled = parole.slice().sort(function(){ return Math.random()-.5; });
+      var opts2 = shuffled.map(function(pw){ return '<option value="'+pw+'">'+pw+'</option>'; }).join('');
+      var selectHtml = '<select name="comp'+d.n+'" style="border:2px solid var(--c2);border-radius:6px;padding:5px 10px;font-size:14px;font-family:inherit;cursor:pointer;background:#e8f4ff;min-width:140px" onchange="aggBarra()"><option value="">— scegli —</option>'+opts2+'</select>';
+      var fraseConSel = frase.replace('___', selectHtml);
+      inner = istruzione
+        + '<div style="margin-top:8px"><div style="font-size:1rem;line-height:2.6;padding:4px 0;font-weight:600">'
+        + fraseConSel
+        + '</div></div>';
     }
 
   } else if(tipo==='col'){
@@ -690,7 +701,9 @@ function controlla(){
       } else {
         tot++;
         var selS = document.querySelector('select[name="comp'+d.n+'"]');
-        var corretta = (d.parole||[])[0];
+        // d.ok è l'indice della parola corretta nell'array parole
+        var okIdx = d.ok !== undefined ? parseInt(d.ok) : 0;
+        var corretta = (d.parole||[])[okIdx] || (d.parole||[])[0];
         if(selS && selS.value){
           if(selS.value===corretta){ corr++;
             selS.style.borderColor='#2e7d32'; selS.style.background='#e8f5e9';
