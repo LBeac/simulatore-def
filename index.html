@@ -1104,23 +1104,116 @@ tr:hover td{background:var(--grigio-ch)}
             </div>
           </div>
         </div>
-        <!-- Livello grammaticale: TIC per personalizzare le domande grammaticali -->
+        <!-- Livello grammaticale: accordion espanso per personalizzare le domande grammaticali -->
         <div style="margin-top:14px;padding:12px 14px;background:#fff3e0;border-radius:8px;border:2px solid #ffcc80">
-          <div style="font-size:12px;font-weight:800;color:#7a4000;margin-bottom:8px">📐 Livello grammaticale (per domande in Sezione Grammatica)</div>
-          <div style="font-size:11px;color:#a05000;margin-bottom:10px">Seleziona su quale aspetto grammaticale Groq deve concentrarsi per questo alunno. Se non selezioni nulla, distribuisce automaticamente.</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
-            <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;background:#fff8f0;border:1.5px solid #ffb74d;border-radius:6px;padding:7px 10px;transition:background .15s" onclick="this.style.background=document.getElementById('dis-gram-morfo').checked?'#fff3e0':''" >
-              <input type="checkbox" id="dis-gram-morfo" style="width:14px;height:14px;accent-color:#e65100">
-              <span><strong>🔤 Morfologia</strong><br><span style="font-size:10px;color:#888">Parti del discorso</span></span>
-            </label>
-            <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;background:#f3e5f5;border:1.5px solid #ce93d8;border-radius:6px;padding:7px 10px">
-              <input type="checkbox" id="dis-gram-logica" style="width:14px;height:14px;accent-color:#6a1b9a">
-              <span><strong>🔍 Analisi Logica</strong><br><span style="font-size:10px;color:#888">Soggetto / predicato</span></span>
-            </label>
-            <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;background:#e8f5e9;border:1.5px solid #a5d6a7;border-radius:6px;padding:7px 10px">
-              <input type="checkbox" id="dis-gram-periodo" style="width:14px;height:14px;accent-color:#2e7d32">
-              <span><strong>🔗 Analisi del Periodo</strong><br><span style="font-size:10px;color:#888">Proposizioni / frasi</span></span>
-            </label>
+          <div style="font-size:12px;font-weight:800;color:#7a4000;margin-bottom:4px">📐 Livello grammaticale (Sezione Grammatica)</div>
+          <div style="font-size:11px;color:#a05000;margin-bottom:10px">Attiva una o più aree e scegli gli elementi specifici. Se non selezioni nulla Groq distribuisce automaticamente.</div>
+
+          <!-- ── MORFOLOGIA ──────────────────────────────────── -->
+          <div style="border:1.5px solid #ffb74d;border-radius:8px;margin-bottom:7px;overflow:hidden">
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#fff8f0;cursor:pointer" onclick="toggleGramSez('morfo')">
+              <input type="checkbox" id="dis-gram-morfo" style="width:15px;height:15px;accent-color:#e65100" onclick="event.stopPropagation();toggleGramSezAuto('morfo')">
+              <strong style="font-size:12px;color:#7a4000">🔤 Morfologia</strong>
+              <span style="font-size:10px;color:#aaa;margin-left:4px">parti del discorso</span>
+              <span id="morfo-arrow" style="margin-left:auto;font-size:13px;color:#e65100;transition:transform .2s">▸</span>
+            </div>
+            <div id="dis-gram-morfo-subs" style="display:none;padding:10px 14px 12px 34px;background:#fffdf9;border-top:1px solid #ffe0b2">
+              <div style="font-size:11px;color:#7a4000;margin-bottom:7px;font-weight:700">Seleziona gli elementi morfologici da includere nelle domande:</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px 16px">
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:4px 0"><input type="checkbox" id="dis-morfo-nome" style="width:13px;height:13px;accent-color:#e65100"> Nome</label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:4px 0"><input type="checkbox" id="dis-morfo-aggettivo" style="width:13px;height:13px;accent-color:#e65100"> Aggettivo</label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:4px 0"><input type="checkbox" id="dis-morfo-verbo" style="width:13px;height:13px;accent-color:#e65100"> Verbo</label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:4px 0"><input type="checkbox" id="dis-morfo-avverbio" style="width:13px;height:13px;accent-color:#e65100"> Avverbio</label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:4px 0"><input type="checkbox" id="dis-morfo-prep-semplici" style="width:13px;height:13px;accent-color:#e65100"> Preposizioni semplici</label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:4px 0"><input type="checkbox" id="dis-morfo-prep-articolate" style="width:13px;height:13px;accent-color:#e65100"> Preposizioni articolate</label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:4px 0"><input type="checkbox" id="dis-morfo-articoli" style="width:13px;height:13px;accent-color:#e65100"> Articoli</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── ANALISI LOGICA ──────────────────────────────── -->
+          <div style="border:1.5px solid #ce93d8;border-radius:8px;margin-bottom:7px;overflow:hidden">
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#f3e5f5;cursor:pointer" onclick="toggleGramSez('logica')">
+              <input type="checkbox" id="dis-gram-logica" style="width:15px;height:15px;accent-color:#6a1b9a" onclick="event.stopPropagation();toggleGramSezAuto('logica')">
+              <strong style="font-size:12px;color:#4a1580">🔍 Analisi Logica</strong>
+              <span style="font-size:10px;color:#aaa;margin-left:4px">funzioni nella frase</span>
+              <span id="logica-arrow" style="margin-left:auto;font-size:13px;color:#6a1b9a;transition:transform .2s">▸</span>
+            </div>
+            <div id="dis-gram-logica-subs" style="display:none;padding:10px 14px 12px 34px;background:#fdf5ff;border-top:1px solid #e1bee7">
+              <div style="font-size:11px;color:#4a1580;margin-bottom:7px;font-weight:700">Seleziona i complementi e le funzioni da analizzare:</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px 16px">
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:4px 0"><input type="checkbox" id="dis-logica-soggetto" style="width:13px;height:13px;accent-color:#6a1b9a"> Soggetto</label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:4px 0"><input type="checkbox" id="dis-logica-predicato" style="width:13px;height:13px;accent-color:#6a1b9a"> Predicato verbale / nominale</label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:4px 0"><input type="checkbox" id="dis-logica-oggetto" style="width:13px;height:13px;accent-color:#6a1b9a"> Complemento oggetto</label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:4px 0"><input type="checkbox" id="dis-logica-specificazione" style="width:13px;height:13px;accent-color:#6a1b9a"> C. di specificazione</label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:4px 0"><input type="checkbox" id="dis-logica-termine" style="width:13px;height:13px;accent-color:#6a1b9a"> C. di termine</label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:4px 0;grid-column:1/-1;margin-top:2px;border-top:1px dashed #e1bee7;padding-top:7px">
+                  <input type="checkbox" id="dis-logica-tutti" style="width:13px;height:13px;accent-color:#880e4f">
+                  <span style="font-weight:700;color:#880e4f">Tutti i complementi <span style="font-weight:400;color:#888">(luogo, tempo, modo, causa, fine, mezzo…)</span></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── ANALISI DEL PERIODO ────────────────────────── -->
+          <div style="border:1.5px solid #a5d6a7;border-radius:8px;overflow:hidden">
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#e8f5e9;cursor:pointer" onclick="toggleGramSez('periodo')">
+              <input type="checkbox" id="dis-gram-periodo" style="width:15px;height:15px;accent-color:#2e7d32" onclick="event.stopPropagation();toggleGramSezAuto('periodo')">
+              <strong style="font-size:12px;color:#1b5e20">🔗 Analisi del Periodo</strong>
+              <span style="font-size:10px;color:#aaa;margin-left:4px">proposizioni / frasi complesse</span>
+              <span id="periodo-arrow" style="margin-left:auto;font-size:13px;color:#2e7d32;transition:transform .2s">▸</span>
+            </div>
+            <div id="dis-gram-periodo-subs" style="display:none;padding:10px 14px 12px 34px;background:#f5fdf5;border-top:1px solid #c8e6c9">
+              <!-- Principale -->
+              <div style="margin-bottom:9px">
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;font-weight:700;color:#1b5e20;padding:4px 0">
+                  <input type="checkbox" id="dis-periodo-principale" style="width:13px;height:13px;accent-color:#2e7d32"> Proposizione principale
+                </label>
+              </div>
+              <!-- Coordinate -->
+              <div style="margin-bottom:9px">
+                <div style="font-size:11px;font-weight:800;color:#1b5e20;margin-bottom:5px;display:flex;align-items:center;gap:6px">
+                  <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px">
+                    <input type="checkbox" id="dis-periodo-coordinate-all" style="width:13px;height:13px;accent-color:#2e7d32" onchange="toggleGruppo('coordinate',this.checked)"> Coordinate
+                  </label>
+                </div>
+                <div id="dis-periodo-coordinate-group" style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;margin-left:12px">
+                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-copulative" class="dis-periodo-coordinate" style="width:12px;height:12px;accent-color:#388e3c"> Copulative</label>
+                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-disgiuntive" class="dis-periodo-coordinate" style="width:12px;height:12px;accent-color:#388e3c"> Disgiuntive</label>
+                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-avversative-c" class="dis-periodo-coordinate" style="width:12px;height:12px;accent-color:#388e3c"> Avversative</label>
+                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-dichiarative-c" class="dis-periodo-coordinate" style="width:12px;height:12px;accent-color:#388e3c"> Dichiarative</label>
+                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-conclusive" class="dis-periodo-coordinate" style="width:12px;height:12px;accent-color:#388e3c"> Conclusive</label>
+                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-correlative" class="dis-periodo-coordinate" style="width:12px;height:12px;accent-color:#388e3c"> Correlative</label>
+                </div>
+              </div>
+              <!-- Subordinate -->
+              <div>
+                <div style="font-size:11px;font-weight:800;color:#1b5e20;margin-bottom:5px">
+                  <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px">
+                    <input type="checkbox" id="dis-periodo-subordinate-all" style="width:13px;height:13px;accent-color:#2e7d32" onchange="toggleGruppo('subordinate',this.checked)"> Subordinate
+                  </label>
+                </div>
+                <div id="dis-periodo-subordinate-group" style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;margin-left:12px">
+                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-soggettive" class="dis-periodo-subordinate" style="width:12px;height:12px;accent-color:#388e3c"> Soggettive</label>
+                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-oggettive" class="dis-periodo-subordinate" style="width:12px;height:12px;accent-color:#388e3c"> Oggettive</label>
+                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-dichiarative-s" class="dis-periodo-subordinate" style="width:12px;height:12px;accent-color:#388e3c"> Dichiarative</label>
+                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-interr-indirette" class="dis-periodo-subordinate" style="width:12px;height:12px;accent-color:#388e3c"> Interrogative indirette</label>
+                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-relative" class="dis-periodo-subordinate" style="width:12px;height:12px;accent-color:#388e3c"> Relative</label>
+                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-causali" class="dis-periodo-subordinate" style="width:12px;height:12px;accent-color:#388e3c"> Causali</label>
+                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-finali" class="dis-periodo-subordinate" style="width:12px;height:12px;accent-color:#388e3c"> Finali</label>
+                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-temporali" class="dis-periodo-subordinate" style="width:12px;height:12px;accent-color:#388e3c"> Temporali</label>
+                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-consecutive" class="dis-periodo-subordinate" style="width:12px;height:12px;accent-color:#388e3c"> Consecutive</label>
+                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-concessive" class="dis-periodo-subordinate" style="width:12px;height:12px;accent-color:#388e3c"> Concessive</label>
+                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-condizionali" class="dis-periodo-subordinate" style="width:12px;height:12px;accent-color:#388e3c"> Condizionali (Protasi)</label>
+                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-modali" class="dis-periodo-subordinate" style="width:12px;height:12px;accent-color:#388e3c"> Modali</label>
+                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-comparative" class="dis-periodo-subordinate" style="width:12px;height:12px;accent-color:#388e3c"> Comparative</label>
+                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-avversative-s" class="dis-periodo-subordinate" style="width:12px;height:12px;accent-color:#388e3c"> Avversative</label>
+                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-esclusive" class="dis-periodo-subordinate" style="width:12px;height:12px;accent-color:#388e3c"> Esclusive</label>
+                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-eccettuative" class="dis-periodo-subordinate" style="width:12px;height:12px;accent-color:#388e3c"> Eccettuative</label>
+                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-limitative" class="dis-periodo-subordinate" style="width:12px;height:12px;accent-color:#388e3c"> Limitative</label>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <div style="display:flex;gap:10px;margin-top:14px">
@@ -1164,6 +1257,7 @@ tr:hover td{background:var(--grigio-ch)}
           </div>
           <div class="panel-card" style="max-width:none">
             <h3 style="margin-bottom:10px">⚙️ Strumenti TIC</h3>
+            <div style="font-size:11px;color:#888;margin-bottom:8px">Impostazioni attive all'apertura. L'alunno potrà modificarle durante la prova se abiliti l'opzione sotto.</div>
             <div style="display:flex;flex-direction:column;gap:7px">
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-grande" style="width:14px;height:14px;accent-color:var(--verde)"> 🔍 Testo grande</label>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-maiuscolo" style="width:14px;height:14px;accent-color:var(--verde)"> 🔠 Maiuscolo</label>
@@ -1171,6 +1265,14 @@ tr:hover td{background:var(--grigio-ch)}
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-spaziatura" style="width:14px;height:14px;accent-color:var(--verde)"> ↔️ Spaziatura+</label>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-font" style="width:14px;height:14px;accent-color:var(--verde)"> ✒️ Font dislessia</label>
               <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="dis-tic-bes" style="width:14px;height:14px;accent-color:var(--verde)"> 📘 Modalità BES</label>
+            </div>
+            <!-- Opzione TIC modificabili dall'alunno -->
+            <div style="margin-top:10px;padding:8px 10px;background:#e8f5e9;border-radius:6px;border:1.5px solid #a5d6a7">
+              <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;font-weight:700;color:#1b5e20">
+                <input type="checkbox" id="dis-tic-editable" style="width:14px;height:14px;accent-color:#2e7d32" checked>
+                🎛️ Permetti all'alunno di modificare i TIC durante la prova
+              </label>
+              <div style="font-size:10px;color:#555;margin-top:4px;margin-left:22px">Mostra i pallini TIC sulla destra del testo — l'alunno può attivarli/disattivarli autonomamente</div>
             </div>
           </div>
         </div>
@@ -4130,17 +4232,88 @@ async function generaDomandeAI(){
   if(!tipiRich.length) tipiRich.push('SM');
   var inferenza=document.getElementById('dis-ai-inferenza')&&document.getElementById('dis-ai-inferenza').checked;
 
-  // Sottocategorie grammaticali (TIC docente)
+  // ── Raccolta elementi morfologici selezionati ─────────────────
   var gramMorfo   = document.getElementById('dis-gram-morfo') && document.getElementById('dis-gram-morfo').checked;
   var gramLogica  = document.getElementById('dis-gram-logica') && document.getElementById('dis-gram-logica').checked;
   var gramPeriodo = document.getElementById('dis-gram-periodo') && document.getElementById('dis-gram-periodo').checked;
+
+  function chk(id){ var el=document.getElementById(id); return el && el.checked; }
+
+  // Morfologia — elementi specifici
+  var morfoElem = [];
+  if(chk('dis-morfo-nome'))            morfoElem.push('Nome');
+  if(chk('dis-morfo-aggettivo'))       morfoElem.push('Aggettivo');
+  if(chk('dis-morfo-verbo'))           morfoElem.push('Verbo');
+  if(chk('dis-morfo-avverbio'))        morfoElem.push('Avverbio');
+  if(chk('dis-morfo-prep-semplici'))   morfoElem.push('Preposizioni semplici');
+  if(chk('dis-morfo-prep-articolate')) morfoElem.push('Preposizioni articolate');
+  if(chk('dis-morfo-articoli'))        morfoElem.push('Articoli');
+
+  // Analisi logica — elementi specifici
+  var logicaElem = [];
+  if(chk('dis-logica-soggetto'))       logicaElem.push('Soggetto');
+  if(chk('dis-logica-predicato'))      logicaElem.push('Predicato verbale e nominale');
+  if(chk('dis-logica-oggetto'))        logicaElem.push('Complemento oggetto');
+  if(chk('dis-logica-specificazione')) logicaElem.push('Complemento di specificazione');
+  if(chk('dis-logica-termine'))        logicaElem.push('Complemento di termine');
+  if(chk('dis-logica-tutti'))          logicaElem.push('Tutti i complementi indiretti (luogo, tempo, modo, causa, fine, mezzo, compagnia, argomento, limitazione)');
+
+  // Analisi del periodo — coordinate e subordinate
+  var periodoElem = [];
+  if(chk('dis-periodo-principale'))    periodoElem.push('Proposizione principale');
+  // Coordinate
+  var coord = [];
+  if(chk('dis-periodo-copulative'))    coord.push('Copulative');
+  if(chk('dis-periodo-disgiuntive'))   coord.push('Disgiuntive');
+  if(chk('dis-periodo-avversative-c')) coord.push('Avversative');
+  if(chk('dis-periodo-dichiarative-c'))coord.push('Dichiarative');
+  if(chk('dis-periodo-conclusive'))    coord.push('Conclusive');
+  if(chk('dis-periodo-correlative'))   coord.push('Correlative');
+  if(coord.length) periodoElem.push('Coordinate: ' + coord.join(', '));
+  // Subordinate
+  var subord = [];
+  if(chk('dis-periodo-soggettive'))    subord.push('Soggettive');
+  if(chk('dis-periodo-oggettive'))     subord.push('Oggettive');
+  if(chk('dis-periodo-dichiarative-s'))subord.push('Dichiarative');
+  if(chk('dis-periodo-interr-indirette')) subord.push('Interrogative indirette');
+  if(chk('dis-periodo-relative'))      subord.push('Relative');
+  if(chk('dis-periodo-causali'))       subord.push('Causali');
+  if(chk('dis-periodo-finali'))        subord.push('Finali');
+  if(chk('dis-periodo-temporali'))     subord.push('Temporali');
+  if(chk('dis-periodo-consecutive'))   subord.push('Consecutive');
+  if(chk('dis-periodo-concessive'))    subord.push('Concessive');
+  if(chk('dis-periodo-condizionali'))  subord.push('Condizionali (Protasi)');
+  if(chk('dis-periodo-modali'))        subord.push('Modali');
+  if(chk('dis-periodo-comparative'))   subord.push('Comparative');
+  if(chk('dis-periodo-avversative-s')) subord.push('Avversative');
+  if(chk('dis-periodo-esclusive'))     subord.push('Esclusive');
+  if(chk('dis-periodo-eccettuative'))  subord.push('Eccettuative');
+  if(chk('dis-periodo-limitative'))    subord.push('Limitative');
+  if(subord.length) periodoElem.push('Subordinate: ' + subord.join(', '));
+
+  // Costruisce istruzione grammaticale per Groq
   var gramTIC = [];
-  if(gramMorfo)   gramTIC.push('Morfologia (analisi parti del discorso: nome, verbo, aggettivo)');
-  if(gramLogica)  gramTIC.push('Analisi Logica (soggetto, predicato verbale, complemento oggetto)');
-  if(gramPeriodo) gramTIC.push('Analisi del Periodo (proposizioni principali e secondarie)');
+  if(gramMorfo){
+    var mStr = morfoElem.length
+      ? 'Morfologia — elementi SPECIFICI da testare: ' + morfoElem.join(', ')
+      : 'Morfologia (parti del discorso: nome, aggettivo, verbo, avverbio, preposizioni, articoli)';
+    gramTIC.push(mStr);
+  }
+  if(gramLogica){
+    var lStr = logicaElem.length
+      ? 'Analisi Logica — elementi SPECIFICI: ' + logicaElem.join(', ')
+      : 'Analisi Logica (soggetto, predicato verbale/nominale, complemento oggetto, di specificazione, di termine)';
+    gramTIC.push(lStr);
+  }
+  if(gramPeriodo){
+    var pStr = periodoElem.length
+      ? 'Analisi del Periodo — elementi SPECIFICI: ' + periodoElem.join('; ')
+      : 'Analisi del Periodo (principale, coordinate e subordinate nelle loro tipologie)';
+    gramTIC.push(pStr);
+  }
   var gramInstr = gramTIC.length > 0
-    ? '\nDomande GRAMMATICA (sez:2) devono coprire: ' + gramTIC.join('; ') + '.'
-    : '\nDomande GRAMMATICA (sez:2): distribuisci tra morfologia, analisi logica e del periodo.';
+    ? '\nDomande GRAMMATICA (sez:2) devono coprire ESCLUSIVAMENTE: ' + gramTIC.join(' | ') + '. Non aggiungere altri aspetti grammaticali non menzionati.'
+    : '\nDomande GRAMMATICA (sez:2): distribuisci equamente tra morfologia, analisi logica e analisi del periodo.';
 
   // Distribuzione automatica sezioni (circa 1/3 ciascuna)
   var nComp = Math.ceil(ndom * 0.34);
@@ -4409,6 +4582,36 @@ function raccogliDomandeDis(){
   return domande;
 }
 
+// ══════════════════════════════════════════════════════════════
+//  ACCORDION GRAMMATICA — helpers UI
+// ══════════════════════════════════════════════════════════════
+function toggleGramSez(sez){
+  var sub = document.getElementById('dis-gram-'+sez+'-subs');
+  var arrow = document.getElementById(sez+'-arrow');
+  if(!sub) return;
+  var open = sub.style.display === 'none' || sub.style.display === '';
+  sub.style.display = open ? 'block' : 'none';
+  if(arrow) arrow.style.transform = open ? 'rotate(90deg)' : '';
+}
+
+// Apri automaticamente il sotto-pannello quando si spunta il checkbox principale
+function toggleGramSezAuto(sez){
+  var chk = document.getElementById('dis-gram-'+sez);
+  var sub = document.getElementById('dis-gram-'+sez+'-subs');
+  var arrow = document.getElementById(sez+'-arrow');
+  if(!sub || !chk) return;
+  if(chk.checked){
+    sub.style.display = 'block';
+    if(arrow) arrow.style.transform = 'rotate(90deg)';
+  }
+}
+
+// Seleziona/deseleziona in blocco coordinate o subordinate
+function toggleGruppo(gruppo, checked){
+  var items = document.querySelectorAll('.dis-periodo-'+gruppo);
+  items.forEach(function(el){ el.checked = checked; });
+}
+
 function creaLinkDisAI(){
   var classeEl=document.getElementById('dis-classe');
   var nomeEl=document.getElementById('dis-nome');
@@ -4459,6 +4662,8 @@ function creaLinkDisAI(){
   params.set('sessione',sessKey);params.set('classe',classe);
   if(nome) params.set('nome',nome);
   if(ticAttivi.length) params.set('tic',ticAttivi.join(','));
+  if(document.getElementById('dis-tic-editable')&&document.getElementById('dis-tic-editable').checked)
+    params.set('tic-editable','1');
   var link=base+'?'+params.toString();
   window._linkDisAI=link;
   // Mostra dimensione link (informativo)
@@ -5961,7 +6166,7 @@ function creaSessDisabilita(){
 
   const ticLabels = {
     grande:'Testo grande', maiuscolo:'Maiuscolo', contrasto:'Alto contrasto',
-    spaziatura:'Spaziatura+', font:'Font dislessia', bes:'BES', caa:'CAA pittogrammi'
+    spaziatura:'Spaziatura+', font:'Font dislessia', bes:'BES'
   };
   const ticLabel = ticAttivi.length
     ? ticAttivi.map(t => ticLabels[t]).join(' · ')
@@ -6079,7 +6284,7 @@ function generaLinkCP(){
 
   if(!domande.length) { alert('Aggiungi almeno una domanda.'); return; }
 
-  const ticCP = ['grande','maiuscolo','contrasto','spaziatura','font','bes','caa']
+  const ticCP = ['grande','maiuscolo','contrasto','spaziatura','font','bes']
     .filter(t => document.getElementById(`cp-tic-${t}`)?.checked);
 
   const prova = { id:'custom', titolo, sottotitolo: sottotit, paragrafi, glossario:[], domande };
