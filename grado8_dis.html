@@ -1,208 +1,847 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Prova Personalizzata - Grado 8</title>
-    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
-    
-    <style>
-        :root {
-            --c1: #01579b; --c2: #0277bd; --cl: #e1f5fe;
-            --hi: #fff9c4; --tx: #1a1a1a; --font: 'Lexend', sans-serif;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#01579b">
+<title>Grado 8 — Prova personalizzata</title>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
+<style>
+/* ══ VARIABILI ══════════════════════════════════════════════ */
+:root{
+  --c1:#01579b;--c2:#0277bd;--cl:#e1f5fe;--cb:#81d4fa;
+  --hi:#fff9c4;--ob:#f9a825;
+  --gok:#e8f5e9;--gbord:#2e7d32;--rc:#fdecea;
+  --bi:#fff;--tx:#1a1a1a;--gr:#f5f5f5;
+  --font:'Lexend',Verdana,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);font-size:15px;line-height:1.85;background:#e8f4fd;color:var(--tx);overflow-x:hidden}
 
-        body {
-            font-family: var(--font); background: #f0f4f8; color: var(--tx); margin: 0;
-            transition: all 0.3s ease;
-        }
+/* ── TIC CLASSES ─────────────────────────────────────────── */
+body.tic-maiuscolo .tpar,body.tic-maiuscolo .tdom,body.tic-maiuscolo .opt{text-transform:uppercase!important}
+body.tic-grande .tpar{font-size:1.25rem!important;line-height:2.2!important}
+body.tic-grande .tdom{font-size:1.1rem!important}
+body.tic-grande .opt{font-size:1rem!important;padding:11px 14px!important}
+body.tic-spaziatura .tpar,body.tic-spaziatura .tdom,body.tic-spaziatura .opt{letter-spacing:.08em!important;word-spacing:.18em!important;line-height:2.6!important}
+body.tic-contrasto{background:#111!important}
+body.tic-contrasto .pt{background:#000!important}
+body.tic-contrasto .tpar{color:#fff!important}
+body.tic-contrasto .par{background:#111!important;border-bottom-color:#333!important}
+body.tic-contrasto .par.att{background:#1a1500!important;border-left-color:#fdd835!important}
+body.tic-contrasto .pd{background:#111!important}
+body.tic-contrasto .sez{background:#1a1a1a!important}
+body.tic-contrasto .tdom{color:#fff!important}
+body.tic-contrasto .opt{background:#222!important;color:#fff!important;border-color:#555!important}
+body.tic-font .tpar,body.tic-font .tdom,body.tic-font .opt{font-family:'Lexend',sans-serif!important}
+body.tic-bes .tpar{font-size:1.1rem!important;line-height:2.4!important;letter-spacing:.06em!important;word-spacing:.15em!important}
+body.tic-bes .opt{font-size:1rem!important;line-height:1.9!important;padding:12px 14px!important}
 
-        /* LAYOUT DUE COLONNE */
-        .main-wrapper {
-            display: flex; height: 100vh; overflow: hidden;
-        }
+/* ── HEADER ─────────────────────────────────────────────── */
+.hdr{background:var(--c1);color:#fff;text-align:center;padding:14px 20px 10px;border-bottom:5px solid var(--ob);position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,.28)}
+.hdr h1{font-size:1.05rem;font-weight:800}
+.hdr p{font-size:.75rem;margin-top:3px;opacity:.88}
+.barra-wrap{background:var(--c1);padding:0 20px 8px;position:sticky;top:56px;z-index:199}
+.bfg{background:rgba(255,255,255,.25);border-radius:99px;height:8px;overflow:hidden}
+.bff{background:var(--ob);height:100%;border-radius:99px;transition:width .4s;width:0%}
+.blbl{font-size:.68rem;font-weight:800;color:rgba(255,255,255,.85);margin-top:3px;text-align:right}
+.istr{background:#fff8e1;border-bottom:3px solid var(--ob);padding:9px 22px;font-size:.82rem;font-weight:700;color:#5a3a00}
+.istr ul{padding-left:18px;margin-top:3px}
+.istr li{margin-bottom:2px}
 
-        /* COLONNA TESTO (SINISTRA) */
-        .text-column {
-            width: 60%; padding: 40px; overflow-y: auto; background: white;
-            border-right: 2px solid #d1d9e0; position: relative;
-        }
+/* ── SPLIT LAYOUT ────────────────────────────────────────── */
+.split{display:flex;height:calc(100vh - 106px);overflow:hidden}
+.pt{width:44%;flex-shrink:0;background:var(--bi);border-right:3px solid var(--cb);overflow-y:auto}
+.pt-hdr{background:var(--c1);color:#fff;font-size:.74rem;font-weight:800;padding:7px 14px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10}
+.twrap{display:flex;gap:6px}
+.btool{font-family:var(--font);font-size:.7rem;font-weight:800;background:rgba(255,255,255,.16);color:#fff;border:2px solid rgba(255,255,255,.35);border-radius:18px;padding:3px 11px;cursor:pointer;transition:background .2s;display:flex;align-items:center;gap:4px}
+.btool:hover{background:rgba(255,255,255,.28)}
+.btool.on{background:var(--ob);color:#5a3a00;border-color:var(--ob)}
+.par{padding:13px 16px 11px;border-bottom:2px solid #e1f5fe;transition:background .3s,border-left .22s;border-left:5px solid transparent;cursor:pointer}
+.par:hover{background:#f0f9ff}
+.par.att{background:var(--hi);border-left:5px solid var(--ob)}
+.plbl{font-size:.64rem;font-weight:800;color:var(--c2);margin-bottom:5px;display:flex;align-items:center;gap:5px}
+.plbl .dot{width:8px;height:8px;border-radius:50%;background:var(--cb);flex-shrink:0;transition:background .3s}
+.par.att .dot{background:var(--ob)}
+.par.att .plbl{color:#7a5000}
+.tpar{font-size:.93rem;line-height:1.9}
+.glw{border-bottom:2.5px dashed var(--c2);cursor:help;font-weight:700;color:var(--c1)}
+.gl-p{background:#fff8e1;border-top:3px solid var(--ob);padding:11px 16px}
+.glt{font-size:.72rem;font-weight:800;color:#7a5000;margin-bottom:8px}
+.gli{display:flex;gap:6px;margin-bottom:5px;font-size:.74rem;align-items:flex-start}
+.gli .glk{font-weight:800;color:var(--c1);min-width:110px;flex-shrink:0}
+.pt.ing .tpar{font-size:1.22rem!important;line-height:2.1!important}
 
-        /* COLONNA DOMANDE (DESTRA) */
-        .question-column {
-            width: 40%; padding: 30px; overflow-y: auto; background: #f8fafc;
-        }
+/* ── DOMANDE PANEL ──────────────────────────────────────── */
+.pd{flex:1;overflow-y:auto;padding:16px 18px 60px;background:#e8f4fd}
+.sez{background:var(--bi);border-radius:12px;padding:16px 18px;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,.06);border-top:5px solid var(--c2)}
+.sez.lex{border-top-color:var(--ob)}
+.sez.gram{border-top-color:#c62828}
+.sezt{font-size:.9rem;font-weight:800;color:var(--c1);margin-bottom:12px;padding-bottom:7px;border-bottom:2px solid var(--cl);display:flex;align-items:center;gap:7px}
+.sez.lex .sezt{color:#7a5000}
+.sez.gram .sezt{color:#c62828}
+.dom{background:var(--gr);border-radius:9px;padding:12px 14px;margin-bottom:12px;border-left:4px solid var(--c2);scroll-margin-top:14px}
+.dom.li{border-left-color:var(--ob)}
+.dom.gi{border-left-color:#c62828}
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:.63rem;font-weight:800;padding:3px 9px;border-radius:18px;margin-bottom:5px;cursor:pointer;transition:opacity .2s;color:#fff;background:var(--c2)}
+.tag:hover{opacity:.75}
+.tag.oro{background:var(--ob);color:#5a3a00}
+.tag.ros{background:#c62828}
+.ndom{font-size:.7rem;font-weight:800;color:var(--c2);margin-bottom:3px;opacity:.82}
+.dom.li .ndom{color:#7a5000}
+.dom.gi .ndom{color:#c62828}
+.tdom{font-size:.92rem;font-weight:700;margin-bottom:10px;line-height:1.52}
+.hint{font-size:.78rem;font-weight:700;background:#fff3e0;border:1.5px solid #ffb74d;border-radius:7px;padding:7px 11px;margin-bottom:10px;color:#7a4000;line-height:1.55}
+.opts{display:flex;flex-direction:column;gap:7px}
+.opt{display:flex;align-items:flex-start;gap:9px;background:var(--bi);border:2.5px solid var(--cb);border-radius:8px;padding:9px 12px;cursor:pointer;transition:all .15s;font-size:.9rem;line-height:1.48}
+.opt:hover{border-color:var(--c2);background:var(--cl)}
+.opt.sel{border-color:var(--c2);background:var(--cl)}
+.opt.ok{border-color:var(--gbord);background:var(--gok)}
+.opt.no{border-color:#c62828;background:var(--rc)}
+.opt input{margin-top:3px;width:17px;height:17px;flex-shrink:0;accent-color:var(--c2);cursor:pointer}
+.opt-testo{flex:1}
+.vfr{display:flex;align-items:center;gap:8px;background:var(--bi);border:2px solid var(--cb);border-radius:8px;padding:9px 12px;margin-bottom:7px;font-size:.88rem;font-weight:600;line-height:1.45}
+.vfr span{flex:1}
+.vfr label{display:flex;align-items:center;gap:4px;cursor:pointer;font-weight:800;background:var(--cl);border-radius:6px;padding:4px 10px;font-size:.82rem;border:2px solid transparent;transition:all .13s;white-space:nowrap}
+.vfr label:hover{border-color:var(--c2)}
+.vfr input{accent-color:var(--c2)}
+.vfr label.ok{background:var(--gok)!important;border-color:var(--gbord)!important;color:var(--gbord)}
+.vfr label.no{background:var(--rc)!important;border-color:#c62828!important;color:#c62828}
+.fb{font-size:.78rem;font-weight:800;margin-top:7px;padding:6px 11px;border-radius:6px;display:none}
+.fb.ok{background:var(--gok);color:var(--gbord)}
+.fb.no{background:var(--rc);color:#c62828}
+.sst{font-size:.74rem;font-weight:800;color:#fff;display:inline-block;padding:4px 12px;border-radius:18px;margin:10px 0 8px}
+.btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:20px;padding-bottom:24px}
+.btn{font-family:var(--font);font-size:.9rem;font-weight:800;padding:12px 26px;border:none;border-radius:10px;cursor:pointer;transition:all .2s}
+.btnp{background:var(--c2);color:#fff;box-shadow:0 4px 12px rgba(2,119,189,.28)}
+.btnp:hover{background:var(--c1);transform:translateY(-2px)}
+.btnr{background:#fff;color:var(--c2);border:2.5px solid var(--c2)}
+.btnr:hover{background:var(--cl)}
 
-        /* PALLINI TIC LATERALI */
-        #tic-toolbar {
-            position: fixed; left: 10px; top: 50%; transform: translateY(-50%);
-            display: flex; flex-direction: column; gap: 12px; z-index: 100;
-        }
+/* ── RISULTATI ──────────────────────────────────────────── */
+.risbox{display:none;background:var(--bi);border-radius:12px;padding:24px 18px;margin-top:18px;text-align:center;box-shadow:0 4px 18px rgba(0,0,0,.09);border-top:7px solid var(--c2)}
+.risbox h2{font-size:1.15rem;color:var(--c1);margin-bottom:7px}
+.risbox .pts{font-size:2.6rem;font-weight:900;color:var(--c1);margin:10px 0 4px;line-height:1}
+.risbox .sub{font-size:.82rem;color:#555;margin-bottom:12px}
+.risbox .rmsg{font-size:.9rem;font-weight:700;padding:12px 16px;border-radius:9px;margin-top:9px}
 
-        .tic-dot {
-            width: 45px; height: 45px; border-radius: 50%; border: none;
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-            font-size: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: transform 0.2s; background: white;
-        }
-        .tic-dot:hover { transform: scale(1.1); }
-        .tic-dot.active { background: #4caf50; color: white; border: 2px solid #2e7d32; }
+/* ── PALLINI TIC LATERALI (visibili solo se tic-editable=1) */
+#tic-dots{
+  position:fixed;right:0;top:50%;transform:translateY(-50%);
+  z-index:500;display:none;flex-direction:column;gap:8px;
+  padding:10px 8px;background:rgba(1,87,155,.08);
+  border-radius:14px 0 0 14px;border:1.5px solid rgba(1,87,155,.18);
+  border-right:none;
+}
+#tic-dots.vis{display:flex}
+.td{position:relative;width:36px;height:36px;border-radius:50%;border:2.5px solid;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:15px;background:#fff;box-shadow:0 1px 5px rgba(0,0,0,.15);
+  transition:all .2s}
+.td:hover{transform:scale(1.13)}
+.td.on{color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.td-lbl{position:absolute;right:calc(100% + 9px);top:50%;transform:translateY(-50%);
+  background:rgba(0,0,0,.78);color:#fff;font-size:11px;font-weight:700;
+  padding:3px 9px;border-radius:5px;white-space:nowrap;pointer-events:none;
+  opacity:0;transition:opacity .18s;font-family:var(--font)}
+.td:hover .td-lbl{opacity:1}
 
-        /* EVIDENZIAZIONE PARAGRAFO */
-        .par {
-            padding: 15px; margin-bottom: 15px; border-radius: 8px;
-            border-left: 5px solid transparent; transition: all 0.3s;
-            line-height: 1.8; font-size: 1.1rem;
-        }
-        .par.active-par {
-            background: var(--hi); border-left-color: var(--c2);
-            transform: translateX(10px); box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
+/* ── ERRORE ──────────────────────────────────────────────── */
+#scr-err{display:none;align-items:center;justify-content:center;
+  min-height:80vh;padding:30px;flex-direction:column;gap:16px;text-align:center}
+#scr-err h2{color:#c62828;font-size:1.2rem}
+#scr-err p{font-size:.9rem;color:#555;max-width:400px;line-height:1.7}
 
-        /* MODALITA' ACCESSIBILITA' */
-        body.high-contrast { background: #000 !important; color: #ffff00 !important; }
-        body.high-contrast .text-column, body.high-contrast .par { background: #000; color: #ffff00; }
-        body.large-font .par { font-size: 1.6rem; line-height: 2; }
-
-        .btn-check {
-            display: block; width: 100%; padding: 12px; margin: 10px 0;
-            background: white; border: 2px solid var(--c2); border-radius: 8px;
-            cursor: pointer; text-align: left; font-family: var(--font);
-        }
-        .btn-check:hover { background: var(--cl); }
-        
-        @media (max-width: 850px) {
-            .main-wrapper { flex-direction: column; height: auto; }
-            .text-column, .question-column { width: 100%; height: auto; }
-            #tic-toolbar { left: auto; right: 10px; top: 20px; transform: none; }
-        }
-    </style>
+/* ── MOBILE ──────────────────────────────────────────────── */
+@media(max-width:768px){
+  .split{flex-direction:column;height:auto;overflow:visible}
+  .pt{width:100%;border-right:none;border-bottom:3px solid var(--cb);max-height:50vh}
+  .pd{padding:13px 13px 38px}
+  #tic-dots{bottom:70px;top:auto;transform:none}
+}
+</style>
 </head>
 <body>
 
-    <div id="tic-toolbar" style="display: none;">
-        <button class="tic-dot" id="btn-tts" onclick="toggleTIC('tts')" title="Sintesi Vocale">🔊</button>
-        <button class="tic-dot" id="btn-zoom" onclick="toggleTIC('zoom')" title="Ingrandisci">A+</button>
-        <button class="tic-dot" id="btn-contrast" onclick="toggleTIC('contrast')" title="Contrasto">🌓</button>
+<!-- ═══ HEADER ══════════════════════════════════════════════ -->
+<div class="hdr">
+  <h1 id="hdr-titolo">📖 Prova personalizzata</h1>
+  <p id="hdr-sub">A.S. 2025/2026</p>
+</div>
+<div class="barra-wrap">
+  <div class="bfg"><div class="bff" id="bff"></div></div>
+  <div class="blbl" id="blbl">Completate: 0 / — risposte</div>
+</div>
+<div class="istr">
+  ℹ️ Istruzioni:
+  <ul>
+    <li>Leggi il testo a sinistra — i paragrafi si illuminano in giallo 🟡 quando scorri le domande.</li>
+    <li>Clicca su <span style="background:var(--c2);color:#fff;padding:1px 8px;border-radius:10px;font-size:.75rem">📍 Par. N</span> per tornare al punto esatto del testo.</li>
+    <li>🔊 Clicca <strong>Ascolta</strong> per la lettura ad alta voce.</li>
+  </ul>
+</div>
+
+<!-- ═══ SPLIT LAYOUT ════════════════════════════════════════ -->
+<div class="split" id="split-wrap">
+  <!-- COLONNA TESTO -->
+  <div class="pt" id="pt">
+    <div class="pt-hdr">
+      <span id="pt-titolo">📖 Leggi il testo</span>
+      <div class="twrap">
+        <button class="btool" id="baudio" onclick="toggleAudio()">🔊 Ascolta</button>
+        <button class="btool" id="blente" onclick="toggleLente()">🔍 Ingrandisci</button>
+      </div>
     </div>
-
-    <div class="main-wrapper">
-        <div class="text-column" id="text-container">
-            </div>
-        <div class="question-column" id="question-container">
-            <div id="question-box">
-                <p style="color: #666;">Seleziona un paragrafo per visualizzare la domanda corrispondente.</p>
-            </div>
-        </div>
+    <div id="testo-content"></div>
+    <div class="gl-p" id="glossario-panel" style="display:none">
+      <div class="glt">📚 Glossario — Parole difficili:</div>
+      <div id="glossario-items"></div>
     </div>
+  </div>
 
-    <script>
-        const params = new URLSearchParams(window.location.search);
-        let provaData = null;
-        let currentUtterance = null;
+  <!-- COLONNA DOMANDE -->
+  <div class="pd" id="pd">
+    <div id="domande-content"></div>
+    <div class="btns">
+      <button class="btn btnp" onclick="controlla()">✅ Controlla le risposte</button>
+      <button class="btn btnr" onclick="riazzeramento()">🔄 Ricomincia</button>
+    </div>
+    <div class="risbox" id="risbox">
+      <h2>🎓 Risultato della prova</h2>
+      <div class="pts" id="pts">—</div>
+      <div class="sub" id="sub-ris">risposte corrette</div>
+      <div class="rmsg" id="rmsg"></div>
+    </div>
+  </div>
+</div>
 
-        // 1. CARICAMENTO DATI (Supporto LZString)
-        function loadData() {
-            const raw = params.get('data');
-            const fmt = params.get('fmt');
-            const editable = params.get('tic-editable') === '1';
+<!-- ═══ PALLINI TIC LATERALI ════════════════════════════════ -->
+<div id="tic-dots"></div>
 
-            if (editable) document.getElementById('tic-toolbar').style.display = 'flex';
+<!-- ═══ ERRORE ═══════════════════════════════════════════════ -->
+<div id="scr-err">
+  <div style="font-size:3rem">⚠️</div>
+  <h2>Prova non trovata</h2>
+  <p>Il link sembra non valido o incompleto.<br>Chiedi al docente di inviarti il link corretto.</p>
+</div>
 
-            if (raw) {
-                try {
-                    let decoded;
-                    if (fmt === 'lz') {
-                        decoded = LZString.decompressFromEncodedURIComponent(raw);
-                    } else {
-                        decoded = decodeURIComponent(escape(atob(raw)));
-                    }
-                    provaData = JSON.parse(decoded);
-                    renderProva();
-                } catch (e) {
-                    console.error("Errore decodifica:", e);
-                    document.getElementById('text-container').innerHTML = "Errore nel caricamento della prova.";
-                }
+<script>
+// ══════════════════════════════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════════════════════════════
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyi3j1opanbfed0PuGITdHE4f8BHjPBwWEKuSubnKr4kJjvgfGIXZMUOTfEoXDBvRSu/exec';
+
+async function fetchConTimeout(url, ms){
+  const ctrl = new AbortController();
+  const id = setTimeout(()=>ctrl.abort(), ms||6000);
+  try{ const r = await fetch(url,{signal:ctrl.signal}); clearTimeout(id); return r; }
+  catch(e){ clearTimeout(id); throw e; }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  STATO
+// ══════════════════════════════════════════════════════════════
+let PROVA_ATTUALE = null;
+let NOME_STUD = '', CLASSE_STUD = '', SESSIONE_KEY = '';
+let TOT_DOM = 0;
+
+// ══════════════════════════════════════════════════════════════
+//  PALLINI TIC — definizione
+// ══════════════════════════════════════════════════════════════
+const TIC_DEF = [
+  {id:'grande',    emoji:'🔍', label:'Testo grande',    col:'#01579b'},
+  {id:'maiuscolo', emoji:'🔠', label:'Maiuscolo',        col:'#6a1b9a'},
+  {id:'contrasto', emoji:'🌗', label:'Alto contrasto',   col:'#37474f'},
+  {id:'spaziatura',emoji:'↔',  label:'Spaziatura+',     col:'#00838f'},
+  {id:'font',      emoji:'✒',  label:'Font leggibile',  col:'#e65100'},
+  {id:'bes',       emoji:'📘', label:'Modalità BES',    col:'#1565c0'},
+];
+
+function buildTicDots(){
+  const box = document.getElementById('tic-dots');
+  box.innerHTML = '';
+  TIC_DEF.forEach(function(t){
+    const btn = document.createElement('div');
+    btn.className = 'td' + (document.body.classList.contains('tic-'+t.id)?' on':'');
+    btn.style.borderColor = t.col;
+    if(document.body.classList.contains('tic-'+t.id)) btn.style.background = t.col;
+    btn.setAttribute('title', t.label);
+    btn.innerHTML = '<span>'+t.emoji+'</span><span class="td-lbl">'+t.label+'</span>';
+    btn.onclick = function(){ toggleTicDot(t.id, btn, t.col); };
+    box.appendChild(btn);
+  });
+  box.classList.add('vis');
+}
+
+function toggleTicDot(id, btn, col){
+  document.body.classList.toggle('tic-'+id);
+  const on = document.body.classList.contains('tic-'+id);
+  btn.classList.toggle('on', on);
+  btn.style.background = on ? col : '#fff';
+}
+
+function togTicSilent(nome){
+  document.body.classList.add('tic-'+nome);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  INIT — carica prova dall'URL
+// ══════════════════════════════════════════════════════════════
+window.addEventListener('load', function(){
+  var p = new URLSearchParams(window.location.search);
+
+  NOME_STUD    = p.get('nome')     || '';
+  CLASSE_STUD  = p.get('classe')   || '';
+  SESSIONE_KEY = p.get('sessione') || '';
+
+  // Applica TIC dall'URL (es. ?tic=grande,font,bes)
+  var ticList = (p.get('tic') || '').split(',').filter(function(t){ return t.trim(); });
+  ticList.forEach(function(t){ togTicSilent(t.trim()); });
+  // Alias parametri singoli (compatibilità vecchi link)
+  if(p.get('maiuscolo')==='1') togTicSilent('maiuscolo');
+  if(p.get('grande')==='1')    togTicSilent('grande');
+  if(p.get('contrasto')==='1') togTicSilent('contrasto');
+  if(p.get('spaziatura')==='1')togTicSilent('spaziatura');
+  if(p.get('font')==='1')      togTicSilent('font');
+  if(p.get('bes')==='1')       togTicSilent('bes');
+
+  // Mostra pallini TIC se il docente lo ha abilitato
+  if(p.get('tic-editable') === '1') buildTicDots();
+
+  // Carica prova custom (unico formato supportato)
+  if(p.get('prova') === 'custom'){
+    var raw = p.get('data');
+    var fmt = p.get('fmt');
+    if(!raw){ mostraErr(); return; }
+    try{
+      var json;
+      if(fmt === 'lz' && typeof LZString !== 'undefined'){
+        json = LZString.decompressFromEncodedURIComponent(raw);
+        if(!json) throw new Error('LZ decompression failed');
+      } else {
+        json = decodeURIComponent(escape(atob(raw)));
+      }
+      var provaCustom = JSON.parse(json);
+      provaCustom.id = 'custom';
+      PROVA_ATTUALE = provaCustom;
+      renderProva(PROVA_ATTUALE);
+    } catch(e){
+      console.warn('Prova custom non valida:', e);
+      mostraErr();
+    }
+  } else {
+    mostraErr();
+  }
+});
+
+// ══════════════════════════════════════════════════════════════
+//  RENDER PROVA
+// ══════════════════════════════════════════════════════════════
+function renderProva(prova){
+  // Header
+  document.getElementById('hdr-titolo').textContent = '📖 ' + (prova.sottotitolo || 'Testo') + ' — ' + prova.titolo;
+  var sub = prova.titolo
+    + (NOME_STUD ? ' &nbsp;|&nbsp; ' + NOME_STUD : '')
+    + (CLASSE_STUD ? ' &nbsp;|&nbsp; Classe ' + CLASSE_STUD : '')
+    + ' &nbsp;|&nbsp; A.S. 2025/2026';
+  document.getElementById('hdr-sub').innerHTML = sub;
+  document.getElementById('pt-titolo').textContent = '📖 ' + prova.titolo;
+  document.title = 'Grado 8 — ' + prova.titolo;
+
+  // Testo paragrafi
+  var tc = document.getElementById('testo-content');
+  tc.innerHTML = prova.paragrafi.map(function(par){
+    return '<div class="par" id="par'+par.n+'" data-par="'+par.n+'">'
+      + '<div class="plbl"><span class="dot"></span>Paragrafo '+par.n+'</div>'
+      + '<div class="tpar">'+par.testo+'</div>'
+      + '</div>';
+  }).join('');
+
+  // Glossario
+  var gp = document.getElementById('glossario-panel');
+  var gi = document.getElementById('glossario-items');
+  if(prova.glossario && prova.glossario.length){
+    gi.innerHTML = prova.glossario.map(function(g){
+      return '<div class="gli"><span class="glk">'+g.k+':</span><span>'+g.v+'</span></div>';
+    }).join('');
+    gp.style.display = 'block';
+  } else {
+    gp.style.display = 'none';
+  }
+
+  // Raggruppa domande per sezione
+  var domande = prova.domande || [];
+  var sez0 = domande.filter(function(d){ return d.sez===0; });
+  var sez1 = domande.filter(function(d){ return d.sez===1; });
+  var sez2 = domande.filter(function(d){ return d.sez===2; });
+
+  var html = '';
+  if(sez0.length){
+    html += '<div class="sez"><div class="sezt">✏️ Parte 1 — Comprensione del testo</div>';
+    html += sez0.map(function(d){ return renderDomanda(d, domande); }).join('');
+    html += '</div>';
+  }
+  if(sez1.length){
+    html += '<div class="sez lex"><div class="sezt">🔤 Parte 2 — Lessico</div>';
+    html += sez1.map(function(d){ return renderDomanda(d, domande); }).join('');
+    html += '</div>';
+  }
+  if(sez2.length){
+    html += '<div class="sez gram"><div class="sezt">📐 Parte 3 — Riflessione linguistica</div>';
+    html += '<div class="hint">💡 Il <strong>soggetto</strong> è chi compie l\'azione. Il <strong>predicato verbale</strong> è il verbo. Il <strong>complemento oggetto</strong> risponde a: chi? cosa?<br>Chiedi sempre: <em>Chi fa? Cosa fa? Su chi o su cosa?</em></div>';
+    html += sez2.map(function(d){ return renderDomanda(d, domande); }).join('');
+    html += '</div>';
+  }
+  document.getElementById('domande-content').innerHTML = html;
+
+  // Conteggio totale
+  TOT_DOM = 0;
+  domande.forEach(function(d){
+    var tipo = (d.tipo||'sm').toLowerCase();
+    if(tipo==='sm'||tipo==='ap'||tipo==='comp') TOT_DOM++;
+    else if(tipo==='vf') TOT_DOM += (d.righeVF||d.righe||[]).length;
+    else if(tipo==='col') TOT_DOM += (d.sinistra||d.sx||[]).length;
+    else TOT_DOM++;
+  });
+  document.getElementById('blbl').textContent = 'Completate: 0 / '+TOT_DOM+' risposte';
+
+  // Bind SM e radio
+  document.querySelectorAll('.opts').forEach(function(g){
+    g.querySelectorAll('.opt').forEach(function(l){
+      var inp = l.querySelector('input');
+      if(inp) inp.addEventListener('change', function(){
+        g.querySelectorAll('.opt').forEach(function(x){ x.classList.remove('sel'); });
+        l.classList.add('sel');
+        aggBarra();
+      });
+    });
+  });
+  document.querySelectorAll('input[type="radio"]').forEach(function(r){
+    r.addEventListener('change', aggBarra);
+  });
+  document.querySelectorAll('textarea, select').forEach(function(el){
+    el.addEventListener('input', aggBarra);
+    el.addEventListener('change', aggBarra);
+  });
+
+  // IntersectionObserver: illumina paragrafo
+  var obs = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if(e.isIntersecting) attivaDom(e.target); });
+  }, {root: document.getElementById('pd'), rootMargin:'-22% 0px -22% 0px', threshold:0.1});
+  document.querySelectorAll('.dom[data-par]').forEach(function(d){ obs.observe(d); });
+
+  // Mostra split
+  document.getElementById('split-wrap').style.display = 'flex';
+  document.getElementById('scr-err').style.display = 'none';
+}
+
+// ══════════════════════════════════════════════════════════════
+//  RENDER DOMANDA
+// ══════════════════════════════════════════════════════════════
+function renderDomanda(d, tutte){
+  var tagClass = d.sez===1?'oro': d.sez===2?'ros':'';
+  var parLabel = (!d.par||d.par===0) ? 'Tutto il testo' : 'Par. '+d.par;
+  var domClass = d.sez===1?'li': d.sez===2?'gi':'';
+  var tipo = (d.tipo||'sm').toLowerCase();
+  var lett = ['A','B','C','D','E'];
+  var inner = '';
+
+  if(tipo==='sm'){
+    var opts = d.opts || d.opzioni || [];
+    inner = '<div class="opts">'
+      + opts.map(function(op,i){
+          return '<label class="opt" id="optlbl_'+d.n+'_'+i+'">'
+            +'<input type="radio" name="d'+d.n+'" value="'+i+'">'
+            +'<span class="opt-testo">'+lett[i]+'.&nbsp;'+op+'</span>'
+            +'</label>';
+        }).join('')
+      + '</div>';
+    if(d.tip) inner = '<div class="hint">💡 '+d.tip+'</div>' + inner;
+
+  } else if(tipo==='vf'){
+    var righe = d.righeVF || d.righe || [];
+    inner = '<table style="width:100%;border-collapse:collapse;margin-top:8px">'
+      +'<thead><tr>'
+      +'<th style="text-align:left;padding:6px 10px;font-size:12px;color:#555;font-weight:600">Affermazione</th>'
+      +'<th style="width:50px;text-align:center;padding:6px;font-size:12px;color:#2e7d32">V</th>'
+      +'<th style="width:50px;text-align:center;padding:6px;font-size:12px;color:#c62828">F</th>'
+      +'</tr></thead><tbody>'
+      + righe.map(function(r,i){
+          var testo = r.t || r;
+          return '<tr style="border-top:1px solid #eee">'
+            +'<td style="padding:8px 10px;font-size:13px">'+testo+'</td>'
+            +'<td style="text-align:center;padding:6px"><label style="width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;border:2px solid #a5d6a7;cursor:pointer;font-size:13px;font-weight:700;transition:all .13s">'
+            +'<input type="radio" name="vf'+d.n+'_'+i+'" value="V" style="display:none"> V</label></td>'
+            +'<td style="text-align:center;padding:6px"><label style="width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;border:2px solid #f48fb1;cursor:pointer;font-size:13px;font-weight:700;transition:all .13s">'
+            +'<input type="radio" name="vf'+d.n+'_'+i+'" value="F" style="display:none"> F</label></td>'
+            +'</tr>';
+        }).join('')
+      + '</tbody></table>';
+
+  } else if(tipo==='ap'){
+    inner = '<textarea name="ap'+d.n+'" rows="3"'
+      +' placeholder="Scrivi qui la tua risposta…"'
+      +' style="width:100%;padding:9px 12px;font-size:14px;line-height:1.7;resize:vertical;font-family:inherit;border:2px solid #b3c6f7;border-radius:8px;margin-top:6px"'
+      +' oninput="aggBarra()"></textarea>';
+
+  } else if(tipo==='comp'){
+    var parole = (d.parole||[]).slice();
+    var frase = d.frase || d.testo || '';
+    // Formato strutturato con gaps
+    if(d.gaps && d.gaps.length){
+      var gapsHtml = '';
+      d.gaps.forEach(function(g,gi){
+        var opts2 = (d.parole||[]).map(function(pw,pi){
+          return '<option value="'+pi+'">'+pw+'</option>';
+        }).join('');
+        gapsHtml += (g.prima||'')
+          + ' <select name="comp'+d.n+'_'+gi+'" style="border:2px solid var(--c2);border-radius:6px;padding:4px 8px;font-size:13px;font-family:inherit;cursor:pointer" onchange="aggBarra()">'
+          + '<option value="">— scegli —</option>'+opts2+'</select> '
+          + (g.dopo||'');
+      });
+      inner = '<div style="margin-top:8px"><div style="font-size:13px;line-height:2.4">' + gapsHtml + '</div></div>';
+    } else {
+      // Formato semplice: frase con ___
+      var opts2 = parole.slice().sort(function(){ return Math.random()-.5; })
+        .map(function(pw){ return '<option value="'+pw+'">'+pw+'</option>'; }).join('');
+      var fraseConSel = frase.replace('___',
+        '<select name="comp'+d.n+'" style="border:2px solid var(--c2);border-radius:6px;padding:4px 8px;font-size:13px;font-family:inherit;cursor:pointer" onchange="aggBarra()">'
+        +'<option value="">— scegli —</option>'+opts2+'</select>');
+      inner = '<div style="margin-top:8px">'
+        +'<div style="font-size:13px;line-height:2.2;margin-bottom:10px">'+fraseConSel+'</div>'
+        +'<div style="font-size:11px;color:#888">Parole: '
+        + parole.map(function(pw){ return '<span style="background:#f0f4f8;border-radius:4px;padding:1px 8px;margin:2px;display:inline-block">'+pw+'</span>'; }).join('')
+        +'</div></div>';
+    }
+
+  } else if(tipo==='col'){
+    var sx = d.sinistra || d.sx || [];
+    var dx = d.destra || d.dx || [];
+    var dxMesc = dx.slice().sort(function(){ return Math.random()-.5; });
+    inner = '<div style="margin-top:10px">'
+      +'<div style="font-size:11px;color:#888;margin-bottom:8px">Per ogni elemento a sinistra, scegli quello corrispondente a destra.</div>'
+      +'<div style="display:flex;flex-direction:column;gap:8px">'
+      + sx.map(function(el,i){
+          var opts3 = dxMesc.map(function(v){ return '<option value="'+v+'">'+v+'</option>'; }).join('');
+          return '<div style="display:flex;align-items:center;gap:10px">'
+            +'<span style="flex:1;background:#e3f2fd;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;color:#1565c0">'+el+'</span>'
+            +'<span style="font-size:18px;color:#999">→</span>'
+            +'<select name="col'+d.n+'_'+i+'" style="flex:1;border:2px solid var(--c2);border-radius:8px;padding:8px 10px;font-size:13px;font-family:inherit;cursor:pointer;background:#fff" onchange="aggBarra()">'
+            +'<option value="">— scegli —</option>'+opts3+'</select>'
+            +'</div>';
+        }).join('')
+      +'</div></div>';
+  }
+
+  return '<div class="dom '+domClass+'" id="d'+d.n+'" data-par="'+(d.par||0)+'" data-tipo="'+tipo+'">'
+    +'<div class="tag '+tagClass+'" onclick="clickTag(this)">📍 '+parLabel+'</div>'
+    +'<div class="ndom">Domanda '+d.n+' di '+tutte.length+'</div>'
+    +'<div class="tdom">'+d.testo+'</div>'
+    +inner
+    +'<div class="fb" id="fb'+d.n+'"></div>'
+    +'</div>';
+}
+
+// ══════════════════════════════════════════════════════════════
+//  HIGHLIGHT PARAGRAFI
+// ══════════════════════════════════════════════════════════════
+function togliHL(){
+  document.querySelectorAll('.par.att').forEach(function(p){ p.classList.remove('att'); });
+}
+function attivaDom(dom){
+  var par = parseInt(dom.dataset.par || 0);
+  togliHL();
+  if(par > 0){
+    var el = document.getElementById('par'+par);
+    if(el) el.classList.add('att');
+  }
+}
+function clickTag(tag){
+  var dom = tag.closest('.dom');
+  attivaDom(dom);
+  var par = parseInt(dom.dataset.par || 0);
+  if(par > 0){
+    var el = document.getElementById('par'+par);
+    if(el) el.scrollIntoView({behavior:'smooth', block:'center'});
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  BARRA PROGRESSO
+// ══════════════════════════════════════════════════════════════
+function aggBarra(){
+  if(!PROVA_ATTUALE) return;
+  var c = 0;
+  (PROVA_ATTUALE.domande||[]).forEach(function(d){
+    var tipo = (d.tipo||'sm').toLowerCase();
+    if(tipo==='sm'){
+      if(document.querySelector('input[name="d'+d.n+'"]:checked')) c++;
+    } else if(tipo==='vf'){
+      var righe = d.righeVF || d.righe || [];
+      righe.forEach(function(_,i){
+        if(document.querySelector('input[name="vf'+d.n+'_'+i+'"]:checked')) c++;
+      });
+    } else if(tipo==='ap'){
+      if((document.querySelector('textarea[name="ap'+d.n+'"]')?.value||'').trim()) c++;
+    } else if(tipo==='comp'){
+      if(d.gaps && d.gaps.length){
+        d.gaps.forEach(function(_,gi){
+          if(document.querySelector('select[name="comp'+d.n+'_'+gi+'"]')?.value) c++;
+        });
+      } else {
+        if(document.querySelector('select[name="comp'+d.n+'"]')?.value) c++;
+      }
+    } else if(tipo==='col'){
+      var sx = d.sinistra || d.sx || [];
+      sx.forEach(function(_,i){
+        if(document.querySelector('select[name="col'+d.n+'_'+i+'"]')?.value) c++;
+      });
+    }
+  });
+  var pct = TOT_DOM > 0 ? Math.round(c/TOT_DOM*100) : 0;
+  document.getElementById('bff').style.width = pct+'%';
+  document.getElementById('blbl').textContent = 'Completate: '+c+' / '+TOT_DOM+' risposte';
+}
+
+// ══════════════════════════════════════════════════════════════
+//  CONTROLLA
+// ══════════════════════════════════════════════════════════════
+function controlla(){
+  if(!PROVA_ATTUALE) return;
+  var corr = 0, tot = 0;
+
+  (PROVA_ATTUALE.domande||[]).forEach(function(d){
+    var tipo = (d.tipo||'sm').toLowerCase();
+    var fb = document.getElementById('fb'+d.n);
+
+    if(tipo==='sm'){
+      tot++;
+      var okIdx = d.ok !== undefined ? parseInt(d.ok) : (d.corretta !== undefined ? parseInt(d.corretta) : -1);
+      var sel = document.querySelector('input[name="d'+d.n+'"]:checked');
+      document.querySelectorAll('input[name="d'+d.n+'"]').forEach(function(r){
+        var l = r.closest('label');
+        l.classList.remove('ok','no','sel');
+        if(parseInt(r.value)===okIdx) l.classList.add('ok');
+      });
+      if(sel){
+        if(parseInt(sel.value)===okIdx){ corr++;
+          if(fb){ fb.textContent='✅ Corretto!'; fb.className='fb ok'; fb.style.display='block'; }
+        } else {
+          sel.closest('label').classList.add('no');
+          if(fb){ fb.textContent='❌ Non corretto. La risposta giusta è evidenziata in verde.'; fb.className='fb no'; fb.style.display='block'; }
+        }
+      } else {
+        if(fb){ fb.textContent='⚠️ Non hai risposto.'; fb.className='fb no'; fb.style.display='block'; }
+      }
+
+    } else if(tipo==='vf'){
+      var righe = d.righeVF || d.righe || [];
+      var vfc = 0;
+      righe.forEach(function(r,i){
+        tot++;
+        var attesa = r.ok ? 'V' : 'F';
+        var selR = document.querySelector('input[name="vf'+d.n+'_'+i+'"]:checked');
+        ['V','F'].forEach(function(val){
+          var btn = document.querySelector('input[name="vf'+d.n+'_'+i+'"][value="'+val+'"]')?.closest('label');
+          if(btn){ btn.style.background=''; btn.style.borderColor=''; btn.style.color=''; }
+        });
+        var lCorr = document.querySelector('input[name="vf'+d.n+'_'+i+'"][value="'+attesa+'"]')?.closest('label');
+        if(lCorr){ lCorr.style.background='#e8f5e9'; lCorr.style.borderColor='#2e7d32'; lCorr.style.color='#2e7d32'; }
+        if(selR && selR.value===attesa){ corr++; vfc++; }
+        else if(selR){
+          var lW = selR.closest('label');
+          if(lW){ lW.style.background='#fce4e4'; lW.style.borderColor='#c62828'; lW.style.color='#c62828'; }
+        }
+      });
+      if(fb){
+        fb.textContent = vfc===righe.length ? '✅ Tutte corrette!' : '⚠️ '+vfc+' su '+righe.length+' corrette.';
+        fb.className = vfc===righe.length ? 'fb ok' : 'fb no';
+        fb.style.display = 'block';
+      }
+
+    } else if(tipo==='ap'){
+      tot++;
+      var val = (document.querySelector('textarea[name="ap'+d.n+'"]')?.value||'').trim();
+      if(val){ corr++;
+        if(fb){ fb.textContent='✅ Risposta registrata.'; fb.className='fb ok'; fb.style.display='block'; }
+      } else {
+        if(fb){ fb.textContent='⚠️ Non hai scritto una risposta.'; fb.className='fb no'; fb.style.display='block'; }
+      }
+
+    } else if(tipo==='comp'){
+      if(d.gaps && d.gaps.length){
+        d.gaps.forEach(function(g,gi){
+          tot++;
+          var selC = document.querySelector('select[name="comp'+d.n+'_'+gi+'"]');
+          if(selC && selC.value !== ''){
+            var rv = parseInt(selC.value);
+            if(rv === g.ok_idx){ corr++;
+              selC.style.borderColor='#2e7d32'; selC.style.background='#e8f5e9';
+            } else {
+              selC.style.borderColor='#c62828'; selC.style.background='#fce4e4';
             }
+          }
+        });
+        if(fb){
+          fb.textContent = '✅ Completamento verificato.';
+          fb.className = 'fb ok'; fb.style.display = 'block';
         }
-
-        // 2. RENDERING PROVA
-        function renderProva() {
-            const container = document.getElementById('text-container');
-            container.innerHTML = `<h1>${provaData.titolo || 'Prova'}</h1>`;
-
-            provaData.paragrafi.forEach((p, index) => {
-                const div = document.createElement('div');
-                div.className = 'par';
-                div.id = `par-${index}`;
-                div.innerHTML = p.testo;
-                div.onclick = () => focusParagrafo(index);
-                container.appendChild(div);
-            });
+      } else {
+        tot++;
+        var selS = document.querySelector('select[name="comp'+d.n+'"]');
+        var corretta = (d.parole||[])[0];
+        if(selS && selS.value){
+          if(selS.value===corretta){ corr++;
+            selS.style.borderColor='#2e7d32'; selS.style.background='#e8f5e9';
+            if(fb){ fb.textContent='✅ Corretto!'; fb.className='fb ok'; fb.style.display='block'; }
+          } else {
+            selS.style.borderColor='#c62828'; selS.style.background='#fce4e4';
+            if(fb){ fb.textContent='❌ La parola giusta era: "'+corretta+'"'; fb.className='fb no'; fb.style.display='block'; }
+          }
+        } else {
+          if(fb){ fb.textContent='⚠️ Scegli una parola.'; fb.className='fb no'; fb.style.display='block'; }
         }
+      }
 
-        // 3. LOGICA FOCUS E TTS
-        function focusParagrafo(index) {
-            // Rimuovi classi attive
-            document.querySelectorAll('.par').forEach(el => el.classList.remove('active-par'));
-            
-            const target = document.getElementById(`par-${index}`);
-            target.classList.add('active-par');
-            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-            // Mostra domanda
-            showDomanda(index);
-
-            // Se TTS è attivo, leggi
-            if (document.getElementById('btn-tts').classList.contains('active')) {
-                leggiTesto(provaData.paragrafi[index].testo);
-            }
+    } else if(tipo==='col'){
+      var sx = d.sinistra || d.sx || [];
+      var dx = d.destra || d.dx || [];
+      var coppie = d.coppie || [];
+      var corrCol = 0;
+      sx.forEach(function(el,i){
+        tot++;
+        var selCol = document.querySelector('select[name="col'+d.n+'_'+i+'"]');
+        // corretta per indice (se coppie) o per valore diretto
+        var valCorr = coppie.length ? dx[coppie[i]] : dx[i];
+        if(selCol && selCol.value){
+          if(selCol.value===valCorr){ corr++; corrCol++;
+            selCol.style.borderColor='#2e7d32'; selCol.style.background='#e8f5e9';
+          } else {
+            selCol.style.borderColor='#c62828'; selCol.style.background='#fce4e4';
+          }
         }
+      });
+      if(fb){
+        fb.textContent = corrCol===sx.length ? '✅ Tutte le coppie corrette!' : '⚠️ '+corrCol+' su '+sx.length+' coppie corrette.';
+        fb.className = corrCol===sx.length ? 'fb ok' : 'fb no';
+        fb.style.display = 'block';
+      }
+    }
+  });
 
-        function showDomanda(index) {
-            const qBox = document.getElementById('question-box');
-            const p = provaData.paragrafi[index];
-            
-            if (!p.domanda) {
-                qBox.innerHTML = "<p>Nessuna domanda per questo paragrafo.</p>";
-                return;
-            }
+  var pct = tot > 0 ? Math.round(corr/tot*100) : 0;
+  document.getElementById('pts').textContent = corr+' / '+tot;
+  document.getElementById('sub-ris').textContent = 'risposte corrette su '+tot+' totali';
+  var msg = document.getElementById('rmsg');
+  var t,co,sf;
+  if(pct>=80){t='🌟 Ottimo lavoro! Hai dimostrato una buona comprensione del testo.';co='#01579b';sf='#e1f5fe';}
+  else if(pct>=60){t='👍 Buon lavoro! Hai risposto correttamente alla maggior parte delle domande.';co='#7a5000';sf='#fff8e1';}
+  else{t='💪 Continua a provare! Rileggi le parti evidenziate in giallo e riprova.';co='#c62828';sf='#fdecea';}
+  msg.textContent=t; msg.style.color=co; msg.style.background=sf; msg.style.border='2px solid '+co;
+  var box=document.getElementById('risbox');
+  box.style.display='block';
+  box.scrollIntoView({behavior:'smooth',block:'start'});
 
-            let html = `<h3>Domanda ${index + 1}</h3><p>${p.domanda.testo}</p>`;
-            p.domanda.opzioni.forEach((opt, i) => {
-                html += `<button class="btn-check" onclick="selectOpt(this)">${opt}</button>`;
-            });
-            qBox.innerHTML = html;
+  // Invia a Google Sheets
+  if(SESSIONE_KEY && CLASSE_STUD){
+    var errori={comprensione_globale:0,lessico:0,morfologia:0};
+    (PROVA_ATTUALE.domande||[]).forEach(function(d){
+      if((d.tipo||'sm')==='sm'){
+        var okIdx2 = d.ok!==undefined?parseInt(d.ok):(d.corretta!==undefined?parseInt(d.corretta):-1);
+        var selX=document.querySelector('input[name="d'+d.n+'"]:checked');
+        if(selX && parseInt(selX.value)!==okIdx2){
+          if(d.sez===0) errori.comprensione_globale++;
+          else if(d.sez===1) errori.lessico++;
+          else errori.morfologia++;
         }
+      }
+    });
+    fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({codice:NOME_STUD||'Alunno-dis',sessione:SESSIONE_KEY,
+        classe:CLASSE_STUD,totale:corr,su:tot,pct:pct,
+        sezioni:[{c:0,t:0},{c:0,t:0},{c:0,t:0}],errori:errori,det:[],
+        data:new Date().toISOString(),titolo:PROVA_ATTUALE.titolo,flag_dis:true})
+    }).catch(function(){});
+  }
+}
 
-        function leggiTesto(testo) {
-            window.speechSynthesis.cancel();
-            currentUtterance = new SpeechSynthesisUtterance(testo);
-            currentUtterance.lang = 'it-IT';
-            currentUtterance.rate = 0.9;
-            window.speechSynthesis.speak(currentUtterance);
-        }
+// ══════════════════════════════════════════════════════════════
+//  RIAZZERAMENTO
+// ══════════════════════════════════════════════════════════════
+function riazzeramento(){
+  if(!confirm('Sei sicuro di voler ricominciare? Tutte le risposte verranno cancellate.')) return;
+  document.querySelectorAll('input[type="radio"]').forEach(function(r){ r.checked=false; });
+  document.querySelectorAll('.opt').forEach(function(l){ l.classList.remove('ok','no','sel'); });
+  document.querySelectorAll('textarea').forEach(function(t){ t.value=''; t.style.borderColor=''; t.style.background=''; });
+  document.querySelectorAll('select').forEach(function(s){ s.selectedIndex=0; s.style.borderColor=''; s.style.background=''; });
+  document.querySelectorAll('.fb').forEach(function(f){ f.style.display='none'; f.textContent=''; });
+  document.querySelectorAll('label[style]').forEach(function(l){ l.style.background=''; l.style.borderColor=''; l.style.color=''; });
+  document.getElementById('risbox').style.display='none';
+  document.getElementById('bff').style.width='0%';
+  document.getElementById('blbl').textContent='Completate: 0 / '+TOT_DOM+' risposte';
+  togliHL();
+  document.getElementById('pd').scrollTop=0;
+}
 
-        // 4. GESTIONE TIC (Pallini)
-        function toggleTIC(type) {
-            const btn = document.getElementById(`btn-${type}`);
-            btn.classList.toggle('active');
+// ══════════════════════════════════════════════════════════════
+//  AUDIO TTS
+// ══════════════════════════════════════════════════════════════
+var _ttsOn=false, _ttsVoce=null;
+function _getVoce(){
+  if(_ttsVoce) return _ttsVoce;
+  var voci=window.speechSynthesis.getVoices();
+  var pr=[
+    function(v){return v.lang==='it-IT'&&/natural|neural|premium|online/i.test(v.name);},
+    function(v){return v.name.includes('Elsa');},
+    function(v){return v.name.includes('Alice');},
+    function(v){return v.name.includes('Google italiano');},
+    function(v){return v.lang==='it-IT';},
+    function(v){return v.lang.startsWith('it');},
+  ];
+  for(var i=0;i<pr.length;i++){var f=voci.find(pr[i]);if(f){_ttsVoce=f;return f;}}
+  return voci[0]||null;
+}
+function getTesto(){
+  return Array.from(document.querySelectorAll('.par .tpar'))
+    .map(function(p){ return p.innerText.replace(/\s+/g,' ').trim(); }).join('. ');
+}
+function toggleAudio(){
+  var b=document.getElementById('baudio');
+  if(_ttsOn){ speechSynthesis.cancel(); _ttsOn=false; b.textContent='🔊 Ascolta'; b.classList.remove('on'); return; }
+  var u=new SpeechSynthesisUtterance(getTesto());
+  u.lang='it-IT'; u.rate=0.85; u.pitch=1;
+  var v=_getVoce(); if(v) u.voice=v;
+  u.onend=function(){ _ttsOn=false; b.textContent='🔊 Ascolta'; b.classList.remove('on'); };
+  _ttsOn=true; b.textContent='⏹ Ferma'; b.classList.add('on');
+  speechSynthesis.speak(u);
+}
+if(window.speechSynthesis){
+  window.speechSynthesis.getVoices();
+  window.speechSynthesis.onvoiceschanged=function(){ _ttsVoce=null; _getVoce(); };
+}
 
-            if (type === 'zoom') document.body.classList.toggle('large-font');
-            if (type === 'contrast') document.body.classList.toggle('high-contrast');
-            if (type === 'tts' && !btn.classList.contains('active')) {
-                window.speechSynthesis.cancel();
-            }
-        }
+// ══════════════════════════════════════════════════════════════
+//  LENTE
+// ══════════════════════════════════════════════════════════════
+var lente=false;
+function toggleLente(){
+  lente=!lente;
+  document.getElementById('pt').classList.toggle('ing',lente);
+  var b=document.getElementById('blente');
+  b.textContent=lente?'🔍 Rimpicciolisci':'🔍 Ingrandisci';
+  b.classList.toggle('on',lente);
+}
 
-        function selectOpt(btn) {
-            const siblings = btn.parentNode.querySelectorAll('.btn-check');
-            siblings.forEach(s => s.style.background = 'white');
-            btn.style.background = '#c8e6c9';
-        }
-
-        window.onload = loadData;
-    </script>
+// ══════════════════════════════════════════════════════════════
+//  ERRORE
+// ══════════════════════════════════════════════════════════════
+function mostraErr(){
+  document.getElementById('split-wrap').style.display='none';
+  document.querySelector('.barra-wrap').style.display='none';
+  document.querySelector('.istr').style.display='none';
+  document.getElementById('scr-err').style.display='flex';
+}
+</script>
 </body>
 </html>
