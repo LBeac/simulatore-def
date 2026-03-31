@@ -1,227 +1,235 @@
 <!DOCTYPE html>
+
 <html lang="it">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+
 <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-<title id="page-title">Grado 8 — Prova personalizzata</title>
+<title>Prova personalizzata</title>
+
 <style>
-/* ══ VARIABILI ════════════════════════════════════════════════ */
 :root{
   --c1:#01579b;--c2:#0277bd;--cl:#e1f5fe;--cb:#81d4fa;
-  --hi:#fff9c4;--hi2:rgba(251,192,45,.85);--oro:#fff8e1;--ob:#f9a825;
-  --gok:#e8f5e9;--gbord:#2e7d32;--rc:#fdecea;
+  --hi:#fff9c4;--ob:#f9a825;
   --bi:#fff;--tx:#1a1a1a;--gr:#f5f5f5;
-  --font:'Lexend',Verdana,sans-serif;
+  --font:'Lexend',sans-serif;
 }
+
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--font);font-size:15px;line-height:1.85;background:#e8f4fd;color:var(--tx);overflow-x:hidden}
 
-/* ══ LAYOUT ═══════════════════════════════════════════════════ */
-.container{max-width:940px;margin:0 auto;padding:15px;display:grid;grid-template-columns:1fr 340px;gap:25px}
-header{grid-column:1/-1;background:var(--bi);padding:18px 25px;border-radius:18px;box-shadow:0 4px 15px rgba(0,0,0,.06);display:flex;justify-content:space-between;align-items:center;border-bottom:4px solid var(--cb)}
-.main-content{background:var(--bi);padding:35px;border-radius:24px;box-shadow:0 8px 30px rgba(0,0,0,.04);min-height:80vh}
-
-/* ══ TITOLI ═══════════════════════════════════════════════════ */
-h1{color:var(--c1);font-weight:800;font-size:1.6rem;letter-spacing:-0.02em}
-h2{color:var(--c2);margin-bottom:20px;font-size:1.3rem;border-left:5px solid var(--cb);padding-left:15px;line-height:1.2}
-
-/* ══ TESTO E HIGHLIGHT ════════════════════════════════════════ */
-.p-wrap{margin-bottom:30px;position:relative;padding:15px;transition:all .3s;border-radius:12px}
-.p-wrap:hover{background:var(--cl)}
-.glw{cursor:pointer;padding:2px 4px;border-radius:4px;transition:all .2s;border-bottom:2px solid transparent}
-.glw:hover{background:var(--hi);border-bottom-color:var(--ob)}
-.glw.active{background:var(--hi2);font-weight:600;box-shadow:0 2px 4px rgba(0,0,0,.1)}
-
-/* ══ SIDEBAR E WIDGET ═════════════════════════════════════════ */
-.sidebar{display:flex;flex-direction:column;gap:20px}
-.widget{background:var(--bi);padding:22px;border-radius:20px;box-shadow:0 5px 15px rgba(0,0,0,.05);border:1px solid #eee}
-.widget h3{font-size:1rem;margin-bottom:15px;color:var(--c1);display:flex;align-items:center;gap:8px}
-
-/* ══ CAA BAR ══════════════════════════════════════════════════ */
-#caa-bar{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
-.caa-card{background:#fff;border:1px solid #ddd;border-radius:8px;padding:5px;text-align:center;width:80px;font-size:10px;box-shadow:0 2px 4px rgba(0,0,0,.05)}
-.caa-card img{width:100%;height:auto;display:block;margin-bottom:4px}
-
-/* ══ RISPOSTE ═════════════════════════════════════════════════ */
-.options-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:15px}
-.opt{padding:14px 18px;background:var(--gr);border:2px solid #eee;border-radius:12px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:12px;font-weight:500}
-.opt:hover{border-color:var(--cb);background:var(--cl)}
-.opt.selected{border-color:var(--c2);background:var(--cl);font-weight:700}
-.opt.correct{background:var(--gok);border-color:var(--gbord);color:#1b5e20}
-.opt.wrong{background:var(--rc);border-color:#d32f2f;color:#c62828}
-
-/* ══ UTILITY ══════════════════════════════════════════════════ */
-.btn{padding:10px 20px;border-radius:10px;border:none;cursor:pointer;font-weight:600;transition:.2s;background:var(--c1);color:#fff}
-.btn:hover{opacity:.9;transform:translateY(-1px)}
-#progress-container{width:100%;height:8px;background:#eee;border-radius:4px;margin-top:10px;overflow:hidden}
-#progress-bar{height:100%;background:var(--c2);width:0%;transition:width .4s}
-
-@media (max-width:850px){
-  .container{grid-template-columns:1fr}
-  .sidebar{order:2}
+body{
+  font-family:var(--font);
+  background:#e8f4fd;
+  color:var(--tx);
 }
+
+/* LAYOUT */
+.container{
+  display:flex;
+  max-width:1200px;
+  margin:auto;
+  padding:15px;
+  gap:20px;
+}
+
+.left{
+  width:60%;
+  background:#fff;
+  padding:20px;
+  border-radius:20px;
+}
+
+.right{
+  width:40%;
+  display:flex;
+  flex-direction:column;
+  gap:15px;
+}
+
+/* PARAGRAFI */
+.par{
+  padding:14px;
+  margin-bottom:12px;
+  border-left:5px solid transparent;
+  transition:.3s;
+}
+
+.par.att{
+  background:var(--hi);
+  border-left:5px solid var(--ob);
+}
+
+.plbl{
+  font-size:12px;
+  font-weight:800;
+  color:var(--c2);
+  margin-bottom:6px;
+}
+
+.fr{
+  display:inline;
+}
+
+/* DOMANDE */
+.box{
+  background:#fff;
+  padding:15px;
+  border-radius:15px;
+}
+
+.opt{
+  background:var(--gr);
+  padding:10px;
+  margin-top:8px;
+  border-radius:10px;
+  cursor:pointer;
+}
+
+.opt.correct{background:#c8e6c9}
+.opt.wrong{background:#ffcdd2}
+
+/* TIC */
+#tic-box{
+  display:none;
+}
+
+.tic label{
+  display:block;
+  margin-bottom:6px;
+  cursor:pointer;
+}
+
+/* ACCESSIBILITÀ */
+.acc-maiuscolo{ text-transform:uppercase }
+.acc-font-dys{ font-family:'Lexend',sans-serif }
+.acc-spaziatura{ line-height:2.5; letter-spacing:.08em }
+.acc-contrasto{ background:#fff; color:#000 }
+
 </style>
+
 </head>
+
 <body>
 
 <div class="container">
-  <header>
-    <h1 id="test-title">Caricamento...</h1>
-    <div id="score-box" style="font-weight:700;color:var(--c2)">Punti: 0</div>
-  </header>
 
-  <main class="main-content" id="main-text">
-    </main>
+  <!-- TESTO -->
 
-  <aside class="sidebar">
-    <div class="widget">
-      <h3>Progressi</h3>
-      <div id="progress-container"><div id="progress-bar"></div></div>
-      <p id="progress-txt" style="font-size:12px;margin-top:8px;color:#666">Domanda 0 di 0</p>
-    </div>
+  <div class="left" id="text"></div>
 
-    <div class="widget" id="question-box" style="display:none">
-      <h3 id="q-title">Domanda</h3>
-      <div class="options-grid" id="q-options"></div>
-    </div>
+  <!-- SIDEBAR -->
 
-    <div class="widget">
-      <h3>Parole Chiave (CAA)</h3>
-      <div id="caa-bar">Seleziona un paragrafo...</div>
-    </div>
-  </aside>
+  <div class="right">
+
+```
+<div class="box" id="question-box"></div>
+
+<div class="box" id="tic-box">
+  <h3>Strumenti</h3>
+  <div class="tic">
+    <label><input type="checkbox" data-tic="maiuscolo"> Maiuscolo</label>
+    <label><input type="checkbox" data-tic="font-dys"> Font leggibile</label>
+    <label><input type="checkbox" data-tic="spaziatura"> Spaziatura</label>
+    <label><input type="checkbox" data-tic="contrasto"> Contrasto</label>
+  </div>
+</div>
+```
+
+  </div>
 </div>
 
 <script>
-/* ══ DATI E LOGICA ═════════════════════════════════════════════ */
-let _data = null;
-let _currentStep = 0;
-let _score = 0;
 const p = new URLSearchParams(window.location.search);
+let data = null;
+let current = 0;
 
-// ══ INTEGRAZIONE LOGICA LZSTRING (MODIFICA RICHIESTA) ═════════
-if(p.get('prova') === 'custom'){
-    const raw = p.get('data');
-    const fmt = p.get('fmt'); // 'lz' = compresso con LZString, assente = base64 classico
-    if(raw){
-      try {
-        let json;
-        if(fmt === 'lz' && typeof LZString !== 'undefined'){
-          // Decompressione LZString (nuovo formato per link corti)
-          json = LZString.decompressFromEncodedURIComponent(raw);
-          if(!json) throw new Error('LZ decompression failed');
-        } else {
-          // Decodifica base64 classica (vecchio formato — compatibilità)
-          json = decodeURIComponent(escape(atob(raw)));
-        }
-        _data = JSON.parse(json);
-        initTest();
-      } catch(e) {
-        console.error("Errore decodifica dati:", e);
-        document.getElementById('main-text').innerHTML = "ERRORE: Dati non validi nel link.";
-      }
-    }
-} else {
-    document.getElementById('main-text').innerHTML = "Nessuna prova caricata. Usa l'editor per generare un link.";
+/* TIC ATTIVABILI SOLO SE PARAMETRO */
+if(p.get('tic-editable') === '1'){
+  document.getElementById('tic-box').style.display = 'block';
 }
 
-function initTest(){
-  if(!_data) return;
-  document.getElementById('page-title').textContent = _data.titolo || "Prova Grado 8";
-  document.getElementById('test-title').textContent = _data.titolo || "Prova Grado 8";
-  
-  const container = document.getElementById('main-text');
-  container.innerHTML = '';
+/* TOGGLE TIC */
+document.addEventListener('change', e=>{
+  if(e.target.dataset.tic){
+    const cls = 'acc-' + e.target.dataset.tic;
+    document.body.classList.toggle(cls, e.target.checked);
+  }
+});
 
-  _data.paragrafi.forEach((p, idx) => {
-    const wrap = document.createElement('div');
-    wrap.className = 'p-wrap';
-    wrap.id = `p-${idx}`;
-    wrap.onclick = () => focusPar(idx);
-    
-    // Testo con evidenziazione parole (glw = glossario-like word)
-    const textHtml = p.testo.split(' ').map(w => `<span class="glw">${w}</span>`).join(' ');
-    wrap.innerHTML = `<h2>Parte ${idx+1}</h2><p>${textHtml}</p>`;
-    container.appendChild(wrap);
+/* CARICAMENTO DATI */
+if(p.get('prova') === 'custom'){
+  const raw = p.get('data');
+  const fmt = p.get('fmt');
+
+  let json;
+  if(fmt === 'lz'){
+    json = LZString.decompressFromEncodedURIComponent(raw);
+  } else {
+    json = decodeURIComponent(escape(atob(raw)));
+  }
+
+  data = JSON.parse(json);
+  init();
+}
+
+/* INIT */
+function init(){
+  const textDiv = document.getElementById('text');
+
+  data.paragrafi.forEach((p, i)=>{
+    const div = document.createElement('div');
+    div.className = 'par';
+    div.id = 'par'+i;
+
+    div.innerHTML = `
+      <div class="plbl">PARAGRAFO ${i+1}</div>
+      <div>
+        ${p.testo.split('.').map(f=>`<span class="fr">${f}.</span>`).join('')}
+      </div>
+    `;
+
+    textDiv.appendChild(div);
   });
 
-  updateProgress();
   focusPar(0);
 }
 
-function focusPar(idx){
-  document.querySelectorAll('.p-wrap').forEach(el => el.classList.remove('active-focus'));
-  const target = document.getElementById(`p-${idx}`);
-  if(target){
-    target.scrollIntoView({behavior:'smooth', block:'center'});
-    aggiornaCAABar(idx + 1); // Esempio logica CAA
-  }
-  showQuestion(idx);
+/* HIGHLIGHT */
+function focusPar(i){
+  document.querySelectorAll('.par').forEach(p=>p.classList.remove('att'));
+  const el = document.getElementById('par'+i);
+  el.classList.add('att');
+  el.scrollIntoView({behavior:'smooth',block:'center'});
+
+  showQ(i);
 }
 
-function showQuestion(idx){
-  const qBox = document.getElementById('question-box');
-  const dom = _data.paragrafi[idx].domanda;
-  if(!dom){ qBox.style.display='none'; return; }
+/* DOMANDE */
+function showQ(i){
+  const q = data.paragrafi[i].domanda;
+  const box = document.getElementById('question-box');
 
-  qBox.style.display='block';
-  document.getElementById('q-title').textContent = dom.testo;
-  const optContainer = document.getElementById('q-options');
-  optContainer.innerHTML = '';
+  if(!q){ box.innerHTML=''; return; }
 
-  dom.opzioni.forEach((o, i) => {
-    const btn = document.createElement('div');
-    btn.className = 'opt';
-    btn.textContent = o;
-    btn.onclick = () => checkAnswer(idx, i, btn);
-    optContainer.appendChild(btn);
-  });
-}
+  box.innerHTML = `<h3>${q.testo}</h3>`;
 
-function checkAnswer(pIdx, oIdx, el){
-  if(el.parentElement.classList.contains('locked')) return;
-  const correct = _data.paragrafi[pIdx].domanda.corretta;
-  
-  if(oIdx === correct){
-    el.classList.add('correct');
-    _score += 10;
-  } else {
-    el.classList.add('wrong');
-  }
-  
-  el.parentElement.classList.add('locked');
-  document.getElementById('score-box').textContent = `Punti: ${_score}`;
-  
-  _currentStep++;
-  updateProgress();
-}
+  q.opzioni.forEach((o,idx)=>{
+    const div = document.createElement('div');
+    div.className = 'opt';
+    div.textContent = o;
 
-function updateProgress(){
-  const total = _data.paragrafi.length;
-  const perc = (_currentStep / total) * 100;
-  document.getElementById('progress-bar').style.width = `${perc}%`;
-  document.getElementById('progress-txt').textContent = `Completato: ${Math.round(perc)}%`;
-}
+    div.onclick = ()=>{
+      if(idx === q.corretta){
+        div.classList.add('correct');
+      } else {
+        div.classList.add('wrong');
+      }
+    };
 
-/* ══ LOGICA CAA SEMPLIFICATA ══════════════════════════════════ */
-function arasaacUrl(id){ return `https://static.arasaac.org/pictograms/${id}/${id}_300.png`; }
-
-// Nota: Qui servirebbe una mappa reale di ID Arasaac. 
-// Uso ID casuali solo a scopo dimostrativo del layout.
-function aggiornaCAABar(parNum){
-  const bar = document.getElementById('caa-bar');
-  if(!bar) return;
-  bar.innerHTML = '';
-  // Esempio: inserisce icone segnaposto
-  [2340, 5432, 8829].forEach(id => {
-    const card = document.createElement('div');
-    card.className = 'caa-card';
-    card.innerHTML = `<img src="${arasaacUrl(id)}" alt="icon"><span>PAROLA</span>`;
-    bar.appendChild(card);
+    box.appendChild(div);
   });
 }
 </script>
