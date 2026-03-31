@@ -1,238 +1,208 @@
 <!DOCTYPE html>
-
 <html lang="it">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Prova Personalizzata - Grado 8</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
+    
+    <style>
+        :root {
+            --c1: #01579b; --c2: #0277bd; --cl: #e1f5fe;
+            --hi: #fff9c4; --tx: #1a1a1a; --font: 'Lexend', sans-serif;
+        }
 
-<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
+        body {
+            font-family: var(--font); background: #f0f4f8; color: var(--tx); margin: 0;
+            transition: all 0.3s ease;
+        }
 
-<title>Prova personalizzata</title>
+        /* LAYOUT DUE COLONNE */
+        .main-wrapper {
+            display: flex; height: 100vh; overflow: hidden;
+        }
 
-<style>
-:root{
-  --c1:#01579b;--c2:#0277bd;--cl:#e1f5fe;--cb:#81d4fa;
-  --hi:#fff9c4;--ob:#f9a825;
-  --bi:#fff;--tx:#1a1a1a;--gr:#f5f5f5;
-  --font:'Lexend',sans-serif;
-}
+        /* COLONNA TESTO (SINISTRA) */
+        .text-column {
+            width: 60%; padding: 40px; overflow-y: auto; background: white;
+            border-right: 2px solid #d1d9e0; position: relative;
+        }
 
-*{box-sizing:border-box;margin:0;padding:0}
+        /* COLONNA DOMANDE (DESTRA) */
+        .question-column {
+            width: 40%; padding: 30px; overflow-y: auto; background: #f8fafc;
+        }
 
-body{
-  font-family:var(--font);
-  background:#e8f4fd;
-  color:var(--tx);
-}
+        /* PALLINI TIC LATERALI */
+        #tic-toolbar {
+            position: fixed; left: 10px; top: 50%; transform: translateY(-50%);
+            display: flex; flex-direction: column; gap: 12px; z-index: 100;
+        }
 
-/* LAYOUT */
-.container{
-  display:flex;
-  max-width:1200px;
-  margin:auto;
-  padding:15px;
-  gap:20px;
-}
+        .tic-dot {
+            width: 45px; height: 45px; border-radius: 50%; border: none;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s; background: white;
+        }
+        .tic-dot:hover { transform: scale(1.1); }
+        .tic-dot.active { background: #4caf50; color: white; border: 2px solid #2e7d32; }
 
-.left{
-  width:60%;
-  background:#fff;
-  padding:20px;
-  border-radius:20px;
-}
+        /* EVIDENZIAZIONE PARAGRAFO */
+        .par {
+            padding: 15px; margin-bottom: 15px; border-radius: 8px;
+            border-left: 5px solid transparent; transition: all 0.3s;
+            line-height: 1.8; font-size: 1.1rem;
+        }
+        .par.active-par {
+            background: var(--hi); border-left-color: var(--c2);
+            transform: translateX(10px); box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
 
-.right{
-  width:40%;
-  display:flex;
-  flex-direction:column;
-  gap:15px;
-}
+        /* MODALITA' ACCESSIBILITA' */
+        body.high-contrast { background: #000 !important; color: #ffff00 !important; }
+        body.high-contrast .text-column, body.high-contrast .par { background: #000; color: #ffff00; }
+        body.large-font .par { font-size: 1.6rem; line-height: 2; }
 
-/* PARAGRAFI */
-.par{
-  padding:14px;
-  margin-bottom:12px;
-  border-left:5px solid transparent;
-  transition:.3s;
-}
-
-.par.att{
-  background:var(--hi);
-  border-left:5px solid var(--ob);
-}
-
-.plbl{
-  font-size:12px;
-  font-weight:800;
-  color:var(--c2);
-  margin-bottom:6px;
-}
-
-.fr{
-  display:inline;
-}
-
-/* DOMANDE */
-.box{
-  background:#fff;
-  padding:15px;
-  border-radius:15px;
-}
-
-.opt{
-  background:var(--gr);
-  padding:10px;
-  margin-top:8px;
-  border-radius:10px;
-  cursor:pointer;
-}
-
-.opt.correct{background:#c8e6c9}
-.opt.wrong{background:#ffcdd2}
-
-/* TIC */
-#tic-box{
-  display:none;
-}
-
-.tic label{
-  display:block;
-  margin-bottom:6px;
-  cursor:pointer;
-}
-
-/* ACCESSIBILITÀ */
-.acc-maiuscolo{ text-transform:uppercase }
-.acc-font-dys{ font-family:'Lexend',sans-serif }
-.acc-spaziatura{ line-height:2.5; letter-spacing:.08em }
-.acc-contrasto{ background:#fff; color:#000 }
-
-</style>
-
+        .btn-check {
+            display: block; width: 100%; padding: 12px; margin: 10px 0;
+            background: white; border: 2px solid var(--c2); border-radius: 8px;
+            cursor: pointer; text-align: left; font-family: var(--font);
+        }
+        .btn-check:hover { background: var(--cl); }
+        
+        @media (max-width: 850px) {
+            .main-wrapper { flex-direction: column; height: auto; }
+            .text-column, .question-column { width: 100%; height: auto; }
+            #tic-toolbar { left: auto; right: 10px; top: 20px; transform: none; }
+        }
+    </style>
 </head>
-
 <body>
 
-<div class="container">
+    <div id="tic-toolbar" style="display: none;">
+        <button class="tic-dot" id="btn-tts" onclick="toggleTIC('tts')" title="Sintesi Vocale">🔊</button>
+        <button class="tic-dot" id="btn-zoom" onclick="toggleTIC('zoom')" title="Ingrandisci">A+</button>
+        <button class="tic-dot" id="btn-contrast" onclick="toggleTIC('contrast')" title="Contrasto">🌓</button>
+    </div>
 
-  <!-- TESTO -->
+    <div class="main-wrapper">
+        <div class="text-column" id="text-container">
+            </div>
+        <div class="question-column" id="question-container">
+            <div id="question-box">
+                <p style="color: #666;">Seleziona un paragrafo per visualizzare la domanda corrispondente.</p>
+            </div>
+        </div>
+    </div>
 
-  <div class="left" id="text"></div>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        let provaData = null;
+        let currentUtterance = null;
 
-  <!-- SIDEBAR -->
+        // 1. CARICAMENTO DATI (Supporto LZString)
+        function loadData() {
+            const raw = params.get('data');
+            const fmt = params.get('fmt');
+            const editable = params.get('tic-editable') === '1';
 
-  <div class="right">
+            if (editable) document.getElementById('tic-toolbar').style.display = 'flex';
 
-```
-<div class="box" id="question-box"></div>
+            if (raw) {
+                try {
+                    let decoded;
+                    if (fmt === 'lz') {
+                        decoded = LZString.decompressFromEncodedURIComponent(raw);
+                    } else {
+                        decoded = decodeURIComponent(escape(atob(raw)));
+                    }
+                    provaData = JSON.parse(decoded);
+                    renderProva();
+                } catch (e) {
+                    console.error("Errore decodifica:", e);
+                    document.getElementById('text-container').innerHTML = "Errore nel caricamento della prova.";
+                }
+            }
+        }
 
-<div class="box" id="tic-box">
-  <h3>Strumenti</h3>
-  <div class="tic">
-    <label><input type="checkbox" data-tic="maiuscolo"> Maiuscolo</label>
-    <label><input type="checkbox" data-tic="font-dys"> Font leggibile</label>
-    <label><input type="checkbox" data-tic="spaziatura"> Spaziatura</label>
-    <label><input type="checkbox" data-tic="contrasto"> Contrasto</label>
-  </div>
-</div>
-```
+        // 2. RENDERING PROVA
+        function renderProva() {
+            const container = document.getElementById('text-container');
+            container.innerHTML = `<h1>${provaData.titolo || 'Prova'}</h1>`;
 
-  </div>
-</div>
+            provaData.paragrafi.forEach((p, index) => {
+                const div = document.createElement('div');
+                div.className = 'par';
+                div.id = `par-${index}`;
+                div.innerHTML = p.testo;
+                div.onclick = () => focusParagrafo(index);
+                container.appendChild(div);
+            });
+        }
 
-<script>
-const p = new URLSearchParams(window.location.search);
-let data = null;
-let current = 0;
+        // 3. LOGICA FOCUS E TTS
+        function focusParagrafo(index) {
+            // Rimuovi classi attive
+            document.querySelectorAll('.par').forEach(el => el.classList.remove('active-par'));
+            
+            const target = document.getElementById(`par-${index}`);
+            target.classList.add('active-par');
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-/* TIC ATTIVABILI SOLO SE PARAMETRO */
-if(p.get('tic-editable') === '1'){
-  document.getElementById('tic-box').style.display = 'block';
-}
+            // Mostra domanda
+            showDomanda(index);
 
-/* TOGGLE TIC */
-document.addEventListener('change', e=>{
-  if(e.target.dataset.tic){
-    const cls = 'acc-' + e.target.dataset.tic;
-    document.body.classList.toggle(cls, e.target.checked);
-  }
-});
+            // Se TTS è attivo, leggi
+            if (document.getElementById('btn-tts').classList.contains('active')) {
+                leggiTesto(provaData.paragrafi[index].testo);
+            }
+        }
 
-/* CARICAMENTO DATI */
-if(p.get('prova') === 'custom'){
-  const raw = p.get('data');
-  const fmt = p.get('fmt');
+        function showDomanda(index) {
+            const qBox = document.getElementById('question-box');
+            const p = provaData.paragrafi[index];
+            
+            if (!p.domanda) {
+                qBox.innerHTML = "<p>Nessuna domanda per questo paragrafo.</p>";
+                return;
+            }
 
-  let json;
-  if(fmt === 'lz'){
-    json = LZString.decompressFromEncodedURIComponent(raw);
-  } else {
-    json = decodeURIComponent(escape(atob(raw)));
-  }
+            let html = `<h3>Domanda ${index + 1}</h3><p>${p.domanda.testo}</p>`;
+            p.domanda.opzioni.forEach((opt, i) => {
+                html += `<button class="btn-check" onclick="selectOpt(this)">${opt}</button>`;
+            });
+            qBox.innerHTML = html;
+        }
 
-  data = JSON.parse(json);
-  init();
-}
+        function leggiTesto(testo) {
+            window.speechSynthesis.cancel();
+            currentUtterance = new SpeechSynthesisUtterance(testo);
+            currentUtterance.lang = 'it-IT';
+            currentUtterance.rate = 0.9;
+            window.speechSynthesis.speak(currentUtterance);
+        }
 
-/* INIT */
-function init(){
-  const textDiv = document.getElementById('text');
+        // 4. GESTIONE TIC (Pallini)
+        function toggleTIC(type) {
+            const btn = document.getElementById(`btn-${type}`);
+            btn.classList.toggle('active');
 
-  data.paragrafi.forEach((p, i)=>{
-    const div = document.createElement('div');
-    div.className = 'par';
-    div.id = 'par'+i;
+            if (type === 'zoom') document.body.classList.toggle('large-font');
+            if (type === 'contrast') document.body.classList.toggle('high-contrast');
+            if (type === 'tts' && !btn.classList.contains('active')) {
+                window.speechSynthesis.cancel();
+            }
+        }
 
-    div.innerHTML = `
-      <div class="plbl">PARAGRAFO ${i+1}</div>
-      <div>
-        ${p.testo.split('.').map(f=>`<span class="fr">${f}.</span>`).join('')}
-      </div>
-    `;
+        function selectOpt(btn) {
+            const siblings = btn.parentNode.querySelectorAll('.btn-check');
+            siblings.forEach(s => s.style.background = 'white');
+            btn.style.background = '#c8e6c9';
+        }
 
-    textDiv.appendChild(div);
-  });
-
-  focusPar(0);
-}
-
-/* HIGHLIGHT */
-function focusPar(i){
-  document.querySelectorAll('.par').forEach(p=>p.classList.remove('att'));
-  const el = document.getElementById('par'+i);
-  el.classList.add('att');
-  el.scrollIntoView({behavior:'smooth',block:'center'});
-
-  showQ(i);
-}
-
-/* DOMANDE */
-function showQ(i){
-  const q = data.paragrafi[i].domanda;
-  const box = document.getElementById('question-box');
-
-  if(!q){ box.innerHTML=''; return; }
-
-  box.innerHTML = `<h3>${q.testo}</h3>`;
-
-  q.opzioni.forEach((o,idx)=>{
-    const div = document.createElement('div');
-    div.className = 'opt';
-    div.textContent = o;
-
-    div.onclick = ()=>{
-      if(idx === q.corretta){
-        div.classList.add('correct');
-      } else {
-        div.classList.add('wrong');
-      }
-    };
-
-    box.appendChild(div);
-  });
-}
-</script>
-
+        window.onload = loadData;
+    </script>
 </body>
 </html>
