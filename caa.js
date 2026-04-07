@@ -7,9 +7,12 @@
  *    <script src="caa.js"></script>
  *  da aggiungere ALLA FINE del <body>, dopo tutti gli altri <script>
  *
- *  Il file si auto-inietta: CSS, HTML, card nel pannello docente.
- *  Fa monkey-patch di mostraVista() e checkSessioneStudente()
- *  senza toccare il resto del codice esistente.
+ *  Funzionalità:
+ *  - Simboli ARASAAC (API gratuita, no chiave)
+ *  - Cache simboli in localStorage
+ *  - Domande manuali
+ *  - Generazione domande con Groq AI (riusa chiave già salvata)
+ *  - Vista studente con consegna e salvataggio risultati
  * ════════════════════════════════════════════════════════════════
  */
 
@@ -17,22 +20,22 @@
   'use strict';
 
   // ──────────────────────────────────────────────────────────────
-  //  1. INIETTA CSS
+  //  1. CSS
   // ──────────────────────────────────────────────────────────────
   const CSS = `
-/* ─── Card CAA nella griglia prove ─────────────────────── */
+/* ─── Card CAA ──────────────────────────────────────────── */
 .caa-card-grid {
-  background: linear-gradient(135deg, #fffde7 0%, #fff8e1 60%, #ffecb3 100%);
+  background: linear-gradient(135deg,#fffde7 0%,#fff8e1 60%,#ffecb3 100%);
   border: 2px solid #ffd54f; border-radius: 14px;
   padding: 22px 18px; cursor: pointer;
   transition: transform .15s, box-shadow .15s; text-align: center;
 }
 .caa-card-grid:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(255,193,7,.28); }
-.caa-card-grid .ci  { font-size: 2.6rem; }
-.caa-card-grid .ct  { font-weight: 700; font-size: 1rem; color: #e65100; margin: 6px 0 3px; }
-.caa-card-grid .cd  { font-size: .78rem; color: #bf360c; }
+.caa-card-grid .ci { font-size: 2.6rem; }
+.caa-card-grid .ct { font-weight: 700; font-size: 1rem; color: #e65100; margin: 6px 0 3px; }
+.caa-card-grid .cd { font-size: .78rem; color: #bf360c; }
 
-/* ─── Form docente CAA ──────────────────────────────────── */
+/* ─── Sezioni form ──────────────────────────────────────── */
 .caa-form-section {
   background: #fff; border-radius: 14px;
   border: 2px solid #ffe0b2; padding: 22px; margin-bottom: 18px;
@@ -52,7 +55,7 @@
 .caa-counter { text-align: right; font-size: .78rem; color: #999; margin-top: 3px; }
 .caa-counter.warn { color: #e53935; font-weight: 600; }
 
-/* ─── Domande docente ───────────────────────────────────── */
+/* ─── Domande ───────────────────────────────────────────── */
 .caa-domanda-item {
   background: #fff8e1; border: 1.5px solid #ffe082;
   border-radius: 10px; padding: 16px; margin-bottom: 12px; position: relative;
@@ -73,28 +76,71 @@
   border: 1.5px solid #e0e0e0; font-size: .9rem;
 }
 
+/* ─── Box generazione AI ────────────────────────────────── */
+.caa-ai-box {
+  background: linear-gradient(135deg,#fff3e0,#fce4ec 120%);
+  border: 2px solid #ffcc80; border-radius: 12px;
+  padding: 16px 18px; margin-bottom: 16px;
+}
+.caa-ai-box-title {
+  font-weight: 700; font-size: .92rem; color: #e65100;
+  margin: 0 0 12px; display: flex; align-items: center; gap: 7px;
+}
+.caa-ai-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.caa-ai-row label { font-size: .83rem; color: #555; font-weight: 600; }
+.caa-ai-row select {
+  padding: 7px 10px; border-radius: 8px;
+  border: 1.5px solid #ffcc80; background: #fff; font-size: .9rem;
+}
+.caa-ai-row input[type="password"] {
+  flex: 1; min-width: 200px; padding: 7px 12px;
+  border: 1.5px solid #ffcc80; border-radius: 8px;
+  font-size: .9rem; background: #fff;
+}
+.caa-ai-note { font-size: .75rem; color: #888; margin: 8px 0 0; line-height: 1.4; }
+.caa-ai-status {
+  margin-top: 10px; font-size: .83rem; color: #e65100;
+  display: none; align-items: center; gap: 8px;
+}
+.caa-ai-status.visible { display: flex; }
+.caa-spinner {
+  width: 16px; height: 16px; border: 2px solid #ffcc80;
+  border-top-color: #fb8c00; border-radius: 50%;
+  animation: caa-spin .7s linear infinite; flex-shrink: 0;
+}
+@keyframes caa-spin { to { transform: rotate(360deg); } }
+.caa-ai-warn {
+  background: #fff3e0; border: 1.5px solid #ffcc80;
+  border-radius: 8px; padding: 8px 12px;
+  font-size: .8rem; color: #e65100; margin-top: 10px; display: none;
+}
+.caa-ai-warn.visible { display: block; }
+
 /* ─── Bottoni ───────────────────────────────────────────── */
 .caa-btn {
   display: inline-flex; align-items: center; gap: 7px;
   padding: 10px 20px; border-radius: 9px; font-size: .92rem;
   font-weight: 600; cursor: pointer; border: none; transition: .15s;
 }
+.caa-btn:disabled { opacity: .5; cursor: not-allowed; }
 .caa-btn-primary   { background: #fb8c00; color: #fff; }
-.caa-btn-primary:hover { background: #e65100; }
+.caa-btn-primary:hover:not(:disabled)   { background: #e65100; }
 .caa-btn-secondary { background: #fff3e0; color: #e65100; border: 1.5px solid #ffcc80; }
-.caa-btn-secondary:hover { background: #ffe0b2; }
-.caa-btn-add       { background: #e8f5e9; color: #2e7d32; border: 1.5px solid #a5d6a7; }
+.caa-btn-secondary:hover:not(:disabled) { background: #ffe0b2; }
+.caa-btn-ai { background: linear-gradient(135deg,#ff7043,#e91e63); color: #fff; }
+.caa-btn-ai:hover:not(:disabled) { opacity: .9; }
+.caa-btn-add { background: #e8f5e9; color: #2e7d32; border: 1.5px solid #a5d6a7; }
 .caa-btn-add:hover { background: #c8e6c9; }
-.caa-btn-back      { background: #f5f5f5; color: #555; border: 1.5px solid #ddd; }
+.caa-btn-back { background: #f5f5f5; color: #555; border: 1.5px solid #ddd; }
 .caa-btn-back:hover { background: #eeeeee; }
 
-/* ─── Progress ──────────────────────────────────────────── */
+/* ─── Progress simboli ──────────────────────────────────── */
 .caa-progress-wrap { margin: 8px 0 12px; }
 .caa-progress { height: 7px; background: #ffe0b2; border-radius: 99px; overflow: hidden; }
 .caa-progress-bar { height: 100%; background: linear-gradient(90deg,#fb8c00,#ff7043); border-radius: 99px; transition: width .25s; }
 .caa-progress-label { font-size: .78rem; color: #f57f17; margin-top: 4px; }
 
-/* ─── Preview ───────────────────────────────────────────── */
+/* ─── Preview e link ────────────────────────────────────── */
 .caa-preview-box {
   background: #fffdf5; border: 2px solid #ffe082;
   border-radius: 14px; padding: 20px; margin: 18px 0;
@@ -106,10 +152,13 @@
   border: 2px solid #a5d6a7; border-radius: 10px; padding: 14px 18px; margin-top: 14px;
 }
 .caa-link-out p { margin: 0 0 8px; font-size: .85rem; color: #2e7d32; font-weight: 600; }
-.caa-link-out input { width: 100%; box-sizing: border-box; padding: 8px; border-radius: 6px; border: 1px solid #a5d6a7; font-size: .88rem; }
+.caa-link-out input {
+  width: 100%; box-sizing: border-box; padding: 8px;
+  border-radius: 6px; border: 1px solid #a5d6a7; font-size: .88rem;
+}
 
 /* ════════════════════════════════════════════════════════
-   RENDERING SIMBOLI CAA
+   SIMBOLI CAA – rendering
    ════════════════════════════════════════════════════════ */
 .caa-flow {
   display: flex; flex-wrap: wrap;
@@ -124,16 +173,15 @@
 .caa-box img.caa-sym { width: 68px; height: 68px; object-fit: contain; display: block; }
 .caa-box .caa-lbl {
   font-size: 11px; font-weight: 600;
-  text-align: center; color: #333;
-  word-break: break-word; line-height: 1.2;
+  text-align: center; color: #333; word-break: break-word; line-height: 1.2;
 }
 .caa-stopword { font-size: 14px; color: #777; align-self: flex-end; padding-bottom: 3px; }
 .caa-newline  { width: 100%; flex-basis: 100%; height: 0; }
 
-/* ─── Vista studente CAA ────────────────────────────────── */
+/* ─── Vista studente ────────────────────────────────────── */
 .caa-student-wrap { max-width: 1100px; margin: 0 auto; padding: 16px; }
 .caa-student-header {
-  background: linear-gradient(135deg, #fff8e1, #fff3e0);
+  background: linear-gradient(135deg,#fff8e1,#fff3e0);
   border-radius: 14px; border: 2px solid #ffe082;
   padding: 14px 20px; display: flex; align-items: center; gap: 14px; margin-bottom: 16px;
 }
@@ -183,7 +231,7 @@
 
 
   // ──────────────────────────────────────────────────────────────
-  //  2. INIETTA HTML – VISTA DOCENTE
+  //  2. HTML VISTA DOCENTE
   // ──────────────────────────────────────────────────────────────
   const HTML_DOCENTE = `
 <div id="vista-caa" style="display:none">
@@ -193,7 +241,7 @@
 
   <h2 style="color:#e65100;margin-bottom:6px;">🗣️ Crea Prova CAA</h2>
   <p style="color:#888;margin-top:0;font-size:.88rem;">
-    Simboli ARASAAC (open source, gratuiti). Max 30 righe di testo.
+    Simboli ARASAAC (open source, gratuiti). Max 30 righe.
     Articoli e preposizioni compaiono come testo semplice.
   </p>
 
@@ -206,9 +254,7 @@
       </div>
       <div class="caa-field">
         <label>Classe</label>
-        <select id="caa-classe">
-          <option>3A</option><option>3E</option>
-        </select>
+        <select id="caa-classe"><option>3A</option><option>3E</option></select>
       </div>
       <div class="caa-field">
         <label>Titolo prova</label>
@@ -228,14 +274,55 @@
   </div>
 
   <div class="caa-form-section">
-    <h3>❓ Domande (scelta multipla)</h3>
+    <h3>❓ Domande</h3>
+
+    <!-- Generazione AI -->
+    <div class="caa-ai-box">
+      <div class="caa-ai-box-title">✨ Genera domande automaticamente con AI</div>
+      <div class="caa-ai-row">
+        <label>Numero domande</label>
+        <select id="caa-ai-ndm">
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5" selected>5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+          <option value="10">10</option>
+        </select>
+        <input type="password" id="caa-ai-key"
+          placeholder="Chiave Groq (se non già salvata nella piattaforma)">
+        <button class="caa-btn caa-btn-ai" id="caa-ai-btn" onclick="caaGeneraAI()">
+          ✨ Genera
+        </button>
+      </div>
+      <div class="caa-ai-note">
+        La chiave Groq viene letta automaticamente se già salvata nella piattaforma.
+        Le domande generate sono modificabili prima di procedere.
+        Le domande vengono aggiunte in fondo — puoi eliminare quelle che non ti convincono.
+      </div>
+      <div class="caa-ai-status" id="caa-ai-status">
+        <div class="caa-spinner"></div>
+        <span id="caa-ai-status-txt">Genero le domande…</span>
+      </div>
+      <div class="caa-ai-warn" id="caa-ai-warn"></div>
+    </div>
+
+    <!-- Lista domande -->
     <div id="caa-domande-list"></div>
-    <button class="caa-btn caa-btn-add" onclick="caaAggiungiDomanda()">+ Aggiungi domanda</button>
+    <button class="caa-btn caa-btn-add" onclick="caaAggiungiDomanda()" style="margin-top:4px">
+      + Aggiungi domanda manualmente
+    </button>
   </div>
 
   <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;">
-    <button class="caa-btn caa-btn-secondary" onclick="caaPreview()">👁 Anteprima con simboli</button>
-    <button class="caa-btn caa-btn-primary"   onclick="caaGeneraLink()">🔗 Genera link prova</button>
+    <button class="caa-btn caa-btn-secondary" onclick="caaPreview()">
+      👁 Anteprima con simboli
+    </button>
+    <button class="caa-btn caa-btn-primary" onclick="caaGeneraLink()">
+      🔗 Genera link prova
+    </button>
   </div>
 
   <div id="caa-progress-wrap" style="display:none" class="caa-progress-wrap">
@@ -253,8 +340,9 @@
   </div>
 </div>`;
 
+
   // ──────────────────────────────────────────────────────────────
-  //  3. INIETTA HTML – VISTA STUDENTE
+  //  3. HTML VISTA STUDENTE
   // ──────────────────────────────────────────────────────────────
   const HTML_STUDENTE = `
 <div id="vista-studente-caa" style="display:none">
@@ -287,41 +375,26 @@
 
 
   // ──────────────────────────────────────────────────────────────
-  //  4. INIETTA CARD nel pannello docente
-  //  Cerca la griglia delle prove adattate e aggiunge la card CAA.
-  //  Adatta il selettore se nel tuo index.html la griglia ha un id diverso.
+  //  4. CARD nel pannello docente
   // ──────────────────────────────────────────────────────────────
-  function injectCard() {
-    // Prova i selettori più probabili — adatta se necessario
+  function injectCard () {
     const targets = [
-      '#prove-adattate-grid',
-      '#griglia-prove',
-      '.prove-grid',
-      '.adattate-grid'
+      '#prove-adattate-grid','#griglia-prove','.prove-grid','.adattate-grid'
     ];
     let grid = null;
-    for (const sel of targets) {
-      grid = document.querySelector(sel);
-      if (grid) break;
-    }
-
-    // Fallback: cerca il contenitore che ha già le altre card simili
+    for (const sel of targets) { grid = document.querySelector(sel); if (grid) break; }
     if (!grid) {
-      const allCards = document.querySelectorAll('[onclick*="mostraVista"]');
-      if (allCards.length) grid = allCards[allCards.length - 1].parentElement;
+      const cards = document.querySelectorAll('[onclick*="mostraVista"]');
+      if (cards.length) grid = cards[cards.length - 1].parentElement;
     }
-
     if (!grid) {
-      // Ultimo fallback: crea un container e lo mette nel pannello docente
-      const pannello = document.getElementById('vista-docente') || document.body;
       grid = document.createElement('div');
       grid.style.marginTop = '16px';
-      pannello.appendChild(grid);
+      (document.getElementById('vista-docente') || document.body).appendChild(grid);
     }
-
     const card = document.createElement('div');
     card.className = 'caa-card-grid';
-    card.onclick = () => caaApriVista();
+    card.onclick = () => window.caaApriVista();
     card.innerHTML = `
       <div class="ci">🗣️</div>
       <div class="ct">Prova CAA</div>
@@ -329,7 +402,6 @@
     grid.appendChild(card);
   }
 
-  // Aspetta che il DOM sia pronto prima di iniettare la card
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', injectCard);
   } else {
@@ -338,61 +410,49 @@
 
 
   // ──────────────────────────────────────────────────────────────
-  //  5. MONKEY-PATCH DI mostraVista()
-  //  Si aggancia alla funzione esistente senza toccarla.
+  //  5. MONKEY-PATCH mostraVista + checkSessioneStudente
   // ──────────────────────────────────────────────────────────────
   window.addEventListener('load', () => {
-    const _origMostraVista = window.mostraVista;
-
-    if (typeof _origMostraVista === 'function') {
+    const _origMV = window.mostraVista;
+    if (typeof _origMV === 'function') {
       window.mostraVista = function (vista) {
         if (vista === 'caa' || vista === 'studente-caa') {
-          // Nasconde tutte le viste come fa l'originale
-          document.querySelectorAll('[id^="vista-"]').forEach(el => {
-            el.style.display = 'none';
-          });
-          const target = document.getElementById(`vista-${vista}`);
-          if (target) target.style.display = 'block';
+          document.querySelectorAll('[id^="vista-"]').forEach(el => { el.style.display = 'none'; });
+          const t = document.getElementById('vista-' + vista);
+          if (t) t.style.display = 'block';
           return;
         }
-        _origMostraVista(vista);
+        _origMV(vista);
       };
     } else {
-      // mostraVista non trovata: la definiamo noi come fallback minimo
       window.mostraVista = function (vista) {
-        document.querySelectorAll('[id^="vista-"]').forEach(el => el.style.display = 'none');
-        const el = document.getElementById(`vista-${vista}`);
+        document.querySelectorAll('[id^="vista-"]').forEach(el => { el.style.display = 'none'; });
+        const el = document.getElementById('vista-' + vista);
         if (el) el.style.display = 'block';
       };
     }
 
-    // Monkey-patch di checkSessioneStudente()
-    const _origCheck = window.checkSessioneStudente;
-    if (typeof _origCheck === 'function') {
+    const _origCS = window.checkSessioneStudente;
+    if (typeof _origCS === 'function') {
       window.checkSessioneStudente = function () {
-        const params  = new URLSearchParams(location.search);
-        const codice  = params.get('sessione');
-        if (!codice) return _origCheck();
-
+        const codice = new URLSearchParams(location.search).get('sessione');
+        if (!codice) return _origCS();
         const sessioni = JSON.parse(localStorage.getItem('sessioni') || '[]');
         const sess = sessioni.find(s => s.codice === codice);
-        if (sess && sess.tipo === 'caa') {
-          avviaProvaCAA(sess);
-          return;
-        }
-        _origCheck();
+        if (sess && sess.tipo === 'caa') { window.avviaProvaCAA(sess); return; }
+        _origCS();
       };
     }
   });
 
 
   // ──────────────────────────────────────────────────────────────
-  //  6. COSTANTI ARASAAC
+  //  6. ARASAAC – fetch e cache
   // ──────────────────────────────────────────────────────────────
   const ARASAAC_SEARCH = w =>
-    `https://api.arasaac.org/api/pictograms/it/search/${encodeURIComponent(w)}`;
+    'https://api.arasaac.org/api/pictograms/it/search/' + encodeURIComponent(w);
   const ARASAAC_IMG = id =>
-    `https://static.arasaac.org/pictograms/${id}/${id}_500.png`;
+    'https://static.arasaac.org/pictograms/' + id + '/' + id + '_500.png';
 
   const CAA_STOP = new Set([
     'il','lo','la','i','gli','le','un','uno','una',
@@ -409,42 +469,29 @@
     'suo','sua','suoi','sue','mio','mia','miei','mie',
     'tuo','tua','tuoi','tue','nostro','nostra','nostri','nostre',
     'vostro','vostra','vostri','vostre','loro',
-    'questo','questa','questi','queste',
-    'quello','quella','quelli','quelle',
+    'questo','questa','questi','queste','quello','quella','quelli','quelle',
     'come','quando','dove','perché','però','anche','già','più',
     'poi','ora','qui','qua','là','lì','allora','dunque','quindi',
     'mentre','dopo','prima','c','n','s','m','t','v','l','d','r'
   ]);
 
-
-  // ──────────────────────────────────────────────────────────────
-  //  7. CACHE SIMBOLI (localStorage)
-  // ──────────────────────────────────────────────────────────────
   let _caaCache = null;
-
-  function getCache() {
+  function getCache () {
     if (!_caaCache) {
       try { _caaCache = JSON.parse(localStorage.getItem('_caa_sym') || '{}'); }
-      catch { _caaCache = {}; }
+      catch (e) { _caaCache = {}; }
     }
     return _caaCache;
   }
-
-  function saveCache() {
-    try { localStorage.setItem('_caa_sym', JSON.stringify(getCache())); } catch {}
+  function saveCache () {
+    try { localStorage.setItem('_caa_sym', JSON.stringify(getCache())); } catch (e) {}
   }
 
-
-  // ──────────────────────────────────────────────────────────────
-  //  8. FETCH SIMBOLO SINGOLO
-  // ──────────────────────────────────────────────────────────────
-  async function fetchSymbol(word) {
+  async function fetchSymbol (word) {
     const k = word.toLowerCase().replace(/[^a-zàèéìòùüáóú]/gi, '');
     if (!k || k.length < 2 || CAA_STOP.has(k)) return null;
-
     const cache = getCache();
     if (k in cache) return cache[k];
-
     try {
       const r = await fetch(ARASAAC_SEARCH(k));
       if (!r.ok) { cache[k] = null; return null; }
@@ -453,55 +500,52 @@
       cache[k] = ARASAAC_IMG(data[0]._id);
       saveCache();
       return cache[k];
-    } catch {
-      cache[k] = null;
-      return null;
-    }
+    } catch (e) { cache[k] = null; return null; }
   }
 
 
   // ──────────────────────────────────────────────────────────────
-  //  9. RENDER TESTO → container DOM
+  //  7. RENDER TESTO → DOM
   // ──────────────────────────────────────────────────────────────
-  async function renderText(testo, container, onProgress, small = false) {
+  async function renderText (testo, container, onProgress, small) {
+    small = small || false;
     const tokens = [];
-    testo.split('\n').forEach((riga, i, arr) => {
-      riga.trim().split(/\s+/).filter(Boolean).forEach(p => tokens.push({ w: p }));
+    testo.split('\n').forEach(function (riga, i, arr) {
+      riga.trim().split(/\s+/).filter(Boolean).forEach(function (p) { tokens.push({ w: p }); });
       if (i < arr.length - 1) tokens.push({ br: true });
     });
 
-    // Parole uniche da cercare
-    const toFetch = [...new Set(
-      tokens.filter(t => !t.br)
-        .map(t => t.w.toLowerCase().replace(/[^a-zàèéìòùüáóú]/gi, ''))
-        .filter(k => k.length > 1 && !CAA_STOP.has(k))
-    )];
+    const toFetch = [];
+    const seen = {};
+    tokens.filter(function (t) { return !t.br; }).forEach(function (t) {
+      const k = t.w.toLowerCase().replace(/[^a-zàèéìòùüáóú]/gi, '');
+      if (k.length > 1 && !CAA_STOP.has(k) && !seen[k]) { seen[k] = true; toFetch.push(k); }
+    });
 
     let done = 0;
-    for (const w of toFetch) {
-      await fetchSymbol(w);
+    for (let i = 0; i < toFetch.length; i++) {
+      await fetchSymbol(toFetch[i]);
       done++;
       if (onProgress) onProgress(done, toFetch.length);
-      await new Promise(r => setTimeout(r, 28));
+      await new Promise(function (r) { setTimeout(r, 28); });
     }
 
     container.innerHTML = '';
     const flow = document.createElement('div');
     flow.className = 'caa-flow';
-    const cache = getCache();
+    const cache    = getCache();
     const imgSize  = small ? '48px' : '68px';
     const boxMin   = small ? '48px' : '58px';
     const boxMax   = small ? '74px' : '92px';
     const fontSize = small ? '10px' : '11px';
 
-    for (const tk of tokens) {
+    tokens.forEach(function (tk) {
       if (tk.br) {
         const nl = document.createElement('div');
         nl.className = 'caa-newline';
         flow.appendChild(nl);
-        continue;
+        return;
       }
-
       const raw = tk.w;
       const k   = raw.toLowerCase().replace(/[^a-zàèéìòùüáóú]/gi, '');
       const sym = (!k || k.length < 2 || CAA_STOP.has(k)) ? null : (cache[k] || null);
@@ -519,14 +563,11 @@
 
         const img = document.createElement('img');
         img.className = 'caa-sym';
-        img.src = sym;
-        img.alt = k;
-        img.style.width  = imgSize;
-        img.style.height = imgSize;
-        img.onerror = () => {
+        img.src = sym; img.alt = k;
+        img.style.width = imgSize; img.style.height = imgSize;
+        img.onerror = function () {
           const sp = document.createElement('span');
-          sp.className = 'caa-stopword';
-          sp.textContent = raw;
+          sp.className = 'caa-stopword'; sp.textContent = raw;
           box.replaceWith(sp);
         };
         box.appendChild(img);
@@ -539,154 +580,295 @@
 
         flow.appendChild(box);
       }
-    }
+    });
 
     container.appendChild(flow);
   }
 
 
   // ──────────────────────────────────────────────────────────────
-  //  10. FUNZIONI GLOBALI (chiamate dall'HTML iniettato)
+  //  8. GLOBALI – navigazione e form
   // ──────────────────────────────────────────────────────────────
-
   window.caaBack = function () {
     if (typeof mostraVista === 'function') mostraVista('docente');
   };
-
+  window.caaApriVista = function () {
+    if (typeof mostraVista === 'function') mostraVista('caa');
+  };
   window.caaContaRighe = function () {
     const ta  = document.getElementById('caa-testo');
     const cnt = document.getElementById('caa-righe-count');
     const n   = ta.value.split('\n').length;
-    cnt.textContent = `${n} / 30 righe`;
+    cnt.textContent = n + ' / 30 righe';
     cnt.className   = 'caa-counter' + (n > 30 ? ' warn' : '');
     if (n > 30) ta.value = ta.value.split('\n').slice(0, 30).join('\n');
   };
 
-  // Apertura vista CAA dal click della card
-  window.caaApriVista = function () {
-    if (typeof mostraVista === 'function') mostraVista('caa');
-  };
 
-  // ─── Aggiungi domanda ────────────────────────────────────────
+  // ──────────────────────────────────────────────────────────────
+  //  9. AGGIUNGI DOMANDA (manuale o pre-compilata dall'AI)
+  //  prefill = { testo, A, B, C, D, corretta }  — opzionale
+  // ──────────────────────────────────────────────────────────────
   let _domN = 0;
-  window.caaAggiungiDomanda = function () {
+
+  function esc (s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;')
+                          .replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  window.caaAggiungiDomanda = function (prefill) {
     _domN++;
-    const n    = _domN;
-    const list = document.getElementById('caa-domande-list');
-    const div  = document.createElement('div');
+    var n    = _domN;
+    var list = document.getElementById('caa-domande-list');
+    var div  = document.createElement('div');
     div.className = 'caa-domanda-item';
-    div.id = `caa-d-${n}`;
-    div.innerHTML = `
-      <p class="caa-dom-num">Domanda ${n}</p>
-      <button class="caa-rm" onclick="this.parentElement.remove()" title="Rimuovi">✕</button>
-      <div class="caa-field" style="margin-bottom:10px;">
-        <input type="text" id="caa-d${n}-q" placeholder="Testo della domanda..." style="width:100%;box-sizing:border-box;">
-      </div>
-      ${['A','B','C','D'].map(l => `
-        <div class="caa-opz-row">
-          <span class="opz-letter ${l}">${l}</span>
-          <input type="text" id="caa-d${n}-o${l}" placeholder="Opzione ${l}">
-          <label style="display:flex;align-items:center;gap:4px;font-size:.78rem;color:#888;cursor:pointer;">
-            <input type="radio" name="caa-corr-${n}" value="${l}"> corretta
-          </label>
-        </div>`).join('')}`;
+    div.id = 'caa-d-' + n;
+    div.innerHTML =
+      '<p class="caa-dom-num">Domanda ' + n + '</p>' +
+      '<button class="caa-rm" onclick="this.parentElement.remove()" title="Rimuovi">✕</button>' +
+      '<div class="caa-field" style="margin-bottom:10px;">' +
+        '<input type="text" id="caa-d' + n + '-q"' +
+          ' placeholder="Testo della domanda…"' +
+          ' value="' + (prefill ? esc(prefill.testo) : '') + '"' +
+          ' style="width:100%;box-sizing:border-box;">' +
+      '</div>' +
+      ['A','B','C','D'].map(function (l) {
+        return '<div class="caa-opz-row">' +
+          '<span class="opz-letter ' + l + '">' + l + '</span>' +
+          '<input type="text" id="caa-d' + n + '-o' + l + '"' +
+            ' placeholder="Opzione ' + l + '"' +
+            ' value="' + (prefill ? esc(prefill[l]) : '') + '">' +
+          '<label style="display:flex;align-items:center;gap:4px;font-size:.78rem;color:#888;cursor:pointer;">' +
+            '<input type="radio" name="caa-corr-' + n + '" value="' + l + '"' +
+              (prefill && prefill.corretta === l ? ' checked' : '') + '> corretta' +
+          '</label></div>';
+      }).join('');
     list.appendChild(div);
   };
 
-  // ─── Raccoglie dati dal form ─────────────────────────────────
-  function raccogliDati() {
-    const alunno = document.getElementById('caa-alunno').value.trim();
-    const classe = document.getElementById('caa-classe').value;
-    const titolo = document.getElementById('caa-titolo').value.trim() || 'Prova CAA';
-    const testo  = document.getElementById('caa-testo').value.trim();
+
+  // ──────────────────────────────────────────────────────────────
+  //  10. GENERA DOMANDE CON GROQ AI
+  // ──────────────────────────────────────────────────────────────
+  function leggiChiaveGroq () {
+    // 'gemini_api_key_invalsi' è il nome usato da index.html (var GEMINI_KEY_LS)
+    var candidates = [
+      'gemini_api_key_invalsi',
+      'groqApiKey','groq_key','groqKey','GROQ_KEY','groq_api_key','apiKeyGroq','groq'
+    ];
+    for (var i = 0; i < candidates.length; i++) {
+      var v = localStorage.getItem(candidates[i]);
+      if (v && v.trim().startsWith('gsk_')) return v.trim();
+    }
+    return null;
+  }
+
+  window.caaGeneraAI = async function () {
+    var testo = document.getElementById('caa-testo').value.trim();
+    if (!testo) { alert('⚠️ Inserisci prima il testo del brano.'); return; }
+
+    var n      = parseInt(document.getElementById('caa-ai-ndm').value, 10);
+    var apiKey = document.getElementById('caa-ai-key').value.trim() || leggiChiaveGroq();
+    if (!apiKey) {
+      mostraWarn('⚠️ Chiave Groq non trovata. Inseriscila nel campo sopra.');
+      return;
+    }
+    if (!leggiChiaveGroq()) localStorage.setItem('groqApiKey', apiKey);
+
+    var btn    = document.getElementById('caa-ai-btn');
+    var status = document.getElementById('caa-ai-status');
+    var stTxt  = document.getElementById('caa-ai-status-txt');
+    var warn   = document.getElementById('caa-ai-warn');
+
+    btn.disabled = true;
+    status.classList.add('visible');
+    warn.classList.remove('visible');
+    stTxt.textContent = 'Genero ' + n + ' domande…';
+
+    var PROMPT =
+      'Sei un esperto di Comunicazione Aumentativa Alternativa (CAA).\n' +
+      'Leggi il testo seguente e genera esattamente ' + n + ' domande di comprensione.\n\n' +
+      'REGOLE OBBLIGATORIE:\n' +
+      '- Ogni domanda deve avere frasi BREVISSIME (max 8 parole)\n' +
+      '- Usa solo parole semplici e concrete (evita astrazioni)\n' +
+      '- Ogni domanda ha 4 opzioni: A, B, C, D\n' +
+      '- Una sola risposta è corretta\n' +
+      '- Le opzioni sono brevi (max 5 parole ciascuna)\n' +
+      '- Le opzioni errate devono essere plausibili ma chiaramente sbagliate\n' +
+      '- Non usare negazioni nelle domande\n\n' +
+      'TESTO:\n' + testo + '\n\n' +
+      'Rispondi SOLO con un array JSON valido, senza markdown, senza backtick:\n' +
+      '[{"testo":"…","A":"…","B":"…","C":"…","D":"…","corretta":"A"}]';
+
+    try {
+      var resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type':  'application/json',
+          'Authorization': 'Bearer ' + apiKey
+        },
+        body: JSON.stringify({
+          model:       'llama3-70b-8192',
+          temperature: 0.4,
+          max_tokens:  1800,
+          messages: [
+            { role: 'system', content: 'Sei un assistente per la didattica speciale. Rispondi sempre e solo con JSON valido, senza markdown.' },
+            { role: 'user',   content: PROMPT }
+          ]
+        })
+      });
+
+      if (!resp.ok) {
+        var errData = await resp.json().catch(function () { return {}; });
+        throw new Error(errData.error ? errData.error.message : 'HTTP ' + resp.status);
+      }
+
+      var data = await resp.json();
+      var raw  = (data.choices && data.choices[0] && data.choices[0].message)
+                   ? data.choices[0].message.content : '';
+
+      // pulizia robusta
+      raw = raw.replace(/```json|```/gi, '').trim();
+      var start = raw.indexOf('[');
+      var end   = raw.lastIndexOf(']');
+      if (start === -1 || end === -1) throw new Error('Risposta AI non valida.');
+      raw = raw.slice(start, end + 1);
+
+      var domande = JSON.parse(raw);
+      if (!Array.isArray(domande) || !domande.length) throw new Error('Nessuna domanda generata.');
+
+      stTxt.textContent = '✅ ' + Math.min(domande.length, 10) + ' domande generate!';
+
+      domande.slice(0, 10).forEach(function (d) {
+        window.caaAggiungiDomanda({
+          testo:    d.testo    || '',
+          A:        d.A        || '',
+          B:        d.B        || '',
+          C:        d.C        || '',
+          D:        d.D        || '',
+          corretta: d.corretta || 'A'
+        });
+      });
+
+      document.getElementById('caa-domande-list')
+        .scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    } catch (err) {
+      mostraWarn('❌ Errore: ' + err.message);
+      stTxt.textContent = 'Generazione fallita.';
+    } finally {
+      btn.disabled = false;
+      setTimeout(function () { status.classList.remove('visible'); }, 2500);
+    }
+  };
+
+  function mostraWarn (msg) {
+    var warn = document.getElementById('caa-ai-warn');
+    warn.textContent = msg;
+    warn.classList.add('visible');
+  }
+
+
+  // ──────────────────────────────────────────────────────────────
+  //  11. RACCOGLIE DATI DAL FORM
+  // ──────────────────────────────────────────────────────────────
+  function raccogliDati () {
+    var alunno = document.getElementById('caa-alunno').value.trim();
+    var classe = document.getElementById('caa-classe').value;
+    var titolo = document.getElementById('caa-titolo').value.trim() || 'Prova CAA';
+    var testo  = document.getElementById('caa-testo').value.trim();
 
     if (!alunno) { alert('⚠️ Inserisci il nome dell\'alunno.'); return null; }
     if (!testo)  { alert('⚠️ Inserisci il testo del brano.');  return null; }
 
-    const domande = [];
-    document.querySelectorAll('.caa-domanda-item').forEach(item => {
-      const id  = item.id.replace('caa-d-', '');
-      const q   = document.getElementById(`caa-d${id}-q`)?.value.trim();
+    var domande = [];
+    document.querySelectorAll('.caa-domanda-item').forEach(function (item) {
+      var id = item.id.replace('caa-d-', '');
+      var qEl = document.getElementById('caa-d' + id + '-q');
+      var q   = qEl ? qEl.value.trim() : '';
       if (!q) return;
-      const opzioni = ['A','B','C','D'].map(l =>
-        document.getElementById(`caa-d${id}-o${l}`)?.value.trim() || ''
-      );
-      const corr = item.querySelector('input[type="radio"]:checked');
-      domande.push({ testo: q, opzioni, corretta: corr ? corr.value : 'A' });
+      var opzioni = ['A','B','C','D'].map(function (l) {
+        var el = document.getElementById('caa-d' + id + '-o' + l);
+        return el ? el.value.trim() : '';
+      });
+      var corrEl = item.querySelector('input[type="radio"]:checked');
+      domande.push({ testo: q, opzioni: opzioni, corretta: corrEl ? corrEl.value : 'A' });
     });
 
-    return { type: 'caa', titolo, alunno, classe, testo, domande };
+    return { type: 'caa', titolo: titolo, alunno: alunno, classe: classe, testo: testo, domande: domande };
   }
 
-  // ─── Anteprima ───────────────────────────────────────────────
+
+  // ──────────────────────────────────────────────────────────────
+  //  12. ANTEPRIMA CON SIMBOLI
+  // ──────────────────────────────────────────────────────────────
   window.caaPreview = async function () {
-    const dati = raccogliDati();
+    var dati = raccogliDati();
     if (!dati) return;
 
-    const progWrap   = document.getElementById('caa-progress-wrap');
-    const progBar    = document.getElementById('caa-prog-bar');
-    const progLbl    = document.getElementById('caa-prog-label');
-    const previewBox = document.getElementById('caa-preview-box');
+    var progWrap   = document.getElementById('caa-progress-wrap');
+    var progBar    = document.getElementById('caa-prog-bar');
+    var progLbl    = document.getElementById('caa-prog-label');
+    var previewBox = document.getElementById('caa-preview-box');
 
     progWrap.style.display = 'block';
     previewBox.style.display = 'none';
     progBar.style.width = '0%';
     progLbl.textContent = 'Cerco simboli ARASAAC…';
 
-    const wrap = document.createElement('div');
+    var wrap = document.createElement('div');
 
-    // Brano
-    const h1 = document.createElement('h4');
+    var h1 = document.createElement('h4');
     h1.textContent = '📖 Brano';
     wrap.appendChild(h1);
-    const testoEl = document.createElement('div');
+    var testoEl = document.createElement('div');
     wrap.appendChild(testoEl);
-    await renderText(dati.testo, testoEl, (done, tot) => {
-      const pct = Math.round(done / tot * 100);
-      progBar.style.width = pct + '%';
-      progLbl.textContent = `Simboli brano: ${done}/${tot}`;
+    await renderText(dati.testo, testoEl, function (done, tot) {
+      progBar.style.width = Math.round(done / tot * 100) + '%';
+      progLbl.textContent = 'Simboli brano: ' + done + '/' + tot;
     });
 
-    // Domande
     if (dati.domande.length) {
-      const sep = document.createElement('hr');
+      var sep = document.createElement('hr');
       sep.className = 'caa-preview-sep';
       wrap.appendChild(sep);
-      const h2 = document.createElement('h4');
+      var h2 = document.createElement('h4');
       h2.textContent = '❓ Domande';
       wrap.appendChild(h2);
 
-      const lCols = { A:'#2e7d32', B:'#c62828', C:'#1565c0', D:'#6a1b9a' };
+      var lCols = { A:'#2e7d32', B:'#c62828', C:'#1565c0', D:'#6a1b9a' };
 
-      for (const [qi, dom] of dati.domande.entries()) {
-        const qWrap = document.createElement('div');
-        qWrap.style.cssText = 'margin-bottom:20px;background:#fff;border-radius:10px;padding:14px;border:1.5px solid #ffe082;';
-        const qt = document.createElement('p');
+      for (var qi = 0; qi < dati.domande.length; qi++) {
+        var dom = dati.domande[qi];
+        var qw = document.createElement('div');
+        qw.style.cssText = 'margin-bottom:20px;background:#fff;border-radius:10px;padding:14px;border:1.5px solid #ffe082;';
+        var qt = document.createElement('p');
         qt.style.cssText = 'font-weight:700;margin:0 0 10px;color:#333;';
-        qt.textContent = `${qi+1}. ${dom.testo}`;
-        qWrap.appendChild(qt);
+        qt.textContent = (qi + 1) + '. ' + dom.testo;
+        qw.appendChild(qt);
 
-        for (const [oi, opz] of dom.opzioni.entries()) {
+        for (var oi = 0; oi < dom.opzioni.length; oi++) {
+          var opz = dom.opzioni[oi];
           if (!opz) continue;
-          const l = ['A','B','C','D'][oi];
-          const row = document.createElement('div');
+          var l   = ['A','B','C','D'][oi];
+          var row = document.createElement('div');
           row.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:6px;';
-          const lt = document.createElement('span');
-          lt.style.cssText = `font-weight:800;color:${lCols[l]};min-width:18px;`;
+          var lt = document.createElement('span');
+          lt.style.cssText = 'font-weight:800;color:' + lCols[l] + ';min-width:18px;';
           lt.textContent = l;
           row.appendChild(lt);
-          const oc = document.createElement('div');
+          var oc = document.createElement('div');
           await renderText(opz, oc, null, true);
           row.appendChild(oc);
           if (l === dom.corretta) {
-            const tick = document.createElement('span');
+            var tick = document.createElement('span');
             tick.textContent = '✓';
-            tick.style.cssText = 'color:#2e7d32;font-weight:700;';
+            tick.style.cssText = 'color:#2e7d32;font-weight:700;margin-left:4px;';
             row.appendChild(tick);
           }
-          qWrap.appendChild(row);
+          qw.appendChild(row);
         }
-        wrap.appendChild(qWrap);
+        wrap.appendChild(qw);
       }
     }
 
@@ -697,37 +879,42 @@
     previewBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  // ─── Genera link ─────────────────────────────────────────────
+
+  // ──────────────────────────────────────────────────────────────
+  //  13. GENERA LINK SESSIONE
+  // ──────────────────────────────────────────────────────────────
   window.caaGeneraLink = function () {
-    const dati = raccogliDati();
+    var dati = raccogliDati();
     if (!dati) return;
 
-    const codice   = 'CAA' + Date.now().toString(36).toUpperCase();
-    const sessioni = JSON.parse(localStorage.getItem('sessioni') || '[]');
+    var codice   = 'CAA' + Date.now().toString(36).toUpperCase();
+    var sessioni = JSON.parse(localStorage.getItem('sessioni') || '[]');
     sessioni.push({
-      codice,
-      tipo:    'caa',
-      titolo:  dati.titolo,
-      alunno:  dati.alunno,
-      classe:  dati.classe,
-      data:    new Date().toLocaleDateString('it-IT'),
-      stato:   'aperta',
+      codice:   codice,
+      tipo:     'caa',
+      titolo:   dati.titolo,
+      alunno:   dati.alunno,
+      classe:   dati.classe,
+      data:     new Date().toLocaleDateString('it-IT'),
+      stato:    'aperta',
       studenti: 0,
       datiCAA:  dati
     });
     localStorage.setItem('sessioni', JSON.stringify(sessioni));
 
-    const link = `${location.origin}${location.pathname}?sessione=${codice}`;
-    const out  = document.getElementById('caa-link-out');
+    var link = location.origin + location.pathname + '?sessione=' + codice;
     document.getElementById('caa-link-text').value = link;
-    out.style.display = 'block';
-    navigator.clipboard.writeText(link).catch(() => {});
-    out.scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('caa-link-out').style.display = 'block';
+    navigator.clipboard.writeText(link).catch(function () {});
+    document.getElementById('caa-link-out').scrollIntoView({ behavior: 'smooth' });
   };
 
-  // ─── Vista studente ──────────────────────────────────────────
-  let _risposte = {};
-  let _datiCorrente = null;
+
+  // ──────────────────────────────────────────────────────────────
+  //  14. VISTA STUDENTE – avvio
+  // ──────────────────────────────────────────────────────────────
+  var _risposte     = {};
+  var _datiCorrente = null;
 
   window.avviaProvaCAA = async function (sessione) {
     _datiCorrente = sessione.datiCAA;
@@ -735,61 +922,62 @@
 
     document.getElementById('caa-s-titolo').textContent = _datiCorrente.titolo;
     document.getElementById('caa-s-alunno').textContent =
-      `👤 ${_datiCorrente.alunno} — ${_datiCorrente.classe}`;
+      '👤 ' + _datiCorrente.alunno + ' — ' + _datiCorrente.classe;
 
     if (typeof mostraVista === 'function') mostraVista('studente-caa');
 
-    const testoEl = document.getElementById('caa-s-testo-render');
-    testoEl.innerHTML =
-      '<div style="color:#f57f17;padding:20px;text-align:center;">⏳ Carico simboli…</div>';
+    var testoEl = document.getElementById('caa-s-testo-render');
+    testoEl.innerHTML = '<div style="color:#f57f17;padding:20px;text-align:center;">⏳ Carico simboli…</div>';
     await renderText(_datiCorrente.testo, testoEl, null);
 
-    const domEl = document.getElementById('caa-s-domande-render');
+    var domEl = document.getElementById('caa-s-domande-render');
     domEl.innerHTML = '';
-    const lCols = { A:'#2e7d32', B:'#c62828', C:'#1565c0', D:'#6a1b9a' };
 
-    for (const [qi, dom] of _datiCorrente.domande.entries()) {
-      const block = document.createElement('div');
+    for (var qi = 0; qi < _datiCorrente.domande.length; qi++) {
+      var dom   = _datiCorrente.domande[qi];
+      var block = document.createElement('div');
       block.className = 'caa-q-block';
 
-      const num = document.createElement('div');
+      var num = document.createElement('div');
       num.className = 'caa-q-num';
-      num.textContent = `Domanda ${qi + 1}`;
+      num.textContent = 'Domanda ' + (qi + 1);
       block.appendChild(num);
 
-      const qt = document.createElement('div');
+      var qt = document.createElement('div');
       qt.className = 'caa-q-testo';
       qt.textContent = dom.testo;
       block.appendChild(qt);
 
-      const opList = document.createElement('div');
+      var opList = document.createElement('div');
       opList.className = 'caa-opzioni-list';
 
-      for (const [oi, opz] of dom.opzioni.entries()) {
+      for (var oi = 0; oi < dom.opzioni.length; oi++) {
+        var opz = dom.opzioni[oi];
         if (!opz) continue;
-        const l = ['A','B','C','D'][oi];
-
-        const btn = document.createElement('div');
+        var l   = ['A','B','C','D'][oi];
+        var btn = document.createElement('div');
         btn.className = 'caa-opzione';
         btn.dataset.qi   = qi;
         btn.dataset.lett = l;
 
-        const ltEl = document.createElement('span');
-        ltEl.className = `opz-lt ${l}`;
+        var ltEl = document.createElement('span');
+        ltEl.className = 'opz-lt ' + l;
         ltEl.textContent = l;
         btn.appendChild(ltEl);
 
-        const body = document.createElement('div');
+        var body = document.createElement('div');
         body.className = 'opz-body';
         await renderText(opz, body, null, true);
         btn.appendChild(body);
 
-        btn.onclick = () => {
-          document.querySelectorAll(`.caa-opzione[data-qi="${qi}"]`)
-            .forEach(el => el.classList.remove('sel'));
-          btn.classList.add('sel');
-          _risposte[qi] = l;
-        };
+        (function (qiCopy, btnCopy, lCopy) {
+          btnCopy.onclick = function () {
+            document.querySelectorAll('.caa-opzione[data-qi="' + qiCopy + '"]')
+              .forEach(function (el) { el.classList.remove('sel'); });
+            btnCopy.classList.add('sel');
+            _risposte[qiCopy] = lCopy;
+          };
+        })(qi, btn, l);
 
         opList.appendChild(btn);
       }
@@ -799,27 +987,35 @@
     }
   };
 
-  // ─── Consegna studente ───────────────────────────────────────
+
+  // ──────────────────────────────────────────────────────────────
+  //  15. CONSEGNA STUDENTE
+  // ──────────────────────────────────────────────────────────────
   window.caaConsegna = function () {
     if (!_datiCorrente) return;
-    const dom      = _datiCorrente.domande;
-    const corrette = dom.filter((d, i) => _risposte[i] === d.corretta).length;
-    const pct      = dom.length > 0 ? Math.round(corrette / dom.length * 100) : 100;
+    var dom      = _datiCorrente.domande;
+    var corrette = dom.filter(function (d, i) { return _risposte[i] === d.corretta; }).length;
+    var pct      = dom.length > 0 ? Math.round(corrette / dom.length * 100) : 100;
 
-    const ris = JSON.parse(localStorage.getItem('risultati_caa') || '[]');
+    var ris = JSON.parse(localStorage.getItem('risultati_caa') || '[]');
     ris.push({
       alunno:   _datiCorrente.alunno,
       classe:   _datiCorrente.classe,
       titolo:   _datiCorrente.titolo,
       data:     new Date().toLocaleDateString('it-IT'),
-      corrette, totale: dom.length, pct, risposte: _risposte
+      corrette: corrette,
+      totale:   dom.length,
+      pct:      pct,
+      risposte: _risposte
     });
     localStorage.setItem('risultati_caa', JSON.stringify(ris));
 
-    alert(`✅ Prova consegnata!\n\n` +
-          `Risposte corrette: ${corrette} su ${dom.length}\n` +
-          `Punteggio: ${pct}%\n\n` +
-          `Bravo, ${_datiCorrente.alunno}! 🌟`);
+    alert(
+      '✅ Prova consegnata!\n\n' +
+      'Risposte corrette: ' + corrette + ' su ' + dom.length + '\n' +
+      'Punteggio: ' + pct + '%\n\n' +
+      'Bravo, ' + _datiCorrente.alunno + '! 🌟'
+    );
   };
 
-})(); // fine IIFE
+})();
