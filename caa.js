@@ -708,7 +708,7 @@
           'Authorization': 'Bearer ' + apiKey
         },
         body: JSON.stringify({
-          model:       'llama3-70b-8192',
+          model:       'llama-3.3-70b-versatile',
           temperature: 0.4,
           max_tokens:  1800,
           messages: [
