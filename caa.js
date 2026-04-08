@@ -197,7 +197,51 @@
 '  .caa-s-dom-col{padding-bottom:20px;}',
 '  .caa-audio-bar{padding:6px 10px;gap:6px;}',
 '  .caa-tts-btn{padding:5px 10px;font-size:.78rem;}',
-'}'
+'  .caa-tic-bar{gap:4px;}',
+'  .caa-tic-btn{padding:4px 7px;font-size:.72rem;}',
+'}',
+
+/* ─── TIC panel nella vista studente ─────────────────────── */
+'.caa-tic-bar{display:flex;align-items:center;gap:6px;margin-left:auto;flex-shrink:0;}',
+'.caa-tic-btn{',
+'  padding:5px 11px;border-radius:7px;border:1.5px solid #ffcc80;',
+'  background:#fff;cursor:pointer;font-size:.8rem;font-weight:700;',
+'  color:#e65100;transition:all .15s;font-family:inherit;white-space:nowrap;}',
+'.caa-tic-btn.active{background:#fb8c00;color:#fff;border-color:#fb8c00;}',
+'.caa-tic-btn:hover:not(.active){background:#fff3e0;}',
+
+/* TIC grande */
+'#vista-studente-caa.tic-grande .caa-box img.caa-sym{width:96px!important;height:96px!important;}',
+'#vista-studente-caa.tic-grande .caa-box{min-width:82px!important;max-width:120px!important;}',
+'#vista-studente-caa.tic-grande .caa-lbl{font-size:13px!important;}',
+'#vista-studente-caa.tic-grande .caa-stopword{font-size:18px!important;}',
+'#vista-studente-caa.tic-grande .caa-q-testo{font-size:1.1rem!important;line-height:1.7!important;}',
+
+/* TIC alto contrasto */
+'#vista-studente-caa.tic-contrasto{background:#000!important;}',
+'#vista-studente-caa.tic-contrasto .caa-s-hdr{background:#111!important;border-color:#444!important;}',
+'#vista-studente-caa.tic-contrasto .caa-audio-bar{background:#111!important;border-color:#444!important;}',
+'#vista-studente-caa.tic-contrasto .caa-s-text-col{background:#111!important;border-color:#444!important;}',
+'#vista-studente-caa.tic-contrasto .caa-s-dom-col{background:#1a1a1a!important;}',
+'#vista-studente-caa.tic-contrasto .caa-box{background:#222!important;border-color:#fff!important;}',
+'#vista-studente-caa.tic-contrasto .caa-box .caa-lbl{color:#fff!important;}',
+'#vista-studente-caa.tic-contrasto .caa-stopword{color:#ffe082!important;}',
+'#vista-studente-caa.tic-contrasto .caa-q-block{background:#222!important;border-color:#555!important;}',
+'#vista-studente-caa.tic-contrasto .caa-q-num{color:#ffd54f!important;}',
+'#vista-studente-caa.tic-contrasto .caa-q-testo,.caa-tic-contrasto .caa-q-testo *{color:#fff!important;}',
+'#vista-studente-caa.tic-contrasto .caa-opzione{background:#222!important;border-color:#666!important;}',
+'#vista-studente-caa.tic-contrasto .caa-opzione:hover{background:#333!important;}',
+'#vista-studente-caa.tic-contrasto .caa-opzione.sel{background:#4a2000!important;border-color:#fb8c00!important;}',
+'#vista-studente-caa.tic-contrasto .caa-s-col-hdr{color:#ffd54f!important;border-color:#555!important;background:#111!important;}',
+'#vista-studente-caa.tic-contrasto .caa-s-title{color:#ffd54f!important;}',
+'#vista-studente-caa.tic-contrasto .caa-s-sub{color:#aaa!important;}',
+'#vista-studente-caa.tic-contrasto .caa-tts-lbl{color:#ffd54f!important;}',
+
+/* TIC interlinea */
+'#vista-studente-caa.tic-interlinea .caa-flow{gap:16px 20px!important;}',
+'#vista-studente-caa.tic-interlinea .caa-opzioni-list{gap:12px!important;}',
+'#vista-studente-caa.tic-interlinea .caa-q-block{margin-bottom:32px!important;}',
+'#vista-studente-caa.tic-interlinea .caa-opzione{padding:12px 14px!important;}'
   ].join('');
 
   var styleEl = document.createElement('style');
@@ -274,7 +318,7 @@
   //  3. HTML – VISTA STUDENTE (split layout + audio bar)
   // ──────────────────────────────────────────────────────────────
   var HTML_STUDENTE = [
-'<div id="vista-studente-caa">',
+'<div id="vista-studente-caa" style="display:none">',
 
 // Header
 '  <div class="caa-s-hdr">',
@@ -282,6 +326,11 @@
 '    <div>',
 '      <div class="caa-s-title" id="caa-s-titolo">Prova CAA</div>',
 '      <div class="caa-s-sub" id="caa-s-alunno"></div>',
+'    </div>',
+'    <div class="caa-tic-bar">',
+'      <button class="caa-tic-btn" id="caa-tic-grande"     onclick="caaTIC(\'grande\')"     title="Testo grande">🔍 A+</button>',
+'      <button class="caa-tic-btn" id="caa-tic-contrasto"  onclick="caaTIC(\'contrasto\')"  title="Alto contrasto">◑</button>',
+'      <button class="caa-tic-btn" id="caa-tic-interlinea" onclick="caaTIC(\'interlinea\')" title="Spaziatura aumentata">↔</button>',
 '    </div>',
 '  </div>',
 
@@ -333,29 +382,45 @@
   //  4. CARD nel pannello docente
   // ──────────────────────────────────────────────────────────────
   function injectCard () {
+    // Evita doppia iniezione
+    if (document.getElementById('caa-card-btn')) return;
+
+    // 1. Cerca il grid delle prove adattate con selettori specifici
     var targets = ['#prove-adattate-grid','#griglia-prove','.prove-grid','.adattate-grid'];
     var grid = null;
-    for (var i = 0; i < targets.length; i++) { grid = document.querySelector(targets[i]); if (grid) break; }
-    if (!grid) {
-      var cards = document.querySelectorAll('[onclick*="mostraVista"]');
-      if (cards.length) grid = cards[cards.length - 1].parentElement;
+    for (var i = 0; i < targets.length; i++) {
+      grid = document.querySelector(targets[i]);
+      if (grid) break;
     }
+
+    // 2. Fallback sicuro: SOLO dentro #vista-docente (mai nel body generico)
     if (!grid) {
+      var vistaDoc = document.getElementById('vista-docente');
+      if (!vistaDoc) return; // panel docente non ancora nel DOM – riprova dopo
       grid = document.createElement('div');
-      grid.style.marginTop = '16px';
-      (document.getElementById('vista-docente') || document.body).appendChild(grid);
+      grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-top:16px;';
+      vistaDoc.appendChild(grid);
     }
+
     var card = document.createElement('div');
+    card.id        = 'caa-card-btn';
     card.className = 'caa-card-grid';
-    card.onclick = function () { window.caaApriVista(); };
+    card.onclick   = function () { window.caaApriVista(); };
     card.innerHTML = '<div class="ci">🗣️</div><div class="ct">Prova CAA</div><div class="cd">Simboli ARASAAC per comunicazione aumentativa</div>';
     grid.appendChild(card);
   }
 
+  // Tenta subito; se il pannello docente non è ancora nel DOM,
+  // ci riprova al load (quando mostraVista avrà già aggiunto tutto)
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', injectCard);
+    document.addEventListener('DOMContentLoaded', function () {
+      injectCard();
+      // Secondo tentativo al load completo (alcuni pannelli sono iniettati dinamicamente)
+      window.addEventListener('load', injectCard);
+    });
   } else {
     injectCard();
+    window.addEventListener('load', injectCard);
   }
 
 
@@ -579,20 +644,19 @@
   //  8. TTS ENGINE con sentence highlighting
   // ──────────────────────────────────────────────────────────────
   var _tts = {
-    sentences:   [],   // array di frasi (stringhe)
-    sentenceEls: [],   // array di array di DOM elements
-    cur:         -1,   // frase corrente
+    sentences:   [],
+    sentenceEls: [],
+    cur:         -1,
     playing:     false,
     paused:      false,
     speed:       0.85,
     voice:       null,
     utt:         null,
-    keepAlive:   null
+    ignoreEnd:   false   // ← v4: evita che onend/onerror sparino dopo un cancel volontario
   };
 
-  // Trovare la voce italiana migliore
+  // Trovare la voce italiana migliore (senza cache: ricalcola sempre, evita voci stantie)
   function ttsGetVoce () {
-    if (_tts.voice) return _tts.voice;
     var voci = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
     var priorita = [
       function (v) { return v.lang === 'it-IT' && /natural|neural|premium|online/i.test(v.name); },
@@ -603,14 +667,14 @@
     ];
     for (var i = 0; i < priorita.length; i++) {
       var v = voci.find(priorita[i]);
-      if (v) { _tts.voice = v; return v; }
+      if (v) return v;
     }
     return voci[0] || null;
   }
 
   if (window.speechSynthesis) {
     window.speechSynthesis.getVoices();
-    window.speechSynthesis.onvoiceschanged = function () { _tts.voice = null; ttsGetVoce(); };
+    window.speechSynthesis.onvoiceschanged = function () { ttsGetVoce(); };
   }
 
   // Divide testo in frasi
@@ -693,16 +757,9 @@
     }
   }
 
-  // Keep-alive Chrome (evita stop dopo ~15s)
-  function ttsStartKeepAlive () {
-    ttsStopKeepAlive();
-    _tts.keepAlive = setInterval(function () {
-      if (!window.speechSynthesis.speaking || _tts.paused) return;
-      window.speechSynthesis.pause();
-      window.speechSynthesis.resume();
-    }, 12000);
-  }
-  function ttsStopKeepAlive () { clearInterval(_tts.keepAlive); }
+  // Keep-alive RIMOSSO in v4: leggendo frase-per-frase ogni utterance è breve (~5s)
+  // quindi il bug Chrome da 15s non si applica. Il pause()/resume() del keepAlive
+  // era la causa principale dell'audio metallico/strozzato.
 
   // Legge la frase corrente
   function ttsReadCurrent () {
@@ -711,33 +768,53 @@
       return;
     }
     if (!window.speechSynthesis) return;
+
+    // v4 FIX: segnala che il cancel seguente è intenzionale
+    // In Chrome, speechSynthesis.cancel() fa sparare onend/onerror
+    // sull'utterance precedente. Con ignoreEnd=true li ignoriamo.
+    _tts.ignoreEnd = true;
     window.speechSynthesis.cancel();
 
     var frase = _tts.sentences[_tts.cur];
     ttsHighlight(_tts.cur);
     ttsUpdateUI();
 
-    var utt = new SpeechSynthesisUtterance(frase);
-    utt.lang  = 'it-IT';
-    utt.rate  = _tts.speed;
-    utt.pitch = 1;
-    var v = ttsGetVoce(); if (v) utt.voice = v;
+    // v4 FIX: piccolo delay (80ms) per permettere al cancel di completarsi
+    // prima di creare il nuovo SpeechSynthesisUtterance
+    setTimeout(function () {
+      if (!_tts.playing || _tts.paused) return; // fermato/messo in pausa nel frattempo
 
-    utt.onstart = function () { ttsStartKeepAlive(); };
-    utt.onend   = function () {
-      if (!_tts.playing) return; // fermato manualmente
-      _tts.cur++;
-      if (_tts.cur < _tts.sentences.length) {
-        ttsReadCurrent();
-      } else {
-        ttsStop(); // fine testo
-      }
-    };
-    utt.onerror = function () { ttsStop(); };
+      _tts.ignoreEnd = false;
 
-    _tts.utt = utt;
-    window.speechSynthesis.speak(utt);
-    ttsUpdateUI();
+      var utt = new SpeechSynthesisUtterance(frase);
+      utt.lang  = 'it-IT';
+      utt.rate  = _tts.speed;
+      utt.pitch = 1;
+      var v = ttsGetVoce();
+      if (v) utt.voice = v;
+
+      utt.onend = function () {
+        if (_tts.ignoreEnd) return;        // cancel volontario → non avanzare
+        if (!_tts.playing || _tts.paused) return;
+        _tts.cur++;
+        if (_tts.cur < _tts.sentences.length) {
+          ttsReadCurrent();
+        } else {
+          ttsStop(); // fine testo
+        }
+      };
+
+      utt.onerror = function (e) {
+        // Ignora errori dovuti al nostro cancel intenzionale
+        if (_tts.ignoreEnd) return;
+        if (e && (e.error === 'interrupted' || e.error === 'canceled')) return;
+        ttsStop();
+      };
+
+      _tts.utt = utt;
+      window.speechSynthesis.speak(utt);
+      ttsUpdateUI();
+    }, 80);
   }
 
   // Avvia / pausa / riprendi
@@ -745,20 +822,21 @@
     if (!window.speechSynthesis) return;
 
     if (_tts.playing && !_tts.paused) {
-      // Pausa
-      window.speechSynthesis.pause();
-      _tts.paused = true;
-      ttsStopKeepAlive();
+      // v4 FIX: usa cancel+ricorda posizione invece di speechSynthesis.pause()
+      // pause() è inaffidabile su molti browser e causa glitch audio.
+      // Ricordiamo _tts.cur per riprendere dalla stessa frase.
+      _tts.paused    = true;
+      _tts.ignoreEnd = true;
+      window.speechSynthesis.cancel();
       ttsUpdateUI();
       return;
     }
 
     if (_tts.paused) {
-      // Riprendi
-      window.speechSynthesis.resume();
-      _tts.paused = false;
-      ttsStartKeepAlive();
-      ttsUpdateUI();
+      // Riprendi dalla frase corrente (quella interrotta)
+      _tts.paused    = false;
+      _tts.ignoreEnd = false;
+      ttsReadCurrent();
       return;
     }
 
@@ -773,7 +851,9 @@
   // Frase precedente
   window.caaTTSPrev = function () {
     if (!_tts.playing && !_tts.paused) return;
-    _tts.paused = false;
+    _tts.playing   = true;
+    _tts.paused    = false;
+    _tts.ignoreEnd = false;
     _tts.cur = Math.max(0, _tts.cur - 1);
     ttsReadCurrent();
   };
@@ -781,29 +861,33 @@
   // Frase successiva
   window.caaTTSNext = function () {
     if (!_tts.playing && !_tts.paused) return;
-    _tts.paused = false;
+    _tts.playing   = true;
+    _tts.paused    = false;
+    _tts.ignoreEnd = false;
     _tts.cur = Math.min(_tts.sentences.length - 1, _tts.cur + 1);
     ttsReadCurrent();
   };
 
-  // Cambia velocità
+  // Cambia velocità (applicata dalla prossima frase)
   window.caaTTSSetSpeed = function (v) {
     _tts.speed = parseFloat(v);
+    // Se sta leggendo, riavvia la frase corrente con la nuova velocità
     if (_tts.playing && !_tts.paused) {
-      // Riavvia la frase corrente con la nuova velocità
       ttsReadCurrent();
     }
   };
 
   // Stop completo
   function ttsStop () {
+    _tts.ignoreEnd = true;
     if (window.speechSynthesis) window.speechSynthesis.cancel();
     _tts.playing = false;
     _tts.paused  = false;
     _tts.cur     = -1;
-    ttsStopKeepAlive();
     ttsHighlight(-1); // rimuovi highlight
     ttsUpdateUI();
+    // Resetta ignoreEnd dopo che il cancel si è propagato
+    setTimeout(function () { _tts.ignoreEnd = false; }, 200);
   }
   window.caaTTSStop = ttsStop;
 
@@ -813,7 +897,6 @@
     _tts.sentences   = ttsSplitSentences(testo);
     _tts.sentenceEls = ttsMapSentences(_tts.sentences, wordEls);
     ttsUpdateUI();
-    // Abilita i pulsanti
     var pb = document.getElementById('caa-tts-play');
     if (pb) pb.disabled = false;
   }
@@ -1140,6 +1223,14 @@
     _datiCorrente = sessione.datiCAA;
     _risposte     = {};
 
+    // Reset stato TIC (se prova riaperta)
+    ['grande','contrasto','interlinea'].forEach(function (t) {
+      var vistaCaa = document.getElementById('vista-studente-caa');
+      if (vistaCaa) vistaCaa.classList.remove('tic-' + t);
+      var btn = document.getElementById('caa-tic-' + t);
+      if (btn) btn.classList.remove('active');
+    });
+
     // Nascondi TUTTE le schermate di index.html e attiva la modalità full-screen CAA
     ['scr-acc','scr-istr','scr-test','scr-ris','scr-doc','scr-benvenuto'].forEach(function (id) {
       var el = document.getElementById(id);
@@ -1151,7 +1242,6 @@
     document.body.classList.add('caa-student-mode');
     var caaEl = document.getElementById('vista-studente-caa');
     if (!caaEl) return;
-    // La visualizzazione è gestita via body.caa-student-mode + CSS
 
     // Popola header
     document.getElementById('caa-s-titolo').textContent = _datiCorrente.titolo;
@@ -1169,7 +1259,7 @@
     var wordEls = await renderText(_datiCorrente.testo, testoEl, null);
     ttsInit(_datiCorrente.testo, wordEls);
 
-    // Render domande
+    // Render domande (v4: anche il testo della domanda è in CAA)
     var domEl = document.getElementById('caa-s-domande-render');
     domEl.innerHTML = '';
 
@@ -1183,10 +1273,11 @@
       num.textContent = 'Domanda ' + (qi + 1) + ' di ' + _datiCorrente.domande.length;
       block.appendChild(num);
 
-      var qt = document.createElement('div');
-      qt.className = 'caa-q-testo';
-      qt.textContent = dom.testo;
-      block.appendChild(qt);
+      // v4 FIX: testo domanda in CAA (pictogrammi sopra le parole chiave)
+      var qtWrap = document.createElement('div');
+      qtWrap.className = 'caa-q-testo';
+      await renderText(dom.testo, qtWrap, null, true); // small=true per compattezza
+      block.appendChild(qtWrap);
 
       var opList = document.createElement('div');
       opList.className = 'caa-opzioni-list';
@@ -1258,6 +1349,17 @@
       'Punteggio: ' + pct + '%\n\n' +
       'Bravo, ' + _datiCorrente.alunno + '! 🌟'
     );
+  };
+
+  // ──────────────────────────────────────────────────────────────
+  //  17. TIC – Tasto Ingrandimento / Contrasto / Interlinea
+  // ──────────────────────────────────────────────────────────────
+  window.caaTIC = function (nome) {
+    var vistaCaa = document.getElementById('vista-studente-caa');
+    if (!vistaCaa) return;
+    var attivo = vistaCaa.classList.toggle('tic-' + nome);
+    var btn    = document.getElementById('caa-tic-' + nome);
+    if (btn) btn.classList.toggle('active', attivo);
   };
 
 })();
