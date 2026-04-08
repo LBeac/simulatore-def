@@ -167,7 +167,7 @@ COMP("6_18",1,"lessico_contesto","Completa le frasi scegliendo la parola corrett
 ["fisso","sociale","sostenibile","variabile","individuale","costoso"]),
 
 SM("6_19",1,"lessico","Quale delle seguenti parole appartiene alla famiglia di 'gastronomia'?",
-["Gastroenterico","Gastronomo","Gastropode","Gastronomiche – tutte e tre"],3),
+["Gastroenterico","Gastronomo","Gastropode","Gastrotecnica"],1),
 
 COL("6_20",1,"lessico","Collega ogni parola con il suo significato nel contesto dei testi.",
 ["stagionalità","ultraprocessato","conviviale","paradosso"],
@@ -181,7 +181,7 @@ SM("6_21",1,"lessico","'Salutistico' (ultimo paragrafo del testo B) significa:",
  "Di origine medica o farmaceutica."],1),
 
 SM("6_22",1,"lessico","Quale prefisso in 'ultraprocessato' indica eccesso o superamento?",
-["Pro-","Ultra-","Extra- (stesso significato di ultra-)","Sia ultra- che extra- sono corretti"],3),
+["Pro-","Ultra-","Sub-","Dis-"],1),
 
 T("6_t4",2,"SEZIONE C – RIFLESSIONE SULLA LINGUA","",""),
 
@@ -334,7 +334,7 @@ SM("7_7",0,"lessico_contesto","'Inerte' (non nel testo, ma ricavabile dal contes
 VF("7_8",0,"struttura_testo","Indica se le seguenti caratteristiche appartengono ad Alfonso (A), al signor Maller (M) o a entrambi (E).",
 [{t:"Lavora in una banca di Trieste. (Alfonso)",ok:true},
  {t:"Preferisce la precisione all'intelligenza astratta. (Maller)",ok:true},
- {t:"Riconosce un buon lavoro quando lo vede. (Maller)",ok:true},
+ {t:"Ritiene che l'intelligenza sia più importante della precisione. (Maller)",ok:false},
  {t:"Ha difficoltà a tradurre i pensieri in azioni concrete. (Alfonso)",ok:true}]),
 
 AP("7_9",0,"comprensione_globale","Descrivi la trasformazione di Alfonso nel corso del testo. Come inizia e come finisce? Cosa capisce alla fine?",
