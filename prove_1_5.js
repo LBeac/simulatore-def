@@ -328,7 +328,7 @@ SM("2_6",0,"struttura_testo","Il brano è narrato in prima persona. Quale effett
  "Indica che il racconto è autobiografico al 100%.",
  "Rende la storia più facile da leggere."],1),
 
-SM("2_7",0,"lessico_contesto","Nel testo, 'ombra' (quinta strofa) viene usata in senso:",
+SM("2_7",0,"lessico_contesto","Nel testo, 'ombra' (quinto paragrafo) viene usata in senso:",
 ["Letterale: il protagonista cammina sempre in zone d'ombra.",
  "Figurato: indica qualcuno che ha perso consistenza, che non esiste più pienamente.",
  "Metereologico: si riferisce al tempo nuvoloso.",
@@ -448,7 +448,7 @@ VF("2_24",2,"morfologia","Indica la categoria grammaticale delle parole sottolin
  {t:"'la mattina' è un complemento di specificazione.",ok:false}]),
 
 SM("2_25",2,"sintassi","In 'Togliere il nome a un uomo è come togliergli il respiro', la proposizione principale è:",
-["'Togliere il nome a un uomo'","'è come togliergli il respiro'","'Togliere il nome a un uomo è'","L'intera frase è una sola proposizione semplice."],0),
+["'Togliere il nome a un uomo'","'è come togliergli il respiro'","'Togliere il nome a un uomo è'","L'intera frase è una sola proposizione semplice."],2),
 
 AP("2_26",2,"sintassi","Nella frase 'Capii allora che la libertà senza identità non è libertà', individua la proposizione principale e la proposizione subordinata e indica di che tipo è quest'ultima.",
 ["principale capii subordinata oggettiva completiva",
@@ -464,10 +464,11 @@ AP("2_26",2,"sintassi","Nella frase 'Capii allora che la libertà senza identit�
 SM("2_27",2,"morfologia","'Maritato' è il participio passato del verbo 'maritare'. Quale significato ha qui?",
 ["Partito per un viaggio.","Che si è sposato.","Che ha trovato lavoro.","Che è tornato a casa."],1),
 
-COMP("2_28",2,"morfologia","Volgi le seguenti frasi dalla forma attiva alla forma passiva.",
-[{prima:"Il notaro Romitelli ",dopo:" sempre Mattia Pascal. (sogg. → il notaro Romitelli)",ok:0},
- {prima:"Tutti ",dopo:" il protagonista 'il fu Mattia Pascal'. (sogg. → tutti)",ok:1}],
-["chiamava sempre Mattia Pascal → Mattia Pascal era sempre chiamato dal notaro Romitelli","chiamavano il protagonista → il protagonista era chiamato da tutti","diceva → veniva detto","vedevano → veniva visto"]),
+COMP("2_28",2,"morfologia","Completa le frasi volgendo il verbo alla forma passiva (scegli dal riquadro).",
+[{prima:"Il notaro Romitelli ",dopo:" sempre come 'Mattia Pascal' da tutti.",ok:0},
+ {prima:"Tutti i giorni egli ",dopo:" da quella vita vuota.",ok:1},
+ {prima:"La parola 'libertà' ",dopo:" spesso senza rifletterci.",ok:2}],
+["era chiamato","era consumato","viene usata","chiamava","consumava","usa"]),
 
 SM("2_29",2,"punteggiatura","I due punti nella frase 'Ogni giorno era uguale all'altro: mi alzavo la mattina...' introducono:",
 ["Un elenco che specifica il concetto precedente.","Una citazione diretta.","Una domanda retorica.","Una spiegazione causale."],0),
@@ -673,8 +674,8 @@ VF("3_24",2,"morfologia","Per ognuna delle seguenti affermazioni sulla categoria
  {t:"'pericolosa' (nel testo A) è un aggettivo.",ok:true},
  {t:"'deliberatamente' (nel testo B) è un avverbio.",ok:true}]),
 
-SM("3_25",2,"sintassi","In 'Ci voleva qualcuno di coraggio, di sveltezza e di giudizio', i tre complementi di qualità sono uniti da:",
-["Asindeto.","Polisindeto.","Coordinazione con 'oppure'.","Subordinazione."],1),
+SM("3_25",2,"sintassi","In 'Ci voleva qualcuno di coraggio, di sveltezza e di giudizio', i tre complementi di qualità sono collegati come?",
+["Asindeto (virgola tra i primi due, 'e' prima dell'ultimo).","Polisindeto (congiunzione ripetuta prima di ogni elemento).","Coordinazione con 'oppure'.","Subordinazione."],0),
 
 AP("3_26",2,"sintassi","Analizza la struttura della frase 'Il tamburino uscì dall'acqua, bianco come un morto, con la ferita d'una baionetta nel fianco, e a stento si reggeva in piedi'. Quante proposizioni contiene? Di che tipo sono?",
 ["due proposizioni coordinate principali",
@@ -763,7 +764,7 @@ SM("4_2",0,"comprensione_locale","Perché Sofia inizia a fare domande alla nonna
  "Perché la nonna glielo aveva chiesto."],2),
 
 VF("4_3",0,"comprensione_locale","Indica se le seguenti affermazioni sono vere (V) o false (F) in base al testo.",
-[{t:"La nonna chiama Sofia con il nome di sua sorella.",ok:false},
+[{t:"La nonna chiama Sofia con il nome di sua sorella.",ok:true},
  {t:"Sofia spiega subito ai suoi genitori del quaderno azzurro.",ok:false},
  {t:"Il medico dice che l'Alzheimer può essere rallentata ma non guarita.",ok:true},
  {t:"La nonna risponde volentieri alle piccole domande di Sofia.",ok:true},
@@ -960,11 +961,11 @@ SM("4_32",2,"sintassi","'Non grandi domande sulla vita, ma piccole' – quale el
  "Il verbo 'fare'.",
  "Il pronome 'quelle'."],1),
 
-SM("4_33",2,"ortografia","Quale delle seguenti frasi è scritta correttamente?",
-["La nonna non si accorgeva di niente; la malattia avanzava.",
- "La nonna non si accorgeva di niente, la malattia avanzava.",
- "La nonna non si accorgeva di niente: la malattia avanzava.",
- "Tutte e tre le forme sono corrette."],3),
+SM("4_33",2,"punteggiatura","Quale delle seguenti frasi è scritta correttamente tra due proposizioni principali?",
+["La nonna non si accorgeva di niente, la malattia avanzava.",
+ "La nonna non si accorgeva di niente; la malattia avanzava.",
+ "La nonna non si accorgeva di niente; ma la malattia, avanzava.",
+ "La nonna non si accorgeva di niente: ma la malattia avanzava."],1),
 
 SM("4_34",2,"morfologia","In 'Come ti chiami?', il verbo 'ti chiami' è alla forma:",
 ["Passiva.","Impersonale.","Riflessiva.","Attiva con oggetto diretto."],2),
