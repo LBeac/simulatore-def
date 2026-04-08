@@ -677,7 +677,7 @@ tr:hover td{background:var(--grigio-ch)}
       <button class="btn-acc" onclick="accDoc()">Accedi al pannello →</button>
       <div style="text-align:center;margin-top:10px">
         <button onclick="resetPW()" style="background:none;border:none;color:#aaa;font-size:11px;cursor:pointer;text-decoration:underline;font-family:var(--font)">
-          Password dimenticata? Ripristina default
+          Password dimenticata? Contatta l'amministratore
         </button>
       </div>
     </div>
@@ -2173,6 +2173,40 @@ const PW_DEFAULT = 'invalsi2025!';
 function getPW_doc(){ return localStorage.getItem('inv_pw_doc') || PW_DEFAULT; }
 function setPW_doc(pw){ localStorage.setItem('inv_pw_doc', pw); }
 
+// ── PROTEZIONE BRUTE FORCE ──────────────────────────────────────
+const BF_KEY = 'inv_bf';
+const BF_MAX = 5;       // tentativi massimi
+const BF_WAIT = 300000; // blocco 5 minuti (ms)
+
+function bfCheck() {
+  const raw = localStorage.getItem(BF_KEY);
+  if (!raw) return true;
+  const bf = JSON.parse(raw);
+  if (bf.locked && Date.now() < bf.until) return false;
+  if (bf.locked && Date.now() >= bf.until) {
+    localStorage.removeItem(BF_KEY); return true;
+  }
+  return true;
+}
+function bfFail() {
+  const raw = localStorage.getItem(BF_KEY);
+  const bf = raw ? JSON.parse(raw) : { attempts: 0, locked: false, until: 0 };
+  bf.attempts = (bf.attempts || 0) + 1;
+  if (bf.attempts >= BF_MAX) {
+    bf.locked = true;
+    bf.until = Date.now() + BF_WAIT;
+  }
+  localStorage.setItem(BF_KEY, JSON.stringify(bf));
+  return bf;
+}
+function bfSuccess() { localStorage.removeItem(BF_KEY); }
+function bfMinutesLeft() {
+  const raw = localStorage.getItem(BF_KEY);
+  if (!raw) return 0;
+  const bf = JSON.parse(raw);
+  return bf.locked ? Math.ceil((bf.until - Date.now()) / 60000) : 0;
+}
+
 // Mantieni getPW per compatibilità (non più usata per accesso)
 function getPW(cl){ return getPW_doc(); }
 function setPW(cl,pw){ setPW_doc(pw); }
@@ -2254,31 +2288,35 @@ function accStud(){
 }
 
 function accDoc(){
+  // Controllo brute force
+  if (!bfCheck()) {
+    showErr('err-acc', `⚠️ Troppi tentativi errati. Riprova tra ${bfMinutesLeft()} minuto/i.`);
+    return;
+  }
   const pw = $('pw-doc').value;
   const pwSalvata = getPW_doc();
   if(pwSalvata !== pw){
-    const hint = localStorage.getItem('inv_pw_doc') ? '— hai una password personalizzata su questo browser, usa "Ripristina default"' : '— prova: invalsi2025!';
+    const bf = bfFail();
+    const rimasti = BF_MAX - bf.attempts;
+    const hint = rimasti > 0 ? `— ${rimasti} tentativ${rimasti===1?'o':'i'} rimast${rimasti===1?'o':'i'}` : '— accesso bloccato per 5 minuti';
     showErr('err-acc',`Password errata ${hint}`);
     return;
   }
+  bfSuccess();
   // Controlla che le prove siano caricate
   if(typeof PROVE === 'undefined' || !PROVE || !PROVE.length){
     showErr('err-acc','⏳ Pagina ancora in caricamento. Attendi 2 secondi e riprova.');
     return;
   }
-  S.classe = '3A';
-  if($('doc-cl-lbl')) $('doc-cl-lbl').textContent = 'Classe: 3A';
+  S.classe = 'ALL';
+  if($('doc-cl-lbl')) $('doc-cl-lbl').textContent = 'Tutte le classi';
   hideErr('err-acc');
   popolaDocente();
   mostraScr('scr-doc');
 }
 
 function resetPW(){
-  if(!confirm('Ripristinare la password al valore default "invalsi2025!"?')) return;
-  localStorage.removeItem('inv_pw_doc');
-  $('pw-doc').value = 'invalsi2025!';
-  hideErr('err-acc');
-  alert('✅ Password ripristinata a "invalsi2025!". Ora premi Accedi.');
+  alert('Per recuperare l\'accesso al pannello docente, contatta il responsabile della piattaforma o rimuovi manualmente la voce "inv_pw_doc" dal localStorage del browser.');
 }
 
 function logout(){
@@ -4658,7 +4696,7 @@ function creaLinkDisAI(){
   saveDB();
   try{
     fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({action:'salvaSessione',sessione:sessKey,classe:classe,provaId:'custom',provaTitolo:prova.titolo,data:new Date().toISOString()})
+      body:JSON.stringify({token:SCRIPT_TOKEN,action:'salvaSessione',sessione:sessKey,classe:classe,provaId:'custom',provaTitolo:prova.titolo,data:new Date().toISOString()})
     }).catch(function(){});
   }catch(e){}
   var base=window.location.href.replace(/[^/]*$/,'')+'grado8_dis.html';
@@ -4796,6 +4834,7 @@ function salvaSessOnSheet(sessKey, sessData){
     method:'POST', mode:'no-cors',
     headers:{'Content-Type':'application/json'},
     body: JSON.stringify({
+      token: SCRIPT_TOKEN,
       action: 'salvaSessione',
       sessione: sessKey,
       classe: sessData.classe,
@@ -5610,12 +5649,14 @@ function cambiaClassePanel(cl){
 //  INVIO AUTOMATICO A GOOGLE SHEET
 // ══════════════════════════════════════════════════════
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyi3j1opanbfed0PuGITdHE4f8BHjPBwWEKuSubnKr4kJjvgfGIXZMUOTfEoXDBvRSu/exec';
+const SCRIPT_TOKEN = 'inv8_tk_2025'; // token condiviso con Apps Script per validare le richieste
 
 function inviaARisultatiSheet(entry){
   // Aggiunge il titolo della prova
   const payload = {
     ...entry,
     titolo: S.prova ? S.prova.titolo : '',
+    token: SCRIPT_TOKEN,
   };
   fetch(SCRIPT_URL, {
     method: 'POST',
