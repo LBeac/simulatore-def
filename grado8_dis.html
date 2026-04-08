@@ -235,6 +235,7 @@ body.tic-contrasto .opt{background:#222!important;color:#fff!important;border-co
 //  CONFIG
 // ══════════════════════════════════════════════════════════════
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyi3j1opanbfed0PuGITdHE4f8BHjPBwWEKuSubnKr4kJjvgfGIXZMUOTfEoXDBvRSu/exec';
+const SCRIPT_TOKEN = 'inv8_tk_2025';
 
 async function fetchConTimeout(url, ms){
   const ctrl = new AbortController();
@@ -771,7 +772,7 @@ function controlla(){
       }
     });
     fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({codice:NOME_STUD||'Alunno-dis',sessione:SESSIONE_KEY,
+      body:JSON.stringify({token:SCRIPT_TOKEN,codice:NOME_STUD||'Alunno-dis',sessione:SESSIONE_KEY,
         classe:CLASSE_STUD,totale:corr,su:tot,pct:pct,
         sezioni:[{c:0,t:0},{c:0,t:0},{c:0,t:0}],errori:errori,det:[],
         data:new Date().toISOString(),titolo:PROVA_ATTUALE.titolo,flag_dis:true})
