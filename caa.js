@@ -379,49 +379,139 @@
 
 
   // ──────────────────────────────────────────────────────────────
-  //  4. CARD nel pannello docente
+  //  4. TAB "Prove CAA" nel pannello docente
+  //     Cerca il tab "Per disabilità" per testo e aggiunge un
+  //     terzo tab "🗣️ Prove CAA" nello stesso contenitore.
   // ──────────────────────────────────────────────────────────────
-  function injectCard () {
-    // Evita doppia iniezione
-    if (document.getElementById('caa-card-btn')) return;
 
-    // 1. Cerca il grid delle prove adattate con selettori specifici
-    var targets = ['#prove-adattate-grid','#griglia-prove','.prove-grid','.adattate-grid'];
-    var grid = null;
-    for (var i = 0; i < targets.length; i++) {
-      grid = document.querySelector(targets[i]);
-      if (grid) break;
-    }
-
-    // 2. Fallback sicuro: SOLO dentro #vista-docente (mai nel body generico)
-    if (!grid) {
-      var vistaDoc = document.getElementById('vista-docente');
-      if (!vistaDoc) return; // panel docente non ancora nel DOM – riprova dopo
-      grid = document.createElement('div');
-      grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-top:16px;';
-      vistaDoc.appendChild(grid);
-    }
-
-    var card = document.createElement('div');
-    card.id        = 'caa-card-btn';
-    card.className = 'caa-card-grid';
-    card.onclick   = function () { window.caaApriVista(); };
-    card.innerHTML = '<div class="ci">🗣️</div><div class="ct">Prova CAA</div><div class="cd">Simboli ARASAAC per comunicazione aumentativa</div>';
-    grid.appendChild(card);
+  /* Aggiunge il CSS del tab-active una sola volta */
+  var _caaTabCSSInjected = false;
+  function _injectTabCSS () {
+    if (_caaTabCSSInjected) return;
+    _caaTabCSSInjected = true;
+    var s = document.createElement('style');
+    s.textContent = [
+      '#caa-tab-btn{',
+      '  background:linear-gradient(135deg,#fb8c00,#e65100)!important;',
+      '  color:#fff!important;border:none;cursor:pointer;',
+      '  font-weight:700;font-family:inherit;font-size:inherit;',
+      '  padding:inherit;border-radius:inherit;',
+      '  display:inline-flex;align-items:center;gap:6px;',
+      '  transition:opacity .15s;',
+      '}',
+      '#caa-tab-btn:hover{opacity:.88}',
+      '#caa-tab-btn.caa-tab-active{',
+      '  background:linear-gradient(135deg,#e65100,#bf360c)!important;',
+      '  box-shadow:inset 0 2px 6px rgba(0,0,0,.18)!important;',
+      '}'
+    ].join('');
+    document.head.appendChild(s);
   }
 
-  // Tenta subito; se il pannello docente non è ancora nel DOM,
-  // ci riprova al load (quando mostraVista avrà già aggiunto tutto)
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function () {
-      injectCard();
-      // Secondo tentativo al load completo (alcuni pannelli sono iniettati dinamicamente)
-      window.addEventListener('load', injectCard);
+  function injectCAATab () {
+    if (document.getElementById('caa-tab-btn')) return true; // già iniettato
+
+    // ── 1. Trova il pulsante "Per disabilità" cercando per testo ──
+    var disBtn = null;
+    var candidates = document.querySelectorAll('button,[role="tab"],[onclick]');
+    for (var ci = 0; ci < candidates.length; ci++) {
+      var el = candidates[ci];
+      if (/disabilit/i.test(el.textContent) &&
+          !el.id.startsWith('caa') &&
+          el.id !== 'caa-tab-btn') {
+        disBtn = el; break;
+      }
+    }
+    if (!disBtn) return false; // pannello non ancora nel DOM
+
+    _injectTabCSS();
+
+    var tabBar = disBtn.parentElement;
+
+    // ── 2. Individua il pannello di contenuto (primo sibling dopo il tabBar) ──
+    var pannello = null;
+    var sib = tabBar.nextElementSibling;
+    while (sib) {
+      // Salta eventuali elementi trascurabili (hr, script…)
+      if (!['SCRIPT','HR','STYLE','LINK'].includes(sib.tagName)) {
+        pannello = sib; break;
+      }
+      sib = sib.nextElementSibling;
+    }
+
+    // ── 3. Posiziona #vista-caa come fratello del pannello ──
+    var vistaCAA = document.getElementById('vista-caa');
+    if (vistaCAA) {
+      var dest = pannello ? pannello.parentElement : tabBar.parentElement;
+      var after = pannello ? pannello.nextSibling : null;
+      dest.insertBefore(vistaCAA, after || null);
+      vistaCAA.style.display = 'none';
+
+      // Nascondi il pulsante "Torna al pannello" — non ha senso in modalità tab
+      var backBtn = vistaCAA.querySelector('.caa-btn-back');
+      if (backBtn) backBtn.style.display = 'none';
+    }
+
+    // ── 4. Crea il pulsante tab CAA ──
+    var btn = document.createElement('button');
+    btn.id        = 'caa-tab-btn';
+    btn.type      = 'button';
+    // Copia classi del tab "Per disabilità" così prende le stesse dimensioni/font
+    btn.className = disBtn.className;
+    btn.innerHTML = '🗣️ Prove CAA';
+
+    tabBar.appendChild(btn);
+
+    // ── 5. Logica show/hide ──
+    function attivaCAA () {
+      var vc = document.getElementById('vista-caa');
+      if (pannello) pannello.style.display = 'none';
+      if (vc) vc.style.display = 'block';
+      tabBar.querySelectorAll('button').forEach(function (b) {
+        b.classList.remove('caa-tab-active');
+      });
+      btn.classList.add('caa-tab-active');
+    }
+
+    function disattivaCAA () {
+      var vc = document.getElementById('vista-caa');
+      if (vc) vc.style.display = 'none';
+      if (pannello) pannello.style.display = '';
+      btn.classList.remove('caa-tab-active');
+    }
+
+    btn.onclick = attivaCAA;
+
+    // Quando si clicca uno degli altri tab, chiudi CAA
+    tabBar.querySelectorAll('button:not(#caa-tab-btn)').forEach(function (otherBtn) {
+      var origClick = otherBtn.onclick;
+      otherBtn.addEventListener('click', function () {
+        disattivaCAA();
+      }, true); // capture: si esegue prima dell'onclick originale
     });
-  } else {
-    injectCard();
-    window.addEventListener('load', injectCard);
+
+    // caaBack ora nasconde solo il tab senza abbandonare il pannello docente
+    window.caaBack = function () {
+      disattivaCAA();
+      // Simula click sul primo tab (riattiva lo stato di default)
+      var firstTab = tabBar.querySelector('button:not(#caa-tab-btn)');
+      if (firstTab) firstTab.click();
+    };
+
+    return true;
   }
+
+  /* Primo tentativo: subito + al load.
+     Se il pannello docente è iniettato dinamicamente, riprova
+     ogni volta che mostraVista viene chiamata (vedi sezione 5). */
+  function _tentaIniezione () { injectCAATab(); }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _tentaIniezione);
+  } else {
+    _tentaIniezione();
+  }
+  window.addEventListener('load', _tentaIniezione);
 
 
   // ──────────────────────────────────────────────────────────────
@@ -440,12 +530,15 @@
           return;
         }
         _origMV(vista);
+        // Dopo aver mostrato il pannello docente/nuova-sessione, tenta l'iniezione del tab CAA
+        setTimeout(_tentaIniezione, 60);
       };
     } else {
       window.mostraVista = function (vista) {
         document.querySelectorAll('[id^="vista-"]').forEach(function (el) { el.style.display = 'none'; });
         var el = document.getElementById('vista-' + vista);
         if (el) el.style.display = 'block';
+        setTimeout(_tentaIniezione, 60);
       };
     }
 
