@@ -1045,27 +1045,27 @@ tr:hover td{background:var(--grigio-ch)}
         🌟 <strong>Prove adattate per alunni con disabilità</strong> — Incolla un testo: l'AI (Google Gemini, gratuito) genera le domande. Puoi modificarle o crearle manualmente.
       </div>
 
-      <!-- Configurazione Gemini -->
-      <div class="panel-card" style="max-width:none;margin-top:14px;border:2px solid #f0e6ff">
+      <!-- Configurazione AI — chiave personale docente -->
+      <div class="panel-card" style="max-width:none;margin-top:14px;border:2px solid #e8eaf6">
         <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleGeminiSetup()">
           <div>
-            <div style="font-size:13px;font-weight:800;color:#6b21a8">🔑 Configurazione AI — Groq (gratuito)</div>
-            <div id="gemini-status-lbl" style="font-size:11px;color:#888;margin-top:2px">Inserisci la tua chiave API gratuita — si salva automaticamente nel browser</div>
+            <div style="font-size:13px;font-weight:800;color:#3949ab">🔑 Configurazione AI — Groq (gratuito)</div>
+            <div id="gemini-status-lbl" style="font-size:11px;color:#888;margin-top:2px">Inserisci la tua chiave Groq gratuita (console.groq.com)</div>
           </div>
-          <span id="gemini-arrow" style="font-size:16px;color:#6b21a8;transition:transform .2s">▸</span>
+          <span id="gemini-arrow" style="font-size:16px;color:#3949ab;transition:transform .2s">▸</span>
         </div>
         <div id="gemini-setup" style="display:none;margin-top:12px">
-          <div style="background:#f5f0ff;border-radius:8px;padding:10px 14px;font-size:12px;color:#4a1580;margin-bottom:10px;line-height:1.6">
-            📌 <strong>Come ottenere la chiave gratuita (2 minuti):</strong><br>
-            1. Vai su <a href="https://console.groq.com" target="_blank" style="color:#6b21a8;font-weight:700">console.groq.com</a> → crea un account gratuito<br>
-            2. Clicca <strong>"API Keys"</strong> nel menu → <strong>"Create API Key"</strong><br>
-            3. Copia la chiave (inizia con <code>gsk_</code>) e incollala qui sotto.<br>
-            ✅ Piano gratuito: 14.400 richieste/giorno — nessuna carta di credito richiesta.
+          <div style="background:#e8eaf6;border-radius:8px;padding:10px 14px;font-size:12px;color:#283593;margin-bottom:10px;line-height:1.7">
+            📌 <strong>Come ottenere la chiave (2 minuti, gratis):</strong><br>
+            1. Vai su <a href="https://console.groq.com" target="_blank" style="color:#3949ab;font-weight:700">console.groq.com</a> → crea un account gratuito<br>
+            2. <strong>API Keys</strong> → <strong>Create API Key</strong> → copia la chiave (inizia con <code>gsk_</code>)<br>
+            3. Incollala qui sotto e clicca Salva — si memorizza nel browser, non devi reinserirla.<br>
+            ⚡ Piano gratuito: <strong>~70 sessioni da 40 domande al giorno</strong> — nessuna carta richiesta.
           </div>
           <div style="display:flex;gap:8px;align-items:center">
-            <input type="password" id="gemini-key-input" class="finp" placeholder="gsk_..." style="padding:9px 12px;flex:1;font-family:monospace">
-            <button onclick="salvaChiaveGemini()" style="padding:9px 16px;background:#6b21a8;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">💾 Salva</button>
-            <button onclick="cancellaChiaveGemini()" style="padding:9px 12px;background:#fce8e6;color:#c62828;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-family:var(--font)" title="Cancella chiave">🗑️</button>
+            <input type="password" id="groq-key-input" class="finp" placeholder="gsk_..." style="padding:9px 12px;flex:1;font-family:monospace">
+            <button onclick="salvaChiaveGroq()" style="padding:9px 16px;background:#3949ab;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">💾 Salva</button>
+            <button onclick="cancellaChiaveGroq()" style="padding:9px 12px;background:#fce8e6;color:#c62828;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-family:var(--font)" title="Cancella chiave">🗑️</button>
           </div>
           <div id="gemini-key-msg" style="font-size:11px;margin-top:6px"></div>
         </div>
@@ -4175,263 +4175,385 @@ if(window.speechSynthesis){
   document.addEventListener('tts-stop', function(){ ttsStop(); });
 }
 
-var GEMINI_KEY_LS = 'gemini_api_key_invalsi';
+// ══════════════════════════════════════════════════════════════
+//  AI — GENERAZIONE DOMANDE v2
+//  Architettura: chiave personale docente (localStorage) →
+//  chiamata diretta browser→Groq, SENZA passare per Apps Script.
+//
+//  Problema risolto: con tutti i tic attivi il prompt era
+//  enorme e il modello generava JSON malformato → retry →
+//  quota esaurita. Ora ogni chiamata chiede UN SOLO GRUPPO
+//  di tipi, con prompt compatto e retry intelligente.
+//
+//  CALL 1: paragrafi + SM + VF    (formati semplici, affidabili)
+//  CALL 2: AP + COMP + COL        (formati complessi, isolati)
+//  CALL 3: sezione grammatica     (solo se grammatica selezionata
+//           e non già coperta nelle call precedenti)
+//
+//  Ogni call ha max 2 retry automatici su errore JSON.
+//  Token per sessione completa (40 dom): ~6.000–7.500
+//  Sessioni/giorno con chiave gratuita:  ~65–80
+// ══════════════════════════════════════════════════════════════
 
-function getChiaveGemini(){ return localStorage.getItem(GEMINI_KEY_LS)||''; }
+var GROQ_KEY_LS = 'groq_key_invalsi_v5';
 
-function toggleGeminiSetup(){
-  var el=document.getElementById('gemini-setup');
-  var arrow=document.getElementById('gemini-arrow');
-  var open=el.style.display==='none';
-  el.style.display=open?'block':'none';
-  if(arrow) arrow.style.transform=open?'rotate(90deg)':'';
-  if(open){ var k=getChiaveGemini(); var inp=document.getElementById('gemini-key-input'); if(inp&&k) inp.value=k; }
+function getChiaveGroq()  { return localStorage.getItem(GROQ_KEY_LS) || ''; }
+function setChiaveGroq(k) { localStorage.setItem(GROQ_KEY_LS, k); }
+function delChiaveGroq()  { localStorage.removeItem(GROQ_KEY_LS); }
+
+function toggleGeminiSetup() {
+  var el = document.getElementById('gemini-setup');
+  var arrow = document.getElementById('gemini-arrow');
+  if (!el) return;
+  var open = el.style.display === 'none';
+  el.style.display = open ? 'block' : 'none';
+  if (arrow) arrow.style.transform = open ? 'rotate(90deg)' : '';
+  if (open) {
+    var inp = document.getElementById('groq-key-input');
+    if (inp) inp.value = getChiaveGroq();
+  }
 }
 
-function salvaChiaveGemini(){
-  var inp=document.getElementById('gemini-key-input');
-  var k=inp?inp.value.trim():'';
-  var msg=document.getElementById('gemini-key-msg');
-  if(!k||k.indexOf('gsk_')!==0){
-    if(msg){msg.textContent='\u26a0\ufe0f La chiave Groq deve iniziare con gsk_\u2026';msg.style.color='#c62828';}
+function salvaChiaveGroq() {
+  var inp = document.getElementById('groq-key-input');
+  var k   = inp ? inp.value.trim() : '';
+  var msg = document.getElementById('gemini-key-msg');
+  if (!k || k.indexOf('gsk_') !== 0) {
+    if (msg) { msg.textContent = 'La chiave deve iniziare con gsk_'; msg.style.color = '#c62828'; }
     return;
   }
-  localStorage.setItem(GEMINI_KEY_LS,k);
-  if(msg){msg.textContent='\u2705 Chiave salvata!';msg.style.color='#2e7d32';}
-  aggiornaStatoGemini();
-  setTimeout(function(){
-    var s=document.getElementById('gemini-setup'); if(s) s.style.display='none';
-    var a=document.getElementById('gemini-arrow'); if(a) a.style.transform='';
-  },800);
+  setChiaveGroq(k);
+  aggiornaStatoGroq();
+  if (msg) { msg.textContent = 'Chiave salvata.'; msg.style.color = '#2e7d32'; }
+  setTimeout(function() {
+    var s = document.getElementById('gemini-setup');
+    var a = document.getElementById('gemini-arrow');
+    if (s) s.style.display = 'none';
+    if (a) a.style.transform = '';
+  }, 900);
 }
 
-function cancellaChiaveGemini(){
-  localStorage.removeItem(GEMINI_KEY_LS);
-  var inp=document.getElementById('gemini-key-input'); if(inp) inp.value='';
-  aggiornaStatoGemini();
+function cancellaChiaveGroq() {
+  delChiaveGroq();
+  var inp = document.getElementById('groq-key-input');
+  if (inp) inp.value = '';
+  aggiornaStatoGroq();
 }
 
-function aggiornaStatoGemini(){
-  var k=getChiaveGemini();
-  var lbl=document.getElementById('gemini-status-lbl');
-  if(lbl) lbl.textContent=k?'\u2705 Chiave Groq configurata \u2014 pronto per generare':'Inserisci la tua chiave API Groq gratuita \u2014 si salva automaticamente nel browser';
+function aggiornaStatoGroq() {
+  var lbl = document.getElementById('gemini-status-lbl');
+  var k   = getChiaveGroq();
+  if (lbl) lbl.textContent = k
+    ? 'Chiave configurata — ~70 sessioni da 40 domande al giorno'
+    : 'Inserisci la tua chiave Groq gratuita (console.groq.com)';
 }
 
-async function callGemini(prompt){
-  // Chiamata diretta a Groq dal browser — veloce, gratuita, nessun proxy
-  var chiave = getChiaveGemini();
-  if(!chiave) throw new Error('Chiave API Groq non configurata.');
-  var risposta = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+// ── Chiamata diretta browser → Groq ──────────────────────────
+async function _groqCall(prompt) {
+  var chiave = getChiaveGroq();
+  if (!chiave) throw new Error('Chiave Groq mancante. Clicca "Configurazione AI" e inserisci la chiave.');
+
+  var r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + chiave
-    },
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + chiave },
     body: JSON.stringify({
-      model: 'llama-3.3-70b-versatile',
+      model: 'llama-3.1-8b-instant',
       messages: [{ role: 'user', content: prompt }],
-      temperature: 0.4,
-      max_tokens: 4000
+      temperature: 0.3,
+      max_tokens: 4500   // ridotto: ogni call e mono-gruppo, non servono 8000
     })
   });
-  var dati = await risposta.json();
-  if(dati.error){
-    var msg = dati.error.message || 'Errore Groq';
-    if(risposta.status === 429) throw new Error('Quota Groq esaurita per oggi. Riprova domani oppure attendi qualche minuto.');
-    if(risposta.status === 401) throw new Error('Chiave API Groq non valida. Controlla su console.groq.com.');
-    throw new Error('Errore Groq: ' + msg);
-  }
-  if(!dati.choices || !dati.choices[0] || !dati.choices[0].message){
-    throw new Error('Risposta Groq vuota. Riprova.');
-  }
-  return dati.choices[0].message.content || '';
+
+  var d = await r.json();
+  if (r.status === 429) throw new Error('QUOTA');
+  if (r.status === 401) throw new Error('La chiave Groq non e valida. Verificala su console.groq.com.');
+  if (d.error)          throw new Error('Groq: ' + d.error.message);
+  var txt = d.choices && d.choices[0] && d.choices[0].message ? d.choices[0].message.content : '';
+  if (!txt) throw new Error('Risposta Groq vuota. Riprova.');
+  return txt;
 }
 
-var _disAIProva=null;
+// ── Parsing JSON con riparazione automatica ───────────────────
+function _parseJ(raw, label) {
+  var c = raw.replace(/```json/g,'').replace(/```/g,'').trim();
+  var m = c.match(/\{[\s\S]*\}/);
+  if (!m) throw new Error(label + ': risposta non JSON. Riprova.');
+  var s = m[0];
+  try { return JSON.parse(s); } catch(e) {}
+  try { return JSON.parse(s.replace(/,(\s*[}\]])/g,'$1')); } catch(e) {}
+  try { return JSON.parse(s.replace(/,\s*$/,'') + ']}'); } catch(e) {}
+  throw new Error(label + ': JSON non valido dopo 3 tentativi di riparazione.');
+}
 
-async function generaDomandeAI(){
-  var loadEl=document.getElementById('dis-ai-loading');
-  var errEl=document.getElementById('dis-ai-err');
-  var prevEl=document.getElementById('dis-ai-preview');
-  var testoEl=document.getElementById('dis-ai-testo');
-  var titoloEl=document.getElementById('dis-ai-titolo');
-  var ndomEl=document.getElementById('dis-ai-ndom');
-  var testo=testoEl?testoEl.value.trim():'';
-  var titolo=titoloEl?titoloEl.value.trim():'Prova personalizzata';
-  var ndom=Math.min(40,Math.max(3,parseInt(ndomEl?ndomEl.value:'10')||10));
-  var chiaveDoc=getChiaveGemini();
-  if(!chiaveDoc){
-    if(errEl){errEl.textContent='\u26a0\ufe0f Inserisci prima la tua chiave API Groq: clicca su "Configurazione AI" qui sopra, poi "Salva chiave".';errEl.style.display='block';}
+// ── Call con retry automatico su errore JSON ──────────────────
+async function _callConRetry(prompt, label, loadEl, msgCaricamento) {
+  var RETRY = 2;
+  for (var t = 0; t <= RETRY; t++) {
+    try {
+      if (loadEl && t > 0) loadEl.textContent = msgCaricamento + ' (tentativo ' + (t+1) + '/' + (RETRY+1) + ')...';
+      var raw = await _groqCall(prompt);
+      return _parseJ(raw, label);
+    } catch(e) {
+      if (e.message === 'QUOTA') {
+        // Attendi 4 secondi e riprova una volta sola
+        if (t === 0) { await new Promise(function(r){ setTimeout(r,4000); }); continue; }
+        throw new Error('Quota Groq esaurita. Attendi qualche minuto e riprova, oppure controlla il tuo piano su console.groq.com.');
+      }
+      if (e.message.indexOf('valida') !== -1 || e.message.indexOf('Chiave') !== -1) throw e;
+      // Errore JSON: riprova dopo pausa
+      if (t < RETRY) {
+        await new Promise(function(r){ setTimeout(r, 2000); });
+        continue;
+      }
+      throw e;
+    }
+  }
+}
+
+// ── Costruisce prompt compatto per un gruppo di tipi ──────────
+function _buildPrompt(testo, nDom, tipiGruppo, sezDistr, gramInstr, includePar, nPar, offsetN) {
+  var L = [];
+  L.push('Sei un esperto di didattica inclusiva italiana. Genera ESATTAMENTE ' + nDom + ' domande numerate da ' + (offsetN+1) + ' a ' + (offsetN+nDom) + '.');
+  L.push('TESTO (non modificare):');
+  L.push('---');
+  L.push(testo);
+  L.push('---');
+  L.push('Tipi da generare IN QUESTA CHIAMATA: ' + tipiGruppo.join(', ') + '. Non usare altri tipi.');
+  L.push(sezDistr);
+  if (gramInstr) L.push(gramInstr);
+  L.push('Linguaggio SEMPLICE per alunni con disabilita. Frasi brevi e chiare.');
+  L.push('');
+  L.push('FORMATO JSON (rispetta ESATTAMENTE):');
+
+  if (tipiGruppo.indexOf('SM') !== -1)
+    L.push('SM: {"tipo":"sm","testo":"Domanda?","opts":["A","B","C","D"],"ok":0,"sez":0,"par":1}  // ok = indice risposta corretta');
+
+  if (tipiGruppo.indexOf('VF') !== -1) {
+    L.push('VF: {"tipo":"vf","testo":"Indica vero o falso:","righeVF":[{"t":"Affermazione 1","ok":true},{"t":"Afferm. 2","ok":false},{"t":"Afferm. 3","ok":true}],"sez":0,"par":1}');
+    L.push('    REGOLA VF: usa esattamente 3 o 4 righe. "ok" e true oppure false (booleano, non stringa).');
+  }
+
+  if (tipiGruppo.indexOf('AP') !== -1)
+    L.push('AP: {"tipo":"ap","testo":"Domanda aperta breve (max 1 riga)","sez":0,"par":1}');
+
+  if (tipiGruppo.indexOf('COMP') !== -1) {
+    L.push('COMP: {"tipo":"comp","testo":"Scegli la parola giusta:","frase":"Il cane ___ nel parco","parole":["corre","mangia","dorme","vola"],"ok":0,"sez":0,"par":1}');
+    L.push('      REGOLA COMP CRITICA: il campo "frase" deve contenere ESATTAMENTE ___ (tre underscore). "ok"=0 significa che parole[0] e corretta.');
+  }
+
+  if (tipiGruppo.indexOf('COL') !== -1) {
+    L.push('COL: {"tipo":"col","testo":"Collega:","sinistra":["Elemento A","Elemento B","Elemento C"],"destra":["Def X","Def Y","Def Z"],"coppie":[0,1,2],"sez":0,"par":1}');
+    L.push('     REGOLA COL: sinistra e destra hanno lo STESSO numero di elementi (3 o 4). coppie[i] e l\'indice in destra che corrisponde a sinistra[i].');
+  }
+
+  L.push('');
+  if (includePar) {
+    L.push('Prima dividi il testo in 4-6 paragrafi (2-4 frasi ciascuno, idea completa).');
+    L.push('Risposta SOLO JSON senza altro testo:');
+    L.push('{"paragrafi":[{"n":1,"testo":"..."}],"domande":[{"n":1,"par":1,"tipo":"sm","sez":0,"testo":"?","opts":["A","B","C","D"],"ok":0}]}');
+  } else {
+    L.push('I paragrafi sono gia definiti (' + nPar + ' blocchi). Usa i numeri par esistenti.');
+    L.push('Risposta SOLO JSON senza altro testo:');
+    L.push('{"domande":[{"n":' + (offsetN+1) + ',"par":1,"tipo":"sm","sez":0,"testo":"?","opts":["A","B","C","D"],"ok":0}]}');
+  }
+
+  return L.join('\n');
+}
+
+// ── Funzione principale ───────────────────────────────────────
+var _disAIProva = null;
+
+async function generaDomandeAI() {
+  var loadEl  = document.getElementById('dis-ai-loading');
+  var errEl   = document.getElementById('dis-ai-err');
+  var prevEl  = document.getElementById('dis-ai-preview');
+  var testoEl = document.getElementById('dis-ai-testo');
+  var titoloEl= document.getElementById('dis-ai-titolo');
+  var ndomEl  = document.getElementById('dis-ai-ndom');
+
+  var testoRaw = testoEl ? testoEl.value.trim() : '';
+  var titolo   = titoloEl ? titoloEl.value.trim() : 'Prova personalizzata';
+  var ndom     = Math.min(40, Math.max(3, parseInt(ndomEl ? ndomEl.value : '10') || 10));
+
+  // ── Validazioni ──────────────────────────────────────────
+  if (!getChiaveGroq()) {
+    if (errEl) { errEl.textContent = 'Inserisci prima la tua chiave Groq: clicca "Configurazione AI" qui sopra.'; errEl.style.display='block'; }
     return;
   }
-  if(!testo){
-    if(errEl){errEl.textContent='\u26a0\ufe0f Incolla un testo prima di generare.';errEl.style.display='block';}
+  if (!testoRaw) {
+    if (errEl) { errEl.textContent = 'Incolla un testo prima di generare.'; errEl.style.display='block'; }
     return;
   }
-  if(errEl) errEl.style.display='none';
-  if(loadEl) loadEl.style.display='block';
-  if(prevEl) prevEl.style.display='none';
+  if (errEl)  errEl.style.display  = 'none';
+  if (prevEl) prevEl.style.display = 'none';
+  if (loadEl) { loadEl.style.display='block'; loadEl.textContent='Preparazione...'; }
 
-  var tipiRich=[];
-  if(document.getElementById('dis-tipo-sm')&&document.getElementById('dis-tipo-sm').checked) tipiRich.push('SM');
-  if(document.getElementById('dis-tipo-vf')&&document.getElementById('dis-tipo-vf').checked) tipiRich.push('VF');
-  if(document.getElementById('dis-tipo-ap')&&document.getElementById('dis-tipo-ap').checked) tipiRich.push('AP');
-  if(document.getElementById('dis-tipo-comp')&&document.getElementById('dis-tipo-comp').checked) tipiRich.push('COMP');
-  if(document.getElementById('dis-tipo-col')&&document.getElementById('dis-tipo-col').checked) tipiRich.push('COL');
-  if(!tipiRich.length) tipiRich.push('SM');
-  var inferenza=document.getElementById('dis-ai-inferenza')&&document.getElementById('dis-ai-inferenza').checked;
+  function chk(id) { var el=document.getElementById(id); return !!(el && el.checked); }
 
-  // ── Raccolta elementi morfologici selezionati ─────────────────
-  var gramMorfo   = document.getElementById('dis-gram-morfo') && document.getElementById('dis-gram-morfo').checked;
-  var gramLogica  = document.getElementById('dis-gram-logica') && document.getElementById('dis-gram-logica').checked;
-  var gramPeriodo = document.getElementById('dis-gram-periodo') && document.getElementById('dis-gram-periodo').checked;
+  // ── Legge i tipi selezionati ─────────────────────────────
+  var wantSM   = chk('dis-tipo-sm');
+  var wantVF   = chk('dis-tipo-vf');
+  var wantAP   = chk('dis-tipo-ap');
+  var wantCOMP = chk('dis-tipo-comp');
+  var wantCOL  = chk('dis-tipo-col');
+  var wantInf  = chk('dis-ai-inferenza');
 
-  function chk(id){ var el=document.getElementById(id); return el && el.checked; }
+  // Se niente selezionato, usa SM di default
+  if (!wantSM && !wantVF && !wantAP && !wantCOMP && !wantCOL) wantSM = true;
 
-  // Morfologia — elementi specifici
+  // ── Grammatica ───────────────────────────────────────────
   var morfoElem = [];
   if(chk('dis-morfo-nome'))            morfoElem.push('Nome');
   if(chk('dis-morfo-aggettivo'))       morfoElem.push('Aggettivo');
   if(chk('dis-morfo-verbo'))           morfoElem.push('Verbo');
   if(chk('dis-morfo-avverbio'))        morfoElem.push('Avverbio');
-  if(chk('dis-morfo-prep-semplici'))   morfoElem.push('Preposizioni semplici');
-  if(chk('dis-morfo-prep-articolate')) morfoElem.push('Preposizioni articolate');
+  if(chk('dis-morfo-prep-semplici'))   morfoElem.push('Prep.semplici');
+  if(chk('dis-morfo-prep-articolate')) morfoElem.push('Prep.articolate');
   if(chk('dis-morfo-articoli'))        morfoElem.push('Articoli');
 
-  // Analisi logica — elementi specifici
   var logicaElem = [];
   if(chk('dis-logica-soggetto'))       logicaElem.push('Soggetto');
-  if(chk('dis-logica-predicato'))      logicaElem.push('Predicato verbale e nominale');
-  if(chk('dis-logica-oggetto'))        logicaElem.push('Complemento oggetto');
-  if(chk('dis-logica-specificazione')) logicaElem.push('Complemento di specificazione');
-  if(chk('dis-logica-termine'))        logicaElem.push('Complemento di termine');
-  if(chk('dis-logica-tutti'))          logicaElem.push('Tutti i complementi indiretti (luogo, tempo, modo, causa, fine, mezzo, compagnia, argomento, limitazione)');
+  if(chk('dis-logica-predicato'))      logicaElem.push('Predicato');
+  if(chk('dis-logica-oggetto'))        logicaElem.push('C.oggetto');
+  if(chk('dis-logica-specificazione')) logicaElem.push('C.specificazione');
+  if(chk('dis-logica-termine'))        logicaElem.push('C.termine');
+  if(chk('dis-logica-tutti'))          logicaElem.push('tutti i complementi');
 
-  // Analisi del periodo — coordinate e subordinate
   var periodoElem = [];
-  if(chk('dis-periodo-principale'))    periodoElem.push('Proposizione principale');
-  // Coordinate
-  var coord = [];
-  if(chk('dis-periodo-copulative'))    coord.push('Copulative');
-  if(chk('dis-periodo-disgiuntive'))   coord.push('Disgiuntive');
-  if(chk('dis-periodo-avversative-c')) coord.push('Avversative');
-  if(chk('dis-periodo-dichiarative-c'))coord.push('Dichiarative');
-  if(chk('dis-periodo-conclusive'))    coord.push('Conclusive');
-  if(chk('dis-periodo-correlative'))   coord.push('Correlative');
-  if(coord.length) periodoElem.push('Coordinate: ' + coord.join(', '));
-  // Subordinate
-  var subord = [];
-  if(chk('dis-periodo-soggettive'))    subord.push('Soggettive');
-  if(chk('dis-periodo-oggettive'))     subord.push('Oggettive');
-  if(chk('dis-periodo-dichiarative-s'))subord.push('Dichiarative');
-  if(chk('dis-periodo-interr-indirette')) subord.push('Interrogative indirette');
-  if(chk('dis-periodo-relative'))      subord.push('Relative');
-  if(chk('dis-periodo-causali'))       subord.push('Causali');
-  if(chk('dis-periodo-finali'))        subord.push('Finali');
-  if(chk('dis-periodo-temporali'))     subord.push('Temporali');
-  if(chk('dis-periodo-consecutive'))   subord.push('Consecutive');
-  if(chk('dis-periodo-concessive'))    subord.push('Concessive');
-  if(chk('dis-periodo-condizionali'))  subord.push('Condizionali (Protasi)');
-  if(chk('dis-periodo-modali'))        subord.push('Modali');
-  if(chk('dis-periodo-comparative'))   subord.push('Comparative');
-  if(chk('dis-periodo-avversative-s')) subord.push('Avversative');
-  if(chk('dis-periodo-esclusive'))     subord.push('Esclusive');
-  if(chk('dis-periodo-eccettuative'))  subord.push('Eccettuative');
-  if(chk('dis-periodo-limitative'))    subord.push('Limitative');
-  if(subord.length) periodoElem.push('Subordinate: ' + subord.join(', '));
+  if(chk('dis-periodo-principale'))    periodoElem.push('principale');
+  ['copulative','disgiuntive','avversative-c','dichiarative-c','conclusive','correlative'].forEach(function(x){
+    if(chk('dis-periodo-'+x)) periodoElem.push(x.replace('-c',''));
+  });
+  ['soggettive','oggettive','dichiarative-s','interr-indirette','relative','causali',
+   'finali','temporali','consecutive','concessive','condizionali','modali','comparative',
+   'avversative-s','esclusive','eccettuative','limitative'].forEach(function(x){
+    if(chk('dis-periodo-'+x)) periodoElem.push(x.replace('-s',''));
+  });
 
-  // Costruisce istruzione grammaticale per Groq
-  var gramTIC = [];
-  if(gramMorfo){
-    var mStr = morfoElem.length
-      ? 'Morfologia — elementi SPECIFICI da testare: ' + morfoElem.join(', ')
-      : 'Morfologia (parti del discorso: nome, aggettivo, verbo, avverbio, preposizioni, articoli)';
-    gramTIC.push(mStr);
+  var gramParts = [];
+  if(chk('dis-gram-morfo'))   gramParts.push('MORFO:'   + (morfoElem.length   ? morfoElem.join(',')   : 'tutte'));
+  if(chk('dis-gram-logica'))  gramParts.push('LOGICA:'  + (logicaElem.length  ? logicaElem.join(',')  : 'tutte'));
+  if(chk('dis-gram-periodo')) gramParts.push('PERIODO:' + (periodoElem.length ? periodoElem.slice(0,6).join(',') : 'tutte'));
+  // ↑ max 6 elementi periodo per non far esplodere il prompt
+
+  var gramInstr = gramParts.length
+    ? 'Le domande di SEZ2(grammatica) testano SOLO: ' + gramParts.join(' | ') + '. Nient\'altro.'
+    : '';
+
+  // ── Distribuzione sezioni per numero domande ─────────────
+  var nC = Math.ceil(ndom * 0.34);
+  var nL = Math.ceil(ndom * 0.33);
+  var nG = ndom - nC - nL;
+  var sezDistr = 'Distribuzione OBBLIGATORIA: ' + nC + ' dom SEZ0(comprensione), ' + nL + ' SEZ1(lessico), ' + nG + ' SEZ2(grammatica).';
+  if (wantInf) sezDistr += ' Includi 2 domande inferenziali in SEZ0.';
+
+  // ── Testo troncato a 4000 char ───────────────────────────
+  var testo = testoRaw.substring(0, 4000);
+
+  // ══════════════════════════════════════════════════════════
+  //  STRATEGIA CHIAMATE:
+  //  Gruppo A = SM + VF  → formato semplice, affidabile al 95%
+  //  Gruppo B = AP + COMP + COL → formato complesso, isolato
+  //  Se un gruppo è vuoto, tutto va nell'altro.
+  //  Questo dimezza gli errori JSON rispetto a mescolare tutti.
+  // ══════════════════════════════════════════════════════════
+
+  var gruppoA = [];
+  var gruppoB = [];
+  if (wantSM)   gruppoA.push('SM');
+  if (wantVF)   gruppoA.push('VF');
+  if (wantAP)   gruppoB.push('AP');
+  if (wantCOMP) gruppoB.push('COMP');
+  if (wantCOL)  gruppoB.push('COL');
+
+  // Se solo un gruppo è popolato, tutto in quello
+  var soloA = gruppoB.length === 0;
+  var soloB = gruppoA.length === 0;
+
+  // Distribuzione domande tra i gruppi
+  var nA, nB;
+  if (soloA) { nA = ndom; nB = 0; }
+  else if (soloB) { nA = 0; nB = ndom; }
+  else {
+    // Proporzionale al numero di tipi
+    nA = Math.round(ndom * gruppoA.length / (gruppoA.length + gruppoB.length));
+    nB = ndom - nA;
   }
-  if(gramLogica){
-    var lStr = logicaElem.length
-      ? 'Analisi Logica — elementi SPECIFICI: ' + logicaElem.join(', ')
-      : 'Analisi Logica (soggetto, predicato verbale/nominale, complemento oggetto, di specificazione, di termine)';
-    gramTIC.push(lStr);
-  }
-  if(gramPeriodo){
-    var pStr = periodoElem.length
-      ? 'Analisi del Periodo — elementi SPECIFICI: ' + periodoElem.join('; ')
-      : 'Analisi del Periodo (principale, coordinate e subordinate nelle loro tipologie)';
-    gramTIC.push(pStr);
-  }
-  var gramInstr = gramTIC.length > 0
-    ? '\nDomande GRAMMATICA (sez:2) devono coprire ESCLUSIVAMENTE: ' + gramTIC.join(' | ') + '. Non aggiungere altri aspetti grammaticali non menzionati.'
-    : '\nDomande GRAMMATICA (sez:2): distribuisci equamente tra morfologia, analisi logica e analisi del periodo.';
 
-  // Distribuzione automatica sezioni (circa 1/3 ciascuna)
-  var nComp = Math.ceil(ndom * 0.34);
-  var nLess = Math.ceil(ndom * 0.33);
-  var nGram = ndom - nComp - nLess;
-  var distrStr = 'DISTRIBUZIONE OBBLIGATORIA: ' + nComp + ' dom sez:0 (Comprensione), ' +
-    nLess + ' sez:1 (Lessico), ' + nGram + ' sez:2 (Grammatica). Rispetta esattamente.';
-
-  var BATCH_SIZE = 10;
-  var tuttiDomande = [];
-  var parsedParagrafi = null;
-  var nBatch = Math.ceil(ndom / BATCH_SIZE);
-
-  function buildPromptDis(numDom, offsetN, includePar) {
-    var p = 'Sei esperto didattica inclusiva scuola media italiana.\n';
-    p += 'TESTO:\n"""\n' + testo.substring(0,2500) + '\n"""\n';
-    p += 'Genera esattamente ' + numDom + ' domande. Numera da ' + (offsetN+1) + '.\n';
-    p += 'Tipi: ' + tipiRich.join(',') + (inferenza?' (+2 inferenziali)':'') + '\n';
-    p += distrStr + gramInstr + '\n';
-    p += 'Linguaggio SEMPLICE per alunni con disabilita. Frasi brevi, parole facili.\n';
-    p += 'FORMATI DOMANDE:\n';
-    p += '  SM: {tipo:"sm", testo:"?", opts:["A","B","C","D"], ok:0-3}\n';
-    p += '  VF: {tipo:"vf", testo:"Segna V (vero) o F (falso)", righeVF:[{t:"affermazione",ok:true/false}]}\n';
-    p += '  AP: {tipo:"ap", testo:"Domanda aperta breve"}\n';
-    p += '  COMP: {tipo:"comp", testo:"Completa la frase scegliendo la parola giusta:", frase:"La ___ e bella", parole:["parola_corretta","distrat1","distrat2","distrat3"], ok:0}\n';
-    p += '    REGOLA COMP: "frase" deve contenere ESATTAMENTE ___ (tre underscore) nel punto da completare. ok=0 significa che parole[0] e la risposta corretta.\n';
-    p += '  COL: {tipo:"col", testo:"Collega ogni elemento:", sinistra:["A","B"], destra:["X","Y"], coppie:[0,1]}\n';
-    if(includePar){
-      p += 'REGOLA PARAGRAFI: dividi il testo in 4-6 paragrafi di 2-4 frasi ciascuno. '
-        + 'Ogni paragrafo deve contenere un\'idea completa. Non fare paragrafi di una sola riga.\n';
-      p += 'Ogni domanda deve avere "par" = numero paragrafo di riferimento (1-N).\n';
-      p += 'SOLO JSON, niente altro: {"paragrafi":[{"n":1,"testo":"..."}],"domande":[{"n":1,"par":1,"tipo":"sm","sez":0,"testo":"?","opts":["A","B","C","D"],"ok":0}]}';
-    } else {
-      p += 'Paragrafi gia definiti, usa stessi numeri par. SOLO JSON: {"domande":[{"n":' + (offsetN+1) + ',"par":1,"tipo":"sm","sez":0,"testo":"?","opts":["A","B","C","D"],"ok":0}]}';
-    }
-    return p;
+  // Distribuzione sezioni per ogni gruppo
+  function sezPerGruppo(n, tot) {
+    var c = Math.round(nC * n / tot);
+    var l = Math.round(nL * n / tot);
+    var g = n - c - l;
+    if (g < 0) { g = 0; l = n - c; }
+    return c + ' SEZ0, ' + l + ' SEZ1, ' + g + ' SEZ2';
   }
 
   try {
-    for (var b = 0; b < nBatch; b++) {
-      var nDomBatch = Math.min(BATCH_SIZE, ndom - b * BATCH_SIZE);
-      var offsetN = b * BATCH_SIZE;
-      var isFirst = (b === 0);
-      if(loadEl) loadEl.textContent = '\u23f3 Groq: batch ' + (b+1) + '/' + nBatch + ' (' + nDomBatch + ' domande)...';
-      var raw = await callGemini(buildPromptDis(nDomBatch, offsetN, isFirst));
-      var cleaned = raw.replace(/```json/g,'').replace(/```/g,'').trim();
-      var matchJ = cleaned.match(/\{[\s\S]*\}/);
-      if (!matchJ) throw new Error('Batch ' + (b+1) + ': JSON non trovato. Riduci le domande o riprova.');
-      var parsed;
-      try { parsed = JSON.parse(matchJ[0]); } catch(je) { throw new Error('Batch ' + (b+1) + ': JSON malformato.'); }
-      if (isFirst && parsed.paragrafi) parsedParagrafi = parsed.paragrafi;
-      if (!parsed.domande) throw new Error('Batch ' + (b+1) + ': struttura incompleta.');
-      parsed.domande.forEach(function(d,i){ d.n = offsetN + i + 1; });
-      tuttiDomande = tuttiDomande.concat(parsed.domande);
-      if (b < nBatch - 1) await new Promise(function(r){ setTimeout(r, 900); });
+    var tuttiDomande    = [];
+    var parsedParagrafi = null;
+
+    // ── CALL A: SM + VF (o tutto se solo questi) ───────────
+    if (nA > 0) {
+      if (loadEl) loadEl.textContent = 'Groq — generazione domande ' + (soloA ? '' : 'SM+VF ') + '(1/' + (soloB?'1': nB>0?'2':'1') + ')...';
+      var pA   = _buildPrompt(testo, nA, gruppoA, 'Distribuzione: ' + sezPerGruppo(nA,ndom), gramInstr, true, 0, 0);
+      var rA   = await _callConRetry(pA, 'Chiamata SM+VF', loadEl, 'Groq SM+VF');
+      if (!rA.paragrafi) throw new Error('Paragrafi mancanti. Riprova.');
+      if (!rA.domande || !rA.domande.length) throw new Error('Nessuna domanda generata (gruppo SM+VF). Riprova.');
+      parsedParagrafi = rA.paragrafi;
+      rA.domande.forEach(function(d,i){ d.n = i+1; });
+      tuttiDomande = rA.domande;
     }
-    if (!parsedParagrafi) throw new Error('Paragrafi mancanti. Riprova.');
+
+    // ── CALL B: AP + COMP + COL ────────────────────────────
+    if (nB > 0) {
+      await new Promise(function(r){ setTimeout(r, 1200); }); // pausa anti-rate-limit
+      if (loadEl) loadEl.textContent = 'Groq — generazione domande AP+COMP+COL (2/2)...';
+
+      var nParExisting = parsedParagrafi ? parsedParagrafi.length : 0;
+      var pB = _buildPrompt(
+        testo, nB, gruppoB,
+        'Distribuzione: ' + sezPerGruppo(nB, ndom),
+        gramInstr,
+        parsedParagrafi === null,  // includePar solo se non già definiti
+        nParExisting,
+        nA   // offset numeri domande
+      );
+      var rB = await _callConRetry(pB, 'Chiamata AP+COMP+COL', loadEl, 'Groq AP+COMP+COL');
+
+      if (!parsedParagrafi && rB.paragrafi) parsedParagrafi = rB.paragrafi;
+      if (!parsedParagrafi) throw new Error('Paragrafi mancanti. Riprova.');
+      if (rB.domande && rB.domande.length) {
+        rB.domande.forEach(function(d,i){ d.n = nA + i + 1; });
+        tuttiDomande = tuttiDomande.concat(rB.domande);
+      }
+    }
+
+    if (!parsedParagrafi) throw new Error('Nessun paragrafo generato. Riprova.');
+    if (!tuttiDomande.length) throw new Error('Nessuna domanda generata. Riprova.');
+
     _disAIProva = {
-      titolo: titolo || 'Prova personalizzata', sottotitolo: 'Prova personalizzata',
-      glossario: [], paragrafi: parsedParagrafi, domande: tuttiDomande
+      titolo:      titolo || 'Prova personalizzata',
+      sottotitolo: 'Prova personalizzata',
+      glossario:   [],
+      paragrafi:   parsedParagrafi,
+      domande:     tuttiDomande
     };
+
     renderPreviewDisAI(tuttiDomande);
-    if(loadEl) loadEl.style.display = 'none';
-    if(prevEl) prevEl.style.display = 'block';
+    if (loadEl) loadEl.style.display = 'none';
+    if (prevEl) prevEl.style.display = 'block';
+
   } catch(e) {
-    if(loadEl) loadEl.style.display = 'none';
-    if(errEl){errEl.textContent='\u26a0\ufe0f '+e.message;errEl.style.display='block';}
+    if (loadEl) loadEl.style.display = 'none';
+    if (errEl) {
+      var m = e.message || 'Errore sconosciuto.';
+      errEl.textContent = m;
+      errEl.style.display = 'block';
+    }
   }
 }
+
 
 var TIPO_BADGE_DIS={
   sm:['SM','#1565c0','#e3f2fd'],
