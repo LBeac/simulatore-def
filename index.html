@@ -3382,10 +3382,23 @@ function calcolaRisultati(){
   S.calcolo={corrette,tot,pct,sez,errComp,compDeboli,det,tutteComp};
 
   if(!S.modoTest){
+    // [FIX-5] Rileva modalità attiva al momento della consegna
+    const _modBes = document.body.classList.contains('bes-mode');
+    const _modDis = (S.sessione||'').toLowerCase().startsWith('dis-');
+    const _modCaa = (S.sessione||'').toLowerCase().startsWith('caa-');
+    const _modalita = _modCaa ? 'caa' : _modDis ? 'dis' : _modBes ? 'bes' : 'standard';
+
+    // [FIX-6] Conta domande risposte vs totale per flag completata
+    const _nRisposte  = det.filter(x => x.mia !== undefined).length;
+    const _completata = _nRisposte >= Math.round(dr.length * 0.7); // almeno 70% risposto
+
     const entry={
       codice:S.stud, sessione:S.sessione, classe:S.classe,
       totale:corrette, su:tot, pct, sezioni:sez, errori:errComp,
       data:new Date().toISOString(),
+      modalita:  _modalita,   // [FIX-5]
+      completata: _completata, // [FIX-6]
+      n_risposte: _nRisposte,  // [FIX-6]
       det:det.map(x=>({id:x.d.id, testo:x.d.testo, ok:x.ok, mia:x.miaLbl, corretta:x.okLbl, comp:x.d.comp, sez:x.d.sez}))
     };
     DB.risultati.push(entry);
@@ -4848,7 +4861,7 @@ function salvaSessOnSheet(sessKey, sessData){
 // Carica sessioni dallo Sheet nel localStorage (sync cross-browser)
 async function caricaSessioniDaSheet(){
   try{
-    const url = `${SCRIPT_URL}?action=leggiSessioni`;
+    const url = `${SCRIPT_URL}?action=leggiSessioni&token=${encodeURIComponent(SCRIPT_TOKEN)}`; // [FIX-1] token sulle GET
     const res  = await fetch(url);
     const data = await res.json();
     if(data.ok && data.sessioni){
@@ -5311,7 +5324,7 @@ async function importaDaSheet(){
 
   const sessBase = sessione.replace(/-3[AE]$/,'');
   // Cerca sia "prova-1" che "prova-1-3E" nello Sheet (Irene potrebbe avere l'una o l'altra)
-  const url = `${SCRIPT_URL}?action=leggi&sessione=${encodeURIComponent(sessBase)}&sessione2=${encodeURIComponent(sessione)}`;
+  const url = `${SCRIPT_URL}?action=leggi&sessione=${encodeURIComponent(sessBase)}&sessione2=${encodeURIComponent(sessione)}&token=${encodeURIComponent(SCRIPT_TOKEN)}`; // [FIX-1]
 
   // Prova prima con fetch normale
   try{
@@ -5649,7 +5662,7 @@ function cambiaClassePanel(cl){
 //  INVIO AUTOMATICO A GOOGLE SHEET
 // ══════════════════════════════════════════════════════
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyi3j1opanbfed0PuGITdHE4f8BHjPBwWEKuSubnKr4kJjvgfGIXZMUOTfEoXDBvRSu/exec';
-const SCRIPT_TOKEN = 'inv8_tk_2025'; // token condiviso con Apps Script per validare le richieste
+const SCRIPT_TOKEN = 'inv8_2026_Gd7kPqR3'; // ⚠️ Aggiorna anche Apps Script e rideploya se lo cambi // token condiviso con Apps Script per validare le richieste
 
 function inviaARisultatiSheet(entry){
   // Aggiunge il titolo della prova
