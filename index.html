@@ -1080,7 +1080,18 @@ tr:hover td{background:var(--grigio-ch)}
         </div>
         <div class="fg">
           <label class="flbl">Testo (verrà suddiviso in paragrafi automaticamente)</label>
-          <textarea id="dis-ai-testo" class="finp" rows="7" placeholder="Incolla qui il testo..." style="padding:9px 12px;resize:vertical;font-size:13px;line-height:1.7"></textarea>
+          <textarea id="dis-ai-testo" class="finp" rows="7" placeholder="Incolla qui il testo..." style="padding:9px 12px;resize:vertical;font-size:13px;line-height:1.7" oninput="aggiornaCont()"></textarea>
+          <!-- Indicatore dinamico parole/token -->
+          <div id="testo-contatore" style="margin-top:6px;padding:8px 12px;border-radius:6px;font-size:12px;display:none;transition:background .3s">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
+              <span id="cont-parole" style="font-weight:700"></span>
+              <span id="cont-status" style="font-weight:700;font-size:11px"></span>
+            </div>
+            <div style="margin-top:5px;height:6px;border-radius:3px;background:#e0e0e0;overflow:hidden">
+              <div id="cont-barra" style="height:100%;border-radius:3px;transition:width .3s,background .3s"></div>
+            </div>
+            <div id="cont-suggerimento" style="font-size:11px;margin-top:4px;color:#555"></div>
+          </div>
         </div>
       </div>
 
@@ -4201,6 +4212,52 @@ function getChiaveGroq()  { return localStorage.getItem(GROQ_KEY_LS) || ''; }
 function setChiaveGroq(k) { localStorage.setItem(GROQ_KEY_LS, k); }
 function delChiaveGroq()  { localStorage.removeItem(GROQ_KEY_LS); }
 
+
+// ── Indicatore dinamico parole/token sotto il textarea ───────
+function aggiornaCont() {
+  var el    = document.getElementById('dis-ai-testo');
+  var box   = document.getElementById('testo-contatore');
+  var lParole  = document.getElementById('cont-parole');
+  var lStatus  = document.getElementById('cont-status');
+  var barra    = document.getElementById('cont-barra');
+  var sugger   = document.getElementById('cont-suggerimento');
+  if (!el || !box) return;
+
+  var testo  = el.value.trim();
+  var parole = testo ? testo.split(/\s+/).length : 0;
+
+  if (parole === 0) { box.style.display = 'none'; return; }
+  box.style.display = 'block';
+
+  var tokTesto  = Math.round(parole * 1.35);
+  var tokTotale = tokTesto + 160 + 2800;
+  var pct       = Math.min(100, Math.round(tokTotale / 6000 * 100));
+
+  lParole.textContent = parole + ' parole';
+
+  var colore, stato, suggerimento;
+  if (pct < 70) {
+    colore = '#2e7d32'; stato = '✅ Ottimo — tutti i tipi e domande';
+    suggerimento = 'Puoi usare tutti i tipi di domanda fino a 40.';
+  } else if (pct < 83) {
+    colore = '#1565c0'; stato = '🟦 Buono — 40 domande OK';
+    suggerimento = 'Testo lungo ma gestibile. Tutti i tipi funzionano.';
+  } else if (pct < 92) {
+    colore = '#e65100'; stato = '🟠 Attenzione — riduci i tipi di domanda';
+    suggerimento = 'Testo molto lungo. Usa solo SM + VF, max 30 domande.';
+  } else {
+    colore = '#b71c1c'; stato = '🔴 Troppo lungo — possibile errore';
+    suggerimento = 'Riduci a meno di 1500 parole oppure usa meno domande.';
+  }
+
+  lStatus.textContent  = stato;
+  lStatus.style.color  = colore;
+  barra.style.width    = pct + '%';
+  barra.style.background = colore;
+  box.style.background = pct < 70 ? '#f1faf2' : pct < 83 ? '#e3f2fd' : pct < 92 ? '#fff3e0' : '#fce8e6';
+  sugger.textContent   = suggerimento;
+}
+
 function toggleGeminiSetup() {
   var el = document.getElementById('gemini-setup');
   var arrow = document.getElementById('gemini-arrow');
@@ -4368,6 +4425,26 @@ function _buildPrompt(testo, nDom, tipiGruppo, sezDistr, gramInstr, includePar, 
   return L.join('\n');
 }
 
+// ── Prompt dedicato alla grammatica (Call 3) ─────────────────
+// Testo ridotto a 1500 char: la grammatica si testa su frasi
+// specifiche, non serve l'intero brano.
+// Piena granularità: gramInstrBase non viene sintetizzato.
+function _buildPromptGram(testo, nDom, gramInstrBase, nPar, offsetN) {
+  var testoGram = testo.substring(0, 1500); // frasi sufficienti per grammatica
+  var L = [];
+  L.push('Esperto grammatica italiana scuola media. Genera ESATTAMENTE ' + nDom + ' domande (' + (offsetN+1) + '-' + (offsetN+nDom) + ').');
+  L.push('Tutte le domande sono SEZ2 (grammatica). ' + gramInstrBase);
+  L.push('Usa frasi tratte dal testo. Lingua semplice per alunni con disabilita.');
+  L.push('TESTO:\n---\n' + testoGram + '\n---');
+  L.push('FORMATI (scegli il tipo piu adatto per ogni domanda):');
+  L.push('SM:{"tipo":"sm","testo":"?","opts":["A","B","C","D"],"ok":0,"sez":2,"par":1}');
+  L.push('VF:{"tipo":"vf","testo":"V/F:","righeVF":[{"t":"Aff1","ok":true},{"t":"Aff2","ok":false}],"sez":2,"par":1}');
+  L.push('COMP:{"tipo":"comp","testo":"Completa:","frase":"La ___ e bella","parole":["corretta","d1","d2","d3"],"ok":0,"sez":2,"par":1} (frase con ___ esatti)');
+  L.push('Paragrafi gia definiti (' + nPar + '). SOLO JSON:');
+  L.push('{"domande":[{"n":' + (offsetN+1) + ',"par":1,"tipo":"sm","sez":2,"testo":"?","opts":["A","B","C","D"],"ok":0}]}');
+  return L.join('\n');
+}
+
 // ── Funzione principale ───────────────────────────────────────
 var _disAIProva = null;
 
@@ -4439,13 +4516,55 @@ async function generaDomandeAI() {
   });
 
   var gramParts = [];
-  if(chk('dis-gram-morfo'))   gramParts.push('MORFO:'   + (morfoElem.length   ? morfoElem.join(',')   : 'tutte'));
-  if(chk('dis-gram-logica'))  gramParts.push('LOGICA:'  + (logicaElem.length  ? logicaElem.join(',')  : 'tutte'));
-  if(chk('dis-gram-periodo')) gramParts.push('PERIODO:' + (periodoElem.length ? periodoElem.slice(0,4).join(',') : 'principale,coordinate,subordinate'));
-  // ↑ max 6 elementi periodo per non far esplodere il prompt
-
+  if(chk('dis-gram-morfo')){
+    // Morfologia: max 7 voci — tutte sempre elencate per nome
+    // Ha senso didattico testare tutte le parti del discorso insieme
+    var mStr = morfoElem.length === 0 ? 'tutte le parti del discorso'
+      : morfoElem.join(',');
+    gramParts.push('MORFO(' + mStr + ')');
+  }
+  if(chk('dis-gram-logica')){
+    // Analisi Logica: fino a 5 voci specifiche elencate
+    // "Tutti i complementi" è già una sintesi built-in nella voce stessa
+    var lStr = logicaElem.length === 0 ? 'tutte le funzioni della frase'
+      : logicaElem.length <= 5 ? logicaElem.join(',')
+      : logicaElem.slice(0,4).join(',') + ' e altri complementi';
+    gramParts.push('LOGICA(' + lStr + ')');
+  }
+  if(chk('dis-gram-periodo')){
+    // Raccoglie tutte le voci selezionate
+    var periodoSpec = [];
+    if(chk('dis-periodo-principale')) periodoSpec.push('principale');
+    ['copulative','disgiuntive','avversative-c','dichiarative-c','conclusive','correlative'].forEach(function(x){
+      if(chk('dis-periodo-'+x)) periodoSpec.push(x.replace('-c',''));
+    });
+    ['soggettive','oggettive','dichiarative-s','interr-indirette','relative','causali',
+     'finali','temporali','consecutive','concessive','condizionali','modali','comparative',
+     'avversative-s','esclusive','eccettuative','limitative'].forEach(function(x){
+      if(chk('dis-periodo-'+x)) periodoSpec.push(x.replace('-s',''));
+    });
+    var pStr;
+    if(periodoSpec.length === 0){
+      pStr = 'principale,coordinate,subordinate';
+    } else if(periodoSpec.length <= 6){
+      // ≤6 voci: elenca tutte per nome — granularità piena rispettata
+      pStr = periodoSpec.join(',');
+    } else {
+      // >6 voci: sintetizza per categoria macro
+      var hasPrinc  = periodoSpec.indexOf('principale') !== -1;
+      var coordTipi = ['copulative','disgiuntive','conclusive','correlative','avversative','dichiarative'];
+      var specCoord = periodoSpec.filter(function(x){ return coordTipi.indexOf(x) !== -1; });
+      var specSub   = periodoSpec.filter(function(x){ return coordTipi.indexOf(x) === -1 && x !== 'principale'; });
+      var pArr = [];
+      if(hasPrinc) pArr.push('principale');
+      if(specCoord.length) pArr.push(specCoord.length <= 3 ? specCoord.join(',') : 'coordinate');
+      if(specSub.length)   pArr.push(specSub.length   <= 4 ? specSub.join(',')   : 'subordinate');
+      pStr = pArr.join(',');
+    }
+    gramParts.push('PERIODO(' + pStr + ')');
+  }
   var gramInstr = gramParts.length
-    ? 'Le domande di SEZ2(grammatica) testano SOLO: ' + gramParts.join(' | ') + '. Nient\'altro.'
+    ? 'SEZ2 testa: ' + gramParts.join('|') + '.'
     : '';
 
   // ── Distribuzione sezioni per numero domande ─────────────
@@ -4501,39 +4620,93 @@ async function generaDomandeAI() {
     var tuttiDomande    = [];
     var parsedParagrafi = null;
 
-    // ── CALL A: SM + VF (o tutto se solo questi) ───────────
-    if (nA > 0) {
-      if (loadEl) loadEl.textContent = 'Groq — generazione domande ' + (soloA ? '' : 'SM+VF ') + '(1/' + (soloB?'1': nB>0?'2':'1') + ')...';
-      var pA   = _buildPrompt(testo, nA, gruppoA, 'Distribuzione: ' + sezPerGruppo(nA,ndom), gramInstr, true, 0, 0);
-      var rA   = await _callConRetry(pA, 'Chiamata SM+VF', loadEl, 'Groq SM+VF');
+    // ══════════════════════════════════════════════════════
+    //  STRATEGIA 3 CALL:
+    //  Call 1 (SM+VF)       — comprensione + lessico, senza gramInstr
+    //  Call 2 (AP+COMP+COL) — tipi complessi, senza gramInstr
+    //  Call 3 (GRAMMATICA)  — solo se grammatica selezionata,
+    //                         prompt leggero con tutta la granularità
+    //                         parte nel minuto successivo (pausa ~62s)
+    //  Così Call 1+2 restano sotto i 6000 TPM/minuto,
+    //  Call 3 parte fresca nel minuto dopo: nessun countdown forzato.
+    // ══════════════════════════════════════════════════════
+
+    // La grammatica va in Call 3 separata — rimuovila da Call 1+2
+    // In Call 1+2 le domande SEZ2 saranno distribuite genericamente
+    var gramInstrBase = gramInstr; // conserva per Call 3
+    var gramInstrLight = gramParts.length
+      ? 'SEZ2: grammatica italiana generica.'
+      : '';
+
+    // Ricalcola distribuzione: Call 1+2 coprono SOLO SEZ0+SEZ1
+    // Call 3 coprirà tutte le domande SEZ2 con piena granularità
+    var nGram = gramInstr ? nG : 0; // domande grammatica riservate a Call 3
+    var nNoGram = ndom - nGram;     // domande per Call 1+2
+
+    // Ridistribuisce nNoGram tra Call 1+2 proporzionalmente
+    var nA2, nB2;
+    if (soloA || gruppoB.length === 0) { nA2 = nNoGram; nB2 = 0; }
+    else if (soloB || gruppoA.length === 0) { nA2 = 0; nB2 = nNoGram; }
+    else {
+      nA2 = Math.round(nNoGram * gruppoA.length / (gruppoA.length + gruppoB.length));
+      nB2 = nNoGram - nA2;
+    }
+
+    function sezSoloComprLess(n) {
+      // Distribuzione solo SEZ0+SEZ1 (senza SEZ2 che va in Call 3)
+      var c2 = Math.round(n * 0.5);
+      var l2 = n - c2;
+      return 'Distribuzione: ' + c2 + ' SEZ0(comprensione), ' + l2 + ' SEZ1(lessico). NON generare domande SEZ2(grammatica) — verranno generate separatamente.';
+    }
+
+    // ── CALL 1: SM + VF ──────────────────────────────────
+    if (nA2 > 0) {
+      var nCallTot = 1 + (nB2>0?1:0) + (nGram>0?1:0);
+      if (loadEl) loadEl.textContent = 'Groq — domande ' + gruppoA.join('+') + ' (1/' + nCallTot + ')...';
+      var distA = gramInstr ? sezSoloComprLess(nA2) : 'Distribuzione: ' + sezPerGruppo(nA2, ndom);
+      var pA = _buildPrompt(testo, nA2, gruppoA, distA, '', true, 0, 0);
+      var rA = await _callConRetry(pA, 'Chiamata SM+VF', loadEl, 'Groq SM+VF');
       if (!rA.paragrafi) throw new Error('Paragrafi mancanti. Riprova.');
-      if (!rA.domande || !rA.domande.length) throw new Error('Nessuna domanda generata (gruppo SM+VF). Riprova.');
+      if (!rA.domande || !rA.domande.length) throw new Error('Nessuna domanda generata (SM+VF). Riprova.');
       parsedParagrafi = rA.paragrafi;
       rA.domande.forEach(function(d,i){ d.n = i+1; });
       tuttiDomande = rA.domande;
     }
 
-    // ── CALL B: AP + COMP + COL ────────────────────────────
-    if (nB > 0) {
-      await new Promise(function(r){ setTimeout(r, 1200); }); // pausa anti-rate-limit
-      if (loadEl) loadEl.textContent = 'Groq — generazione domande AP+COMP+COL (2/2)...';
-
-      var nParExisting = parsedParagrafi ? parsedParagrafi.length : 0;
-      var pB = _buildPrompt(
-        testo, nB, gruppoB,
-        'Distribuzione: ' + sezPerGruppo(nB, ndom),
-        gramInstr,
-        parsedParagrafi === null,  // includePar solo se non già definiti
-        nParExisting,
-        nA   // offset numeri domande
-      );
+    // ── CALL 2: AP + COMP + COL ──────────────────────────
+    if (nB2 > 0) {
+      await new Promise(function(r){ setTimeout(r, 1200); });
+      var nCallTot2 = 1 + (nA2>0?1:0) + (nGram>0?1:0);
+      if (loadEl) loadEl.textContent = 'Groq — domande ' + gruppoB.join('+') + ' (' + (nA2>0?2:1) + '/' + nCallTot2 + ')...';
+      var nParEx = parsedParagrafi ? parsedParagrafi.length : 0;
+      var distB  = gramInstr ? sezSoloComprLess(nB2) : 'Distribuzione: ' + sezPerGruppo(nB2, ndom);
+      var pB = _buildPrompt(testo, nB2, gruppoB, distB, '', parsedParagrafi===null, nParEx, nA2);
       var rB = await _callConRetry(pB, 'Chiamata AP+COMP+COL', loadEl, 'Groq AP+COMP+COL');
-
       if (!parsedParagrafi && rB.paragrafi) parsedParagrafi = rB.paragrafi;
       if (!parsedParagrafi) throw new Error('Paragrafi mancanti. Riprova.');
       if (rB.domande && rB.domande.length) {
-        rB.domande.forEach(function(d,i){ d.n = nA + i + 1; });
+        rB.domande.forEach(function(d,i){ d.n = (nA2||0) + i + 1; });
         tuttiDomande = tuttiDomande.concat(rB.domande);
+      }
+    }
+
+    // ── CALL 3: GRAMMATICA (solo se selezionata) ─────────
+    // Nessuna pausa fissa: parte subito dopo Call 1+2.
+    // Se i token/minuto vengono superati, _callConRetry gestisce
+    // il countdown automatico solo quando serve davvero.
+    if (nGram > 0 && gramInstrBase) {
+      var nParEx3    = parsedParagrafi ? parsedParagrafi.length : 0;
+      var offsetGram = (nA2||0) + (nB2||0);
+      var nCallTotG  = 1 + (nA2>0?1:0) + (nB2>0?1:0);
+
+      await new Promise(function(r){ setTimeout(r, 1200); }); // pausa minima anti-rate-limit
+      if (loadEl) loadEl.textContent = 'Groq — domande grammatica (' + nCallTotG + '/' + nCallTotG + ')...';
+
+      var pG = _buildPromptGram(testo, nGram, gramInstrBase, nParEx3, offsetGram);
+      var rG = await _callConRetry(pG, 'Chiamata Grammatica', loadEl, 'Groq Grammatica');
+      if (rG.domande && rG.domande.length) {
+        rG.domande.forEach(function(d,i){ d.n = offsetGram + i + 1; d.sez = 2; });
+        tuttiDomande = tuttiDomande.concat(rG.domande);
       }
     }
 
