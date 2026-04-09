@@ -4248,29 +4248,58 @@ function aggiornaStatoGroq() {
     : 'Inserisci la tua chiave Groq gratuita (console.groq.com)';
 }
 
-// ── Chiamata diretta browser → Groq ──────────────────────────
-async function _groqCall(prompt) {
+// ── Countdown visivo durante l'attesa TPM ────────────────────
+async function _attesaTPM(secondi, loadEl) {
+  for (var s = secondi; s > 0; s--) {
+    if (loadEl) loadEl.textContent = 'Limite Groq raggiunto — attesa automatica: ' + s + 's...';
+    await new Promise(function(r){ setTimeout(r, 1000); });
+  }
+}
+
+// ── Chiamata diretta browser → Groq con retry TPM automatico ─
+async function _groqCall(prompt, loadEl) {
   var chiave = getChiaveGroq();
   if (!chiave) throw new Error('Chiave Groq mancante. Clicca "Configurazione AI" e inserisci la chiave.');
 
-  var r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + chiave },
-    body: JSON.stringify({
-      model: 'llama-3.1-8b-instant',
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.3,
-      max_tokens: 4500   // ridotto: ogni call e mono-gruppo, non servono 8000
-    })
-  });
+  // Fino a 3 tentativi con attesa crescente su errore TPM (429)
+  var attese = [65, 65, 65]; // secondi di attesa: piano free reset ogni 60s
+  for (var t = 0; t <= attese.length; t++) {
+    var r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + chiave },
+      body: JSON.stringify({
+        model: 'llama-3.1-8b-instant',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.3,
+        max_tokens: 2800
+      })
+    });
 
-  var d = await r.json();
-  if (r.status === 429) throw new Error('QUOTA');
-  if (r.status === 401) throw new Error('La chiave Groq non e valida. Verificala su console.groq.com.');
-  if (d.error)          throw new Error('Groq: ' + d.error.message);
-  var txt = d.choices && d.choices[0] && d.choices[0].message ? d.choices[0].message.content : '';
-  if (!txt) throw new Error('Risposta Groq vuota. Riprova.');
-  return txt;
+    var d = await r.json();
+
+    if (r.status === 429) {
+      // Quota giornaliera esaurita vs limite TPM al minuto
+      var msg = d.error ? d.error.message : '';
+      var isTPM = msg.indexOf('tokens per minute') !== -1 || msg.indexOf('TPM') !== -1;
+      var isDaily = msg.indexOf('per day') !== -1 || msg.indexOf('daily') !== -1;
+
+      if (isDaily) {
+        throw new Error('Quota giornaliera Groq esaurita. Riprova domani oppure crea una nuova chiave su console.groq.com.');
+      }
+      if (t < attese.length) {
+        // Attesa con countdown visivo, poi riprova automaticamente
+        await _attesaTPM(attese[t], loadEl);
+        continue;
+      }
+      throw new Error('Limite Groq persistente. Attendi 2 minuti e riprova, oppure riduci il numero di domande.');
+    }
+
+    if (r.status === 401) throw new Error('La chiave Groq non e valida. Verificala su console.groq.com.');
+    if (d.error)          throw new Error('Groq: ' + d.error.message);
+    var txt = d.choices && d.choices[0] && d.choices[0].message ? d.choices[0].message.content : '';
+    if (!txt) throw new Error('Risposta Groq vuota. Riprova.');
+    return txt;
+  }
 }
 
 // ── Parsing JSON con riparazione automatica ───────────────────
@@ -4291,7 +4320,7 @@ async function _callConRetry(prompt, label, loadEl, msgCaricamento) {
   for (var t = 0; t <= RETRY; t++) {
     try {
       if (loadEl && t > 0) loadEl.textContent = msgCaricamento + ' (tentativo ' + (t+1) + '/' + (RETRY+1) + ')...';
-      var raw = await _groqCall(prompt);
+      var raw = await _groqCall(prompt, loadEl);
       return _parseJ(raw, label);
     } catch(e) {
       if (e.message === 'QUOTA') {
@@ -4312,51 +4341,30 @@ async function _callConRetry(prompt, label, loadEl, msgCaricamento) {
 
 // ── Costruisce prompt compatto per un gruppo di tipi ──────────
 function _buildPrompt(testo, nDom, tipiGruppo, sezDistr, gramInstr, includePar, nPar, offsetN) {
+  // Istruzioni compresse: stessa qualità, metà token — testo 600 parole ci sta intero
   var L = [];
-  L.push('Sei un esperto di didattica inclusiva italiana. Genera ESATTAMENTE ' + nDom + ' domande numerate da ' + (offsetN+1) + ' a ' + (offsetN+nDom) + '.');
-  L.push('TESTO (non modificare):');
-  L.push('---');
-  L.push(testo);
-  L.push('---');
-  L.push('Tipi da generare IN QUESTA CHIAMATA: ' + tipiGruppo.join(', ') + '. Non usare altri tipi.');
+  L.push('Esperto didattica inclusiva. Genera ESATTAMENTE ' + nDom + ' domande (' + (offsetN+1) + '-' + (offsetN+nDom) + '). Tipi: ' + tipiGruppo.join(',') + '.');
   L.push(sezDistr);
   if (gramInstr) L.push(gramInstr);
-  L.push('Linguaggio SEMPLICE per alunni con disabilita. Frasi brevi e chiare.');
-  L.push('');
-  L.push('FORMATO JSON (rispetta ESATTAMENTE):');
-
+  L.push('Lingua semplice, frasi brevi. TESTO:\n---\n' + testo + '\n---');
+  L.push('FORMATI:');
   if (tipiGruppo.indexOf('SM') !== -1)
-    L.push('SM: {"tipo":"sm","testo":"Domanda?","opts":["A","B","C","D"],"ok":0,"sez":0,"par":1}  // ok = indice risposta corretta');
-
-  if (tipiGruppo.indexOf('VF') !== -1) {
-    L.push('VF: {"tipo":"vf","testo":"Indica vero o falso:","righeVF":[{"t":"Affermazione 1","ok":true},{"t":"Afferm. 2","ok":false},{"t":"Afferm. 3","ok":true}],"sez":0,"par":1}');
-    L.push('    REGOLA VF: usa esattamente 3 o 4 righe. "ok" e true oppure false (booleano, non stringa).');
-  }
-
+    L.push('SM:{"tipo":"sm","testo":"?","opts":["A","B","C","D"],"ok":0,"sez":0,"par":1}');
+  if (tipiGruppo.indexOf('VF') !== -1)
+    L.push('VF:{"tipo":"vf","testo":"V/F:","righeVF":[{"t":"Aff1","ok":true},{"t":"Aff2","ok":false},{"t":"Aff3","ok":true}],"sez":0,"par":1} — 3-4 righe, ok=booleano');
   if (tipiGruppo.indexOf('AP') !== -1)
-    L.push('AP: {"tipo":"ap","testo":"Domanda aperta breve (max 1 riga)","sez":0,"par":1}');
-
-  if (tipiGruppo.indexOf('COMP') !== -1) {
-    L.push('COMP: {"tipo":"comp","testo":"Scegli la parola giusta:","frase":"Il cane ___ nel parco","parole":["corre","mangia","dorme","vola"],"ok":0,"sez":0,"par":1}');
-    L.push('      REGOLA COMP CRITICA: il campo "frase" deve contenere ESATTAMENTE ___ (tre underscore). "ok"=0 significa che parole[0] e corretta.');
-  }
-
-  if (tipiGruppo.indexOf('COL') !== -1) {
-    L.push('COL: {"tipo":"col","testo":"Collega:","sinistra":["Elemento A","Elemento B","Elemento C"],"destra":["Def X","Def Y","Def Z"],"coppie":[0,1,2],"sez":0,"par":1}');
-    L.push('     REGOLA COL: sinistra e destra hanno lo STESSO numero di elementi (3 o 4). coppie[i] e l\'indice in destra che corrisponde a sinistra[i].');
-  }
-
-  L.push('');
+    L.push('AP:{"tipo":"ap","testo":"Domanda aperta breve","sez":0,"par":1}');
+  if (tipiGruppo.indexOf('COMP') !== -1)
+    L.push('COMP:{"tipo":"comp","testo":"Completa:","frase":"La ___ e bella","parole":["corretta","d1","d2","d3"],"ok":0,"sez":0,"par":1} — frase con ___ esatti, parole[ok]=corretta');
+  if (tipiGruppo.indexOf('COL') !== -1)
+    L.push('COL:{"tipo":"col","testo":"Collega:","sinistra":["A","B","C"],"destra":["X","Y","Z"],"coppie":[0,1,2],"sez":0,"par":1} — stessa lunghezza sinistra/destra');
   if (includePar) {
-    L.push('Prima dividi il testo in 4-6 paragrafi (2-4 frasi ciascuno, idea completa).');
-    L.push('Risposta SOLO JSON senza altro testo:');
+    L.push('Dividi testo in 4-6 paragrafi (2-4 frasi). SOLO JSON:');
     L.push('{"paragrafi":[{"n":1,"testo":"..."}],"domande":[{"n":1,"par":1,"tipo":"sm","sez":0,"testo":"?","opts":["A","B","C","D"],"ok":0}]}');
   } else {
-    L.push('I paragrafi sono gia definiti (' + nPar + ' blocchi). Usa i numeri par esistenti.');
-    L.push('Risposta SOLO JSON senza altro testo:');
+    L.push('Paragrafi gia definiti (' + nPar + '). SOLO JSON:');
     L.push('{"domande":[{"n":' + (offsetN+1) + ',"par":1,"tipo":"sm","sez":0,"testo":"?","opts":["A","B","C","D"],"ok":0}]}');
   }
-
   return L.join('\n');
 }
 
@@ -4433,7 +4441,7 @@ async function generaDomandeAI() {
   var gramParts = [];
   if(chk('dis-gram-morfo'))   gramParts.push('MORFO:'   + (morfoElem.length   ? morfoElem.join(',')   : 'tutte'));
   if(chk('dis-gram-logica'))  gramParts.push('LOGICA:'  + (logicaElem.length  ? logicaElem.join(',')  : 'tutte'));
-  if(chk('dis-gram-periodo')) gramParts.push('PERIODO:' + (periodoElem.length ? periodoElem.slice(0,6).join(',') : 'tutte'));
+  if(chk('dis-gram-periodo')) gramParts.push('PERIODO:' + (periodoElem.length ? periodoElem.slice(0,4).join(',') : 'principale,coordinate,subordinate'));
   // ↑ max 6 elementi periodo per non far esplodere il prompt
 
   var gramInstr = gramParts.length
@@ -4448,7 +4456,7 @@ async function generaDomandeAI() {
   if (wantInf) sezDistr += ' Includi 2 domande inferenziali in SEZ0.';
 
   // ── Testo troncato a 4000 char ───────────────────────────
-  var testo = testoRaw.substring(0, 4000);
+  var testo = testoRaw.substring(0, 3800); // 600 parole italiane ≈ 3800 char
 
   // ══════════════════════════════════════════════════════════
   //  STRATEGIA CHIAMATE:
