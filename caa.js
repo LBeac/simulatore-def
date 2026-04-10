@@ -286,7 +286,7 @@
 '          <option value="6">6</option><option value="7">7</option><option value="8">8</option>',
 '          <option value="9">9</option><option value="10">10</option>',
 '        </select>',
-'        <input type="password" id="caa-ai-key" placeholder="Chiave Groq (se non già salvata nella piattaforma)">',
+'        <input type="password" id="caa-ai-key" placeholder="Chiave OpenRouter (se non già salvata nella piattaforma)">',
 '        <button class="caa-btn caa-btn-ai" id="caa-ai-btn" onclick="caaGeneraAI()">✨ Genera</button>',
 '      </div>',
 '      <div class="caa-ai-note">La chiave Groq viene letta automaticamente se già salvata. Le domande sono modificabili prima di procedere.</div>',
@@ -1057,12 +1057,14 @@
   // ──────────────────────────────────────────────────────────────
   function leggiChiaveGroq () {
     var candidates = [
-      'gemini_api_key_invalsi',
+      'groq_key_invalsi_v5',          // chiave corrente condivisa con index.html
+      'gemini_api_key_invalsi',        // vecchi nomi per compatibilità
       'groqApiKey','groq_key','groqKey','GROQ_KEY','groq_api_key','apiKeyGroq','groq'
     ];
     for (var i = 0; i < candidates.length; i++) {
       var v = localStorage.getItem(candidates[i]);
-      if (v && v.trim().startsWith('gsk_')) return v.trim();
+      // Accetta chiavi OpenRouter (sk-or-) e vecchie Groq (gsk_)
+      if (v && (v.trim().startsWith('sk-or-') || v.trim().startsWith('gsk_'))) return v.trim();
     }
     return null;
   }
@@ -1104,14 +1106,16 @@
       '[{"testo":"…","A":"…","B":"…","C":"…","D":"…","corretta":"A"}]';
 
     try {
-      var resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      var resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type':  'application/json',
-          'Authorization': 'Bearer ' + apiKey
+          'Authorization': 'Bearer ' + apiKey,
+          'HTTP-Referer':  'https://lbeac.github.io/simulatore-def/',
+          'X-Title':       'Grado 8 INVALSI CAA'
         },
         body: JSON.stringify({
-          model:       'llama-3.3-70b-versatile',
+          model:       'google/gemini-2.0-flash-exp:free',
           temperature: 0.4,
           max_tokens:  1800,
           messages: [
