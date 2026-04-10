@@ -4321,7 +4321,7 @@ async function _groqCall(prompt, loadEl, maxTok) {
   var chiave = getChiaveGroq();
   if (!chiave) throw new Error('Chiave Gemini mancante. Clicca "Configurazione AI" e inserisci la chiave (inizia con AIza).');
 
-  var url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + chiave;
+  var url = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=' + chiave;
 
   var r = await fetch(url, {
     method: 'POST',
