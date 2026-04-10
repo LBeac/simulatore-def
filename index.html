@@ -1049,22 +1049,22 @@ tr:hover td{background:var(--grigio-ch)}
       <div class="panel-card" style="max-width:none;margin-top:14px;border:2px solid #e8eaf6">
         <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleGeminiSetup()">
           <div>
-            <div style="font-size:13px;font-weight:800;color:#3949ab">🔑 Configurazione AI — Groq (gratuito)</div>
+            <div style="font-size:13px;font-weight:800;color:#2e7d32">🔑 Configurazione AI — Gemini Flash (gratuito)</div>
             <div id="gemini-status-lbl" style="font-size:11px;color:#888;margin-top:2px">Inserisci la tua chiave Groq gratuita (console.groq.com)</div>
           </div>
           <span id="gemini-arrow" style="font-size:16px;color:#3949ab;transition:transform .2s">▸</span>
         </div>
         <div id="gemini-setup" style="display:none;margin-top:12px">
-          <div style="background:#e8eaf6;border-radius:8px;padding:10px 14px;font-size:12px;color:#283593;margin-bottom:10px;line-height:1.7">
-            📌 <strong>Come ottenere la chiave (2 minuti, gratis):</strong><br>
-            1. Vai su <a href="https://console.groq.com" target="_blank" style="color:#3949ab;font-weight:700">console.groq.com</a> → crea un account gratuito<br>
-            2. <strong>API Keys</strong> → <strong>Create API Key</strong> → copia la chiave (inizia con <code>gsk_</code>)<br>
-            3. Incollala qui sotto e clicca Salva — si memorizza nel browser, non devi reinserirla.<br>
-            ⚡ Piano gratuito: <strong>~70 sessioni da 40 domande al giorno</strong> — nessuna carta richiesta.
+          <div style="background:#e8f5e9;border-radius:8px;padding:10px 14px;font-size:12px;color:#1b5e20;margin-bottom:10px;line-height:1.7">
+            📌 <strong>Come ottenere la chiave Gemini (2 minuti, gratis):</strong><br>
+            1. Vai su <a href="https://aistudio.google.com" target="_blank" style="color:#1b5e20;font-weight:700">aistudio.google.com</a> → accedi con il tuo account Google<br>
+            2. Clicca <strong>"Get API key"</strong> → <strong>"Create API key"</strong><br>
+            3. Copia la chiave (inizia con <code>AIza</code>) e incollala qui sotto.<br>
+            ✨ <strong>Gemini 2.0 Flash — gratuito, senza limiti pratici:</strong> tutti i tic, 40 domande, testo fino a 1000 parole, nessuna attesa.
           </div>
           <div style="display:flex;gap:8px;align-items:center">
-            <input type="password" id="groq-key-input" class="finp" placeholder="gsk_..." style="padding:9px 12px;flex:1;font-family:monospace">
-            <button onclick="salvaChiaveGroq()" style="padding:9px 16px;background:#3949ab;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">💾 Salva</button>
+            <input type="password" id="groq-key-input" class="finp" placeholder="AIza..." style="padding:9px 12px;flex:1;font-family:monospace">
+            <button onclick="salvaChiaveGroq()" style="padding:9px 16px;background:#2e7d32;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">💾 Salva</button>
             <button onclick="cancellaChiaveGroq()" style="padding:9px 12px;background:#fce8e6;color:#c62828;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-family:var(--font)" title="Cancella chiave">🗑️</button>
           </div>
           <div id="gemini-key-msg" style="font-size:11px;margin-top:6px"></div>
@@ -4206,11 +4206,11 @@ if(window.speechSynthesis){
 //  Sessioni/giorno con chiave gratuita:  ~65–80
 // ══════════════════════════════════════════════════════════════
 
-var GROQ_KEY_LS = 'groq_key_invalsi_v5';
+var AI_KEY_LS = 'gemini_key_invalsi_v5';
 
-function getChiaveGroq()  { return localStorage.getItem(GROQ_KEY_LS) || ''; }
-function setChiaveGroq(k) { localStorage.setItem(GROQ_KEY_LS, k); }
-function delChiaveGroq()  { localStorage.removeItem(GROQ_KEY_LS); }
+function getChiaveGroq()  { return localStorage.getItem(AI_KEY_LS) || ''; }  // nome mantenuto per compatibilità
+function setChiaveGroq(k) { localStorage.setItem(AI_KEY_LS, k); }
+function delChiaveGroq()  { localStorage.removeItem(AI_KEY_LS); }
 
 
 // ── Indicatore dinamico parole/token sotto il textarea ───────
@@ -4275,8 +4275,8 @@ function salvaChiaveGroq() {
   var inp = document.getElementById('groq-key-input');
   var k   = inp ? inp.value.trim() : '';
   var msg = document.getElementById('gemini-key-msg');
-  if (!k || k.indexOf('gsk_') !== 0) {
-    if (msg) { msg.textContent = 'La chiave deve iniziare con gsk_'; msg.style.color = '#c62828'; }
+  if (!k || k.indexOf('AIza') !== 0) {
+    if (msg) { msg.textContent = 'La chiave Gemini deve iniziare con AIza'; msg.style.color = '#c62828'; }
     return;
   }
   setChiaveGroq(k);
@@ -4301,8 +4301,8 @@ function aggiornaStatoGroq() {
   var lbl = document.getElementById('gemini-status-lbl');
   var k   = getChiaveGroq();
   if (lbl) lbl.textContent = k
-    ? 'Chiave configurata — ~70 sessioni da 40 domande al giorno'
-    : 'Inserisci la tua chiave Groq gratuita (console.groq.com)';
+    ? '✅ Chiave Gemini configurata — tutti i tic, nessun limite pratico'
+    : 'Inserisci la tua chiave Gemini gratuita (aistudio.google.com)';
 }
 
 // ── Countdown visivo durante l'attesa TPM ────────────────────
@@ -4314,49 +4314,49 @@ async function _attesaTPM(secondi, loadEl) {
 }
 
 // ── Chiamata diretta browser → Groq con retry TPM automatico ─
-async function _groqCall(prompt, loadEl) {
+async function _groqCall(prompt, loadEl, maxTok) {
+  // ── Gemini 2.0 Flash ─────────────────────────────────────
+  // 1.000.000 token/minuto — nessun limite pratico
+  // Nessun countdown, granularità completa sempre disponibile
   var chiave = getChiaveGroq();
-  if (!chiave) throw new Error('Chiave Groq mancante. Clicca "Configurazione AI" e inserisci la chiave.');
+  if (!chiave) throw new Error('Chiave Gemini mancante. Clicca "Configurazione AI" e inserisci la chiave (inizia con AIza).');
 
-  // Fino a 3 tentativi con attesa crescente su errore TPM (429)
-  var attese = [65, 65, 65]; // secondi di attesa: piano free reset ogni 60s
-  for (var t = 0; t <= attese.length; t++) {
-    var r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + chiave },
-      body: JSON.stringify({
-        model: 'llama-3.1-8b-instant',
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.3,
-        max_tokens: 2800
-      })
-    });
+  var url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + chiave;
 
-    var d = await r.json();
-
-    if (r.status === 429) {
-      // Quota giornaliera esaurita vs limite TPM al minuto
-      var msg = d.error ? d.error.message : '';
-      var isTPM = msg.indexOf('tokens per minute') !== -1 || msg.indexOf('TPM') !== -1;
-      var isDaily = msg.indexOf('per day') !== -1 || msg.indexOf('daily') !== -1;
-
-      if (isDaily) {
-        throw new Error('Quota giornaliera Groq esaurita. Riprova domani oppure crea una nuova chiave su console.groq.com.');
+  var r = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature:     0.3,
+        maxOutputTokens: maxTok || 8000,  // Gemini non ha limiti al minuto — usiamo 8000
+        responseMimeType: 'text/plain'
       }
-      if (t < attese.length) {
-        // Attesa con countdown visivo, poi riprova automaticamente
-        await _attesaTPM(attese[t], loadEl);
-        continue;
-      }
-      throw new Error('Limite Groq persistente. Attendi 2 minuti e riprova, oppure riduci il numero di domande.');
-    }
+    })
+  });
 
-    if (r.status === 401) throw new Error('La chiave Groq non e valida. Verificala su console.groq.com.');
-    if (d.error)          throw new Error('Groq: ' + d.error.message);
-    var txt = d.choices && d.choices[0] && d.choices[0].message ? d.choices[0].message.content : '';
-    if (!txt) throw new Error('Risposta Groq vuota. Riprova.');
-    return txt;
+  var d = await r.json();
+
+  if (r.status === 401 || r.status === 403) {
+    throw new Error('Chiave Gemini non valida o non autorizzata. Verificala su aistudio.google.com.');
   }
+  if (r.status === 429) {
+    throw new Error('Limite Gemini raggiunto (insolito). Attendi 30 secondi e riprova.');
+  }
+  if (!r.ok) {
+    var errMsg = d.error ? d.error.message : 'Errore ' + r.status;
+    throw new Error('Errore Gemini: ' + errMsg);
+  }
+
+  // Estrae il testo dalla risposta Gemini
+  var txt = '';
+  if (d.candidates && d.candidates[0] && d.candidates[0].content &&
+      d.candidates[0].content.parts && d.candidates[0].content.parts[0]) {
+    txt = d.candidates[0].content.parts[0].text || '';
+  }
+  if (!txt) throw new Error('Risposta Gemini vuota. Riprova.');
+  return txt;
 }
 
 // ── Parsing JSON con riparazione automatica ───────────────────
@@ -4371,13 +4371,18 @@ function _parseJ(raw, label) {
   throw new Error(label + ': JSON non valido dopo 3 tentativi di riparazione.');
 }
 
+// Alias con max_tokens personalizzato (usato dalla call grammatica)
+function _callConRetryMT(prompt, label, loadEl, msg, maxTok) {
+  return _callConRetry(prompt, label, loadEl, msg, maxTok);
+}
+
 // ── Call con retry automatico su errore JSON ──────────────────
-async function _callConRetry(prompt, label, loadEl, msgCaricamento) {
+async function _callConRetry(prompt, label, loadEl, msgCaricamento, maxTok) {
   var RETRY = 2;
   for (var t = 0; t <= RETRY; t++) {
     try {
       if (loadEl && t > 0) loadEl.textContent = msgCaricamento + ' (tentativo ' + (t+1) + '/' + (RETRY+1) + ')...';
-      var raw = await _groqCall(prompt, loadEl);
+      var raw = await _groqCall(prompt, loadEl, maxTok);
       return _parseJ(raw, label);
     } catch(e) {
       if (e.message === 'QUOTA') {
@@ -4703,7 +4708,8 @@ async function generaDomandeAI() {
       if (loadEl) loadEl.textContent = 'Groq — domande grammatica (' + nCallTotG + '/' + nCallTotG + ')...';
 
       var pG = _buildPromptGram(testo, nGram, gramInstrBase, nParEx3, offsetGram);
-      var rG = await _callConRetry(pG, 'Chiamata Grammatica', loadEl, 'Groq Grammatica');
+      // Call grammatica: max_tokens ridotto — domande brevi, testo corto
+      var rG = await _callConRetryMT(pG, 'Chiamata Grammatica', loadEl, 'Groq Grammatica', 900);
       if (rG.domande && rG.domande.length) {
         rG.domande.forEach(function(d,i){ d.n = offsetGram + i + 1; d.sez = 2; });
         tuttiDomande = tuttiDomande.concat(rG.domande);
