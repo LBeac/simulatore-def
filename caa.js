@@ -1115,7 +1115,7 @@
           'X-Title':       'Grado 8 INVALSI CAA'
         },
         body: JSON.stringify({
-          model:       'google/gemini-2.0-flash-exp:free',
+          model:       'meta-llama/llama-3.3-70b-instruct:free',
           temperature: 0.4,
           max_tokens:  1800,
           messages: [
