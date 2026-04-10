@@ -1049,7 +1049,7 @@ tr:hover td{background:var(--grigio-ch)}
       <div class="panel-card" style="max-width:none;margin-top:14px;border:2px solid #e8eaf6">
         <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleGeminiSetup()">
           <div>
-            <div style="font-size:13px;font-weight:800;color:#2e7d32">🔑 Configurazione AI — Gemini Flash (gratuito)</div>
+            <div style="font-size:13px;font-weight:800;color:#2e7d32">🔑 Configurazione AI — OpenRouter (gratuito)</div>
             <div id="gemini-status-lbl" style="font-size:11px;color:#888;margin-top:2px">Inserisci la tua chiave Groq gratuita (console.groq.com)</div>
           </div>
           <span id="gemini-arrow" style="font-size:16px;color:#3949ab;transition:transform .2s">▸</span>
@@ -1057,13 +1057,13 @@ tr:hover td{background:var(--grigio-ch)}
         <div id="gemini-setup" style="display:none;margin-top:12px">
           <div style="background:#e8f5e9;border-radius:8px;padding:10px 14px;font-size:12px;color:#1b5e20;margin-bottom:10px;line-height:1.7">
             📌 <strong>Come ottenere la chiave Gemini (2 minuti, gratis):</strong><br>
-            1. Vai su <a href="https://aistudio.google.com" target="_blank" style="color:#1b5e20;font-weight:700">aistudio.google.com</a> → accedi con il tuo account Google<br>
+            1. Vai su <a href="https://openrouter.ai" target="_blank" style="color:#1b5e20;font-weight:700">openrouter.ai</a> → accedi con il tuo account Google<br>
             2. Clicca <strong>"Get API key"</strong> → <strong>"Create API key"</strong><br>
-            3. Copia la chiave (inizia con <code>AIza</code>) e incollala qui sotto.<br>
-            ✨ <strong>Gemini 2.0 Flash — gratuito, senza limiti pratici:</strong> tutti i tic, 40 domande, testo fino a 1000 parole, nessuna attesa.
+            3. Copia la chiave (inizia con <code>sk-or-</code>) e incollala qui sotto.<br>
+            ✨ <strong>OpenRouter gratuito:</strong> modello Gemini 2.0 Flash, tutti i tic, 40 domande, testo fino a 1000 parole, 200 sessioni/giorno per chiave.
           </div>
           <div style="display:flex;gap:8px;align-items:center">
-            <input type="password" id="groq-key-input" class="finp" placeholder="AIza..." style="padding:9px 12px;flex:1;font-family:monospace">
+            <input type="password" id="groq-key-input" class="finp" placeholder="sk-or-v1-..." style="padding:9px 12px;flex:1;font-family:monospace">
             <button onclick="salvaChiaveGroq()" style="padding:9px 16px;background:#2e7d32;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">💾 Salva</button>
             <button onclick="cancellaChiaveGroq()" style="padding:9px 12px;background:#fce8e6;color:#c62828;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-family:var(--font)" title="Cancella chiave">🗑️</button>
           </div>
@@ -4206,7 +4206,7 @@ if(window.speechSynthesis){
 //  Sessioni/giorno con chiave gratuita:  ~65–80
 // ══════════════════════════════════════════════════════════════
 
-var AI_KEY_LS = 'gemini_key_invalsi_v5';
+var AI_KEY_LS = 'groq_key_invalsi_v5'; // condiviso con caa.js
 
 function getChiaveGroq()  { return localStorage.getItem(AI_KEY_LS) || ''; }  // nome mantenuto per compatibilità
 function setChiaveGroq(k) { localStorage.setItem(AI_KEY_LS, k); }
@@ -4275,8 +4275,8 @@ function salvaChiaveGroq() {
   var inp = document.getElementById('groq-key-input');
   var k   = inp ? inp.value.trim() : '';
   var msg = document.getElementById('gemini-key-msg');
-  if (!k || k.indexOf('AIza') !== 0) {
-    if (msg) { msg.textContent = 'La chiave Gemini deve iniziare con AIza'; msg.style.color = '#c62828'; }
+  if (!k || k.indexOf('sk-or-') !== 0) {
+    if (msg) { msg.textContent = 'La chiave OpenRouter deve iniziare con sk-or-'; msg.style.color = '#c62828'; }
     return;
   }
   setChiaveGroq(k);
@@ -4301,8 +4301,8 @@ function aggiornaStatoGroq() {
   var lbl = document.getElementById('gemini-status-lbl');
   var k   = getChiaveGroq();
   if (lbl) lbl.textContent = k
-    ? '✅ Chiave Gemini configurata — tutti i tic, nessun limite pratico'
-    : 'Inserisci la tua chiave Gemini gratuita (aistudio.google.com)';
+    ? '✅ Chiave OpenRouter configurata — tutti i tic, 200 sessioni/giorno'
+    : 'Inserisci la tua chiave Gemini gratuita (openrouter.ai)';
 }
 
 // ── Countdown visivo durante l'attesa TPM ────────────────────
@@ -4321,41 +4321,42 @@ async function _groqCall(prompt, loadEl, maxTok) {
   var chiave = getChiaveGroq();
   if (!chiave) throw new Error('Chiave Gemini mancante. Clicca "Configurazione AI" e inserisci la chiave (inizia con AIza).');
 
-  var url = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=' + chiave;
+  var url = 'https://openrouter.ai/api/v1/chat/completions';
 
   var r = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type':  'application/json',
+      'Authorization': 'Bearer ' + chiave,
+      'HTTP-Referer':  'https://lbeac.github.io/simulatore-def/',
+      'X-Title':       'Grado 8 INVALSI'
+    },
     body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature:     0.3,
-        maxOutputTokens: maxTok || 8000,  // Gemini non ha limiti al minuto — usiamo 8000
-        responseMimeType: 'text/plain'
-      }
+      model:       'google/gemini-2.0-flash-exp:free',
+      messages:    [{ role: 'user', content: prompt }],
+      temperature: 0.3,
+      max_tokens:  maxTok || 8000
     })
   });
 
   var d = await r.json();
 
   if (r.status === 401 || r.status === 403) {
-    throw new Error('Chiave Gemini non valida o non autorizzata. Verificala su aistudio.google.com.');
+    throw new Error('Chiave OpenRouter non valida. Verificala su openrouter.ai/keys.');
   }
   if (r.status === 429) {
-    throw new Error('Limite Gemini raggiunto (insolito). Attendi 30 secondi e riprova.');
+    // OpenRouter gratuito: 200 richieste/giorno — limite raggiunto
+    throw new Error('Limite giornaliero OpenRouter raggiunto (200 richieste/giorno). Riprova domani o crea una nuova chiave su openrouter.ai.');
   }
   if (!r.ok) {
     var errMsg = d.error ? d.error.message : 'Errore ' + r.status;
-    throw new Error('Errore Gemini: ' + errMsg);
+    throw new Error('Errore OpenRouter: ' + errMsg);
   }
 
-  // Estrae il testo dalla risposta Gemini
-  var txt = '';
-  if (d.candidates && d.candidates[0] && d.candidates[0].content &&
-      d.candidates[0].content.parts && d.candidates[0].content.parts[0]) {
-    txt = d.candidates[0].content.parts[0].text || '';
-  }
-  if (!txt) throw new Error('Risposta Gemini vuota. Riprova.');
+  // Estrae il testo dalla risposta (formato OpenAI, come Groq)
+  var txt = d.choices && d.choices[0] && d.choices[0].message
+    ? d.choices[0].message.content : '';
+  if (!txt) throw new Error('Risposta OpenRouter vuota. Riprova.');
   return txt;
 }
 
