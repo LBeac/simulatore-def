@@ -4305,9 +4305,10 @@ async function _groqCall(prompt, loadEl, maxTok) {
   // Chiama Apps Script che a sua volta chiama Gemini 1.5 Flash
   // server-to-server: nessun limite al minuto dal browser,
   // chiave sicura nelle Proprietà script, granularità completa
+  // Content-Type text/plain evita il preflight CORS che blocca Apps Script
   var r = await fetch(SCRIPT_URL, {
     method:  'POST',
-    headers: {'Content-Type': 'application/json'},
+    headers: {'Content-Type': 'text/plain'},
     body: JSON.stringify({
       token:  SCRIPT_TOKEN,
       action: 'generaDomande',
@@ -4316,13 +4317,14 @@ async function _groqCall(prompt, loadEl, maxTok) {
   });
 
   if (!r.ok) {
-    throw new Error('Errore di rete (' + r.status + '). Controlla la connessione.');
+    throw new Error('Errore di rete (' + r.status + '). Verifica che Apps Script sia ridistribuito.');
   }
 
-  var d = await r.json();
+  var txt = await r.text();
+  var d;
+  try { d = JSON.parse(txt); } catch(e) { throw new Error('Risposta Apps Script non valida. Ridistribuisci lo script.'); }
   if (!d.ok) {
-    var msg = d.err || 'Errore sconosciuto';
-    throw new Error(msg);
+    throw new Error(d.err || 'Errore sconosciuto da Apps Script');
   }
   return d.content || '';
 }
