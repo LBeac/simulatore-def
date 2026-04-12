@@ -1169,15 +1169,24 @@ tr:hover td{background:var(--grigio-ch)}
               <span id="logica-arrow" style="margin-left:auto;font-size:13px;color:#6a1b9a;transition:transform .2s">▸</span>
             </div>
             <div id="dis-gram-logica-subs" style="display:none;padding:10px 14px 12px 34px;background:#fdf5ff;border-top:1px solid #e1bee7">
-              <div style="background:#ede7f6;border-radius:6px;padding:8px 11px;font-size:11px;color:#4a1580;margin-bottom:9px;line-height:1.6">
-                🤖 <strong>L'AI genera sempre: Soggetto · Predicato · Complemento oggetto</strong><br>
-                <span style="color:#7b1fa2">Dopo la generazione puoi aggiungere manualmente altri complementi dalle domande generate.</span>
+              <div style="font-size:11px;color:#4a1580;margin-bottom:8px;line-height:1.6">
+                🤖 Scegli le funzioni da analizzare. L'AI genera domande solo sulle voci selezionate.<br>
+                <span style="color:#888">Aggiungi altri complementi manualmente dopo la generazione.</span>
               </div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px 16px;opacity:0.5;pointer-events:none">
-                <label style="display:flex;align-items:center;gap:6px;font-size:12px;padding:4px 0">✅ Soggetto <span style="font-size:10px;color:#6a1b9a;font-weight:700">(AI)</span></label>
-                <label style="display:flex;align-items:center;gap:6px;font-size:12px;padding:4px 0">✅ Predicato verbale / nominale <span style="font-size:10px;color:#6a1b9a;font-weight:700">(AI)</span></label>
-                <label style="display:flex;align-items:center;gap:6px;font-size:12px;padding:4px 0">✅ Complemento oggetto <span style="font-size:10px;color:#6a1b9a;font-weight:700">(AI)</span></label>
-                <label style="display:flex;align-items:center;gap:6px;font-size:12px;padding:4px 0;color:#aaa">+ altri (aggiungi manualmente)</label>
+              <div style="display:flex;flex-direction:column;gap:7px">
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+                  <input type="checkbox" id="dis-logica-soggetto" checked style="width:14px;height:14px;accent-color:#6a1b9a">
+                  <span style="font-weight:700;color:#4a1580">Soggetto</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+                  <input type="checkbox" id="dis-logica-predicato" checked style="width:14px;height:14px;accent-color:#6a1b9a">
+                  <span style="font-weight:700;color:#4a1580">Predicato verbale / nominale</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+                  <input type="checkbox" id="dis-logica-oggetto" style="width:14px;height:14px;accent-color:#6a1b9a">
+                  <span style="color:#555">Complemento oggetto</span>
+                  <span style="font-size:10px;color:#9e9e9e;margin-left:2px">(se presente nel testo)</span>
+                </label>
               </div>
             </div>
           </div>
@@ -1191,16 +1200,14 @@ tr:hover td{background:var(--grigio-ch)}
               <span id="periodo-arrow" style="margin-left:auto;font-size:13px;color:#2e7d32;transition:transform .2s">▸</span>
             </div>
             <div id="dis-gram-periodo-subs" style="display:none;padding:10px 14px 12px 34px;background:#f5fdf5;border-top:1px solid #c8e6c9">
-              <div style="background:#e8f5e9;border-radius:6px;padding:8px 11px;font-size:11px;color:#1b5e20;margin-bottom:9px;line-height:1.6">
-                🤖 <strong>L'AI genera sempre: Proposizione principale</strong><br>
-                <span style="color:#388e3c">Dopo la generazione puoi aggiungere manualmente domande su coordinate e subordinate usando il pulsante "✏️ + domanda".</span>
+              <div style="font-size:11px;color:#1b5e20;margin-bottom:8px;line-height:1.6">
+                🤖 L'AI genera domande sulla proposizione principale.<br>
+                <span style="color:#888">Coordinate e subordinate: aggiungile manualmente dopo la generazione con il pulsante +SM o +VF.</span>
               </div>
-              <div style="opacity:0.5;pointer-events:none">
-                <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#1b5e20;padding:4px 0">
-                  ✅ Proposizione principale <span style="font-size:10px;color:#2e7d32;font-weight:700">(AI)</span>
-                </label>
-                <div style="font-size:11px;color:#aaa;margin-top:6px">Coordinate e subordinate → aggiungi manualmente dopo la generazione</div>
-              </div>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+                <input type="checkbox" id="dis-periodo-principale" checked style="width:14px;height:14px;accent-color:#2e7d32">
+                <span style="font-weight:700;color:#1b5e20">Proposizione principale</span>
+              </label>
             </div>
           </div>
         </div>
@@ -1214,9 +1221,25 @@ tr:hover td{background:var(--grigio-ch)}
 
       <!-- Step 3: Anteprima -->
       <div id="dis-ai-preview" style="display:none">
+        <div class="panel-card" style="max-width:none;margin-top:10px;border:2px solid #e3f2fd">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px">
+            <h3 style="color:var(--blu)">📄 Testo generato — rivedi e correggi</h3>
+            <button onclick="toggleTestoPreview()" id="btn-toggle-testo"
+              style="padding:5px 12px;background:#e3f2fd;color:#1565c0;border:1px solid #90caf9;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font)">
+              👁 Nascondi testo
+            </button>
+          </div>
+          <div id="dis-testo-preview-box">
+            <div id="dis-testo-preview-content" style="font-size:13px;line-height:1.85;color:#1a2436"></div>
+            <div style="font-size:11px;color:#888;margin-top:10px;padding-top:8px;border-top:1px solid #e0e0e0">
+              ✏️ Per modificare il testo, torna al Passo 1 e incolla la versione corretta, poi rigenera.
+            </div>
+          </div>
+        </div>
+
         <div class="panel-card" style="max-width:none;margin-top:10px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
-            <h3>📝 Passo 3 — Rivedi e modifica</h3>
+            <h3>📝 Passo 3 — Rivedi e modifica le domande</h3>
             <div style="display:flex;gap:6px;flex-wrap:wrap">
               <button onclick="aggiungiDomandaManuale('sm')" style="padding:5px 10px;background:#e3f2fd;color:#1565c0;border:1px solid #90caf9;border-radius:5px;font-size:11px;font-weight:800;cursor:pointer;font-family:var(--font)">+SM</button>
               <button onclick="aggiungiDomandaManuale('vf')" style="padding:5px 10px;background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;border-radius:5px;font-size:11px;font-weight:800;cursor:pointer;font-family:var(--font)">+VF</button>
@@ -2567,6 +2590,10 @@ function renderDom(idx){
             <option value="1.3">🏃 Veloce</option>
           </select>
         </div>
+        <div class="tts-vel" id="tts-voce-wrap" style="display:none">
+          <span>Voce:</span>
+          <select id="tts-voice-sel" onchange="ttsSetVoce(this.value)" style="max-width:120px;font-size:11px"></select>
+        </div>
       </div>` : '';
     colTesto.innerHTML=`<div class="brano-wrap">
       ${_ttsBarBrano}
@@ -2574,7 +2601,7 @@ function renderDom(idx){
       <div class="brano-body" id="tts-brano-text">${d.testo}</div>
       ${d.fonte?`<div class="fonte-txt">${d.fonte}</div>`:''}
     </div>`;
-    if(S.provaIdDaURL==='custom') ttsSetTesto(d.testo);
+    if(S.provaIdDaURL==='custom') { ttsSetTesto(d.testo); _ttsInitVoci(_ttsPopVociSel); }
 
     // Su mobile: bottone Avanti dentro col-dom sotto al testo
     if(mobile){
@@ -2615,6 +2642,10 @@ function renderDom(idx){
             <option value="1.3">🏃 Veloce</option>
           </select>
         </div>
+        <div class="tts-vel" id="tts-voce-wrap" style="display:none">
+          <span>Voce:</span>
+          <select id="tts-voice-sel" onchange="ttsSetVoce(this.value)" style="max-width:120px;font-size:11px"></select>
+        </div>
       </div>` : '';
     colTesto.innerHTML=`<div class="brano-wrap">
       ${_ttsBarRef}
@@ -2622,7 +2653,7 @@ function renderDom(idx){
       <div class="brano-body" id="tts-brano-text">${ref.testo}</div>
       ${ref.fonte?`<div class="fonte-txt">${ref.fonte}</div>`:''}
     </div>`;
-    if(S.provaIdDaURL==='custom') ttsSetTesto(ref.testo);
+    if(S.provaIdDaURL==='custom') { ttsSetTesto(ref.testo); _ttsInitVoci(_ttsPopVociSel); }
   } else {
     colTesto.innerHTML=`<div class="no-testo">
       <div class="no-testo-ico">📝</div>
@@ -3926,8 +3957,14 @@ function _ttsInitVoci(callback){
 // Selezione automatica della voce italiana migliore disponibile
 function ttsGetVoce(){
   if(_ttsVoce) return _ttsVoce;
+  // Prima controlla se l'utente ha scelto una voce manualmente
+  var uriSalvata = localStorage.getItem('tts_voce_uri');
   var voci = window.speechSynthesis.getVoices();
   if(!voci.length) return null;
+  if(uriSalvata){
+    var trovataManuale = voci.find(function(v){ return v.voiceURI === uriSalvata; });
+    if(trovataManuale){ _ttsVoce = trovataManuale; return trovataManuale; }
+  }
   // Priorità decrescente: voci neurali/cloud prima, eSpeak ultima
   var priorita = [
     function(v){ return v.lang==='it-IT' && /natural|neural|premium|online/i.test(v.name); },
@@ -3944,6 +3981,36 @@ function ttsGetVoce(){
     if(trovata){ _ttsVoce = trovata; return trovata; }
   }
   return voci[0];
+}
+
+// Popola il selettore voci nella barra TTS
+function _ttsPopVociSel(){
+  var sel = document.getElementById('tts-voice-sel');
+  var wrap = document.getElementById('tts-voce-wrap');
+  if(!sel) return;
+  var voci = window.speechSynthesis.getVoices();
+  var itVoci = voci.filter(function(v){ return v.lang && v.lang.startsWith('it'); });
+  if(!itVoci.length) return; // nessuna voce italiana, nascondi
+  if(wrap) wrap.style.display = 'flex';
+  var voceCorrente = ttsGetVoce();
+  sel.innerHTML = itVoci.map(function(v){
+    var lbl = v.name.replace(/Microsoft /,'').replace(/Google /,'');
+    var natural = /neural|natural|premium|online/i.test(v.name) ? ' ✨' : '';
+    var sel2 = (voceCorrente && voceCorrente.voiceURI===v.voiceURI) ? ' selected' : '';
+    return '<option value="'+v.voiceURI+'"'+sel2+'>'+lbl+natural+'</option>';
+  }).join('');
+}
+
+// Chiamata quando l'utente sceglie una voce dal selettore
+function ttsSetVoce(uri){
+  var voci = window.speechSynthesis.getVoices();
+  var scelta = voci.find(function(v){ return v.voiceURI === uri; });
+  if(scelta){
+    _ttsVoce = scelta;
+    localStorage.setItem('tts_voce_uri', uri);
+    // Riavvia la lettura se stava leggendo
+    if(window.speechSynthesis.speaking){ ttsStop(); }
+  }
 }
 
 function ttsSetTesto(testo){
@@ -4164,27 +4231,47 @@ if(window.speechSynthesis){
 }
 
 // ══════════════════════════════════════════════════════════════
-//  AI — GENERAZIONE DOMANDE v2
+//  ANTEPRIMA TESTO GENERATO — mostra i paragrafi nel Passo 3
+// ══════════════════════════════════════════════════════════════
+function _renderTestoPreview(paragrafi) {
+  var content = document.getElementById('dis-testo-preview-content');
+  if (!content || !paragrafi || !paragrafi.length) return;
+  function _esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  content.innerHTML = paragrafi.map(function(p) {
+    return '<div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px dashed #e0e0e0">'
+      + '<div style="font-size:10px;font-weight:800;color:var(--az);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">Paragrafo ' + p.n + '</div>'
+      + '<p style="margin:0;font-size:13px;line-height:1.85;color:#1a2436">' + _esc(p.testo) + '</p>'
+      + '</div>';
+  }).join('');
+}
+
+function toggleTestoPreview() {
+  var box = document.getElementById('dis-testo-preview-box');
+  var btn = document.getElementById('btn-toggle-testo');
+  if (!box) return;
+  var hidden = box.style.display === 'none';
+  box.style.display = hidden ? 'block' : 'none';
+  if (btn) btn.textContent = hidden ? '👁 Nascondi testo' : '👁 Mostra testo';
+}
+
+// ══════════════════════════════════════════════════════════════
+//  AI — GENERAZIONE DOMANDE v3
 //  Architettura: chiave personale docente (localStorage) →
 //  chiamata diretta browser→Groq, SENZA passare per Apps Script.
 //
-//  FIX v3 — Modalità Descrivi ora usa 2 call separate:
-//  DESCRIVI Call 1: genera SOLO il testo narrativo (~800 tok output)
-//  DESCRIVI Call 2: genera SOLO le domande sul testo (~2000 tok output)
-//  → Risolve il "JSON non valido": llama-3.1-8b non regge
-//    testo+JSON complesso in una sola risposta a 5000 token.
+//  Problema risolto: con tutti i tic attivi il prompt era
+//  enorme e il modello generava JSON malformato → retry →
+//  quota esaurita. Ora ogni chiamata chiede UN SOLO GRUPPO
+//  di tipi, con prompt compatto e retry intelligente.
 //
-//  INCOLLA Call 1: paragrafi + SM + VF  (formati semplici)
-//  INCOLLA Call 2: AP + COMP + COL      (formati complessi)
-//  INCOLLA Call 3: grammatica           (se selezionata)
+//  CALL 1: paragrafi + SM + VF    (formati semplici, affidabili)
+//  CALL 2: AP + COMP + COL        (formati complessi, isolati)
+//  CALL 3: sezione grammatica     (solo se grammatica selezionata
+//           e non già coperta nelle call precedenti)
 //
-//  Grammatica semplificata hardcoded nel prompt (non dai checkbox):
-//  MORFO: tutte 7 categorie · LOGICA: Sogg/Pred/C.ogg · PERIODO: principale
-//  Il docente aggiunge manualmente le voci extra dopo la generazione.
-//
-//  JSON _parseJ: 5 strategie di riparazione (era 3)
-//  Ogni call: max 2 retry automatici su errore JSON.
-//  Token/sessione completa: ~3.500–5.000 (sotto il limite 6000 TPM)
+//  Ogni call ha max 2 retry automatici su errore JSON.
+//  Token per sessione completa (40 dom): ~6.000–7.500
+//  Sessioni/giorno con chiave gratuita:  ~65–80
 // ══════════════════════════════════════════════════════════════
 
 var AI_KEY_LS = 'groq_key_invalsi_v5'; // condiviso con caa.js
@@ -4347,37 +4434,27 @@ async function _groqCall(prompt, loadEl, maxTok) {
 
 // ── Parsing JSON con riparazione automatica (5 strategie) ────
 function _parseJ(raw, label) {
-  // Rimuovi code fences e testo prima/dopo il JSON
   var c = raw.replace(/```json\s*/gi,'').replace(/```\s*/g,'').trim();
-  // Estrai il blocco JSON principale
   var m = c.match(/\{[\s\S]*\}/);
   if (!m) throw new Error(label + ': risposta senza JSON. Riprova.');
   var s = m[0];
-
-  // Tentativo 1: JSON diretto
+  // Tentativo 1: diretto
   try { return JSON.parse(s); } catch(e) {}
-
-  // Tentativo 2: rimuovi virgole trailing prima di } o ]
+  // Tentativo 2: rimuovi virgole trailing
   var s2 = s.replace(/,(\s*[}\]])/g,'$1');
   try { return JSON.parse(s2); } catch(e) {}
-
-  // Tentativo 3: tronca all'ultimo "}" valido (risposta troncata da max_tokens)
-  var lastBrace = s2.lastIndexOf('}');
-  if (lastBrace > 0) {
-    try { return JSON.parse(s2.substring(0, lastBrace + 1)); } catch(e) {}
-  }
-
-  // Tentativo 4: forza chiusura array + oggetto (troncatura mid-array)
+  // Tentativo 3: tronca all'ultimo } valido (risposta troncata da max_tokens)
+  var lb = s2.lastIndexOf('}');
+  if (lb > 0) { try { return JSON.parse(s2.substring(0, lb+1)); } catch(e) {} }
+  // Tentativo 4: forza chiusura array+oggetto
   try { return JSON.parse(s2.replace(/,?\s*$/, '') + ']}'); } catch(e) {}
-
-  // Tentativo 5: rimuovi newline/tab dentro le stringhe (bug di llama-3.1-8b)
+  // Tentativo 5: rimuovi newline/tab dentro le stringhe (bug llama-3.1-8b)
   var s5 = s2.replace(/"((?:[^"\\]|\\.)*)"/g, function(_, inner) {
-    return '"' + inner.replace(/[\n\r\t]/g, ' ').replace(/\s{2,}/g,' ') + '"';
+    return '"' + inner.replace(/[\n\r\t]/g,' ').replace(/\s{2,}/g,' ') + '"';
   });
   try { return JSON.parse(s5); } catch(e) {}
   try { return JSON.parse(s5.replace(/,?\s*$/, '') + ']}'); } catch(e) {}
-
-  throw new Error(label + ': JSON non valido dopo 5 tentativi. Riduci il numero di domande e riprova.');
+  throw new Error(label + ': JSON non valido. Riduci il numero di domande e riprova.');
 }
 
 // Alias con max_tokens personalizzato (usato dalla call grammatica)
@@ -4508,22 +4585,24 @@ async function generaDomandeAI() {
 
   var gramParts=[];
   if(chk('dis-gram-morfo')){
-    // Morfologia: SEMPRE tutte e 7 le categorie — il docente aggiunge manualmente se serve
-    gramParts.push('MORFO(Nome,Aggettivo,Verbo,Avverbio,Prep.semplici,Prep.articolate,Articoli)');
+    var m=[];
+    ['nome','aggettivo','verbo','avverbio','prep-semplici','prep-articolate','articoli'].forEach(function(x,i){
+      var labels=['Nome','Aggettivo','Verbo','Avverbio','Prep.semplici','Prep.articolate','Articoli'];
+      if(chk('dis-morfo-'+x)) m.push(labels[i]);
+    });
+    gramParts.push('MORFO('+(m.length?m.join(','):'tutte le 7 categorie')+')');
   }
   if(chk('dis-gram-logica')){
-    // Analisi Logica SEMPLIFICATA: solo le 3 voci base per disabilità
-    // Il docente può aggiungere manualmente le altre dopo la generazione
-    gramParts.push('LOGICA(Soggetto,Predicato verbale,Complemento oggetto)');
+    var l=[];
+    if(chk('dis-logica-soggetto'))  l.push('Soggetto');
+    if(chk('dis-logica-predicato')) l.push('Predicato verbale/nominale');
+    if(chk('dis-logica-oggetto'))   l.push('Complemento oggetto');
+    gramParts.push('LOGICA('+(l.length?l.join(','):'Soggetto,Predicato')+') — genera SOLO queste funzioni, nessuna altra');
   }
   if(chk('dis-gram-periodo')){
-    // Analisi del Periodo SEMPLIFICATA: solo Proposizione principale
-    // Il docente può aggiungere manualmente le subordinate dopo la generazione
-    gramParts.push('PERIODO(Proposizione principale)');
+    gramParts.push('PERIODO(Proposizione principale) — genera SOLO domande sulla principale');
   }
-  var gramInstr = gramParts.length
-    ? 'SEZ2 grammatica — genera SOLO queste categorie: ' + gramParts.join(' | ') + '. NON aggiungere altre categorie grammaticali.'
-    : '';
+  var gramInstr=gramParts.length?'SEZ2 grammatica: '+gramParts.join(' | ')+'.':'';
 
   var nC=Math.ceil(ndom*0.34),nL=Math.ceil(ndom*0.33),nG=ndom-nC-nL;
   var hasGram=!!(gramInstr&&nG>0);
@@ -4531,62 +4610,51 @@ async function generaDomandeAI() {
   var nSMVF=tipiA.length?(tipiB.length?Math.round(nNoGram*tipiA.length/(tipiA.length+tipiB.length)):nNoGram):0;
   var nCompl=nNoGram-nSMVF;
 
-  // ── MODALITÀ DESCRIVI: 2 call separate (Call1: testo, Call2: domande) ──────
-  // Soluzione al "JSON non valido": llama-3.1-8b non riesce a generare
-  // ~800 token di narrativa + JSON complesso in una sola risposta.
-  // Separando le due responsabilità ogni call rimane sotto 2000 token output
-  // e ben al di sotto del limite TPM di 6000 del piano gratuito Groq.
+  // ── MODALITÀ DESCRIVI: 2 call separate ──────────────────────
   if(modo==='descrivi'){
     var tuttiTipi=tipiA.concat(tipiB);
     if(!tuttiTipi.length) tuttiTipi=['SM'];
     try {
-
-      // ────────────────────────────────────────────────────────
-      // CALL 1 — genera SOLO il testo narrativo (niente domande)
-      // ────────────────────────────────────────────────────────
-      if(loadEl) loadEl.textContent='Groq — call 1/2: genero il testo narrativo...';
+      // CALL 1 — genera SOLO il testo narrativo
+      if(loadEl) loadEl.textContent='Groq — call 1/2: scrivo il testo...';
       var p1=[];
       p1.push('Sei un esperto di didattica italiana per la scuola media.');
-      p1.push('Genera un testo narrativo originale di ESATTAMENTE ' + lunghezza + ' parole su questo argomento: ' + descrizione);
-      p1.push('Requisiti: lingua semplice e chiara, adatta ad alunni con difficoltà di apprendimento. Frasi brevi. Nessuna parola difficile senza spiegazione.');
-      p1.push('Dividi il testo in 4 paragrafi. Rispondi SOLO con questo JSON — zero testo prima o dopo:');
-      p1.push('{"paragrafi":[{"n":1,"testo":"primo paragrafo..."},{"n":2,"testo":"secondo paragrafo..."},{"n":3,"testo":"terzo paragrafo..."},{"n":4,"testo":"quarto paragrafo..."}]}');
+      p1.push('Scrivi un testo narrativo originale di ESATTAMENTE '+lunghezza+' parole sull\'argomento: '+descrizione);
+      p1.push('Usa frasi brevi e semplici. Dividi il testo in esattamente 4 paragrafi di lunghezza simile.');
+      p1.push('Rispondi SOLO con questo JSON (zero testo fuori dal JSON):');
+      p1.push('{"paragrafi":[{"n":1,"testo":"Primo paragrafo qui con tutto il testo."},{"n":2,"testo":"Secondo paragrafo qui."},{"n":3,"testo":"Terzo paragrafo qui."},{"n":4,"testo":"Quarto paragrafo qui."}]}');
+      var r1=await _callConRetry(p1.join('\n'),'Testo',loadEl,'Groq — scrivo testo',1400);
+      if(!r1.paragrafi||!r1.paragrafi.length) throw new Error('Testo non generato. Riprova.');
+      var testoGen=r1.paragrafi.map(function(p){return p.testo;}).join('\n\n');
+      var nParGen=r1.paragrafi.length;
+      // Mostra anteprima testo nel Passo 3
+      _renderTestoPreview(r1.paragrafi);
 
-      var r1 = await _callConRetry(p1.join('\n'), 'Testo', loadEl, 'Groq — genero testo', 1400);
-      if(!r1.paragrafi || !r1.paragrafi.length) throw new Error('Testo non generato correttamente. Riprova.');
-      var testoGenerato = r1.paragrafi.map(function(p){ return p.testo; }).join('\n\n');
-      var nParGen = r1.paragrafi.length;
+      // Pausa anti-TPM
+      if(loadEl) loadEl.textContent='Groq — pausa (2s)...';
+      await new Promise(function(r){setTimeout(r,2000);});
 
-      // Pausa anti-TPM obbligatoria tra le due call
-      if(loadEl) loadEl.textContent='Groq — pausa anti-limite (2s)...';
-      await new Promise(function(r){ setTimeout(r, 2000); });
-
-      // ────────────────────────────────────────────────────────
       // CALL 2 — genera SOLO le domande sul testo appena creato
-      // ────────────────────────────────────────────────────────
-      if(loadEl) loadEl.textContent='Groq — call 2/2: genero ' + ndom + ' domande...';
-      var sezD2 = 'Distribuzione sezioni: ' + nC + ' domande SEZ0 (comprensione testo), ' + nL + ' domande SEZ1 (lessico)' + (hasGram ? ', ' + nG + ' domande SEZ2 (grammatica)' : '') + '.';
+      if(loadEl) loadEl.textContent='Groq — call 2/2: genero '+ndom+' domande...';
+      var sezD2=nC+' domande SEZ0(comprensione), '+nL+' SEZ1(lessico)'+(hasGram?', '+nG+' SEZ2(grammatica)':'');
       var p2=[];
-      p2.push('Esperto didattica inclusiva italiana. Genera ESATTAMENTE ' + ndom + ' domande numerate da 1 a ' + ndom + '.');
-      p2.push('Tipi di domanda da usare: ' + tuttiTipi.join(', ') + '.');
-      p2.push(sezD2);
+      p2.push('Esperto didattica inclusiva. Genera ESATTAMENTE '+ndom+' domande numerate da 1 a '+ndom+' sul seguente testo.');
+      p2.push('Tipi ammessi: '+tuttiTipi.join(',')+'. Distribuzione sezioni: '+sezD2+'.');
       if(gramInstr) p2.push(gramInstr);
-      p2.push('Lingua SEMPLICE per alunni con disabilità. Frasi brevi nelle domande.');
-      p2.push('TESTO SU CUI FARE LE DOMANDE:\n---\n' + testoGenerato + '\n---');
-      p2.push('FORMATI JSON da usare:');
-      if(tuttiTipi.indexOf('SM')!==-1) p2.push('SM:{"tipo":"sm","testo":"Domanda?","opts":["A testo","B testo","C testo","D testo"],"ok":0,"sez":0,"par":1}');
-      if(tuttiTipi.indexOf('VF')!==-1) p2.push('VF:{"tipo":"vf","testo":"Segna V o F:","righeVF":[{"t":"Affermazione 1","ok":true},{"t":"Affermazione 2","ok":false},{"t":"Affermazione 3","ok":true}],"sez":0,"par":1}');
-      if(tuttiTipi.indexOf('AP')!==-1) p2.push('AP:{"tipo":"ap","testo":"Domanda aperta breve?","sez":0,"par":1}');
-      if(tuttiTipi.indexOf('COMP')!==-1) p2.push('COMP:{"tipo":"comp","testo":"Completa la frase:","frase":"Frase con ___ al posto della parola.","parole":["risposta corretta","distrattore1","distrattore2","distrattore3"],"ok":0,"sez":1,"par":1}');
-      if(tuttiTipi.indexOf('COL')!==-1) p2.push('COL:{"tipo":"col","testo":"Collega:","sinistra":["elem A","elem B","elem C"],"destra":["defin X","defin Y","defin Z"],"coppie":[0,1,2],"sez":1,"par":1}');
-      p2.push('Il testo ha ' + nParGen + ' paragrafi numerati. Usa il campo "par" per indicare il paragrafo di riferimento (1-' + nParGen + ').');
-      p2.push('RISPONDI SOLO CON IL JSON — niente testo prima o dopo:');
-      p2.push('{"domande":[{"n":1,"par":1,"tipo":"sm","sez":0,"testo":"Domanda?","opts":["A","B","C","D"],"ok":0}]}');
-
-      var r2 = await _callConRetry(p2.join('\n'), 'Domande', loadEl, 'Groq — genero domande', 2200);
-      if(!r2.domande || !r2.domande.length) throw new Error('Domande non generate. Riprova con meno domande.');
-
-      r2.domande.forEach(function(d,i){ d.n=i+1; });
+      p2.push('IMPORTANTE: ogni opzione deve essere UNA FRASE O PAROLA REALE tratta dal contesto — MAI singole lettere come "A","B","C","D".');
+      p2.push('TESTO:\n---\n'+testoGen+'\n---');
+      p2.push('FORMATI (adatta il contenuto al testo, non usare testo segnaposto):');
+      p2.push('SM:{"tipo":"sm","testo":"Dove si svolge la storia?","opts":["In una foresta","In una città","In montagna","Al mare"],"ok":0,"sez":0,"par":1}');
+      p2.push('VF:{"tipo":"vf","testo":"Segna Vero o Falso:","righeVF":[{"t":"Il protagonista si chiama Marco","ok":true},{"t":"La storia si svolge in inverno","ok":false},{"t":"Il nonno aiuta il ragazzo","ok":true}],"sez":0,"par":1}');
+      p2.push('AP:{"tipo":"ap","testo":"Perché il protagonista era triste?","sez":0,"par":2}');
+      p2.push('COMP:{"tipo":"comp","testo":"Completa:","frase":"Marco era molto ___ di tornare a casa.","parole":["felice","triste","stanco","arrabbiato"],"ok":0,"sez":1,"par":1}');
+      p2.push('COL:{"tipo":"col","testo":"Collega il personaggio al suo ruolo:","sinistra":["Marco","La nonna","Il cane"],"destra":["protagonista","cuoca","animale fedele"],"coppie":[0,1,2],"sez":1,"par":1}');
+      p2.push('Il testo ha '+nParGen+' paragrafi (1-'+nParGen+'). Usa "par" per indicare il paragrafo della domanda.');
+      p2.push('RISPONDI SOLO CON IL JSON:');
+      p2.push('{"domande":[{"n":1,"par":1,"tipo":"sm","sez":0,"testo":"Domanda?","opts":["Opzione reale A","Opzione reale B","Opzione reale C","Opzione reale D"],"ok":0}]}');
+      var r2=await _callConRetry(p2.join('\n'),'Domande',loadEl,'Groq — domande',2200);
+      if(!r2.domande||!r2.domande.length) throw new Error('Domande non generate. Prova con meno domande.');
+      r2.domande.forEach(function(d,i){d.n=i+1;});
       _disAIProva={titolo:titolo||'Prova personalizzata',sottotitolo:'Prova personalizzata',glossario:[],paragrafi:r1.paragrafi,domande:r2.domande};
       renderPreviewDisAI(r2.domande);
       if(loadEl) loadEl.style.display='none';
@@ -4598,21 +4666,26 @@ async function generaDomandeAI() {
     return;
   }
 
-  // ── MODALITÀ INCOLLA: 2 call (testo+domande, poi grammatica) ─
+  // ── MODALITÀ INCOLLA: 2-3 call ─────────────────────────────
   var testo=testoRaw.substring(0,3800);
+  // Mostra anteprima del testo incollato nel Passo 3
+  var paragrafiIncolla=testo.split(/\n\s*\n/).filter(Boolean).map(function(t,i){return {n:i+1,testo:t.trim()};});
+  if(!paragrafiIncolla.length) paragrafiIncolla=[{n:1,testo:testo.trim()}];
+  _renderTestoPreview(paragrafiIncolla);
   function buildP(tipi,n,offset,incPar,nPar,sezD,gram){
     var L=[];
     L.push('Esperto didattica inclusiva. Genera ESATTAMENTE '+n+' domande ('+(offset+1)+'-'+(offset+n)+'). Tipi:'+tipi.join(',')+'.');
     L.push(sezD);if(gram)L.push(gram);
+    L.push('IMPORTANTE: le opzioni devono essere frasi o parole REALI tratte dal contesto — MAI singole lettere come "A","B","C","D".');
     L.push('Lingua semplice. TESTO:\n---\n'+testo+'\n---');
-    L.push('FORMATI:');
-    if(tipi.indexOf('SM')!==-1)L.push('SM:{"tipo":"sm","testo":"?","opts":["A","B","C","D"],"ok":0,"sez":0,"par":1}');
-    if(tipi.indexOf('VF')!==-1)L.push('VF:{"tipo":"vf","testo":"V/F:","righeVF":[{"t":"A","ok":true},{"t":"B","ok":false}],"sez":0,"par":1}');
-    if(tipi.indexOf('AP')!==-1)L.push('AP:{"tipo":"ap","testo":"?","sez":0,"par":1}');
-    if(tipi.indexOf('COMP')!==-1)L.push('COMP:{"tipo":"comp","testo":"Completa:","frase":"La ___ e bella","parole":["corretta","d1","d2","d3"],"ok":0,"sez":0,"par":1}');
-    if(tipi.indexOf('COL')!==-1)L.push('COL:{"tipo":"col","testo":"Collega:","sinistra":["A","B"],"destra":["X","Y"],"coppie":[0,1],"sez":0,"par":1}');
-    if(incPar){L.push('Dividi in 4-6 paragrafi. SOLO JSON:');L.push('{"paragrafi":[{"n":1,"testo":"..."}],"domande":[{"n":1,"par":1,"tipo":"sm","sez":0,"testo":"?","opts":["A","B","C","D"],"ok":0}]}');}
-    else{L.push('Paragrafi definiti('+nPar+'). SOLO JSON:');L.push('{"domande":[{"n":'+(offset+1)+',"par":1,"tipo":"sm","sez":0,"testo":"?","opts":["A","B","C","D"],"ok":0}]}');}
+    L.push('FORMATI (adatta al testo reale):');
+    if(tipi.indexOf('SM')!==-1)L.push('SM:{"tipo":"sm","testo":"Chi è il protagonista?","opts":["Il bambino del villaggio","Un vecchio contadino","La maestra di scuola","Il sindaco del paese"],"ok":0,"sez":0,"par":1}');
+    if(tipi.indexOf('VF')!==-1)L.push('VF:{"tipo":"vf","testo":"Segna V o F:","righeVF":[{"t":"Il protagonista è giovane","ok":true},{"t":"La storia si svolge di notte","ok":false},{"t":"Il nonno aiuta il ragazzo","ok":true}],"sez":0,"par":1}');
+    if(tipi.indexOf('AP')!==-1)L.push('AP:{"tipo":"ap","testo":"Perché il protagonista era preoccupato?","sez":0,"par":1}');
+    if(tipi.indexOf('COMP')!==-1)L.push('COMP:{"tipo":"comp","testo":"Completa:","frase":"Marco era molto ___ di tornare a casa.","parole":["felice","triste","stanco","arrabbiato"],"ok":0,"sez":1,"par":1}');
+    if(tipi.indexOf('COL')!==-1)L.push('COL:{"tipo":"col","testo":"Collega:","sinistra":["Marco","La nonna","Il cane"],"destra":["protagonista","cuoca","animale fedele"],"coppie":[0,1,2],"sez":1,"par":1}');
+    if(incPar){L.push('Dividi in 4-5 paragrafi. SOLO JSON:');L.push('{"paragrafi":[{"n":1,"testo":"..."}],"domande":[{"n":1,"par":1,"tipo":"sm","sez":0,"testo":"Domanda?","opts":["Opzione A reale","Opzione B reale","Opzione C reale","Opzione D reale"],"ok":0}]}');}
+    else{L.push('Paragrafi definiti('+nPar+'). SOLO JSON:');L.push('{"domande":[{"n":'+(offset+1)+',"par":1,"tipo":"sm","sez":0,"testo":"Domanda?","opts":["Opzione A reale","Opzione B reale","Opzione C reale","Opzione D reale"],"ok":0}]}');}
     return L.join('\n');
   }
   try {
@@ -4639,9 +4712,10 @@ async function generaDomandeAI() {
       var testoG=testoRaw.substring(0,1200);
       var pG=['Esperto grammatica italiana. Genera '+nG+' domande ('+(offG+1)+'-'+(offG+nG)+'). Tutte SEZ2.'];
       pG.push(gramInstr);
+      pG.push('IMPORTANTE: le opzioni devono essere parole o frasi REALI tratte dal testo — MAI singole lettere.');
       pG.push('TESTO:\n---\n'+testoG+'\n---');
-      pG.push('SM:{"tipo":"sm","testo":"?","opts":["A","B","C","D"],"ok":0,"sez":2,"par":1}');
-      pG.push('Paragrafi definiti('+nParG+'). SOLO JSON:{"domande":[{"n":'+(offG+1)+',"par":1,"tipo":"sm","sez":2,"testo":"?","opts":["A","B","C","D"],"ok":0}]}');
+      pG.push('SM:{"tipo":"sm","testo":"Qual è il soggetto di questa frase?","opts":["Il gatto","La porta","Correva","Velocemente"],"ok":0,"sez":2,"par":1}');
+      pG.push('Paragrafi definiti('+nParG+'). SOLO JSON:{"domande":[{"n":'+(offG+1)+',"par":1,"tipo":"sm","sez":2,"testo":"Domanda?","opts":["Opzione reale A","Opzione reale B","Opzione reale C","Opzione reale D"],"ok":0}]}');
       var rG=await _callConRetry(pG.join('\n'),'Gram',loadEl,'Groq',900);
       if(rG.domande&&rG.domande.length){rG.domande.forEach(function(d,i){d.n=offG+i+1;d.sez=2;});allD=allD.concat(rG.domande);}
     }
