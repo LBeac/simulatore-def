@@ -1105,12 +1105,14 @@ tr:hover td{background:var(--grigio-ch)}
           <div class="fg" style="margin-top:10px">
             <label class="flbl">Lunghezza testo desiderata</label>
             <select id="dis-ai-lunghezza" class="finp" style="padding:9px 12px">
-              <option value="200">Breve — circa 200 parole (disabilità grave)</option>
-              <option value="350" selected>Media — circa 350 parole (BES/DSA)</option>
-              <option value="500">Standard — circa 500 parole (difficoltà lievi)</option>
-              <option value="700">Lunga — circa 700 parole (classe standard)</option>
-              <option value="900">Molto lunga — circa 900 parole (prova completa)</option>
+              <option value="150">Molto breve — 150 parole (disabilità grave)</option>
+              <option value="250">Breve — 250 parole (BES/disabilità)</option>
+              <option value="350" selected>Standard — 350 parole (consigliato)</option>
+              <option value="500">Lunga — 500 parole (piano gratuito: limite massimo)</option>
             </select>
+            <div style="font-size:11px;color:#888;margin-top:5px;line-height:1.6">
+              ⚡ Piano Groq gratuito: max ~500 parole per sessione. Per testi più lunghi serve il piano Dev (~$9/mese) o la generazione in più sessioni.
+            </div>
           </div>
         </div>
       </div>
@@ -4351,11 +4353,23 @@ function aggiornaStatoGroq() {
 }
 
 // ── Countdown visivo durante l'attesa TPM ────────────────────
-async function _attesaTPM(secondi, loadEl) {
+// ── Countdown visivo: usa il tempo REALE comunicato da Groq ──
+async function _attesaTPM(secondi, loadElId) {
   for (var s = secondi; s > 0; s--) {
-    if (loadEl) loadEl.textContent = 'Limite Groq raggiunto — attesa automatica: ' + s + 's...';
+    var el = document.getElementById(loadElId || 'dis-ai-loading');
+    if (el) el.textContent = '⏳ Limite Groq raggiunto — attesa: ' + s + 's... (riprende automaticamente)';
     await new Promise(function(r){ setTimeout(r, 1000); });
   }
+}
+
+// ── Estrae i secondi di attesa dal messaggio di errore Groq ──
+function _parseGroqWait(msg) {
+  // Groq scrive: "Please try again in 47.29s" oppure "try again in 1m30s"
+  var m = msg.match(/try again in\s+(\d+(?:\.\d+)?)s/i);
+  if (m) return Math.ceil(parseFloat(m[1])) + 5; // +5s di buffer
+  var m2 = msg.match(/try again in\s+(\d+)m(\d+(?:\.\d+)?)s/i);
+  if (m2) return parseInt(m2[1])*60 + Math.ceil(parseFloat(m2[2])) + 5;
+  return 70; // fallback sicuro
 }
 
 // ── Chiamata diretta browser → Groq con retry TPM automatico ─
@@ -4363,8 +4377,11 @@ async function _groqCall(prompt, loadEl, maxTok) {
   var chiave = getChiaveGroq();
   if (!chiave) throw new Error('Chiave Groq non configurata. Clicca su "Configurazione AI" e inserisci la chiave gsk_...');
 
-  var attese = [65];
-  for (var t = 0; t <= attese.length; t++) {
+  // ID del loadEl per recuperarlo anche se il DOM viene aggiornato
+  var loadElId = loadEl ? (loadEl.id || 'dis-ai-loading') : 'dis-ai-loading';
+  var MAX_RETRY = 3;
+
+  for (var t = 0; t <= MAX_RETRY; t++) {
     var r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + chiave},
@@ -4377,10 +4394,15 @@ async function _groqCall(prompt, loadEl, maxTok) {
     });
     var d = await r.json();
     if (r.status === 429) {
-      var msg = d.error ? (d.error.message||'') : '';
-      if (msg.indexOf('per day')!==-1) throw new Error('Quota giornaliera Groq esaurita. Crea una nuova chiave su console.groq.com o riprova domani.');
-      if (t < attese.length) { await _attesaTPM(attese[t], loadEl); continue; }
-      throw new Error('Limite token/minuto Groq. Attendi 2 minuti e riprova, oppure riduci le voci grammaticali selezionate.');
+      var errMsg = d.error ? (d.error.message||'') : '';
+      if (errMsg.indexOf('per day') !== -1)
+        throw new Error('Quota giornaliera Groq esaurita. Crea una nuova chiave su console.groq.com o riprova domani.');
+      if (t < MAX_RETRY) {
+        var attendi = _parseGroqWait(errMsg); // secondi reali da Groq
+        await _attesaTPM(attendi, loadElId);
+        continue;
+      }
+      throw new Error('Limite token/minuto Groq ancora raggiunto dopo ' + MAX_RETRY + ' tentativi. Attendi qualche minuto e riprova, oppure riduci il numero di domande.');
     }
     if (r.status === 401) throw new Error('Chiave Groq non valida. Verificala su console.groq.com.');
     if (d.error) throw new Error('Groq: ' + d.error.message);
@@ -4568,10 +4590,12 @@ async function generaDomandeAI() {
   if(modo==='descrivi'){
     var tuttiTipi=tipiA.concat(tipiB);
     if(!tuttiTipi.length) tuttiTipi=['SM'];
-    // max_tokens Call 1 basato sulla lunghezza richiesta (~1.4 tok/parola + 20% margine)
-    var tokC1 = lunghezza<=350?1200:lunghezza<=500?1500:lunghezza<=700?1900:2400;
-    // Pausa anti-TPM: più lunga per testi grandi (più token)
-    var pausaMs = lunghezza<=500?2000:lunghezza<=700?2500:3000;
+    // max_tokens Call 1 conservativi (input+output devono stare in 6000 TPM totali):
+    // 150p→~220tok, 250p→~360tok, 350p→~510tok, 500p→~720tok output
+    // Lasciamo ampio margine per Call 2 (include il testo come input)
+    var tokC1 = lunghezza<=200?500:lunghezza<=350?800:1100;
+    // Pausa anti-TPM: 3s per testi brevi, 5s per 500p (Call 2 ha più input)
+    var pausaMs = lunghezza<=350?3000:5000;
     try {
       // CALL 1: SOLO il testo narrativo
       if(loadEl) loadEl.textContent='Groq — 1/2: scrivo il testo (~'+lunghezza+' parole)...';
