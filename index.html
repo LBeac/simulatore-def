@@ -4631,15 +4631,32 @@ async function generaDomandeAI() {
       // Questo è il cambiamento chiave: il modello scrive testo libero,
       // noi lo dividiamo in paragrafi. Molto più affidabile di chiedere JSON.
       if(loadEl) loadEl.textContent='Groq — 1/'+(hasGram?3:2)+': scrivo il testo...';
-      // tokTesto: 1.5 tok/parola + 25% margine. 350p→660tok, 500p→940tok
-      var tokTesto = Math.min(1200, Math.round(lunghezza * 1.5 * 1.25));
-      // Usa la lunghezza dalla tendina come valore autorevole,
-      // ignora eventuali numeri di parole scritti nella descrizione
-      var promptTesto = 'Scrivi un testo narrativo italiano di ESATTAMENTE '+lunghezza+' parole sull\'argomento: '+descrizione+'\n'
-        + 'Il testo deve essere di ESATTAMENTE '+lunghezza+' parole — non di meno, non di più.\n'
-        + 'Usa frasi brevi e semplici, adatto a studenti di scuola media.\n'
-        + 'Struttura: 4 paragrafi separati da una riga vuota, di lunghezza simile.\n'
-        + 'Scrivi SOLO il testo, senza titolo, senza numerazione, senza commenti.';
+      // tokTesto generoso: 2 tok/parola + 20% margine, max 1400
+      var tokTesto = Math.min(1400, Math.round(lunghezza * 2 * 1.2));
+      var parolePerPar = Math.round(lunghezza / 4);
+      var promptTesto = 'Scrivi un testo narrativo italiano sull\'argomento: '+descrizione+'\n'
+        + 'Il testo deve avere ESATTAMENTE 4 paragrafi separati da una riga vuota.\n'
+        + 'Ogni paragrafo deve avere ESATTAMENTE '+parolePerPar+' parole (totale: '+lunghezza+' parole).\n'
+        + 'Scrivi frasi complete e dettagliate per raggiungere le '+parolePerPar+' parole per paragrafo.\n'
+        + 'Scrivi SOLO il testo, senza titolo, senza numerazione paragrafi, senza commenti.';
+      var testoRisposta = await _groqCall(promptTesto, loadEl, tokTesto);
+      testoRisposta = testoRisposta.replace(/```[\s\S]*?```/g,'').replace(/^\s*{[\s\S]*}\s*$/,'').trim();
+
+      // Controlla le parole generate — se < 60% del target, chiedi espansione
+      var paroleGenerate = testoRisposta.split(/\s+/).filter(function(w){return w.length>0;}).length;
+      if(paroleGenerate < lunghezza * 0.6){
+        if(loadEl) loadEl.textContent='Groq — testo troppo breve ('+paroleGenerate+' parole), espando...';
+        await new Promise(function(r){setTimeout(r,3000);});
+        var mancano = lunghezza - paroleGenerate;
+        var promptEsp = 'Questo testo è troppo breve. Riscrivilo aggiungendo dettagli, dialoghi e descrizioni per arrivare a '+lunghezza+' parole totali:\n\n'
+          + testoRisposta + '\n\n'
+          + 'Scrivi SOLO il testo riscritto e più lungo, con 4 paragrafi separati da riga vuota, SENZA aggiungere titoli o commenti.';
+        try{
+          var testoEsp = await _groqCall(promptEsp, loadEl, tokTesto);
+          testoEsp = testoEsp.replace(/```[\s\S]*?```/g,'').trim();
+          if(testoEsp.split(/\s+/).length > paroleGenerate) testoRisposta = testoEsp;
+        }catch(eEsp){ /* usa il testo originale */ }
+      }
       var testoRisposta = await _groqCall(promptTesto, loadEl, tokTesto);
       // Pulizia: rimuovi eventuale JSON accidentale o markdown
       testoRisposta = testoRisposta.replace(/```[\s\S]*?```/g,'').replace(/^\s*{[\s\S]*}\s*$/,'').trim();
