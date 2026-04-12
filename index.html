@@ -1045,18 +1045,7 @@ tr:hover td{background:var(--grigio-ch)}
         🌟 <strong>Prove adattate per alunni con disabilità</strong> — Incolla un testo: l'AI (Google Gemini, gratuito) genera le domande. Puoi modificarle o crearle manualmente.
       </div>
 
-            <!-- Info AI — Gemini 1.5 Flash via Apps Script -->
-      <div class="panel-card" style="max-width:none;margin-top:14px;border:2px solid #e8f5e9;background:#f1faf2">
-        <div style="display:flex;align-items:center;gap:12px">
-          <div style="font-size:28px">🤖</div>
-          <div>
-            <div style="font-size:13px;font-weight:800;color:#2e7d32">AI attiva — Gemini 1.5 Flash</div>
-            <div style="font-size:11px;color:#555;margin-top:3px;line-height:1.5">
-              Configurata dall'amministratore · Tutti i tic · 40 domande · Testo fino a 1000 parole · Nessuna attesa
-            </div>
-          </div>
-        </div>
-      </div>
+      
 
       <!-- Step 1: Testo — due modalità -->
       <div class="panel-card" style="max-width:none;margin-top:10px">
@@ -4588,7 +4577,7 @@ async function generaDomandeAI() {
     p.push('{"paragrafi":[{"n":1,"testo":"..."}],"domande":[{"n":1,"par":1,"tipo":"sm","sez":0,"testo":"?","opts":["A","B","C","D"],"ok":0}]}');
     try {
       if(loadEl) loadEl.textContent='Groq — genera testo + '+ndom+' domande...';
-      var raw=await _groqCall(p.join('\n'),loadEl,3000);
+      var raw=await _groqCall(p.join('\n'),loadEl,5000); // 500 parole testo + 30 domande ≈ 4300 tok
       var parsed=_parseJ(raw,'Genera');
       if(!parsed.paragrafi||!parsed.domande||!parsed.domande.length) throw new Error('Risposta incompleta. Riprova.');
       parsed.domande.forEach(function(d,i){d.n=i+1;});
