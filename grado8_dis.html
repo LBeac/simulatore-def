@@ -30,6 +30,27 @@ body.tic-contrasto .pt{background:#000!important}
 body.tic-contrasto .tpar{color:#fff!important}
 body.tic-contrasto .par{background:#111!important;border-bottom-color:#333!important}
 body.tic-contrasto .par.att{background:#1a1500!important;border-left-color:#fdd835!important}
+body.tic-contrasto .par.tts-legge{background:#2a2000!important;border-left-color:#ff8f00!important}
+.par.tts-legge{background:#fff3e0!important;border-left:5px solid #f57c00!important;transition:background .3s,border-left .2s}
+.par.tts-legge .plbl{color:#7a4000!important}
+.par.tts-legge .dot{background:#f57c00!important}
+
+/* Badge AP — da validare */
+.ap-badge-val{
+  display:inline-flex;align-items:center;gap:6px;
+  background:#fff8e1;border:1.5px solid #f9a825;border-radius:7px;
+  padding:7px 12px;margin-top:8px;font-size:.82rem;font-weight:700;color:#7a5000;
+}
+.ap-risposta-box{
+  background:#f5f5f5;border:2px solid #ccc;border-radius:8px;
+  padding:10px 14px;margin-top:8px;font-size:.9rem;line-height:1.7;
+  white-space:pre-wrap;color:#333;font-style:italic;
+}
+.ap-risbox-item{
+  background:#fff8e1;border-radius:8px;border-left:4px solid #f9a825;
+  padding:10px 14px;margin-bottom:10px;font-size:.85rem;
+}
+.ap-risbox-item strong{color:#7a5000;display:block;margin-bottom:4px}
 body.tic-contrasto .pd{background:#111!important}
 body.tic-contrasto .sez{background:#1a1a1a!important}
 body.tic-contrasto .tdom{color:#fff!important}
@@ -194,7 +215,13 @@ body.tic-contrasto .opt{background:#222!important;color:#fff!important;border-co
       <span id="pt-titolo">📖 Leggi il testo</span>
       <div class="twrap">
         <button class="btool" id="baudio" onclick="toggleAudio()">🔊 Ascolta</button>
+        <button class="btool" id="btts-vel" onclick="ciclaVelocita()" title="Velocità lettura">🚶 Normale</button>
         <button class="btool" id="blente" onclick="toggleLente()">🔍 Ingrandisci</button>
+        <select id="voce-sel" onchange="impostaVoce(this.value)"
+          style="display:none;font-family:var(--font);font-size:.68rem;font-weight:700;
+          background:rgba(255,255,255,.16);color:#fff;border:2px solid rgba(255,255,255,.35);
+          border-radius:18px;padding:3px 10px;cursor:pointer;max-width:130px">
+        </select>
       </div>
     </div>
     <div id="testo-content"></div>
@@ -216,6 +243,15 @@ body.tic-contrasto .opt{background:#222!important;color:#fff!important;border-co
       <div class="pts" id="pts">—</div>
       <div class="sub" id="sub-ris">risposte corrette</div>
       <div class="rmsg" id="rmsg"></div>
+      <div id="ap-docente-box" style="display:none;margin-top:16px;text-align:left;border-top:2px dashed #ffcc02;padding-top:14px">
+        <div style="font-size:.82rem;font-weight:800;color:#7a5000;margin-bottom:8px">
+          📋 Risposte aperte — da valutare da parte del docente:
+        </div>
+        <div id="ap-docente-list"></div>
+        <div style="font-size:.75rem;color:#888;margin-top:10px">
+          ⚠️ Le domande aperte non sono incluse nel punteggio automatico. Il docente le valuterà separatamente.
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -621,18 +657,19 @@ function aggBarra(){
 // ══════════════════════════════════════════════════════════════
 function controlla(){
   if(!PROVA_ATTUALE) return;
-  var corr = 0, tot = 0;
+  var corr=0, tot=0;
+  var apRisposte=[]; // raccoglie le risposte aperte per il docente
 
   (PROVA_ATTUALE.domande||[]).forEach(function(d){
-    var tipo = (d.tipo||'sm').toLowerCase();
-    var fb = document.getElementById('fb'+d.n);
+    var tipo=(d.tipo||'sm').toLowerCase();
+    var fb=document.getElementById('fb'+d.n);
 
     if(tipo==='sm'){
       tot++;
-      var okIdx = d.ok !== undefined ? parseInt(d.ok) : (d.corretta !== undefined ? parseInt(d.corretta) : -1);
-      var sel = document.querySelector('input[name="d'+d.n+'"]:checked');
+      var okIdx=d.ok!==undefined?parseInt(d.ok):(d.corretta!==undefined?parseInt(d.corretta):-1);
+      var sel=document.querySelector('input[name="d'+d.n+'"]:checked');
       document.querySelectorAll('input[name="d'+d.n+'"]').forEach(function(r){
-        var l = r.closest('label');
+        var l=r.closest('label');
         l.classList.remove('ok','no','sel');
         if(parseInt(r.value)===okIdx) l.classList.add('ok');
       });
@@ -648,123 +685,129 @@ function controlla(){
       }
 
     } else if(tipo==='vf'){
-      var righe = d.righeVF || d.righe || [];
-      var vfc = 0;
+      var righe=d.righeVF||d.righe||[];
+      var vfc=0;
       righe.forEach(function(r,i){
         tot++;
-        var attesa = r.ok ? 'V' : 'F';
-        var selR = document.querySelector('input[name="vf'+d.n+'_'+i+'"]:checked');
+        var attesa=r.ok?'V':'F';
+        var selR=document.querySelector('input[name="vf'+d.n+'_'+i+'"]:checked');
         ['V','F'].forEach(function(val){
-          var btn = document.querySelector('input[name="vf'+d.n+'_'+i+'"][value="'+val+'"]')?.closest('label');
+          var btn=document.querySelector('input[name="vf'+d.n+'_'+i+'"][value="'+val+'"]')?.closest('label');
           if(btn){ btn.style.background=''; btn.style.borderColor=''; btn.style.color=''; }
         });
-        var lCorr = document.querySelector('input[name="vf'+d.n+'_'+i+'"][value="'+attesa+'"]')?.closest('label');
+        var lCorr=document.querySelector('input[name="vf'+d.n+'_'+i+'"][value="'+attesa+'"]')?.closest('label');
         if(lCorr){ lCorr.style.background='#e8f5e9'; lCorr.style.borderColor='#2e7d32'; lCorr.style.color='#2e7d32'; }
-        if(selR && selR.value===attesa){ corr++; vfc++; }
-        else if(selR){
-          var lW = selR.closest('label');
-          if(lW){ lW.style.background='#fce4e4'; lW.style.borderColor='#c62828'; lW.style.color='#c62828'; }
-        }
+        if(selR&&selR.value===attesa){ corr++; vfc++; }
+        else if(selR){ var lW=selR.closest('label'); if(lW){ lW.style.background='#fce4e4'; lW.style.borderColor='#c62828'; lW.style.color='#c62828'; } }
       });
-      if(fb){
-        fb.textContent = vfc===righe.length ? '✅ Tutte corrette!' : '⚠️ '+vfc+' su '+righe.length+' corrette.';
-        fb.className = vfc===righe.length ? 'fb ok' : 'fb no';
-        fb.style.display = 'block';
-      }
+      if(fb){ fb.textContent=vfc===righe.length?'✅ Tutte corrette!':'⚠️ '+vfc+' su '+righe.length+' corrette.'; fb.className=vfc===righe.length?'fb ok':'fb no'; fb.style.display='block'; }
 
     } else if(tipo==='ap'){
-      tot++;
-      var val = (document.querySelector('textarea[name="ap'+d.n+'"]')?.value||'').trim();
-      if(val){ corr++;
-        if(fb){ fb.textContent='✅ Risposta registrata.'; fb.className='fb ok'; fb.style.display='block'; }
-      } else {
-        if(fb){ fb.textContent='⚠️ Non hai scritto una risposta.'; fb.className='fb no'; fb.style.display='block'; }
+      // ── DOMANDA APERTA: NON conteggiata automaticamente ────────
+      // Il docente valuta la risposta separatamente
+      var textarea=document.querySelector('textarea[name="ap'+d.n+'"]');
+      var val=(textarea?.value||'').trim();
+      if(fb){
+        if(val){
+          fb.innerHTML='📋 <strong>Risposta registrata</strong> — il docente la valuterà.';
+          fb.className='fb ok'; fb.style.display='block';
+          fb.style.background='#fff8e1'; fb.style.color='#7a5000';
+          fb.style.borderColor='#f9a825';
+        } else {
+          fb.textContent='⚠️ Non hai scritto una risposta.'; fb.className='fb no'; fb.style.display='block';
+        }
       }
+      // Salva per il risbox docente
+      apRisposte.push({
+        n: d.n,
+        domanda: d.testo,
+        risposta: val || '(non risposta)',
+        par: d.par || 0
+      });
+      // NON incrementa tot né corr — escluse dal punteggio automatico
 
     } else if(tipo==='comp'){
-      if(d.gaps && d.gaps.length){
+      if(d.gaps&&d.gaps.length){
         d.gaps.forEach(function(g,gi){
           tot++;
-          var selC = document.querySelector('select[name="comp'+d.n+'_'+gi+'"]');
-          if(selC && selC.value !== ''){
-            var rv = parseInt(selC.value);
-            if(rv === g.ok_idx){ corr++;
-              selC.style.borderColor='#2e7d32'; selC.style.background='#e8f5e9';
-            } else {
-              selC.style.borderColor='#c62828'; selC.style.background='#fce4e4';
-            }
+          var selC=document.querySelector('select[name="comp'+d.n+'_'+gi+'"]');
+          if(selC&&selC.value!==''){
+            var rv=parseInt(selC.value);
+            if(rv===g.ok_idx){ corr++; selC.style.borderColor='#2e7d32'; selC.style.background='#e8f5e9'; }
+            else { selC.style.borderColor='#c62828'; selC.style.background='#fce4e4'; }
           }
         });
-        if(fb){
-          fb.textContent = '✅ Completamento verificato.';
-          fb.className = 'fb ok'; fb.style.display = 'block';
-        }
+        if(fb){ fb.textContent='✅ Completamento verificato.'; fb.className='fb ok'; fb.style.display='block'; }
       } else {
         tot++;
-        var selS = document.querySelector('select[name="comp'+d.n+'"]');
-        // d.ok è l'indice della parola corretta nell'array parole
-        var okIdx = d.ok !== undefined ? parseInt(d.ok) : 0;
-        var corretta = (d.parole||[])[okIdx] || (d.parole||[])[0];
-        if(selS && selS.value){
-          if(selS.value===corretta){ corr++;
-            selS.style.borderColor='#2e7d32'; selS.style.background='#e8f5e9';
+        var selS=document.querySelector('select[name="comp'+d.n+'"]');
+        var okIdx2=d.ok!==undefined?parseInt(d.ok):0;
+        var corretta=(d.parole||[])[okIdx2]||(d.parole||[])[0];
+        if(selS&&selS.value){
+          if(selS.value===corretta){ corr++; selS.style.borderColor='#2e7d32'; selS.style.background='#e8f5e9';
             if(fb){ fb.textContent='✅ Corretto!'; fb.className='fb ok'; fb.style.display='block'; }
-          } else {
-            selS.style.borderColor='#c62828'; selS.style.background='#fce4e4';
+          } else { selS.style.borderColor='#c62828'; selS.style.background='#fce4e4';
             if(fb){ fb.textContent='❌ La parola giusta era: "'+corretta+'"'; fb.className='fb no'; fb.style.display='block'; }
           }
-        } else {
-          if(fb){ fb.textContent='⚠️ Scegli una parola.'; fb.className='fb no'; fb.style.display='block'; }
-        }
+        } else { if(fb){ fb.textContent='⚠️ Scegli una parola.'; fb.className='fb no'; fb.style.display='block'; } }
       }
 
     } else if(tipo==='col'){
-      var sx = d.sinistra || d.sx || [];
-      var dx = d.destra || d.dx || [];
-      var coppie = d.coppie || [];
-      var corrCol = 0;
+      var sx=d.sinistra||d.sx||[];
+      var dx=d.destra||d.dx||[];
+      var coppie=d.coppie||[];
+      var corrCol=0;
       sx.forEach(function(el,i){
         tot++;
-        var selCol = document.querySelector('select[name="col'+d.n+'_'+i+'"]');
-        // corretta per indice (se coppie) o per valore diretto
-        var valCorr = coppie.length ? dx[coppie[i]] : dx[i];
-        if(selCol && selCol.value){
-          if(selCol.value===valCorr){ corr++; corrCol++;
-            selCol.style.borderColor='#2e7d32'; selCol.style.background='#e8f5e9';
-          } else {
-            selCol.style.borderColor='#c62828'; selCol.style.background='#fce4e4';
-          }
+        var selCol=document.querySelector('select[name="col'+d.n+'_'+i+'"]');
+        var valCorr=coppie.length?dx[coppie[i]]:dx[i];
+        if(selCol&&selCol.value){
+          if(selCol.value===valCorr){ corr++; corrCol++; selCol.style.borderColor='#2e7d32'; selCol.style.background='#e8f5e9'; }
+          else { selCol.style.borderColor='#c62828'; selCol.style.background='#fce4e4'; }
         }
       });
-      if(fb){
-        fb.textContent = corrCol===sx.length ? '✅ Tutte le coppie corrette!' : '⚠️ '+corrCol+' su '+sx.length+' coppie corrette.';
-        fb.className = corrCol===sx.length ? 'fb ok' : 'fb no';
-        fb.style.display = 'block';
-      }
+      if(fb){ fb.textContent=corrCol===sx.length?'✅ Tutte le coppie corrette!':'⚠️ '+corrCol+' su '+sx.length+' coppie corrette.'; fb.className=corrCol===sx.length?'fb ok':'fb no'; fb.style.display='block'; }
     }
   });
 
-  var pct = tot > 0 ? Math.round(corr/tot*100) : 0;
-  document.getElementById('pts').textContent = corr+' / '+tot;
-  document.getElementById('sub-ris').textContent = 'risposte corrette su '+tot+' totali';
-  var msg = document.getElementById('rmsg');
+  // ── PUNTEGGIO ────────────────────────────────────────────────
+  var pct=tot>0?Math.round(corr/tot*100):0;
+  document.getElementById('pts').textContent=corr+' / '+tot;
+  var subTxt='risposte corrette su '+tot+' totali';
+  if(apRisposte.length) subTxt+=' ('+apRisposte.length+' aperta/e da valutare)';
+  document.getElementById('sub-ris').textContent=subTxt;
+  var msg=document.getElementById('rmsg');
   var t,co,sf;
-  if(pct>=80){t='🌟 Ottimo lavoro! Hai dimostrato una buona comprensione del testo.';co='#01579b';sf='#e1f5fe';}
-  else if(pct>=60){t='👍 Buon lavoro! Hai risposto correttamente alla maggior parte delle domande.';co='#7a5000';sf='#fff8e1';}
-  else{t='💪 Continua a provare! Rileggi le parti evidenziate in giallo e riprova.';co='#c62828';sf='#fdecea';}
+  if(pct>=80){ t='🌟 Ottimo lavoro! Hai dimostrato una buona comprensione del testo.'; co='#01579b'; sf='#e1f5fe'; }
+  else if(pct>=60){ t='👍 Buon lavoro! Hai risposto correttamente alla maggior parte delle domande.'; co='#7a5000'; sf='#fff8e1'; }
+  else { t='💪 Continua a provare! Rileggi le parti evidenziate in giallo e riprova.'; co='#c62828'; sf='#fdecea'; }
   msg.textContent=t; msg.style.color=co; msg.style.background=sf; msg.style.border='2px solid '+co;
+
+  // ── RISPOSTE APERTE PER IL DOCENTE ──────────────────────────
+  var apBox=document.getElementById('ap-docente-box');
+  var apList=document.getElementById('ap-docente-list');
+  if(apRisposte.length&&apBox&&apList){
+    apList.innerHTML=apRisposte.map(function(ap){
+      return '<div class="ap-risbox-item">'
+        +'<strong>Dom. '+ap.n+(ap.par>0?' (Par.'+ap.par+')':'')+': '+ap.domanda+'</strong>'
+        +'<div class="ap-risposta-box">'+ap.risposta+'</div>'
+        +'</div>';
+    }).join('');
+    apBox.style.display='block';
+  }
+
   var box=document.getElementById('risbox');
   box.style.display='block';
   box.scrollIntoView({behavior:'smooth',block:'start'});
 
   // Invia a Google Sheets
-  if(SESSIONE_KEY && CLASSE_STUD){
+  if(SESSIONE_KEY&&CLASSE_STUD){
     var errori={comprensione_globale:0,lessico:0,morfologia:0};
     (PROVA_ATTUALE.domande||[]).forEach(function(d){
       if((d.tipo||'sm')==='sm'){
-        var okIdx2 = d.ok!==undefined?parseInt(d.ok):(d.corretta!==undefined?parseInt(d.corretta):-1);
+        var okIdx2=d.ok!==undefined?parseInt(d.ok):(d.corretta!==undefined?parseInt(d.corretta):-1);
         var selX=document.querySelector('input[name="d'+d.n+'"]:checked');
-        if(selX && parseInt(selX.value)!==okIdx2){
+        if(selX&&parseInt(selX.value)!==okIdx2){
           if(d.sez===0) errori.comprensione_globale++;
           else if(d.sez===1) errori.lessico++;
           else errori.morfologia++;
@@ -776,7 +819,7 @@ function controlla(){
         classe:CLASSE_STUD,totale:corr,su:tot,pct:pct,
         sezioni:[{c:0,t:0},{c:0,t:0},{c:0,t:0}],errori:errori,det:[],
         data:new Date().toISOString(),titolo:PROVA_ATTUALE.titolo,flag_dis:true,
-        modalita:'dis',completata:true,n_risposte:tot}) // [FIX-5, FIX-6]
+        modalita:'dis',completata:true,n_risposte:tot,ap_aperte:apRisposte.length})
     }).catch(function(){});
   }
 }
@@ -786,13 +829,16 @@ function controlla(){
 // ══════════════════════════════════════════════════════════════
 function riazzeramento(){
   if(!confirm('Sei sicuro di voler ricominciare? Tutte le risposte verranno cancellate.')) return;
+  if(_ttsOn){ speechSynthesis.cancel(); _ttsOn=false; var b=document.getElementById('baudio'); if(b){ b.textContent='🔊 Ascolta'; b.classList.remove('on'); } }
+  document.querySelectorAll('.par.tts-legge').forEach(function(p){ p.classList.remove('tts-legge'); });
   document.querySelectorAll('input[type="radio"]').forEach(function(r){ r.checked=false; });
   document.querySelectorAll('.opt').forEach(function(l){ l.classList.remove('ok','no','sel'); });
   document.querySelectorAll('textarea').forEach(function(t){ t.value=''; t.style.borderColor=''; t.style.background=''; });
   document.querySelectorAll('select').forEach(function(s){ s.selectedIndex=0; s.style.borderColor=''; s.style.background=''; });
-  document.querySelectorAll('.fb').forEach(function(f){ f.style.display='none'; f.textContent=''; });
+  document.querySelectorAll('.fb').forEach(function(f){ f.style.display='none'; f.textContent=''; f.style.background=''; f.style.color=''; f.style.borderColor=''; });
   document.querySelectorAll('label[style]').forEach(function(l){ l.style.background=''; l.style.borderColor=''; l.style.color=''; });
   document.getElementById('risbox').style.display='none';
+  var apBox=document.getElementById('ap-docente-box'); if(apBox) apBox.style.display='none';
   document.getElementById('bff').style.width='0%';
   document.getElementById('blbl').textContent='Completate: 0 / '+TOT_DOM+' risposte';
   togliHL();
@@ -800,12 +846,21 @@ function riazzeramento(){
 }
 
 // ══════════════════════════════════════════════════════════════
-//  AUDIO TTS
+//  AUDIO TTS — lettura paragrafo per paragrafo con illuminazione
 // ══════════════════════════════════════════════════════════════
-var _ttsOn=false, _ttsVoce=null;
+var _ttsOn = false, _ttsVoce = null, _ttsParIdx = 0;
+var _ttsVel = 0.85, _ttsVelLabel = ['🐢 Lenta','🚶 Normale','🏃 Veloce'];
+var _ttsVelVal  = [0.7, 0.9, 1.25];
+var _ttsVelIdx  = 1; // default: Normale
+var _ttsParList = []; // [{el, text}]
+
 function _getVoce(){
   if(_ttsVoce) return _ttsVoce;
-  var voci=window.speechSynthesis.getVoices();
+  // Prima: controlla scelta salvata
+  var uri = localStorage.getItem('dis_voce_uri');
+  var voci = window.speechSynthesis.getVoices();
+  if(uri){ var s=voci.find(function(v){return v.voiceURI===uri;}); if(s){_ttsVoce=s;return s;} }
+  // Priorità neurali italiane
   var pr=[
     function(v){return v.lang==='it-IT'&&/natural|neural|premium|online/i.test(v.name);},
     function(v){return v.name.includes('Elsa');},
@@ -817,23 +872,91 @@ function _getVoce(){
   for(var i=0;i<pr.length;i++){var f=voci.find(pr[i]);if(f){_ttsVoce=f;return f;}}
   return voci[0]||null;
 }
-function getTesto(){
-  return Array.from(document.querySelectorAll('.par .tpar'))
-    .map(function(p){ return p.innerText.replace(/\s+/g,' ').trim(); }).join('. ');
+
+function _popolaVocesel(){
+  var sel=document.getElementById('voce-sel');
+  if(!sel) return;
+  var voci=window.speechSynthesis.getVoices();
+  var it=voci.filter(function(v){return v.lang&&v.lang.startsWith('it');});
+  if(!it.length) return;
+  sel.style.display='';
+  var vc=_getVoce();
+  sel.innerHTML=it.map(function(v){
+    var lbl=v.name.replace(/Microsoft /,'').replace(/Google /,'').substring(0,20);
+    var star=/neural|natural|premium|online/i.test(v.name)?'★':'';
+    var sel2=(vc&&vc.voiceURI===v.voiceURI)?' selected':'';
+    return '<option value="'+v.voiceURI+'"'+sel2+'>'+star+lbl+'</option>';
+  }).join('');
 }
-function toggleAudio(){
-  var b=document.getElementById('baudio');
-  if(_ttsOn){ speechSynthesis.cancel(); _ttsOn=false; b.textContent='🔊 Ascolta'; b.classList.remove('on'); return; }
-  var u=new SpeechSynthesisUtterance(getTesto());
-  u.lang='it-IT'; u.rate=0.85; u.pitch=1;
+
+function impostaVoce(uri){
+  var voci=window.speechSynthesis.getVoices();
+  var s=voci.find(function(v){return v.voiceURI===uri;});
+  if(s){_ttsVoce=s;localStorage.setItem('dis_voce_uri',uri);}
+  if(_ttsOn){speechSynthesis.cancel();_ttsOn=false;_leggiParagrafo(_ttsParIdx);}
+}
+
+function ciclaVelocita(){
+  _ttsVelIdx=(_ttsVelIdx+1)%3;
+  _ttsVel=_ttsVelVal[_ttsVelIdx];
+  var b=document.getElementById('btts-vel');
+  if(b) b.textContent=_ttsVelLabel[_ttsVelIdx];
+  if(_ttsOn){speechSynthesis.cancel();_leggiParagrafo(_ttsParIdx);}
+}
+
+function _leggiParagrafo(idx){
+  if(!_ttsOn||idx>=_ttsParList.length){
+    _ttsOn=false;
+    var b=document.getElementById('baudio');
+    if(b){b.textContent='🔊 Ascolta';b.classList.remove('on');}
+    // togli evidenziazione tts
+    document.querySelectorAll('.par.tts-legge').forEach(function(p){p.classList.remove('tts-legge');});
+    return;
+  }
+  _ttsParIdx=idx;
+  var par=_ttsParList[idx];
+  // Illumina paragrafo in lettura (arancio) + scoll
+  document.querySelectorAll('.par.tts-legge').forEach(function(p){p.classList.remove('tts-legge');});
+  par.el.classList.add('tts-legge');
+  par.el.scrollIntoView({behavior:'smooth',block:'center'});
+
+  var u=new SpeechSynthesisUtterance(par.text);
+  u.lang='it-IT'; u.rate=_ttsVel; u.pitch=1;
   var v=_getVoce(); if(v) u.voice=v;
-  u.onend=function(){ _ttsOn=false; b.textContent='🔊 Ascolta'; b.classList.remove('on'); };
-  _ttsOn=true; b.textContent='⏹ Ferma'; b.classList.add('on');
+  u.onend=function(){ if(_ttsOn) _leggiParagrafo(idx+1); };
+  u.onerror=function(){ if(_ttsOn) _leggiParagrafo(idx+1); };
   speechSynthesis.speak(u);
 }
+
+function toggleAudio(){
+  var b=document.getElementById('baudio');
+  if(_ttsOn){
+    speechSynthesis.cancel(); _ttsOn=false;
+    b.textContent='🔊 Ascolta'; b.classList.remove('on');
+    document.querySelectorAll('.par.tts-legge').forEach(function(p){p.classList.remove('tts-legge');});
+    return;
+  }
+  // Costruisci lista paragrafi
+  _ttsParList=Array.from(document.querySelectorAll('.par')).map(function(el){
+    var t=el.querySelector('.tpar');
+    return {el:el, text:t?t.innerText.replace(/\s+/g,' ').trim():''};
+  }).filter(function(p){return p.text;});
+  if(!_ttsParList.length) return;
+  _ttsOn=true;
+  b.textContent='⏹ Ferma'; b.classList.add('on');
+  _ttsParIdx=0;
+  _leggiParagrafo(0);
+}
+
 if(window.speechSynthesis){
   window.speechSynthesis.getVoices();
-  window.speechSynthesis.onvoiceschanged=function(){ _ttsVoce=null; _getVoce(); };
+  window.speechSynthesis.onvoiceschanged=function(){
+    _ttsVoce=null;
+    _getVoce();
+    _popolaVocesel();
+  };
+  // Secondo tentativo dopo 600ms (Chrome bug: voci non ancora pronte)
+  setTimeout(_popolaVocesel, 600);
 }
 
 // ══════════════════════════════════════════════════════════════
