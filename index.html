@@ -1169,17 +1169,15 @@ tr:hover td{background:var(--grigio-ch)}
               <span id="logica-arrow" style="margin-left:auto;font-size:13px;color:#6a1b9a;transition:transform .2s">▸</span>
             </div>
             <div id="dis-gram-logica-subs" style="display:none;padding:10px 14px 12px 34px;background:#fdf5ff;border-top:1px solid #e1bee7">
-              <div style="font-size:11px;color:#4a1580;margin-bottom:7px;font-weight:700">Seleziona i complementi e le funzioni da analizzare:</div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px 16px">
-                <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:4px 0"><input type="checkbox" id="dis-logica-soggetto" style="width:13px;height:13px;accent-color:#6a1b9a"> Soggetto</label>
-                <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:4px 0"><input type="checkbox" id="dis-logica-predicato" style="width:13px;height:13px;accent-color:#6a1b9a"> Predicato verbale / nominale</label>
-                <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:4px 0"><input type="checkbox" id="dis-logica-oggetto" style="width:13px;height:13px;accent-color:#6a1b9a"> Complemento oggetto</label>
-                <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:4px 0"><input type="checkbox" id="dis-logica-specificazione" style="width:13px;height:13px;accent-color:#6a1b9a"> C. di specificazione</label>
-                <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:4px 0"><input type="checkbox" id="dis-logica-termine" style="width:13px;height:13px;accent-color:#6a1b9a"> C. di termine</label>
-                <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:4px 0;grid-column:1/-1;margin-top:2px;border-top:1px dashed #e1bee7;padding-top:7px">
-                  <input type="checkbox" id="dis-logica-tutti" style="width:13px;height:13px;accent-color:#880e4f">
-                  <span style="font-weight:700;color:#880e4f">Tutti i complementi <span style="font-weight:400;color:#888">(luogo, tempo, modo, causa, fine, mezzo…)</span></span>
-                </label>
+              <div style="background:#ede7f6;border-radius:6px;padding:8px 11px;font-size:11px;color:#4a1580;margin-bottom:9px;line-height:1.6">
+                🤖 <strong>L'AI genera sempre: Soggetto · Predicato · Complemento oggetto</strong><br>
+                <span style="color:#7b1fa2">Dopo la generazione puoi aggiungere manualmente altri complementi dalle domande generate.</span>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px 16px;opacity:0.5;pointer-events:none">
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;padding:4px 0">✅ Soggetto <span style="font-size:10px;color:#6a1b9a;font-weight:700">(AI)</span></label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;padding:4px 0">✅ Predicato verbale / nominale <span style="font-size:10px;color:#6a1b9a;font-weight:700">(AI)</span></label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;padding:4px 0">✅ Complemento oggetto <span style="font-size:10px;color:#6a1b9a;font-weight:700">(AI)</span></label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;padding:4px 0;color:#aaa">+ altri (aggiungi manualmente)</label>
               </div>
             </div>
           </div>
@@ -1193,54 +1191,15 @@ tr:hover td{background:var(--grigio-ch)}
               <span id="periodo-arrow" style="margin-left:auto;font-size:13px;color:#2e7d32;transition:transform .2s">▸</span>
             </div>
             <div id="dis-gram-periodo-subs" style="display:none;padding:10px 14px 12px 34px;background:#f5fdf5;border-top:1px solid #c8e6c9">
-              <!-- Principale -->
-              <div style="margin-bottom:9px">
-                <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;font-weight:700;color:#1b5e20;padding:4px 0">
-                  <input type="checkbox" id="dis-periodo-principale" style="width:13px;height:13px;accent-color:#2e7d32"> Proposizione principale
+              <div style="background:#e8f5e9;border-radius:6px;padding:8px 11px;font-size:11px;color:#1b5e20;margin-bottom:9px;line-height:1.6">
+                🤖 <strong>L'AI genera sempre: Proposizione principale</strong><br>
+                <span style="color:#388e3c">Dopo la generazione puoi aggiungere manualmente domande su coordinate e subordinate usando il pulsante "✏️ + domanda".</span>
+              </div>
+              <div style="opacity:0.5;pointer-events:none">
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#1b5e20;padding:4px 0">
+                  ✅ Proposizione principale <span style="font-size:10px;color:#2e7d32;font-weight:700">(AI)</span>
                 </label>
-              </div>
-              <!-- Coordinate -->
-              <div style="margin-bottom:9px">
-                <div style="font-size:11px;font-weight:800;color:#1b5e20;margin-bottom:5px;display:flex;align-items:center;gap:6px">
-                  <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px">
-                    <input type="checkbox" id="dis-periodo-coordinate-all" style="width:13px;height:13px;accent-color:#2e7d32" onchange="toggleGruppo('coordinate',this.checked)"> Coordinate
-                  </label>
-                </div>
-                <div id="dis-periodo-coordinate-group" style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;margin-left:12px">
-                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-copulative" class="dis-periodo-coordinate" style="width:12px;height:12px;accent-color:#388e3c"> Copulative</label>
-                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-disgiuntive" class="dis-periodo-coordinate" style="width:12px;height:12px;accent-color:#388e3c"> Disgiuntive</label>
-                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-avversative-c" class="dis-periodo-coordinate" style="width:12px;height:12px;accent-color:#388e3c"> Avversative</label>
-                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-dichiarative-c" class="dis-periodo-coordinate" style="width:12px;height:12px;accent-color:#388e3c"> Dichiarative</label>
-                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-conclusive" class="dis-periodo-coordinate" style="width:12px;height:12px;accent-color:#388e3c"> Conclusive</label>
-                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-correlative" class="dis-periodo-coordinate" style="width:12px;height:12px;accent-color:#388e3c"> Correlative</label>
-                </div>
-              </div>
-              <!-- Subordinate -->
-              <div>
-                <div style="font-size:11px;font-weight:800;color:#1b5e20;margin-bottom:5px">
-                  <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px">
-                    <input type="checkbox" id="dis-periodo-subordinate-all" style="width:13px;height:13px;accent-color:#2e7d32" onchange="toggleGruppo('subordinate',this.checked)"> Subordinate
-                  </label>
-                </div>
-                <div id="dis-periodo-subordinate-group" style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;margin-left:12px">
-                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-soggettive" class="dis-periodo-subordinate" style="width:12px;height:12px;accent-color:#388e3c"> Soggettive</label>
-                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-oggettive" class="dis-periodo-subordinate" style="width:12px;height:12px;accent-color:#388e3c"> Oggettive</label>
-                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-dichiarative-s" class="dis-periodo-subordinate" style="width:12px;height:12px;accent-color:#388e3c"> Dichiarative</label>
-                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-interr-indirette" class="dis-periodo-subordinate" style="width:12px;height:12px;accent-color:#388e3c"> Interrogative indirette</label>
-                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-relative" class="dis-periodo-subordinate" style="width:12px;height:12px;accent-color:#388e3c"> Relative</label>
-                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-causali" class="dis-periodo-subordinate" style="width:12px;height:12px;accent-color:#388e3c"> Causali</label>
-                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-finali" class="dis-periodo-subordinate" style="width:12px;height:12px;accent-color:#388e3c"> Finali</label>
-                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-temporali" class="dis-periodo-subordinate" style="width:12px;height:12px;accent-color:#388e3c"> Temporali</label>
-                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-consecutive" class="dis-periodo-subordinate" style="width:12px;height:12px;accent-color:#388e3c"> Consecutive</label>
-                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-concessive" class="dis-periodo-subordinate" style="width:12px;height:12px;accent-color:#388e3c"> Concessive</label>
-                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-condizionali" class="dis-periodo-subordinate" style="width:12px;height:12px;accent-color:#388e3c"> Condizionali (Protasi)</label>
-                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-modali" class="dis-periodo-subordinate" style="width:12px;height:12px;accent-color:#388e3c"> Modali</label>
-                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-comparative" class="dis-periodo-subordinate" style="width:12px;height:12px;accent-color:#388e3c"> Comparative</label>
-                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-avversative-s" class="dis-periodo-subordinate" style="width:12px;height:12px;accent-color:#388e3c"> Avversative</label>
-                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-esclusive" class="dis-periodo-subordinate" style="width:12px;height:12px;accent-color:#388e3c"> Esclusive</label>
-                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-eccettuative" class="dis-periodo-subordinate" style="width:12px;height:12px;accent-color:#388e3c"> Eccettuative</label>
-                  <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;padding:2px 0"><input type="checkbox" id="dis-periodo-limitative" class="dis-periodo-subordinate" style="width:12px;height:12px;accent-color:#388e3c"> Limitative</label>
-                </div>
+                <div style="font-size:11px;color:#aaa;margin-top:6px">Coordinate e subordinate → aggiungi manualmente dopo la generazione</div>
               </div>
             </div>
           </div>
@@ -4209,19 +4168,23 @@ if(window.speechSynthesis){
 //  Architettura: chiave personale docente (localStorage) →
 //  chiamata diretta browser→Groq, SENZA passare per Apps Script.
 //
-//  Problema risolto: con tutti i tic attivi il prompt era
-//  enorme e il modello generava JSON malformato → retry →
-//  quota esaurita. Ora ogni chiamata chiede UN SOLO GRUPPO
-//  di tipi, con prompt compatto e retry intelligente.
+//  FIX v3 — Modalità Descrivi ora usa 2 call separate:
+//  DESCRIVI Call 1: genera SOLO il testo narrativo (~800 tok output)
+//  DESCRIVI Call 2: genera SOLO le domande sul testo (~2000 tok output)
+//  → Risolve il "JSON non valido": llama-3.1-8b non regge
+//    testo+JSON complesso in una sola risposta a 5000 token.
 //
-//  CALL 1: paragrafi + SM + VF    (formati semplici, affidabili)
-//  CALL 2: AP + COMP + COL        (formati complessi, isolati)
-//  CALL 3: sezione grammatica     (solo se grammatica selezionata
-//           e non già coperta nelle call precedenti)
+//  INCOLLA Call 1: paragrafi + SM + VF  (formati semplici)
+//  INCOLLA Call 2: AP + COMP + COL      (formati complessi)
+//  INCOLLA Call 3: grammatica           (se selezionata)
 //
-//  Ogni call ha max 2 retry automatici su errore JSON.
-//  Token per sessione completa (40 dom): ~6.000–7.500
-//  Sessioni/giorno con chiave gratuita:  ~65–80
+//  Grammatica semplificata hardcoded nel prompt (non dai checkbox):
+//  MORFO: tutte 7 categorie · LOGICA: Sogg/Pred/C.ogg · PERIODO: principale
+//  Il docente aggiunge manualmente le voci extra dopo la generazione.
+//
+//  JSON _parseJ: 5 strategie di riparazione (era 3)
+//  Ogni call: max 2 retry automatici su errore JSON.
+//  Token/sessione completa: ~3.500–5.000 (sotto il limite 6000 TPM)
 // ══════════════════════════════════════════════════════════════
 
 var AI_KEY_LS = 'groq_key_invalsi_v5'; // condiviso con caa.js
@@ -4382,16 +4345,39 @@ async function _groqCall(prompt, loadEl, maxTok) {
   }
 }
 
-// ── Parsing JSON con riparazione automatica ───────────────────
+// ── Parsing JSON con riparazione automatica (5 strategie) ────
 function _parseJ(raw, label) {
-  var c = raw.replace(/```json/g,'').replace(/```/g,'').trim();
+  // Rimuovi code fences e testo prima/dopo il JSON
+  var c = raw.replace(/```json\s*/gi,'').replace(/```\s*/g,'').trim();
+  // Estrai il blocco JSON principale
   var m = c.match(/\{[\s\S]*\}/);
-  if (!m) throw new Error(label + ': risposta non JSON. Riprova.');
+  if (!m) throw new Error(label + ': risposta senza JSON. Riprova.');
   var s = m[0];
+
+  // Tentativo 1: JSON diretto
   try { return JSON.parse(s); } catch(e) {}
-  try { return JSON.parse(s.replace(/,(\s*[}\]])/g,'$1')); } catch(e) {}
-  try { return JSON.parse(s.replace(/,\s*$/,'') + ']}'); } catch(e) {}
-  throw new Error(label + ': JSON non valido dopo 3 tentativi di riparazione.');
+
+  // Tentativo 2: rimuovi virgole trailing prima di } o ]
+  var s2 = s.replace(/,(\s*[}\]])/g,'$1');
+  try { return JSON.parse(s2); } catch(e) {}
+
+  // Tentativo 3: tronca all'ultimo "}" valido (risposta troncata da max_tokens)
+  var lastBrace = s2.lastIndexOf('}');
+  if (lastBrace > 0) {
+    try { return JSON.parse(s2.substring(0, lastBrace + 1)); } catch(e) {}
+  }
+
+  // Tentativo 4: forza chiusura array + oggetto (troncatura mid-array)
+  try { return JSON.parse(s2.replace(/,?\s*$/, '') + ']}'); } catch(e) {}
+
+  // Tentativo 5: rimuovi newline/tab dentro le stringhe (bug di llama-3.1-8b)
+  var s5 = s2.replace(/"((?:[^"\\]|\\.)*)"/g, function(_, inner) {
+    return '"' + inner.replace(/[\n\r\t]/g, ' ').replace(/\s{2,}/g,' ') + '"';
+  });
+  try { return JSON.parse(s5); } catch(e) {}
+  try { return JSON.parse(s5.replace(/,?\s*$/, '') + ']}'); } catch(e) {}
+
+  throw new Error(label + ': JSON non valido dopo 5 tentativi. Riduci il numero di domande e riprova.');
 }
 
 // Alias con max_tokens personalizzato (usato dalla call grammatica)
@@ -4522,35 +4508,22 @@ async function generaDomandeAI() {
 
   var gramParts=[];
   if(chk('dis-gram-morfo')){
-    var m=[];
-    ['nome','aggettivo','verbo','avverbio','prep-semplici','prep-articolate','articoli'].forEach(function(x,i){
-      var labels=['Nome','Aggettivo','Verbo','Avverbio','Prep.s','Prep.a','Articoli'];
-      if(chk('dis-morfo-'+x)) m.push(labels[i]);
-    });
-    gramParts.push('MORFO('+(m.length?m.join(','):'tutte')+')');
+    // Morfologia: SEMPRE tutte e 7 le categorie — il docente aggiunge manualmente se serve
+    gramParts.push('MORFO(Nome,Aggettivo,Verbo,Avverbio,Prep.semplici,Prep.articolate,Articoli)');
   }
   if(chk('dis-gram-logica')){
-    var l=[];
-    if(chk('dis-logica-soggetto'))       l.push('Sogg');
-    if(chk('dis-logica-predicato'))      l.push('Pred');
-    if(chk('dis-logica-oggetto'))        l.push('C.ogg');
-    if(chk('dis-logica-specificazione')) l.push('C.spec');
-    if(chk('dis-logica-termine'))        l.push('C.term');
-    if(chk('dis-logica-tutti'))          l.push('tutti compl.');
-    gramParts.push('LOGICA('+(l.length?l.join(','):'generale')+')');
+    // Analisi Logica SEMPLIFICATA: solo le 3 voci base per disabilità
+    // Il docente può aggiungere manualmente le altre dopo la generazione
+    gramParts.push('LOGICA(Soggetto,Predicato verbale,Complemento oggetto)');
   }
   if(chk('dis-gram-periodo')){
-    var p=[];
-    if(chk('dis-periodo-principale')) p.push('principale');
-    ['copulative','disgiuntive','avversative-c','conclusive','correlative',
-     'soggettive','oggettive','dichiarative-s','interr-indirette','relative',
-     'causali','finali','temporali','consecutive','concessive',
-     'condizionali','modali','comparative'].forEach(function(x){
-       if(chk('dis-periodo-'+x)) p.push(x.replace(/-[cs]$/,''));
-    });
-    gramParts.push(p.length<=6?'PERIODO('+p.join(',')+')'  :'PERIODO(principale,coordinate,subordinate)');
+    // Analisi del Periodo SEMPLIFICATA: solo Proposizione principale
+    // Il docente può aggiungere manualmente le subordinate dopo la generazione
+    gramParts.push('PERIODO(Proposizione principale)');
   }
-  var gramInstr=gramParts.length?'SEZ2 testa: '+gramParts.join('|')+'.':'';
+  var gramInstr = gramParts.length
+    ? 'SEZ2 grammatica — genera SOLO queste categorie: ' + gramParts.join(' | ') + '. NON aggiungere altre categorie grammaticali.'
+    : '';
 
   var nC=Math.ceil(ndom*0.34),nL=Math.ceil(ndom*0.33),nG=ndom-nC-nL;
   var hasGram=!!(gramInstr&&nG>0);
@@ -4558,31 +4531,64 @@ async function generaDomandeAI() {
   var nSMVF=tipiA.length?(tipiB.length?Math.round(nNoGram*tipiA.length/(tipiA.length+tipiB.length)):nNoGram):0;
   var nCompl=nNoGram-nSMVF;
 
-  // ── MODALITÀ DESCRIVI: 1 sola call ──────────────────────
+  // ── MODALITÀ DESCRIVI: 2 call separate (Call1: testo, Call2: domande) ──────
+  // Soluzione al "JSON non valido": llama-3.1-8b non riesce a generare
+  // ~800 token di narrativa + JSON complesso in una sola risposta.
+  // Separando le due responsabilità ogni call rimane sotto 2000 token output
+  // e ben al di sotto del limite TPM di 6000 del piano gratuito Groq.
   if(modo==='descrivi'){
     var tuttiTipi=tipiA.concat(tipiB);
-    var p=[];
-    p.push('Esperto didattica inclusiva italiana.');
-    p.push('Genera un testo originale DI CIRCA '+lunghezza+' PAROLE su: '+descrizione);
-    p.push('Poi genera '+ndom+' domande su quel testo. Tipi: '+tuttiTipi.join(',')+'. Distribuzione: '+nC+'SEZ0,'+nL+'SEZ1,'+nG+'SEZ2.');
-    if(gramInstr) p.push(gramInstr);
-    if(wantInf) p.push('Includi 2 domande inferenziali.');
-    p.push('Lingua SEMPLICE per alunni con disabilita.');
-    p.push('FORMATI: SM:{"tipo":"sm","testo":"?","opts":["A","B","C","D"],"ok":0,"sez":0,"par":1}');
-    p.push('VF:{"tipo":"vf","testo":"V/F:","righeVF":[{"t":"Aff1","ok":true},{"t":"Aff2","ok":false}],"sez":0,"par":1}');
-    p.push('AP:{"tipo":"ap","testo":"?","sez":0,"par":1}');
-    p.push('COMP:{"tipo":"comp","testo":"Completa:","frase":"La ___ e bella","parole":["corretta","d1","d2","d3"],"ok":0,"sez":0,"par":1}');
-    p.push('COL:{"tipo":"col","testo":"Collega:","sinistra":["A","B"],"destra":["X","Y"],"coppie":[0,1],"sez":0,"par":1}');
-    p.push('Dividi il testo in 4-6 paragrafi. SOLO JSON (niente altro):');
-    p.push('{"paragrafi":[{"n":1,"testo":"..."}],"domande":[{"n":1,"par":1,"tipo":"sm","sez":0,"testo":"?","opts":["A","B","C","D"],"ok":0}]}');
+    if(!tuttiTipi.length) tuttiTipi=['SM'];
     try {
-      if(loadEl) loadEl.textContent='Groq — genera testo + '+ndom+' domande...';
-      var raw=await _groqCall(p.join('\n'),loadEl,5000); // 500 parole testo + 30 domande ≈ 4300 tok
-      var parsed=_parseJ(raw,'Genera');
-      if(!parsed.paragrafi||!parsed.domande||!parsed.domande.length) throw new Error('Risposta incompleta. Riprova.');
-      parsed.domande.forEach(function(d,i){d.n=i+1;});
-      _disAIProva={titolo:titolo||'Prova personalizzata',sottotitolo:'Prova personalizzata',glossario:[],paragrafi:parsed.paragrafi,domande:parsed.domande};
-      renderPreviewDisAI(parsed.domande);
+
+      // ────────────────────────────────────────────────────────
+      // CALL 1 — genera SOLO il testo narrativo (niente domande)
+      // ────────────────────────────────────────────────────────
+      if(loadEl) loadEl.textContent='Groq — call 1/2: genero il testo narrativo...';
+      var p1=[];
+      p1.push('Sei un esperto di didattica italiana per la scuola media.');
+      p1.push('Genera un testo narrativo originale di ESATTAMENTE ' + lunghezza + ' parole su questo argomento: ' + descrizione);
+      p1.push('Requisiti: lingua semplice e chiara, adatta ad alunni con difficoltà di apprendimento. Frasi brevi. Nessuna parola difficile senza spiegazione.');
+      p1.push('Dividi il testo in 4 paragrafi. Rispondi SOLO con questo JSON — zero testo prima o dopo:');
+      p1.push('{"paragrafi":[{"n":1,"testo":"primo paragrafo..."},{"n":2,"testo":"secondo paragrafo..."},{"n":3,"testo":"terzo paragrafo..."},{"n":4,"testo":"quarto paragrafo..."}]}');
+
+      var r1 = await _callConRetry(p1.join('\n'), 'Testo', loadEl, 'Groq — genero testo', 1400);
+      if(!r1.paragrafi || !r1.paragrafi.length) throw new Error('Testo non generato correttamente. Riprova.');
+      var testoGenerato = r1.paragrafi.map(function(p){ return p.testo; }).join('\n\n');
+      var nParGen = r1.paragrafi.length;
+
+      // Pausa anti-TPM obbligatoria tra le due call
+      if(loadEl) loadEl.textContent='Groq — pausa anti-limite (2s)...';
+      await new Promise(function(r){ setTimeout(r, 2000); });
+
+      // ────────────────────────────────────────────────────────
+      // CALL 2 — genera SOLO le domande sul testo appena creato
+      // ────────────────────────────────────────────────────────
+      if(loadEl) loadEl.textContent='Groq — call 2/2: genero ' + ndom + ' domande...';
+      var sezD2 = 'Distribuzione sezioni: ' + nC + ' domande SEZ0 (comprensione testo), ' + nL + ' domande SEZ1 (lessico)' + (hasGram ? ', ' + nG + ' domande SEZ2 (grammatica)' : '') + '.';
+      var p2=[];
+      p2.push('Esperto didattica inclusiva italiana. Genera ESATTAMENTE ' + ndom + ' domande numerate da 1 a ' + ndom + '.');
+      p2.push('Tipi di domanda da usare: ' + tuttiTipi.join(', ') + '.');
+      p2.push(sezD2);
+      if(gramInstr) p2.push(gramInstr);
+      p2.push('Lingua SEMPLICE per alunni con disabilità. Frasi brevi nelle domande.');
+      p2.push('TESTO SU CUI FARE LE DOMANDE:\n---\n' + testoGenerato + '\n---');
+      p2.push('FORMATI JSON da usare:');
+      if(tuttiTipi.indexOf('SM')!==-1) p2.push('SM:{"tipo":"sm","testo":"Domanda?","opts":["A testo","B testo","C testo","D testo"],"ok":0,"sez":0,"par":1}');
+      if(tuttiTipi.indexOf('VF')!==-1) p2.push('VF:{"tipo":"vf","testo":"Segna V o F:","righeVF":[{"t":"Affermazione 1","ok":true},{"t":"Affermazione 2","ok":false},{"t":"Affermazione 3","ok":true}],"sez":0,"par":1}');
+      if(tuttiTipi.indexOf('AP')!==-1) p2.push('AP:{"tipo":"ap","testo":"Domanda aperta breve?","sez":0,"par":1}');
+      if(tuttiTipi.indexOf('COMP')!==-1) p2.push('COMP:{"tipo":"comp","testo":"Completa la frase:","frase":"Frase con ___ al posto della parola.","parole":["risposta corretta","distrattore1","distrattore2","distrattore3"],"ok":0,"sez":1,"par":1}');
+      if(tuttiTipi.indexOf('COL')!==-1) p2.push('COL:{"tipo":"col","testo":"Collega:","sinistra":["elem A","elem B","elem C"],"destra":["defin X","defin Y","defin Z"],"coppie":[0,1,2],"sez":1,"par":1}');
+      p2.push('Il testo ha ' + nParGen + ' paragrafi numerati. Usa il campo "par" per indicare il paragrafo di riferimento (1-' + nParGen + ').');
+      p2.push('RISPONDI SOLO CON IL JSON — niente testo prima o dopo:');
+      p2.push('{"domande":[{"n":1,"par":1,"tipo":"sm","sez":0,"testo":"Domanda?","opts":["A","B","C","D"],"ok":0}]}');
+
+      var r2 = await _callConRetry(p2.join('\n'), 'Domande', loadEl, 'Groq — genero domande', 2200);
+      if(!r2.domande || !r2.domande.length) throw new Error('Domande non generate. Riprova con meno domande.');
+
+      r2.domande.forEach(function(d,i){ d.n=i+1; });
+      _disAIProva={titolo:titolo||'Prova personalizzata',sottotitolo:'Prova personalizzata',glossario:[],paragrafi:r1.paragrafi,domande:r2.domande};
+      renderPreviewDisAI(r2.domande);
       if(loadEl) loadEl.style.display='none';
       if(prevEl) prevEl.style.display='block';
     }catch(e){
