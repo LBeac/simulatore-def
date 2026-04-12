@@ -4585,57 +4585,78 @@ async function generaDomandeAI() {
   var nSMVF=tipiA.length?(tipiB.length?Math.round(nNoGram*tipiA.length/(tipiA.length+tipiB.length)):nNoGram):0;
   var nCompl=nNoGram-nSMVF;
 
-  // ── MODALITÀ DESCRIVI: 2 call separate (Call1: testo, Call2: domande) ──
-  // max_tokens adattivo: 200-350p→1200tok, 500p→1500tok, 700p→1900tok, 900p→2400tok
+  // ── MODALITÀ DESCRIVI: Call1 testo | Call2 domande SEZ0+1 | Call3 grammatica ──
   if(modo==='descrivi'){
     var tuttiTipi=tipiA.concat(tipiB);
     if(!tuttiTipi.length) tuttiTipi=['SM'];
-    // max_tokens Call 1 conservativi (input+output devono stare in 6000 TPM totali):
-    // 150p→~220tok, 250p→~360tok, 350p→~510tok, 500p→~720tok output
-    // Lasciamo ampio margine per Call 2 (include il testo come input)
-    var tokC1 = lunghezza<=200?500:lunghezza<=350?800:1100;
-    // Pausa anti-TPM: 3s per testi brevi, 5s per 500p (Call 2 ha più input)
-    var pausaMs = lunghezza<=350?3000:5000;
+    var nDomC2 = hasGram ? nNoGram : ndom; // Call2 genera solo domande non-gram
+    var nGram  = hasGram ? Math.min(nG, 4) : 0; // max 4 domande grammatica
+    var tokC1  = lunghezza<=200?500:lunghezza<=350?800:1100;
+    var pausaMs= lunghezza<=350?3000:5000;
     try {
-      // CALL 1: SOLO il testo narrativo
-      if(loadEl) loadEl.textContent='Groq — 1/2: scrivo il testo (~'+lunghezza+' parole)...';
+      // ── CALL 1: solo testo ──────────────────────────────────
+      if(loadEl) loadEl.textContent='Groq — 1/'+(hasGram?3:2)+': scrivo il testo...';
       var p1=[];
       p1.push('Sei un esperto di didattica italiana per la scuola media.');
-      p1.push('Scrivi un testo narrativo originale di ESATTAMENTE '+lunghezza+' parole sull\'argomento: '+descrizione);
-      p1.push('Usa frasi brevi e semplici. Dividi in esattamente 4 paragrafi di lunghezza simile.');
-      p1.push('Rispondi SOLO con questo JSON (zero testo fuori dal JSON):');
-      p1.push('{"paragrafi":[{"n":1,"testo":"Primo paragrafo completo qui."},{"n":2,"testo":"Secondo paragrafo."},{"n":3,"testo":"Terzo paragrafo."},{"n":4,"testo":"Quarto paragrafo."}]}');
+      p1.push('Scrivi un testo narrativo originale di circa '+lunghezza+' parole sull\'argomento: '+descrizione);
+      p1.push('Frasi brevi e semplici. Dividi in 4 paragrafi simili.');
+      p1.push('SOLO JSON:');
+      p1.push('{"paragrafi":[{"n":1,"testo":"..."},{"n":2,"testo":"..."},{"n":3,"testo":"..."},{"n":4,"testo":"..."}]}');
       var r1=await _callConRetry(p1.join('\n'),'Testo',loadEl,'Groq — testo',tokC1);
       if(!r1.paragrafi||!r1.paragrafi.length) throw new Error('Testo non generato. Riprova.');
       var testoGen=r1.paragrafi.map(function(p){return p.testo;}).join('\n\n');
       var nParGen=r1.paragrafi.length;
       _renderTestoPreview(r1.paragrafi);
 
-      if(loadEl) loadEl.textContent='Groq — pausa ('+Math.round(pausaMs/1000)+'s)...';
+      if(loadEl) loadEl.textContent='Groq — pausa...';
       await new Promise(function(r){setTimeout(r,pausaMs);});
 
-      // CALL 2: SOLO le domande
-      if(loadEl) loadEl.textContent='Groq — 2/2: genero '+ndom+' domande...';
-      var sezD2=nC+' SEZ0(comprensione), '+nL+' SEZ1(lessico)'+(hasGram?', '+nG+' SEZ2(grammatica)':'');
+      // ── CALL 2: domande SEZ0+SEZ1, NESSUNA grammatica ───────
+      if(loadEl) loadEl.textContent='Groq — 2/'+(hasGram?3:2)+': genero '+nDomC2+' domande...';
       var p2=[];
-      p2.push('Esperto didattica inclusiva. Genera ESATTAMENTE '+ndom+' domande sul seguente testo.');
-      p2.push('Tipi: '+tuttiTipi.join(',')+'. Distribuzione sezioni: '+sezD2+'.');
-      if(gramInstr) p2.push(gramInstr);
-      p2.push('IMPORTANTE: ogni opzione deve essere una frase o parola REALE del contesto — MAI singole lettere A,B,C,D.');
+      p2.push('Genera ESATTAMENTE '+nDomC2+' domande di comprensione e lessico su questo testo.');
+      p2.push('Tipi: '+tuttiTipi.join(',')+'. Distribuzione: '+nC+' SEZ0, '+nL+' SEZ1. NESSUNA domanda di grammatica.');
+      p2.push('Le opzioni devono essere parole/frasi REALI del testo, MAI lettere singole A B C D.');
       p2.push('TESTO:\n---\n'+testoGen+'\n---');
-      p2.push('FORMATI (usa contenuto reale, non segnaposto):');
-      p2.push('SM:{"tipo":"sm","testo":"Dove si svolge la storia?","opts":["In una foresta","In una città","In montagna","Al mare"],"ok":0,"sez":0,"par":1}');
-      p2.push('VF:{"tipo":"vf","testo":"Segna V o F:","righeVF":[{"t":"Il protagonista si chiama Marco","ok":true},{"t":"La storia si svolge in inverno","ok":false}],"sez":0,"par":1}');
-      p2.push('AP:{"tipo":"ap","testo":"Perché il protagonista era triste?","sez":0,"par":2}');
-      p2.push('COMP:{"tipo":"comp","testo":"Completa:","frase":"Marco era molto ___ di tornare.","parole":["felice","triste","stanco","arrabbiato"],"ok":0,"sez":1,"par":1}');
-      p2.push('COL:{"tipo":"col","testo":"Collega:","sinistra":["Marco","La nonna","Il cane"],"destra":["protagonista","cuoca","animale fedele"],"coppie":[0,1,2],"sez":1,"par":1}');
-      p2.push('Paragrafi: '+nParGen+' (usa "par" 1-'+nParGen+'). SOLO JSON:');
-      p2.push('{"domande":[{"n":1,"par":1,"tipo":"sm","sez":0,"testo":"Domanda?","opts":["Opz A reale","Opz B reale","Opz C reale","Opz D reale"],"ok":0}]}');
-      var r2=await _callConRetry(p2.join('\n'),'Domande',loadEl,'Groq — domande',2400);
-      if(!r2.domande||!r2.domande.length) throw new Error('Domande non generate. Prova con meno domande.');
-      r2.domande.forEach(function(d,i){d.n=i+1;});
-      _disAIProva={titolo:titolo||'Prova personalizzata',sottotitolo:'Prova personalizzata',glossario:[],paragrafi:r1.paragrafi,domande:r2.domande};
-      renderPreviewDisAI(r2.domande);
+      p2.push('FORMATI:');
+      if(tuttiTipi.indexOf('SM')!==-1) p2.push('SM:{"tipo":"sm","testo":"Dove vive il protagonista?","opts":["In campagna","In città","Al mare","In montagna"],"ok":0,"sez":0,"par":1}');
+      if(tuttiTipi.indexOf('VF')!==-1) p2.push('VF:{"tipo":"vf","testo":"Vero o Falso:","righeVF":[{"t":"Marco ha dodici anni","ok":true},{"t":"La storia si svolge d\'estate","ok":false}],"sez":0,"par":1}');
+      if(tuttiTipi.indexOf('AP')!==-1) p2.push('AP:{"tipo":"ap","testo":"Perché il protagonista era preoccupato?","sez":0,"par":1}');
+      if(tuttiTipi.indexOf('COMP')!==-1) p2.push('COMP:{"tipo":"comp","testo":"Completa:","frase":"Il ragazzo era molto ___ di partire.","parole":["felice","triste","stanco","arrabbiato"],"ok":0,"sez":1,"par":1}');
+      if(tuttiTipi.indexOf('COL')!==-1) p2.push('COL:{"tipo":"col","testo":"Collega:","sinistra":["Marco","Il nonno"],"destra":["protagonista","guida"],"coppie":[0,1],"sez":1,"par":1}');
+      p2.push('SOLO JSON:{"domande":[{"n":1,"par":1,"tipo":"sm","sez":0,"testo":"...","opts":["...","...","...","..."],"ok":0}]}');
+      var r2=await _callConRetry(p2.join('\n'),'Domande',loadEl,'Groq — domande',2000);
+      if(!r2.domande||!r2.domande.length) throw new Error('Domande non generate. Riprova con meno domande.');
+      var allDom=r2.domande.slice();
+      allDom.forEach(function(d,i){d.n=i+1;});
+
+      // ── CALL 3: grammatica isolata (solo se attiva) ──────────
+      if(hasGram&&nGram>0){
+        await new Promise(function(r){setTimeout(r,4000);});
+        if(loadEl) loadEl.textContent='Groq — 3/3: genero '+nGram+' domande grammatica...';
+        // Usa solo le prime 3 frasi del testo — la grammatica non ha bisogno di tutto
+        var frasiGram=testoGen.split(/[.!?]+/).filter(function(f){return f.trim().length>15;}).slice(0,4).join('. ')+'.';
+        var pG=[];
+        pG.push('Esperto grammatica italiana scuola media. Genera ESATTAMENTE '+nGram+' domande SEZ2 di grammatica.');
+        pG.push(gramInstr);
+        pG.push('Usa SOLO frasi tratte dal testo. Ogni domanda è di tipo SM con 4 opzioni reali.');
+        pG.push('FRASI:\n---\n'+frasiGram+'\n---');
+        pG.push('SOLO JSON:{"domande":[{"n":'+(allDom.length+1)+',"par":1,"tipo":"sm","sez":2,"testo":"Qual è il soggetto?","opts":["Il gatto","La porta","Corre","Veloce"],"ok":0}]}');
+        try{
+          var rG=await _callConRetry(pG.join('\n'),'Gram',loadEl,'Groq — grammatica',800);
+          if(rG.domande&&rG.domande.length){
+            rG.domande.forEach(function(d,i){d.n=allDom.length+i+1;d.sez=2;});
+            allDom=allDom.concat(rG.domande);
+          }
+        }catch(eg){
+          // Grammatica fallisce: prosegui comunque con le domande già generate
+          if(errEl) errEl.textContent='⚠️ Grammatica non generata (riprova manualmente con +SM). '+eg.message;
+          if(errEl) errEl.style.display='block';
+        }
+      }
+
+      _disAIProva={titolo:titolo||'Prova personalizzata',sottotitolo:'Prova personalizzata',glossario:[],paragrafi:r1.paragrafi,domande:allDom};
+      renderPreviewDisAI(allDom);
       if(loadEl) loadEl.style.display='none';
       if(prevEl) prevEl.style.display='block';
     }catch(e){
@@ -4645,25 +4666,26 @@ async function generaDomandeAI() {
     return;
   }
 
-  // ── MODALITÀ INCOLLA: 2 call (testo+domande, poi grammatica) ─
+  // ── MODALITÀ INCOLLA: Call1 SM+VF | Call2 AP+COMP+COL | Call3 grammatica ─
   var testo=testoRaw.substring(0,3800);
   var paragrafiIncolla=testo.split(/\n\s*\n/).filter(Boolean).map(function(t,i){return {n:i+1,testo:t.trim()};});
   if(!paragrafiIncolla.length) paragrafiIncolla=[{n:1,testo:testo.trim()}];
   _renderTestoPreview(paragrafiIncolla);
-  function buildP(tipi,n,offset,incPar,nPar,sezD,gram){
+  function buildP(tipi,n,offset,incPar,nPar,sezD){
+    // NESSUNA grammatica qui — è sempre in call separata
     var L=[];
-    L.push('Esperto didattica inclusiva. Genera ESATTAMENTE '+n+' domande ('+(offset+1)+'-'+(offset+n)+'). Tipi:'+tipi.join(',')+'.');
-    L.push(sezD);if(gram)L.push(gram);
-    L.push('IMPORTANTE: le opzioni devono essere frasi/parole REALI del testo — MAI singole lettere A,B,C,D.');
-    L.push('Lingua semplice. TESTO:\n---\n'+testo+'\n---');
-    L.push('FORMATI (adatta al testo):');
-    if(tipi.indexOf('SM')!==-1)L.push('SM:{"tipo":"sm","testo":"Chi è il protagonista?","opts":["Il bambino del villaggio","Un vecchio contadino","La maestra di scuola","Il sindaco del paese"],"ok":0,"sez":0,"par":1}');
-    if(tipi.indexOf('VF')!==-1)L.push('VF:{"tipo":"vf","testo":"Segna V o F:","righeVF":[{"t":"Il protagonista è giovane","ok":true},{"t":"La storia si svolge di notte","ok":false}],"sez":0,"par":1}');
+    L.push('Genera ESATTAMENTE '+n+' domande di comprensione e lessico ('+(offset+1)+'-'+(offset+n)+'). Tipi: '+tipi.join(',')+'.');
+    L.push(sezD+' NESSUNA domanda di grammatica.');
+    L.push('Le opzioni devono essere parole/frasi REALI del testo, MAI lettere singole A B C D.');
+    L.push('TESTO:\n---\n'+testo+'\n---');
+    L.push('FORMATI:');
+    if(tipi.indexOf('SM')!==-1)L.push('SM:{"tipo":"sm","testo":"Chi è il protagonista?","opts":["Il bambino del villaggio","Un vecchio contadino","La maestra","Il sindaco"],"ok":0,"sez":0,"par":1}');
+    if(tipi.indexOf('VF')!==-1)L.push('VF:{"tipo":"vf","testo":"Vero o Falso:","righeVF":[{"t":"Marco ha dodici anni","ok":true},{"t":"La storia è in inverno","ok":false}],"sez":0,"par":1}');
     if(tipi.indexOf('AP')!==-1)L.push('AP:{"tipo":"ap","testo":"Perché il protagonista era preoccupato?","sez":0,"par":1}');
-    if(tipi.indexOf('COMP')!==-1)L.push('COMP:{"tipo":"comp","testo":"Completa:","frase":"Marco era molto ___ di tornare.","parole":["felice","triste","stanco","arrabbiato"],"ok":0,"sez":1,"par":1}');
-    if(tipi.indexOf('COL')!==-1)L.push('COL:{"tipo":"col","testo":"Collega:","sinistra":["Marco","La nonna"],"destra":["protagonista","cuoca"],"coppie":[0,1],"sez":1,"par":1}');
-    if(incPar){L.push('Dividi in 4-5 paragrafi. SOLO JSON:');L.push('{"paragrafi":[{"n":1,"testo":"..."}],"domande":[{"n":1,"par":1,"tipo":"sm","sez":0,"testo":"Domanda?","opts":["Opz A reale","Opz B reale","Opz C reale","Opz D reale"],"ok":0}]}');}
-    else{L.push('Paragrafi definiti('+nPar+'). SOLO JSON:');L.push('{"domande":[{"n":'+(offset+1)+',"par":1,"tipo":"sm","sez":0,"testo":"Domanda?","opts":["Opz A reale","Opz B reale","Opz C reale","Opz D reale"],"ok":0}]}');}
+    if(tipi.indexOf('COMP')!==-1)L.push('COMP:{"tipo":"comp","testo":"Completa:","frase":"Il ragazzo era molto ___ di partire.","parole":["felice","triste","stanco","arrabbiato"],"ok":0,"sez":1,"par":1}');
+    if(tipi.indexOf('COL')!==-1)L.push('COL:{"tipo":"col","testo":"Collega:","sinistra":["Marco","Il nonno"],"destra":["protagonista","guida"],"coppie":[0,1],"sez":1,"par":1}');
+    if(incPar){L.push('Dividi in 4-5 paragrafi. SOLO JSON:');L.push('{"paragrafi":[{"n":1,"testo":"..."}],"domande":[{"n":1,"par":1,"tipo":"sm","sez":0,"testo":"...","opts":["...","...","...","..."],"ok":0}]}');}
+    else{L.push('Paragrafi definiti ('+nPar+'). SOLO JSON:');L.push('{"domande":[{"n":'+(offset+1)+',"par":1,"tipo":"sm","sez":0,"testo":"...","opts":["...","...","...","..."],"ok":0}]}');}
     return L.join('\n');
   }
   try {
@@ -4671,31 +4693,37 @@ async function generaDomandeAI() {
     var tipiC1=tipiA.length?tipiA:tipiB, nC1=tipiA.length?nSMVF:nCompl;
     var tipiC2=tipiA.length&&tipiB.length?tipiB:[], nC2=tipiC2.length?nCompl:0;
     var totC=1+(nC2>0?1:0)+(hasGram?1:0);
-    var s1='Dist:'+nC1+'domande SEZ0+SEZ1, NO SEZ2.';
+    var s1='Domande SEZ0 e SEZ1 (comprensione e lessico), nessuna grammatica.';
     if(loadEl)loadEl.textContent='Groq — call 1/'+totC+'...';
-    var r1=await _callConRetry(buildP(tipiC1,nC1,0,true,0,s1,''),'Call1',loadEl,'Groq');
+    var r1=await _callConRetry(buildP(tipiC1,nC1,0,true,0,s1),'Call1',loadEl,'Groq');
     if(!r1.paragrafi)throw new Error('Paragrafi mancanti. Riprova.');
     par=r1.paragrafi;r1.domande.forEach(function(d,i){d.n=i+1;});allD=r1.domande;
     if(nC2>0){
-      await new Promise(function(r){setTimeout(r,1200);});
+      await new Promise(function(r){setTimeout(r,2000);});
       if(loadEl)loadEl.textContent='Groq — call 2/'+totC+'...';
-      var s2='Dist:'+nC2+'domande SEZ0+SEZ1, NO SEZ2.';
-      var r2=await _callConRetry(buildP(tipiC2,nC2,nC1,false,par.length,s2,''),'Call2',loadEl,'Groq');
+      var s2='Domande SEZ0 e SEZ1 (comprensione e lessico), nessuna grammatica.';
+      var r2=await _callConRetry(buildP(tipiC2,nC2,nC1,false,par.length,s2),'Call2',loadEl,'Groq');
       r2.domande.forEach(function(d,i){d.n=nC1+i+1;});allD=allD.concat(r2.domande);
     }
     if(hasGram){
-      await new Promise(function(r){setTimeout(r,1200);});
+      await new Promise(function(r){setTimeout(r,4000);});
       var offG=nC1+nC2, nParG=par?par.length:4;
+      var nGram=Math.min(nG,4); // max 4 domande grammatica per stabilità
       if(loadEl)loadEl.textContent='Groq — grammatica (call '+totC+'/'+totC+')...';
-      var testoG=testoRaw.substring(0,1200);
-      var pG=['Esperto grammatica italiana. Genera '+nG+' domande ('+(offG+1)+'-'+(offG+nG)+'). Tutte SEZ2.'];
+      // Solo le prime 4 frasi del testo — la grammatica non ha bisogno del testo intero
+      var frasiGram=testoRaw.split(/[.!?]+/).filter(function(f){return f.trim().length>15;}).slice(0,4).join('. ')+'.';
+      var pG=[];
+      pG.push('Esperto grammatica italiana. Genera ESATTAMENTE '+nGram+' domande SEZ2.');
       pG.push(gramInstr);
-      pG.push('IMPORTANTE: le opzioni devono essere parole/frasi REALI del testo — MAI singole lettere A,B,C,D.');
-      pG.push('TESTO:\n---\n'+testoG+'\n---');
-      pG.push('SM:{"tipo":"sm","testo":"Qual è il soggetto di questa frase?","opts":["Il gatto","La porta","Correva","Velocemente"],"ok":0,"sez":2,"par":1}');
-      pG.push('Paragrafi definiti('+nParG+'). SOLO JSON:{"domande":[{"n":'+(offG+1)+',"par":1,"tipo":"sm","sez":2,"testo":"Domanda grammatica?","opts":["Opz A reale","Opz B reale","Opz C reale","Opz D reale"],"ok":0}]}');
-      var rG=await _callConRetry(pG.join('\n'),'Gram',loadEl,'Groq',900);
-      if(rG.domande&&rG.domande.length){rG.domande.forEach(function(d,i){d.n=offG+i+1;d.sez=2;});allD=allD.concat(rG.domande);}
+      pG.push('Usa SOLO frasi tratte dal testo. Tipo SOLO SM, 4 opzioni reali per ogni domanda.');
+      pG.push('FRASI:\n---\n'+frasiGram+'\n---');
+      pG.push('SOLO JSON:{"domande":[{"n":'+(offG+1)+',"par":1,"tipo":"sm","sez":2,"testo":"Qual è il soggetto?","opts":["Il gatto","La porta","Corre","Veloce"],"ok":0}]}');
+      try{
+        var rG=await _callConRetry(pG.join('\n'),'Gram',loadEl,'Groq',900);
+        if(rG.domande&&rG.domande.length){rG.domande.forEach(function(d,i){d.n=offG+i+1;d.sez=2;});allD=allD.concat(rG.domande);}
+      }catch(eg){
+        if(errEl){errEl.textContent='⚠️ Grammatica non generata. '+eg.message+' Aggiungi le domande grammaticali manualmente con +SM.';errEl.style.display='block';}
+      }
     }
     if(!par||!allD.length)throw new Error('Nessun risultato. Riprova.');
     _disAIProva={titolo:titolo||'Prova personalizzata',sottotitolo:'Prova personalizzata',glossario:[],paragrafi:par,domande:allD};
