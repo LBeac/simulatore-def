@@ -378,6 +378,11 @@ window.addEventListener('load', function(){
 //  RENDER PROVA
 // ══════════════════════════════════════════════════════════════
 function renderProva(prova){
+  // Gestione prova doppia (due testi con domande separate)
+  if(prova.tipo === 'doppio'){
+    renderProvaDoppia(prova);
+    return;
+  }
   // Header
   document.getElementById('hdr-titolo').textContent = '📖 ' + (prova.sottotitolo || 'Testo') + ' — ' + prova.titolo;
   var sub = prova.titolo
@@ -980,6 +985,288 @@ function mostraErr(){
   document.querySelector('.istr').style.display='none';
   document.getElementById('scr-err').style.display='flex';
 }
+
+
+// ══ PROVA DOPPIA ══════════════════════════════════════════════
+var _provaAttivaIdx = 0;
+var _risposteA = {};
+var _risposteB = {};
+var _provaDoppia = null;
+
+function renderProvaDoppia(prova) {
+  _provaDoppia = prova;
+  var tA = prova.testoA;
+  var tB = prova.testoB;
+  document.title = prova.titolo || 'Prova personalizzata';
+
+  var container = document.getElementById('app') || document.body;
+  container.innerHTML = '';
+
+  // Header
+  var hdr = document.createElement('div');
+  hdr.className = 'prova-header';
+  var h1 = document.createElement('h1');
+  h1.style.cssText = 'font-size:18px;margin:0';
+  h1.textContent = prova.titolo || 'Prova personalizzata';
+  var sub = document.createElement('div');
+  sub.style.cssText = 'font-size:13px;opacity:.8';
+  sub.textContent = 'Prova su due testi';
+  hdr.appendChild(h1);
+  hdr.appendChild(sub);
+  container.appendChild(hdr);
+
+  // Tab switcher
+  var tabs = document.createElement('div');
+  tabs.style.cssText = 'display:flex;gap:0;background:#f0f4ff;border-radius:10px;padding:4px;margin:16px 0';
+  var btnA = document.createElement('button');
+  btnA.id = 'tab-a-btn';
+  btnA.textContent = 'Testo A — ' + (tA.titolo || 'Brano A');
+  btnA.style.cssText = 'flex:1;padding:10px;border:none;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;background:#1565c0;color:#fff;font-family:inherit';
+  btnA.onclick = function(){ switchTesto(0); };
+  var btnB = document.createElement('button');
+  btnB.id = 'tab-b-btn';
+  btnB.textContent = 'Testo B — ' + (tB.titolo || 'Brano B');
+  btnB.style.cssText = 'flex:1;padding:10px;border:none;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;background:transparent;color:#555;font-family:inherit';
+  btnB.onclick = function(){ switchTesto(1); };
+  tabs.appendChild(btnA);
+  tabs.appendChild(btnB);
+  container.appendChild(tabs);
+
+  // Pannello A
+  var panelA = document.createElement('div');
+  panelA.id = 'panel-a';
+  _buildPannello(panelA, tA, 'A');
+  container.appendChild(panelA);
+
+  // Pannello B (nascosto)
+  var panelB = document.createElement('div');
+  panelB.id = 'panel-b';
+  panelB.style.display = 'none';
+  _buildPannello(panelB, tB, 'B');
+  container.appendChild(panelB);
+
+  // Footer pulsante fine
+  var footer = document.createElement('div');
+  footer.style.cssText = 'text-align:center;padding:24px 0';
+  var btnFine = document.createElement('button');
+  btnFine.textContent = 'Consegna prova e vedi risultati';
+  btnFine.style.cssText = 'background:#1565c0;color:#fff;border:none;border-radius:10px;padding:14px 40px;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit';
+  btnFine.onclick = fineProvaDoppia;
+  footer.appendChild(btnFine);
+  container.appendChild(footer);
+}
+
+function _buildPannello(container, testo, label) {
+  var wrap = document.createElement('div');
+  wrap.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:0 8px';
+
+  // Colonna testo
+  var colTesto = document.createElement('div');
+  (testo.paragrafi || []).forEach(function(p) {
+    var parDiv = document.createElement('div');
+    parDiv.style.marginBottom = '16px';
+    var label2 = document.createElement('div');
+    label2.style.cssText = 'font-size:11px;font-weight:700;color:#1565c0;margin-bottom:6px';
+    label2.textContent = 'PARAGRAFO ' + p.n;
+    var tDiv = document.createElement('div');
+    tDiv.style.cssText = 'font-size:14px;line-height:1.8';
+    tDiv.textContent = p.testo;
+    parDiv.appendChild(label2);
+    parDiv.appendChild(tDiv);
+    colTesto.appendChild(parDiv);
+  });
+
+  // Colonna domande
+  var colDom = document.createElement('div');
+  (testo.domande || []).forEach(function(d, i) {
+    var card = document.createElement('div');
+    card.style.cssText = 'background:#f7f9ff;border:1.5px solid #d0d9f0;border-radius:8px;padding:14px;margin-bottom:10px';
+
+    var meta = document.createElement('div');
+    meta.style.cssText = 'font-size:12px;color:#1565c0;font-weight:700;margin-bottom:6px';
+    meta.textContent = 'Domanda ' + (i+1) + ' di ' + (testo.domande.length);
+    card.appendChild(meta);
+
+    var dtesto = document.createElement('div');
+    dtesto.style.cssText = 'font-size:14px;font-weight:700;margin-bottom:10px';
+    dtesto.textContent = d.testo;
+    card.appendChild(dtesto);
+
+    if(d.tipo === 'sm' && d.opts) {
+      d.opts.forEach(function(opt, j) {
+        var lbl = document.createElement('label');
+        lbl.style.cssText = 'display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:6px;cursor:pointer';
+        var inp = document.createElement('input');
+        inp.type = 'radio';
+        inp.name = 'dom_' + label + '_' + i;
+        inp.value = String(j);
+        inp.onchange = (function(ii,jj){ return function(){ salvaRispDoppia(label, ii, jj); }; })(i,j);
+        lbl.appendChild(inp);
+        var txt = document.createTextNode(['A','B','C','D'][j] + '. ' + opt);
+        lbl.appendChild(txt);
+        card.appendChild(lbl);
+      });
+    } else if(d.tipo === 'vf' && d.righeVF) {
+      d.righeVF.forEach(function(riga, ri) {
+        var row = document.createElement('div');
+        row.style.cssText = 'display:flex;gap:12px;align-items:center;margin-bottom:8px;font-size:13px';
+        var sp = document.createElement('span');
+        sp.style.flex = '1';
+        sp.textContent = riga.t;
+        row.appendChild(sp);
+        ['V','F'].forEach(function(val) {
+          var lbl = document.createElement('label');
+          lbl.style.cursor = 'pointer';
+          var inp = document.createElement('input');
+          inp.type = 'radio';
+          inp.name = 'vf_' + label + '_' + i + '_' + ri;
+          inp.value = val;
+          inp.onchange = (function(ii,rri,v){ return function(){ salvaVFDoppia(label, ii, rri, v==='V'); }; })(i,ri,val);
+          lbl.appendChild(inp);
+          lbl.appendChild(document.createTextNode(' ' + val));
+          row.appendChild(lbl);
+        });
+        card.appendChild(row);
+      });
+    } else if(d.tipo === 'ap') {
+      var ta = document.createElement('textarea');
+      ta.placeholder = 'Scrivi qui la risposta...';
+      ta.style.cssText = 'width:100%;border:1px solid #ccc;border-radius:6px;padding:8px;font-size:13px;min-height:60px;resize:vertical;box-sizing:border-box';
+      ta.onchange = (function(ii){ return function(){ salvaRispDoppia(label, ii, this.value); }; })(i);
+      card.appendChild(ta);
+    } else if(d.tipo === 'comp' && d.parole && d.parole.length) {
+      var sel = document.createElement('select');
+      sel.style.cssText = 'padding:8px;border-radius:6px;border:1px solid #ccc;font-size:13px';
+      var optDef = document.createElement('option');
+      optDef.value = '';
+      optDef.textContent = '-- scegli --';
+      sel.appendChild(optDef);
+      d.parole.forEach(function(p, pi) {
+        var opt = document.createElement('option');
+        opt.value = String(pi);
+        opt.textContent = p;
+        sel.appendChild(opt);
+      });
+      sel.onchange = (function(ii){ return function(){ salvaRispDoppia(label, ii, parseInt(this.value)); }; })(i);
+      card.appendChild(sel);
+    }
+    colDom.appendChild(card);
+  });
+
+  wrap.appendChild(colTesto);
+  wrap.appendChild(colDom);
+  container.appendChild(wrap);
+}
+
+function switchTesto(idx) {
+  _provaAttivaIdx = idx;
+  var pA = document.getElementById('panel-a');
+  var pB = document.getElementById('panel-b');
+  var bA = document.getElementById('tab-a-btn');
+  var bB = document.getElementById('tab-b-btn');
+  if(pA) pA.style.display = idx===0 ? '' : 'none';
+  if(pB) pB.style.display = idx===1 ? '' : 'none';
+  if(bA){ bA.style.background = idx===0?'#1565c0':'transparent'; bA.style.color = idx===0?'#fff':'#555'; }
+  if(bB){ bB.style.background = idx===1?'#1565c0':'transparent'; bB.style.color = idx===1?'#fff':'#555'; }
+}
+
+function salvaRispDoppia(label, idx, val) {
+  if(label==='A') _risposteA[idx] = val;
+  else _risposteB[idx] = val;
+}
+function salvaVFDoppia(label, dIdx, rigaIdx, val) {
+  var key = String(dIdx) + '_' + String(rigaIdx);
+  if(label==='A') _risposteA[key] = val;
+  else _risposteB[key] = val;
+}
+
+function fineProvaDoppia() {
+  var prova = _provaDoppia;
+  if(!prova) return;
+  var tA = prova.testoA, tB = prova.testoB;
+
+  function correggi(testo, risposte) {
+    var corrette = 0, tot = 0;
+    (testo.domande || []).forEach(function(d, i) {
+      if(d.tipo === 'sm') {
+        tot++;
+        if(parseInt(risposte[i]) === d.ok) corrette++;
+      } else if(d.tipo === 'ap') {
+        tot++;
+        if(risposte[i] && String(risposte[i]).trim().length > 0) corrette++;
+      } else if(d.tipo === 'comp') {
+        tot++;
+        if(parseInt(risposte[i]) === d.ok) corrette++;
+      } else if(d.tipo === 'vf' && d.righeVF) {
+        d.righeVF.forEach(function(riga, ri) {
+          tot++;
+          if(risposte[String(i) + '_' + String(ri)] === riga.ok) corrette++;
+        });
+      }
+    });
+    return { corrette: corrette, tot: tot };
+  }
+
+  var rA = correggi(tA, _risposteA);
+  var rB = correggi(tB, _risposteB);
+  var totTot  = rA.tot + rB.tot;
+  var totCorr = rA.corrette + rB.corrette;
+  var pct = totTot > 0 ? Math.round(totCorr / totTot * 100) : 0;
+  var voto = pct >= 60 ? 'Ottimo' : pct >= 40 ? 'Sufficiente' : 'Da rivedere';
+
+  var container = document.getElementById('app') || document.body;
+  container.innerHTML = '';
+
+  // Report
+  var wrap = document.createElement('div');
+  wrap.style.cssText = 'max-width:700px;margin:24px auto;padding:0 16px;font-family:inherit';
+
+  // Box punteggio totale
+  var boxTot = document.createElement('div');
+  boxTot.style.cssText = 'background:#1565c0;color:#fff;border-radius:14px;padding:24px;text-align:center;margin-bottom:20px';
+  boxTot.innerHTML = '<div style="font-size:32px;font-weight:900">' + totCorr + '/' + totTot + '</div>'
+    + '<div style="font-size:18px;margin-top:6px">' + pct + '% — ' + voto + '</div>'
+    + '<div style="font-size:13px;margin-top:6px;opacity:.8">' + (prova.titolo || 'Prova personalizzata') + '</div>';
+  wrap.appendChild(boxTot);
+
+  // Box punteggi separati
+  var grid = document.createElement('div');
+  grid.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px';
+
+  function makeBox(titolo, r) {
+    var pctBox = r.tot > 0 ? Math.round(r.corrette / r.tot * 100) : 0;
+    var box = document.createElement('div');
+    box.style.cssText = 'background:#f7f9ff;border:2px solid #d0d9f0;border-radius:10px;padding:20px;text-align:center';
+    var t = document.createElement('div');
+    t.style.cssText = 'font-size:13px;font-weight:700;color:#1565c0;margin-bottom:8px';
+    t.textContent = titolo;
+    var score = document.createElement('div');
+    score.style.cssText = 'font-size:26px;font-weight:800';
+    score.textContent = r.corrette + '/' + r.tot;
+    var pctDiv = document.createElement('div');
+    pctDiv.style.cssText = 'font-size:13px;color:#666;margin-top:4px';
+    pctDiv.textContent = pctBox + '%';
+    box.appendChild(t); box.appendChild(score); box.appendChild(pctDiv);
+    return box;
+  }
+  grid.appendChild(makeBox(tA.titolo || 'Testo A', rA));
+  grid.appendChild(makeBox(tB.titolo || 'Testo B', rB));
+  wrap.appendChild(grid);
+
+  // Pulsante stampa
+  var btnWrap = document.createElement('div');
+  btnWrap.style.textAlign = 'center';
+  var btnPrint = document.createElement('button');
+  btnPrint.textContent = 'Stampa / Salva PDF';
+  btnPrint.style.cssText = 'background:#1565c0;color:#fff;border:none;border-radius:8px;padding:12px 32px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit';
+  btnPrint.onclick = function(){ window.print(); };
+  btnWrap.appendChild(btnPrint);
+  wrap.appendChild(btnWrap);
+
+  container.appendChild(wrap);
+}
+// ══ FINE PROVA DOPPIA ══════════════════════════════════════════
+
 </script>
 </body>
 </html>
