@@ -1197,7 +1197,7 @@ tr:hover td{background:var(--grigio-ch)}
       </div>
 
       <!-- ══ SECONDO TESTO (opzionale) ══════════════════════════ -->
-      <div class="panel-card" style="max-width:none;margin-top:10px;border:2px dashed #1976d2" id="panel-testo-b" style="display:none">
+      <div class="panel-card" style="max-width:none;margin-top:10px;border:2px dashed #1976d2;display:none" id="panel-testo-b">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
           <h3 style="margin:0;color:#1976d2">📄 Testo B — secondo brano (opzionale)</h3>
           <button onclick="rimuoviTestoB()" style="background:none;border:none;color:#c62828;font-size:18px;cursor:pointer" title="Rimuovi Testo B">✕</button>
@@ -5881,6 +5881,15 @@ function mostraTab(id, btn){
 function mostraTab2(id, btn){ mostraTab(id, btn); }
 
 function mostraSubTab(id, btn){
+  // Nascondi i controlli Testo B se si passa a Prove standard
+  var testoB = document.getElementById('panel-testo-b');
+  var btnB   = document.getElementById('btn-aggiungi-b-wrap');
+  if(id !== 'st-dis'){
+    if(testoB) testoB.style.display = 'none';
+    if(btnB)   btnB.style.display = 'none';
+  } else {
+    if(btnB)   btnB.style.display = '';
+  }
   document.querySelectorAll('.sub-panel').forEach(p=>p.classList.remove('att'));
   document.querySelectorAll('.sub-nav-btn').forEach(b=>b.classList.remove('att'));
   const el = document.getElementById(id);
