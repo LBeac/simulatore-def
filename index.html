@@ -1099,23 +1099,10 @@ tr:hover td{background:var(--grigio-ch)}
               placeholder="es. Un testo narrativo di circa 300 parole su un ragazzo che trova un orologio magico. Livello terza media. Registro semplice, adatto ad alunno con difficoltà di comprensione."
               style="padding:9px 12px;resize:vertical;font-size:13px;line-height:1.7"></textarea>
             <div style="font-size:11px;color:#888;margin-top:4px">
-              💡 Specifica l'<strong>argomento</strong> e il tipo di testo (narrativo, espositivo, descrittivo). La <strong>lunghezza</strong> si imposta sotto con la tendina — non scriverla qui.
+              💡 Specifica l'<strong>argomento</strong>, il tipo di testo (narrativo, espositivo, descrittivo) e la <strong>lunghezza desiderata</strong> (es. "circa 800 parole").
             </div>
           </div>
-          <div class="fg" style="margin-top:10px">
-            <label class="flbl">Lunghezza testo desiderata</label>
-            <select id="dis-ai-lunghezza" class="finp" style="padding:9px 12px" onchange="aggiornaCapDomande()">
-              <option value="150">Molto breve — 150 parole (disabilità grave)</option>
-              <option value="250">Breve — 250 parole (BES/disabilità)</option>
-              <option value="350" selected>Standard — 350 parole (consigliato pilota)</option>
-              <option value="500">Lunga — 500 parole</option>
-              <option value="650">Molto lunga — 650 parole</option>
-              <option value="800">Completa — 800 parole (prova standard)</option>
-            </select>
-            <div id="cap-dom-avviso" style="font-size:11px;color:#1565c0;margin-top:5px;line-height:1.6;background:#e3f2fd;border-radius:5px;padding:5px 9px">
-              📊 Con 350 parole puoi generare fino a <strong>12 domande</strong> (le domande si generano a lotti automaticamente).
-            </div>
-          </div>
+
         </div>
       </div>
 
@@ -1126,7 +1113,7 @@ tr:hover td{background:var(--grigio-ch)}
           <div>
             <label class="flbl" style="display:block;margin-bottom:6px">N° domande</label>
             <input type="number" id="dis-ai-ndom" class="finp" value="10" min="3" max="40" style="padding:9px 12px;width:100px" oninput="clampDomande()">
-            <div style="font-size:10px;color:#888;margin-top:3px" id="lbl-max-dom">max 12 con testo da 350 parole</div>
+            <div style="font-size:10px;color:#888;margin-top:3px" id="lbl-max-dom">fino a 40 domande</div>
           </div>
           <div>
             <label class="flbl" style="display:block;margin-bottom:8px">Tipi di domanda</label>
@@ -4297,25 +4284,16 @@ var BATCH_DOM = 8;      // domande per batch (output ~700tok + prompt ~800tok = 
 var MAX_TESTO_CHAR = 1800; // testo troncato per le call domande (~600 tok input)
 
 function aggiornaCapDomande(){
-  var sel = document.getElementById('dis-ai-lunghezza');
   var inp = document.getElementById('dis-ai-ndom');
-  var avv = document.getElementById('cap-dom-avviso');
   var lbl = document.getElementById('lbl-max-dom');
-  if(!sel||!inp) return;
-  var lun = parseInt(sel.value)||350;
-  // Stima il numero di lotti necessari per dare un'idea dei tempi
-  var ndom = parseInt(inp.value)||10;
-  var lotti = Math.ceil(ndom / BATCH_DOM);
-  var minuti = lotti + (lun>=500?1:0); // +1 per generazione testo lungo
-  var txt = 'Le '+ndom+' domande verranno generate da Groq via server (~15-30 secondi, nessuna attesa browser). Puoi inserire fino a 40 domande.';
-  if(avv) avv.innerHTML = '📊 ' + txt;
-  if(lbl) lbl.textContent = 'max 20 domande ('+lotti+' lotto/i)';
+  if(!inp) return;
+  if(lbl) lbl.textContent = 'fino a 40 domande';
 }
 
 function clampDomande(){
   var inp = document.getElementById('dis-ai-ndom');
   if(!inp) return;
-  if(parseInt(inp.value)>20) inp.value=20;
+  if(parseInt(inp.value)>40) inp.value=40;
   if(parseInt(inp.value)<3)  inp.value=3;
   aggiornaCapDomande();
 }
@@ -4337,56 +4315,7 @@ function getModalitaTesto() {
   return p && p.style.display !== 'none' ? 'descrivi' : 'incolla';
 }
 
-function toggleGeminiSetup() {
-  var el = document.getElementById('gemini-setup');
-  var arrow = document.getElementById('gemini-arrow');
-  if (!el) return;
-  var open = el.style.display === 'none';
-  el.style.display = open ? 'block' : 'none';
-  if (arrow) arrow.style.transform = open ? 'rotate(90deg)' : '';
-  if (open) {
-    var inp = document.getElementById('groq-key-input');
-    if (inp) inp.value = getChiaveGroq();
-  }
-}
-
-function salvaChiaveGroq() {
-  var inp = document.getElementById('groq-key-input');
-  var k   = inp ? inp.value.trim() : '';
-  var msg = document.getElementById('gemini-key-msg');
-  if (!k || k.indexOf('gsk_') !== 0) {
-    if (msg) { msg.textContent = 'La chiave Groq deve iniziare con gsk_'; msg.style.color = '#c62828'; }
-    return;
-  }
-  setChiaveGroq(k);
-  aggiornaStatoGroq();
-  if (msg) { msg.textContent = 'Chiave salvata.'; msg.style.color = '#2e7d32'; }
-  setTimeout(function() {
-    var s = document.getElementById('gemini-setup');
-    var a = document.getElementById('gemini-arrow');
-    if (s) s.style.display = 'none';
-    if (a) a.style.transform = '';
-  }, 900);
-}
-
-function cancellaChiaveGroq() {
-  delChiaveGroq();
-  var inp = document.getElementById('groq-key-input');
-  if (inp) inp.value = '';
-  aggiornaStatoGroq();
-}
-
-function aggiornaStatoGroq() {
-  var lbl = document.getElementById('gemini-status-lbl');
-  var k   = getChiaveGroq();
-  if (lbl) lbl.textContent = k
-    ? '✅ Chiave Groq configurata — ~70 sessioni da 40 domande al giorno'
-    : 'Inserisci la tua chiave Groq gratuita (console.groq.com)';
-}
-
-// ── Countdown visivo durante l'attesa TPM ────────────────────
-// ── Countdown visivo: usa il tempo REALE comunicato da Groq ──
-async function _attesaTPM(secondi, loadElId) {
+// [v6] Funzioni configurazione chiave rimosse — chiave gestita server-side in Apps Script
   for (var s = secondi; s > 0; s--) {
     var el = document.getElementById(loadElId || 'dis-ai-loading');
     if (el) el.textContent = '⏳ Limite Groq raggiunto — attesa: ' + s + 's... (riprende automaticamente)';
@@ -4407,7 +4336,7 @@ function _parseGroqWait(msg) {
 // ── Chiamata diretta browser → Groq con retry TPM automatico ─
 async function _groqCall(prompt, loadEl, maxTok) {
   var chiave = getChiaveGroq();
-  if (!chiave) throw new Error('Chiave Groq non configurata. Clicca su "Configurazione AI" e inserisci la chiave gsk_...');
+  // chiave non richiesta lato browser — la chiave è in Apps Script Properties
 
   // ID del loadEl per recuperarlo anche se il DOM viene aggiornato
   var loadElId = loadEl ? (loadEl.id || 'dis-ai-loading') : 'dis-ai-loading';
@@ -4552,10 +4481,11 @@ var _disAIProva = null;
 // ══════════════════════════════════════════════════════════════
 
 async function _geminiCall(prompt) {
-  // POST ad Apps Script che chiama Gemini con UrlFetchApp
+  // POST ad Apps Script → Groq server-side
+  // NESSUN header Content-Type → browser usa text/plain → NESSUN preflight CORS OPTIONS
+  // Apps Script fa JSON.parse(e.postData.contents) indipendentemente dal Content-Type
   var resp = await fetch(SCRIPT_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       token:  SCRIPT_TOKEN,
       action: 'generaDomande',
@@ -4564,7 +4494,7 @@ async function _geminiCall(prompt) {
   });
   if (!resp.ok) throw new Error('Errore rete (' + resp.status + '). Riprova.');
   var data = await resp.json();
-  if (!data.ok) throw new Error(data.err || 'Errore Gemini.');
+  if (!data.ok) throw new Error(data.err || 'Errore AI.');
   return data.content || '';
 }
 
@@ -4603,9 +4533,8 @@ async function generaDomandeAI() {
     if(!testoRaw){ if(errEl){errEl.textContent='Incolla un testo prima di generare.';errEl.style.display='block';} return; }
   } else {
     var descEl = document.getElementById('dis-ai-descrizione');
-    var lungEl = document.getElementById('dis-ai-lunghezza');
     descrizione = descEl ? descEl.value.trim() : '';
-    lunghezza   = lungEl ? parseInt(lungEl.value)||300 : 300;
+    lunghezza   = 500; // default: il docente specifica la lunghezza nella descrizione
     if(!descrizione){ if(errEl){errEl.textContent='Scrivi un argomento per il testo.';errEl.style.display='block';} return; }
   }
 
@@ -6701,30 +6630,6 @@ function generaLinkCP(){
 <script src="prove_6_10.js"></script>
 <script src="caa.js"></script>
 </body>
-</html><!-- Configurazione AI — Groq chiave personale -->
-      <div class="panel-card" style="max-width:none;margin-top:14px;border:2px solid #e8eaf6">
-        <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleGeminiSetup()">
-          <div>
-            <div style="font-size:13px;font-weight:800;color:#3949ab">🔑 Configurazione AI — Groq (gratuito)</div>
-            <div id="gemini-status-lbl" style="font-size:11px;color:#888;margin-top:2px">Inserisci la tua chiave Groq gratuita — console.groq.com</div>
-          </div>
-          <span id="gemini-arrow" style="font-size:16px;color:#3949ab;transition:transform .2s">▸</span>
-        </div>
-        <div id="gemini-setup" style="display:none;margin-top:12px">
-          <div style="background:#e8eaf6;border-radius:8px;padding:10px 14px;font-size:12px;color:#283593;margin-bottom:10px;line-height:1.7">
-            📌 <strong>Come ottenere la chiave (2 minuti, gratis):</strong><br>
-            1. Vai su <a href="https://console.groq.com" target="_blank" style="color:#3949ab;font-weight:700">console.groq.com</a> → crea account gratuito<br>
-            2. <strong>API Keys</strong> → <strong>Create API Key</strong> → copia la chiave (<code>gsk_...</code>)<br>
-            3. Incollala qui sotto — si salva nel browser automaticamente.<br>
-            ⚡ <strong>500.000 token/giorno</strong> — nessuna carta richiesta.
-          </div>
-          <div style="display:flex;gap:8px;align-items:center">
-            <input type="password" id="groq-key-input" class="finp" placeholder="gsk_..." style="padding:9px 12px;flex:1;font-family:monospace">
-            <button onclick="salvaChiaveGroq()" style="padding:9px 16px;background:#3949ab;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">💾 Salva</button>
-            <button onclick="cancellaChiaveGroq()" style="padding:9px 12px;background:#fce8e6;color:#c62828;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-family:var(--font)" title="Cancella">🗑️</button>
-          </div>
-          <div id="gemini-key-msg" style="font-size:11px;margin-top:6px"></div>
-        </div>
-      </div>
+</html>
 
       
