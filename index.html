@@ -1104,14 +1104,16 @@ tr:hover td{background:var(--grigio-ch)}
           </div>
           <div class="fg" style="margin-top:10px">
             <label class="flbl">Lunghezza testo desiderata</label>
-            <select id="dis-ai-lunghezza" class="finp" style="padding:9px 12px">
+            <select id="dis-ai-lunghezza" class="finp" style="padding:9px 12px" onchange="aggiornaCapDomande()">
               <option value="150">Molto breve — 150 parole (disabilità grave)</option>
               <option value="250">Breve — 250 parole (BES/disabilità)</option>
-              <option value="350" selected>Standard — 350 parole (consigliato)</option>
-              <option value="500">Lunga — 500 parole (piano gratuito: limite massimo)</option>
+              <option value="350" selected>Standard — 350 parole (consigliato pilota)</option>
+              <option value="500">Lunga — 500 parole</option>
+              <option value="650">Molto lunga — 650 parole</option>
+              <option value="800">Completa — 800 parole (prova standard)</option>
             </select>
-            <div style="font-size:11px;color:#888;margin-top:5px;line-height:1.6">
-              ⚡ Piano Groq gratuito: max ~500 parole per sessione. Per testi più lunghi serve il piano Dev (~$9/mese) o la generazione in più sessioni.
+            <div id="cap-dom-avviso" style="font-size:11px;color:#1565c0;margin-top:5px;line-height:1.6;background:#e3f2fd;border-radius:5px;padding:5px 9px">
+              📊 Con 350 parole puoi generare fino a <strong>12 domande</strong> (le domande si generano a lotti automaticamente).
             </div>
           </div>
         </div>
@@ -1122,8 +1124,9 @@ tr:hover td{background:var(--grigio-ch)}
         <h3 style="margin-bottom:12px">⚙️ Passo 2 — Opzioni domande</h3>
         <div style="display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start">
           <div>
-            <label class="flbl" style="display:block;margin-bottom:6px">N° domande (max 40)</label>
-            <input type="number" id="dis-ai-ndom" class="finp" value="10" min="3" max="40" style="padding:9px 12px;width:100px">
+            <label class="flbl" style="display:block;margin-bottom:6px">N° domande</label>
+            <input type="number" id="dis-ai-ndom" class="finp" value="10" min="3" max="20" style="padding:9px 12px;width:100px" oninput="clampDomande()">
+            <div style="font-size:10px;color:#888;margin-top:3px" id="lbl-max-dom">max 12 con testo da 350 parole</div>
           </div>
           <div>
             <label class="flbl" style="display:block;margin-bottom:8px">Tipi di domanda</label>
@@ -4286,7 +4289,36 @@ function aggiornaCont() {
   sugger.textContent   = suggerimento;
 }
 
-// ── Modalità testo: incolla / descrivi ───────────────────────
+// ── Info domande per lunghezza (le domande si generano a LOTTI, no cap rigido) ──
+// Le domande vengono spezzate in batch da BATCH_DOM ciascuno con pausa da 65s
+// Il testo passato alla call domande è SEMPRE troncato a MAX_TESTO_CHAR chars
+// Questo rispetta il limite 6000 TPM indipendentemente dalla lunghezza del testo
+var BATCH_DOM = 8;      // domande per batch (output ~700tok + prompt ~800tok = ~1500tok per batch)
+var MAX_TESTO_CHAR = 1800; // testo troncato per le call domande (~600 tok input)
+
+function aggiornaCapDomande(){
+  var sel = document.getElementById('dis-ai-lunghezza');
+  var inp = document.getElementById('dis-ai-ndom');
+  var avv = document.getElementById('cap-dom-avviso');
+  var lbl = document.getElementById('lbl-max-dom');
+  if(!sel||!inp) return;
+  var lun = parseInt(sel.value)||350;
+  // Stima il numero di lotti necessari per dare un'idea dei tempi
+  var ndom = parseInt(inp.value)||10;
+  var lotti = Math.ceil(ndom / BATCH_DOM);
+  var minuti = lotti + (lun>=500?1:0); // +1 per generazione testo lungo
+  var txt = 'Le '+ndom+' domande verranno generate in '+lotti+' lotto/i automatici (~'+minuti+' min con attese Groq). Puoi inserire fino a 20 domande.';
+  if(avv) avv.innerHTML = '📊 ' + txt;
+  if(lbl) lbl.textContent = 'max 20 domande ('+lotti+' lotto/i)';
+}
+
+function clampDomande(){
+  var inp = document.getElementById('dis-ai-ndom');
+  if(!inp) return;
+  if(parseInt(inp.value)>20) inp.value=20;
+  if(parseInt(inp.value)<3)  inp.value=3;
+  aggiornaCapDomande();
+}
 function setModalitaTesto(modo) {
   var isIncolla = modo === 'incolla';
   document.getElementById('panel-incolla').style.display  = isIncolla ? 'block' : 'none';
@@ -4631,8 +4663,8 @@ async function generaDomandeAI() {
       // Questo è il cambiamento chiave: il modello scrive testo libero,
       // noi lo dividiamo in paragrafi. Molto più affidabile di chiedere JSON.
       if(loadEl) loadEl.textContent='Groq — 1/'+(hasGram?3:2)+': scrivo il testo...';
-      // tokTesto generoso: 2 tok/parola + 20% margine, max 1400
-      var tokTesto = Math.min(1400, Math.round(lunghezza * 2 * 1.2));
+      // tokTesto: 2 tok/parola + 20% margine, max 2000 (per 800p≈1920tok)
+      var tokTesto = Math.min(2000, Math.round(lunghezza * 2 * 1.2));
       var parolePerPar = Math.round(lunghezza / 4);
       var promptTesto = 'Scrivi un testo narrativo italiano sull\'argomento: '+descrizione+'\n'
         + 'Il testo deve avere ESATTAMENTE 4 paragrafi separati da una riga vuota.\n'
@@ -4644,7 +4676,7 @@ async function generaDomandeAI() {
 
       // Controlla le parole generate — se < 60% del target, chiedi espansione
       var paroleGenerate = testoRisposta.split(/\s+/).filter(function(w){return w.length>0;}).length;
-      if(paroleGenerate < lunghezza * 0.6){
+      if(paroleGenerate < lunghezza * 0.75){
         if(loadEl) loadEl.textContent='Groq — testo troppo breve ('+paroleGenerate+' parole), espando...';
         await new Promise(function(r){setTimeout(r,3000);});
         var mancano = lunghezza - paroleGenerate;
@@ -4680,13 +4712,33 @@ async function generaDomandeAI() {
       if(loadEl) loadEl.textContent='Groq — pausa...';
       await new Promise(function(r){setTimeout(r,4000);});
 
-      // ── CALL 2: domande SEZ0+SEZ1 ───────────────────────────
-      if(loadEl) loadEl.textContent='Groq — 2/'+(hasGram?3:2)+': genero '+nNoGram+' domande...';
-      var testoPerDom=parOgg.map(function(p){return 'Paragrafo '+p.n+': '+p.testo;}).join('\n\n');
-      var r2 = await _callConRetry(buildDomPrompt(tuttiTipi,nNoGram,0,parOgg.length,testoPerDom),'Domande',loadEl,'Groq',1800);
-      if(!r2.domande||!r2.domande.length) throw new Error('Domande non generate. Riprova.');
-      var allDom=r2.domande.slice();
-      allDom.forEach(function(d,i){d.n=i+1;});
+      // ── CALL 2+: domande SEZ0+SEZ1 generate a BATCH da BATCH_DOM ───
+      // Testo troncato a MAX_TESTO_CHAR per rispettare TPM — la comprensione
+      // si capisce dai primi paragrafi, non serve tutto il testo
+      var testoTronc = parOgg.map(function(p){return 'Paragrafo '+p.n+': '+p.testo;}).join('\n\n').substring(0, MAX_TESTO_CHAR);
+      var allDom = [];
+      var nBatch = Math.ceil(nNoGram / BATCH_DOM);
+      for(var b=0; b<nBatch; b++){
+        var offset = b * BATCH_DOM;
+        var nQB = Math.min(BATCH_DOM, nNoGram - offset);
+        if(nQB <= 0) break;
+        if(b>0){
+          if(loadEl) loadEl.textContent='Groq — pausa lotto '+(b+1)+'/'+nBatch+'...';
+          await new Promise(function(r){setTimeout(r,65000);}); // pausa 65s tra batch
+        }
+        if(loadEl) loadEl.textContent='Groq — domande lotto '+(b+1)+'/'+nBatch+' ('+(offset+1)+'-'+(offset+nQB)+')...';
+        try{
+          var rBatch = await _callConRetry(buildDomPrompt(tuttiTipi,nQB,offset,parOgg.length,testoTronc),'Dom'+(b+1),loadEl,'Groq',1200);
+          if(rBatch.domande&&rBatch.domande.length){
+            rBatch.domande.forEach(function(d,i){d.n=allDom.length+i+1;});
+            allDom = allDom.concat(rBatch.domande);
+          }
+        }catch(eBatch){
+          if(errEl){errEl.textContent='⚠️ Lotto '+(b+1)+' non generato: '+eBatch.message;errEl.style.display='block';}
+          break;
+        }
+      }
+      if(!allDom.length) throw new Error('Nessuna domanda generata. Riprova.');
 
       // ── CALL 3: grammatica isolata (solo SM, solo se attiva) ─
       if(hasGram && nGram>0){
@@ -4724,32 +4776,30 @@ async function generaDomandeAI() {
   var paragrafiI=testoRaw.split(/\n\s*\n/).filter(function(t){return t.trim().length>10;}).map(function(t,i){return {n:i+1,testo:t.trim()};});
   if(!paragrafiI.length) paragrafiI=[{n:1,testo:testoRaw.trim()}];
   _renderTestoPreview(paragrafiI);
-  var testoPerDomI=paragrafiI.map(function(p){return 'Paragrafo '+p.n+': '+p.testo;}).join('\n\n');
+
+  var testoTroncI = paragrafiI.map(function(p){return 'Paragrafo '+p.n+': '+p.testo;}).join('\n\n').substring(0, MAX_TESTO_CHAR);
 
   try {
     var allDI=[];
-    // ── CALL 1 (incolla): domande SM+VF ──────────────────────
-    if(loadEl) loadEl.textContent='Groq — '+(hasGram?'1/3':'1/'+(nCompl>0?2:1))+': genero domande...';
-    var tipiC1 = tipiA.length ? tipiA : ['SM'];
-    var nC1 = tipiA.length ? nSMVF : nNoGram;
-    if(nC1 < 1) nC1 = nNoGram;
-    var r1I=await _callConRetry(buildDomPrompt(tipiC1,nC1,0,paragrafiI.length,testoPerDomI),'Domande',loadEl,'Groq',1800);
-    if(!r1I.domande||!r1I.domande.length) throw new Error('Domande non generate. Riprova.');
-    allDI=r1I.domande.slice();
-    allDI.forEach(function(d,i){d.n=i+1;});
-
-    // ── CALL 2 (incolla): AP+COMP+COL se selezionati ─────────
-    if(tipiB.length && nCompl>0){
-      if(loadEl) loadEl.textContent='Groq — pausa...';
-      await new Promise(function(r){setTimeout(r,4000);});
-      if(loadEl) loadEl.textContent='Groq — 2/'+(hasGram?3:2)+': domande aperte/collegamento...';
+    // ── CALL 1+: domande SM+VF a batch ───────────────────────
+    var nBatchI = Math.ceil(nNoGram / BATCH_DOM);
+    for(var bi=0; bi<nBatchI; bi++){
+      var offI = bi * BATCH_DOM;
+      var nQBI = Math.min(BATCH_DOM, nNoGram - offI);
+      if(nQBI<=0) break;
+      if(bi>0){
+        if(loadEl) loadEl.textContent='Groq — pausa lotto '+(bi+1)+'/'+nBatchI+'...';
+        await new Promise(function(r){setTimeout(r,65000);});
+      }
+      if(loadEl) loadEl.textContent='Groq — domande lotto '+(bi+1)+'/'+nBatchI+' ('+(offI+1)+'-'+(offI+nQBI)+')...';
+      var tipiBI = (bi===0&&tipiA.length) ? tipiA : (tipiB.length&&bi>0 ? tipiB : tuttiTipi);
       try{
-        var r2I=await _callConRetry(buildDomPrompt(tipiB,nCompl,allDI.length,paragrafiI.length,testoPerDomI),'DomB',loadEl,'Groq',1400);
-        if(r2I.domande&&r2I.domande.length){
-          r2I.domande.forEach(function(d,i){d.n=allDI.length+i+1;});
-          allDI=allDI.concat(r2I.domande);
+        var rBI=await _callConRetry(buildDomPrompt(tipiBI,nQBI,offI,paragrafiI.length,testoTroncI),'DomI'+(bi+1),loadEl,'Groq',1200);
+        if(rBI.domande&&rBI.domande.length){
+          rBI.domande.forEach(function(d,i){d.n=allDI.length+i+1;});
+          allDI=allDI.concat(rBI.domande);
         }
-      }catch(e2){/* prosegui senza */}
+      }catch(eBI){ break; }
     }
 
     // ── CALL 3 (incolla): grammatica isolata ─────────────────
@@ -4757,7 +4807,7 @@ async function generaDomandeAI() {
       if(loadEl) loadEl.textContent='Groq — pausa prima della grammatica...';
       await new Promise(function(r){setTimeout(r,4000);});
       if(loadEl) loadEl.textContent='Groq — '+(tipiB.length?3:2)+'/'+(hasGram?3:2)+': grammatica...';
-      var frasiGramI=testoRaw.split(/[.!?]+/).filter(function(f){return f.trim().length>20;}).slice(0,5).join('. ')+'.';
+      var frasiGramI=testoRaw.substring(0, MAX_TESTO_CHAR).split(/[.!?]+/).filter(function(f){return f.trim().length>20;}).slice(0,5).join('. ')+'.';
       try{
         var rGI=await _callConRetry(buildGramPrompt(nGram,allDI.length,frasiGramI),'Gram',loadEl,'Groq',700);
         if(rGI.domande&&rGI.domande.length){
