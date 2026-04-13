@@ -1125,7 +1125,7 @@ tr:hover td{background:var(--grigio-ch)}
         <div style="display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start">
           <div>
             <label class="flbl" style="display:block;margin-bottom:6px">N° domande</label>
-            <input type="number" id="dis-ai-ndom" class="finp" value="10" min="3" max="20" style="padding:9px 12px;width:100px" oninput="clampDomande()">
+            <input type="number" id="dis-ai-ndom" class="finp" value="10" min="3" max="40" style="padding:9px 12px;width:100px" oninput="clampDomande()">
             <div style="font-size:10px;color:#888;margin-top:3px" id="lbl-max-dom">max 12 con testo da 350 parole</div>
           </div>
           <div>
@@ -4307,7 +4307,7 @@ function aggiornaCapDomande(){
   var ndom = parseInt(inp.value)||10;
   var lotti = Math.ceil(ndom / BATCH_DOM);
   var minuti = lotti + (lun>=500?1:0); // +1 per generazione testo lungo
-  var txt = 'Le '+ndom+' domande verranno generate in '+lotti+' lotto/i automatici (~'+minuti+' min con attese Groq). Puoi inserire fino a 20 domande.';
+  var txt = 'Le '+ndom+' domande verranno generate da Groq via server (~15-30 secondi, nessuna attesa browser). Puoi inserire fino a 40 domande.';
   if(avv) avv.innerHTML = '📊 ' + txt;
   if(lbl) lbl.textContent = 'max 20 domande ('+lotti+' lotto/i)';
 }
@@ -4592,7 +4592,7 @@ async function generaDomandeAI() {
   var ndomEl   = document.getElementById('dis-ai-ndom');
 
   var titolo = titoloEl ? titoloEl.value.trim() : 'Prova personalizzata';
-  var ndom   = Math.min(25, Math.max(3, parseInt(ndomEl?ndomEl.value:'10')||10));
+  var ndom   = Math.min(40, Math.max(3, parseInt(ndomEl?ndomEl.value:'10')||10));
   var modo   = getModalitaTesto();
 
   // ── Leggi input ──────────────────────────────────────────────
@@ -4611,7 +4611,7 @@ async function generaDomandeAI() {
 
   if(errEl) errEl.style.display='none';
   if(prevEl) prevEl.style.display='none';
-  if(loadEl){ loadEl.style.display='block'; loadEl.textContent='Gemini — generazione in corso (10-20 secondi)...'; }
+  if(loadEl){ loadEl.style.display='block'; loadEl.textContent='⏳ Groq (server) — generazione in corso, attendi 15-30 secondi...'; }
 
   // ── Tipi di domanda ──────────────────────────────────────────
   function chk(id){ var el=document.getElementById(id); return !!(el&&el.checked); }
@@ -4685,7 +4685,7 @@ async function generaDomandeAI() {
 
   } else {
     // Modalità incolla: usa il testo già disponibile
-    var testoPerPrompt = testoRaw.substring(0, 3000); // max 3000 char al modello
+    var testoPerPrompt = testoRaw.substring(0, 9000); // max 9000 char (~1500 parole)
     prompt = [
       'Sei un esperto di didattica italiana inclusiva per la scuola media.',
       '',
