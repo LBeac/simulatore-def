@@ -1055,9 +1055,9 @@ tr:hover td{background:var(--grigio-ch)}
         <div style="display:flex;gap:0;margin-bottom:14px;border:2px solid var(--grigio);border-radius:8px;overflow:hidden">
           <button id="tab-incolla-btn" onclick="setModalitaTesto('incolla')"
             style="flex:1;padding:9px;border:none;background:var(--blu);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)">
-            📋 Incolla il testo
+            📋 Incolla il testo della prova
           </button>
-          <button id="tab-descrivi-btn" onclick="setModalitaTesto('descrivi')"
+          <button id="tab-descrivi-btn" style="display:none" onclick="setModalitaTesto('descrivi')"
             style="flex:1;padding:9px;border:none;background:var(--grigio-ch);color:#555;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)">
             ✨ Descrivi il testo
           </button>
@@ -1070,7 +1070,7 @@ tr:hover td{background:var(--grigio-ch)}
         </div>
 
         <!-- Opzione A: incolla testo -->
-        <div id="panel-incolla">
+        <div id="panel-incolla" style="display:block">
           <div class="fg">
             <label class="flbl">Testo (verrà suddiviso in paragrafi automaticamente)</label>
             <textarea id="dis-ai-testo" class="finp" rows="7"
@@ -1092,7 +1092,7 @@ tr:hover td{background:var(--grigio-ch)}
         </div>
 
         <!-- Opzione B: descrivi il testo -->
-        <div id="panel-descrivi" style="display:none">
+        <div id="panel-descrivi" style="display:none!important;visibility:hidden">
           <div class="fg">
             <label class="flbl">Descrivi il testo che vuoi</label>
             <textarea id="dis-ai-descrizione" class="finp" rows="4"
@@ -1102,20 +1102,7 @@ tr:hover td{background:var(--grigio-ch)}
               💡 Specifica l'<strong>argomento</strong>, il tipo di testo e la <strong>lunghezza</strong> desiderata (es. "circa 800 parole").
             </div>
           </div>
-          <div class="fg" style="margin-top:10px">
-            <label class="flbl">Lunghezza testo desiderata</label>
-            <select id="dis-ai-lunghezza" class="finp" style="padding:9px 12px" onchange="aggiornaCapDomande()">
-              <option value="150">Molto breve — 150 parole (disabilità grave)</option>
-              <option value="250">Breve — 250 parole (BES/disabilità)</option>
-              <option value="350" selected>Standard — 350 parole (consigliato pilota)</option>
-              <option value="500">Lunga — 500 parole</option>
-              <option value="650">Molto lunga — 650 parole</option>
-              <option value="800">Completa — 800 parole (prova standard)</option>
-            </select>
-            <div id="cap-dom-avviso" style="font-size:11px;color:#1565c0;margin-top:5px;line-height:1.6;background:#e3f2fd;border-radius:5px;padding:5px 9px">
-              📊 Con 350 parole puoi generare fino a <strong>12 domande</strong> (le domande si generano a lotti automaticamente).
-            </div>
-          </div>
+          
         </div>
       </div>
 
@@ -1202,11 +1189,45 @@ tr:hover td{background:var(--grigio-ch)}
           </div>
         </div>
         <div style="display:flex;gap:10px;margin-top:14px">
-          <button onclick="generaDomandeAI()" style="flex:1;padding:12px;background:var(--blu);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:800;cursor:pointer;font-family:var(--font)">🤖 Genera con AI</button>
+          <button onclick="generaDomandeAI()" style="flex:1;padding:12px;background:var(--blu);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:800;cursor:pointer;font-family:var(--font)">🤖 Genera domande</button>
           <button onclick="apriFinestraManuale()" style="padding:12px 18px;background:var(--grigio-ch);color:var(--blu);border:2px solid var(--az);border-radius:var(--r);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">✏️ Crea manualmente</button>
         </div>
         <div id="dis-ai-loading" style="display:none;margin-top:12px;text-align:center;color:var(--blu);font-size:13px;font-weight:700">⏳ Groq sta generando le domande…</div>
         <div id="dis-ai-err" class="err-msg" style="display:none;margin-top:8px"></div>
+      </div>
+
+      <!-- ══ SECONDO TESTO (opzionale) ══════════════════════════ -->
+      <div class="panel-card" style="max-width:none;margin-top:10px;border:2px dashed #1976d2" id="panel-testo-b" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <h3 style="margin:0;color:#1976d2">📄 Testo B — secondo brano (opzionale)</h3>
+          <button onclick="rimuoviTestoB()" style="background:none;border:none;color:#c62828;font-size:18px;cursor:pointer" title="Rimuovi Testo B">✕</button>
+        </div>
+        <div class="fg">
+          <label class="flbl">Titolo Testo B</label>
+          <input id="dis-ai-titolo-b" class="finp" placeholder="es. Il mercato del rame" style="padding:9px 12px;margin-top:4px">
+        </div>
+        <div class="fg" style="margin-top:10px">
+          <label class="flbl">Incolla il testo B</label>
+          <textarea id="dis-ai-testo-b" class="finp" rows="6" placeholder="Incolla qui il secondo testo (max ~1000 parole)..." style="padding:9px 12px;resize:vertical;font-size:13px;line-height:1.7;margin-top:4px"></textarea>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:12px;align-items:center">
+          <input type="number" id="dis-ai-ndom-b" class="finp" value="10" min="3" max="30" style="padding:9px 12px;width:90px">
+          <span style="font-size:12px;color:#888">domande (max 30)</span>
+          <button onclick="generaDomandeB()" style="flex:1;padding:12px;background:#1976d2;color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">🤖 Genera domande Testo B</button>
+        </div>
+        <div id="dis-ai-loading-b" style="display:none;margin-top:12px;text-align:center;color:var(--blu);font-size:13px;font-weight:700">⏳ Genero le domande Testo B...</div>
+        <div id="dis-ai-err-b" class="err-msg" style="display:none;margin-top:8px"></div>
+        <div id="dis-ai-preview-b" style="display:none;margin-top:14px">
+          <div style="font-size:12px;font-weight:700;color:#1976d2;margin-bottom:8px">✅ Domande Testo B generate — puoi modificarle</div>
+          <div id="dis-dom-list-b"></div>
+        </div>
+      </div>
+
+      <!-- Pulsante aggiungi secondo testo -->
+      <div style="margin-top:8px;text-align:center" id="btn-aggiungi-b-wrap">
+        <button onclick="mostraTestoB()" style="background:none;border:2px dashed #1976d2;color:#1976d2;padding:9px 24px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">
+          + Aggiungi Testo B (prova su due brani)
+        </button>
       </div>
 
       <!-- Step 3: Anteprima -->
@@ -4280,7 +4301,7 @@ var BATCH_DOM = 8;      // domande per batch (output ~700tok + prompt ~800tok = 
 var MAX_TESTO_CHAR = 1800; // testo troncato per le call domande (~600 tok input)
 
 function aggiornaCapDomande(){
-  var sel = document.getElementById('dis-ai-lunghezza');
+  var sel = null; // tendina rimossa — lunghezza specificata nella descrizione
   var inp = document.getElementById('dis-ai-ndom');
   var avv = document.getElementById('cap-dom-avviso');
   var lbl = document.getElementById('lbl-max-dom');
@@ -4585,9 +4606,9 @@ async function generaDomandeAI() {
     if(!testoRaw){ if(errEl){errEl.textContent='Incolla un testo prima di generare.';errEl.style.display='block';} return; }
   } else {
     var descEl = document.getElementById('dis-ai-descrizione');
-    var lungEl = document.getElementById('dis-ai-lunghezza');
+    var lungEl = null; // tendina rimossa
     descrizione = descEl ? descEl.value.trim() : '';
-    lunghezza   = lungEl ? parseInt(lungEl.value)||300 : 300;
+    lunghezza   = 800; // default fisso
     if(!descrizione){ if(errEl){errEl.textContent='Scrivi un argomento per il testo.';errEl.style.display='block';} return; }
   }
 
@@ -4651,6 +4672,13 @@ async function generaDomandeAI() {
       var blocchi = rawTesto.trim().split(/\n\n+/).filter(function(b){ return b.trim().length > 30; });
       if(!blocchi.length) blocchi = rawTesto.trim().split(/\n/).filter(function(b){ return b.trim().length > 30; });
       if(!blocchi.length) blocchi = [rawTesto.trim()];
+      // Raggruppa in max 4 paragrafi corposi
+      if(blocchi.length > 4){
+        var _gs = Math.ceil(blocchi.length / 4);
+        var _gr = [];
+        for(var _i=0;_i<blocchi.length;_i+=_gs){ _gr.push(blocchi.slice(_i,_i+_gs).join(' ')); }
+        blocchi = _gr;
+      }
       paragrafi = blocchi.map(function(b, i){ return {n: i+1, testo: b.trim()}; });
 
       // Pausa tra le due call
@@ -4700,8 +4728,15 @@ async function generaDomandeAI() {
 
       var rawIncolla = await _geminiCall(promptIncolla);
       var parsed = _parseGeminiJSON(rawIncolla);
-      paragrafi = testoRaw.trim().split(/\n\n+/).filter(function(t){ return t.trim().length > 10; })
-                  .map(function(t, i){ return {n: i+1, testo: t.trim()}; });
+      var _blocchi = testoRaw.trim().split(/\n\n+/).filter(function(t){ return t.trim().length > 10; });
+      // Raggruppa in max 4 paragrafi corposi
+      if(_blocchi.length > 4){
+        var _gruppoSize = Math.ceil(_blocchi.length / 4);
+        var _gruppi = [];
+        for(var _g=0;_g<_blocchi.length;_g+=_gruppoSize){ _gruppi.push(_blocchi.slice(_g,_g+_gruppoSize).join(' ')); }
+        _blocchi = _gruppi;
+      }
+      paragrafi = _blocchi.map(function(t, i){ return {n: i+1, testo: t.trim()}; });
       if(!paragrafi.length) paragrafi = [{n:1, testo: testoRaw.trim()}];
       domande = parsed.domande || [];
     }
@@ -4720,6 +4755,71 @@ async function generaDomandeAI() {
     if(errEl){ errEl.textContent = e.message||'Errore. Riprova.'; errEl.style.display='block'; }
   }
 }
+
+// ══ GESTIONE DUE TESTI ════════════════════════════════════════
+var _disAIProvaB = null; // domande del secondo testo
+
+function mostraTestoB() {
+  document.getElementById('panel-testo-b').style.display = 'block';
+  document.getElementById('btn-aggiungi-b-wrap').style.display = 'none';
+}
+function rimuoviTestoB() {
+  document.getElementById('panel-testo-b').style.display = 'none';
+  document.getElementById('btn-aggiungi-b-wrap').style.display = '';
+  _disAIProvaB = null;
+}
+
+async function generaDomandeB() {
+  var loadEl = document.getElementById('dis-ai-loading-b');
+  var errEl  = document.getElementById('dis-ai-err-b');
+  var prevEl = document.getElementById('dis-ai-preview-b');
+  var testoB = document.getElementById('dis-ai-testo-b').value.trim();
+  if(!testoB){ if(errEl){errEl.textContent='Incolla il testo B prima di generare.';errEl.style.display='block';} return; }
+  var ndomB  = Math.min(30, Math.max(3, parseInt(document.getElementById('dis-ai-ndom-b').value)||10));
+  if(errEl) errEl.style.display='none';
+  if(prevEl) prevEl.style.display='none';
+  if(loadEl){ loadEl.style.display='block'; loadEl.textContent='⏳ Genero le domande Testo B...'; }
+
+  try {
+    var testoPerPrompt = testoB.substring(0, 6000);
+    var promptB = 'Sei un esperto di didattica italiana per la scuola media. Rispondi SOLO con JSON valido, niente testo fuori.\n'
+      + 'TESTO:\n---\n' + testoPerPrompt + '\n---\n'
+      + 'Genera ESATTAMENTE ' + ndomB + ' domande di comprensione e lessico (tipi: SM+VF+AP).\n'
+      + 'SM: "opts"=[4 parole REALI del testo], "ok"=indice(0-3)\n'
+      + 'VF: "righeVF"=[{"t":"frase","ok":true/false}] 3-4 righe\n'
+      + 'AP: solo "testo"\n'
+      + '"par"=numero paragrafo, "sez"=0 comprensione/1 lessico\n'
+      + 'JSON: {"domande":[{"n":1,"par":1,"tipo":"sm","sez":0,"testo":"?","opts":["A","B","C","D"],"ok":0}]}';
+
+    var rawB = await _geminiCall(promptB);
+    var parsedB = _parseGeminiJSON(rawB);
+    var domande = parsedB.domande || [];
+    if(!domande.length) throw new Error('Nessuna domanda generata per il Testo B. Riprova.');
+    domande.forEach(function(d,i){ d.n=i+1; });
+
+    var blocchiB = testoB.trim().split(/\n\n+/).filter(function(t){ return t.trim().length>10; });
+    if(blocchiB.length > 4){
+      var gs=Math.ceil(blocchiB.length/4); var gr=[];
+      for(var i=0;i<blocchiB.length;i+=gs){ gr.push(blocchiB.slice(i,i+gs).join(' ')); }
+      blocchiB=gr;
+    }
+    var paragrafiB = blocchiB.map(function(t,i){ return {n:i+1,testo:t.trim()}; });
+    if(!paragrafiB.length) paragrafiB=[{n:1,testo:testoB.trim()}];
+
+    var titoloB = document.getElementById('dis-ai-titolo-b').value.trim() || 'Testo B';
+    _disAIProvaB = { titolo: titoloB, paragrafi: paragrafiB, domande: domande };
+
+    // Mostra preview domande B
+    var listB = document.getElementById('dis-dom-list-b');
+    if(listB){ listB.innerHTML=''; domande.forEach(function(d,i){ listB.appendChild(makeDomCardDis(d,i)); }); }
+    if(loadEl) loadEl.style.display='none';
+    if(prevEl) prevEl.style.display='block';
+  } catch(e) {
+    if(loadEl) loadEl.style.display='none';
+    if(errEl){ errEl.textContent=e.message||'Errore Testo B. Riprova.'; errEl.style.display='block'; }
+  }
+}
+// ══════════════════════════════════════════════════════════════
 
 var TIPO_BADGE_DIS={
   sm:['SM','#1565c0','#e3f2fd'],
@@ -4967,7 +5067,21 @@ function creaLinkDisAI(){
   if(!_disAIProva){alert('\u26a0\ufe0f Prima genera o crea le domande.');return;}
   var domande=raccogliDomandeDis();
   if(!domande.length){alert('\u26a0\ufe0f Aggiungi almeno una domanda.');return;}
-  var prova=Object.assign({},_disAIProva,{domande:domande});
+  // Se c'è un secondo testo, crea prova doppia
+  var prova;
+  if(_disAIProvaB && _disAIProvaB.domande && _disAIProvaB.domande.length) {
+    var domBaggiornate = _leggiDomandeDalDOM('dis-dom-list-b');
+    prova = {
+      titolo: _disAIProva.titolo||'Prova',
+      sottotitolo: 'Prova personalizzata',
+      glossario: [],
+      tipo: 'doppio',
+      testoA: { titolo: _disAIProva.titolo||'Testo A', paragrafi: _disAIProva.paragrafi, domande: domande },
+      testoB: { titolo: _disAIProvaB.titolo||'Testo B', paragrafi: _disAIProvaB.paragrafi, domande: domBaggiornate||_disAIProvaB.domande }
+    };
+  } else {
+    prova = Object.assign({},_disAIProva,{domande:domande});
+  }
   // Comprime il JSON prima di encodarlo (rimuove whitespace, limita glossario)
   var provaMin = {
     titolo: prova.titolo, sottotitolo: prova.sottotitolo,
