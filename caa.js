@@ -286,10 +286,10 @@
 '          <option value="6">6</option><option value="7">7</option><option value="8">8</option>',
 '          <option value="9">9</option><option value="10">10</option>',
 '        </select>',
-'        <input type="password" id="caa-ai-key" placeholder="Chiave OpenRouter (se non già salvata nella piattaforma)">',
+// campo chiave rimosso — AI gestita server-side
 '        <button class="caa-btn caa-btn-ai" id="caa-ai-btn" onclick="caaGeneraAI()">✨ Genera</button>',
 '      </div>',
-'      <div class="caa-ai-note">La chiave Groq viene letta automaticamente se già salvata. Le domande sono modificabili prima di procedere.</div>',
+'      <div class="caa-ai-note">Le domande vengono generate automaticamente. Puoi modificarle prima di procedere.</div>',
 '      <div class="caa-ai-status" id="caa-ai-status"><div class="caa-spinner"></div><span id="caa-ai-status-txt">Genero le domande…</span></div>',
 '      <div class="caa-ai-warn" id="caa-ai-warn"></div>',
 '    </div>',
@@ -1073,13 +1073,7 @@
     var testo = document.getElementById('caa-testo').value.trim();
     if (!testo) { alert('⚠️ Inserisci prima il testo del brano.'); return; }
 
-    var n      = parseInt(document.getElementById('caa-ai-ndm').value, 10);
-    var apiKey = document.getElementById('caa-ai-key').value.trim() || leggiChiaveGroq();
-    if (!apiKey) {
-      mostraWarn('⚠️ Chiave Groq non trovata. Inseriscila nel campo sopra.');
-      return;
-    }
-    if (!leggiChiaveGroq()) localStorage.setItem('groqApiKey', apiKey);
+    var n = parseInt(document.getElementById('caa-ai-ndm').value, 10);
 
     var btn    = document.getElementById('caa-ai-btn');
     var status = document.getElementById('caa-ai-status');
@@ -1093,44 +1087,29 @@
 
     var PROMPT =
       'Sei un esperto di Comunicazione Aumentativa Alternativa (CAA).\n' +
-      'Leggi il testo seguente e genera esattamente ' + n + ' domande di comprensione.\n\n' +
-      'REGOLE OBBLIGATORIE:\n' +
-      '- Ogni domanda: frasi BREVISSIME (max 8 parole)\n' +
-      '- Solo parole semplici e concrete\n' +
-      '- 4 opzioni: A, B, C, D\n' +
-      '- Una sola risposta corretta\n' +
-      '- Opzioni brevi (max 5 parole)\n' +
-      '- NO negazioni nelle domande\n\n' +
+      'Leggi il testo e genera esattamente ' + n + ' domande di comprensione.\n\n' +
+      'REGOLE: frasi brevissime (max 8 parole), parole semplici, 4 opzioni A/B/C/D, una sola risposta corretta, opzioni brevi (max 5 parole), NO negazioni.\n\n' +
       'TESTO:\n' + testo + '\n\n' +
       'Rispondi SOLO con JSON valido, senza markdown:\n' +
       '[{"testo":"…","A":"…","B":"…","C":"…","D":"…","corretta":"A"}]';
 
-    try {
-      var resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type':  'application/json',
-          'Authorization': 'Bearer ' + apiKey,
-          'HTTP-Referer':  'https://lbeac.github.io/simulatore-def/',
-          'X-Title':       'Grado 8 INVALSI CAA'
-        },
-        body: JSON.stringify({
-          model:       'meta-llama/llama-3.3-70b-instruct:free',
-          temperature: 0.4,
-          max_tokens:  1800,
-          messages: [
-            { role: 'system', content: 'Sei un assistente per la didattica speciale. Rispondi solo con JSON valido, senza markdown.' },
-            { role: 'user',   content: PROMPT }
-          ]
-        })
-      });
+    // Chiama Apps Script (stesso endpoint di index.html, chiave lato server)
+    var resp = await fetch(window.SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbyi3j1opanbfed0PuGITdHE4f8BHjPBwWEKuSubnKr4kJjvgfGIXZMUOTfEoXDBvRSu/exec', {
+      method: 'POST',
+      body: JSON.stringify({
+        token:  window.SCRIPT_TOKEN || 'inv8_2026_Gd7kPqR3',
+        action: 'generaDomande',
+        prompt: PROMPT
+      })
+    });
 
-      if (!resp.ok) {
+          if (!resp.ok) {
         var errData = await resp.json().catch(function () { return {}; });
         throw new Error(errData.error ? errData.error.message : 'HTTP ' + resp.status);
       }
 
       var data = await resp.json();
+      if (!data.ok) throw new Error(data.err || 'Errore AI.');
       var raw  = (data.choices && data.choices[0] && data.choices[0].message)
                    ? data.choices[0].message.content : '';
       raw = raw.replace(/```json|```/gi, '').trim();
