@@ -1112,8 +1112,8 @@ tr:hover td{background:var(--grigio-ch)}
         <div style="display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start">
           <div>
             <label class="flbl" style="display:block;margin-bottom:6px">N° domande</label>
-            <input type="number" id="dis-ai-ndom" class="finp" value="10" min="3" max="40" style="padding:9px 12px;width:100px" oninput="clampDomande()">
-            <div style="font-size:10px;color:#888;margin-top:3px" id="lbl-max-dom">fino a 40 domande</div>
+            <input type="number" id="dis-ai-ndom" class="finp" value="10" min="3" max="30" style="padding:9px 12px;width:100px" oninput="clampDomande()">
+            <div style="font-size:10px;color:#888;margin-top:3px" id="lbl-max-dom">max 30 domande</div>
           </div>
           <div>
             <label class="flbl" style="display:block;margin-bottom:8px">Tipi di domanda</label>
@@ -4287,13 +4287,13 @@ function aggiornaCapDomande(){
   var inp = document.getElementById('dis-ai-ndom');
   var lbl = document.getElementById('lbl-max-dom');
   if(!inp) return;
-  if(lbl) lbl.textContent = 'fino a 40 domande';
+  if(lbl) lbl.textContent = 'max 30 domande';
 }
 
 function clampDomande(){
   var inp = document.getElementById('dis-ai-ndom');
   if(!inp) return;
-  if(parseInt(inp.value)>40) inp.value=40;
+  if(parseInt(inp.value)>30) inp.value=30;
   if(parseInt(inp.value)<3)  inp.value=3;
   aggiornaCapDomande();
 }
@@ -4525,7 +4525,7 @@ async function generaDomandeAI() {
   var ndomEl   = document.getElementById('dis-ai-ndom');
 
   var titolo = titoloEl ? titoloEl.value.trim() : 'Prova personalizzata';
-  var ndom   = Math.min(40, Math.max(3, parseInt(ndomEl?ndomEl.value:'10')||10));
+  var ndom   = Math.min(30, Math.max(3, parseInt(ndomEl?ndomEl.value:'10')||10));
   var modo   = getModalitaTesto();
 
   // ── Leggi input ──────────────────────────────────────────────
@@ -4579,68 +4579,37 @@ async function generaDomandeAI() {
   // ── Costruisce il PROMPT UNICO per Gemini ────────────────────
   // Gemini 1.5 Flash gestisce testo+domande in una sola risposta JSON.
   // Nessun batch, nessuna pausa, nessun limite TPM.
+  // ── Prompt compatto per Llama 4 Scout (30K TPM) ─────────────
+  // Pilota: max 800 parole testo, max 30 domande
+  // Token stimati: ~2000 input + ~2500 output = ~4500 tot
   var prompt;
+  var tipiStr = tipi.join('+');
+  var gramStr = gram.length ? ' | GRAMMATICA(sez:2): ' + gram.join('; ') : '';
+  var distStr = '~40% comprensione(sez:0),~40% lessico(sez:1)' + (hasGram ? ',~20% grammatica(sez:2)' : '');
 
   if(modo==='descrivi'){
-    // Genera testo + domande in un'unica risposta JSON
-    var parolePerPar = Math.round(lunghezza/4);
-    prompt = [
-      'Sei un esperto di didattica italiana inclusiva per la scuola media.',
-      'Argomento: ' + descrizione,
-      '',
-      'COMPITO:',
-      '1. Scrivi un testo narrativo di circa ' + lunghezza + ' parole diviso in 4 paragrafi.',
-      '   Ogni paragrafo: circa ' + parolePerPar + ' parole. Frasi semplici e brevi.',
-      '2. Genera ' + nComp + ' domande di comprensione e lessico sul testo (tipi: ' + tipi.filter(function(t){return t!=='AP'||!hasGram;}).join(', ') + ').',
-      hasGram ? '3. Genera ' + nGram + ' domande di grammatica (sez:2) su: ' + gram.join(', ') + '.' : '',
-      '',
-      'REGOLE per le opzioni delle domande SM: usa parole o frasi REALI tratte dal testo, non inventarle.',
-      'Distribuzione sezioni: ~40% comprensione (sez:0), ~40% lessico (sez:1)' + (hasGram ? ', ~20% grammatica (sez:2)' : '') + '.',
-      '',
-      'Rispondi SOLO con questo JSON (niente testo prima o dopo):',
-      '{',
-      '  "paragrafi": [',
-      '    {"n":1,"testo":"primo paragrafo completo..."},',
-      '    {"n":2,"testo":"secondo paragrafo..."},',
-      '    {"n":3,"testo":"terzo paragrafo..."},',
-      '    {"n":4,"testo":"quarto paragrafo..."}',
-      '  ],',
-      '  "domande": [',
-      '    {"n":1,"par":1,"tipo":"sm","sez":0,"testo":"Domanda?","opts":["opz reale A","opz reale B","opz reale C","opz reale D"],"ok":0},',
-      '    {"n":2,"par":1,"tipo":"vf","sez":0,"testo":"Segna V o F:","righeVF":[{"t":"affermazione vera","ok":true},{"t":"affermazione falsa","ok":false}]},',
-      '    {"n":3,"par":2,"tipo":"ap","sez":0,"testo":"Domanda aperta breve?"},',
-      '    {"n":4,"par":2,"tipo":"comp","sez":1,"testo":"Completa:","frase":"Frase con ___ lacuna.","parole":["corretta","distr1","distr2","distr3"],"ok":0},',
-      '    {"n":5,"par":3,"tipo":"col","sez":1,"testo":"Collega:","sinistra":["A","B"],"destra":["X","Y"],"coppie":[0,1]}',
-      '  ]',
-      '}'
-    ].filter(Boolean).join('\n');
+    prompt = 'Didattica italiana scuola media. Rispondi SOLO con JSON valido, zero testo fuori.\n'
+      + 'Argomento: ' + descrizione + '\n'
+      + 'COMPITO: 1) Scrivi testo ~800 parole in 4 paragrafi (frasi semplici). '
+      + '2) Genera ' + nComp + ' domande comprensione+lessico (tipi:' + tipiStr + ')'
+      + (hasGram ? ' + ' + nGram + ' domande grammatica' + gramStr : '') + '.\n'
+      + 'Distribuzione: ' + distStr + '. Opzioni SM = parole REALI del testo. par=numero paragrafo(1-4).\n'
+      + 'JSON: {"paragrafi":[{"n":1,"testo":"..."},{"n":2,"testo":"..."},{"n":3,"testo":"..."},{"n":4,"testo":"..."}],'
+      + '"domande":[{"n":1,"par":1,"tipo":"sm","sez":0,"testo":"Domanda?","opts":["A","B","C","D"],"ok":0},'
+      + '{"n":2,"par":2,"tipo":"vf","sez":0,"testo":"V o F:","righeVF":[{"t":"frase vera","ok":true},{"t":"frase falsa","ok":false}]},'
+      + '{"n":3,"par":3,"tipo":"ap","sez":0,"testo":"Perché...?"}]}';
 
   } else {
-    // Modalità incolla: usa il testo già disponibile
-    var testoPerPrompt = testoRaw.substring(0, 9000); // max 9000 char (~1500 parole)
-    prompt = [
-      'Sei un esperto di didattica italiana inclusiva per la scuola media.',
-      '',
-      'TESTO SU CUI GENERARE LE DOMANDE:',
-      '---',
-      testoPerPrompt,
-      '---',
-      '',
-      'Genera ' + nComp + ' domande di comprensione e lessico sul testo (tipi: ' + tipi.join(', ') + ').',
-      hasGram ? 'Aggiungi ' + nGram + ' domande di grammatica (sez:2) su: ' + gram.join(', ') + '.' : '',
-      '',
-      'REGOLE: opzioni SM = parole/frasi REALI del testo. Sez: 0=comprensione, 1=lessico, 2=grammatica.',
-      'Campo "par" = numero del paragrafo di riferimento (1-N).',
-      '',
-      'Rispondi SOLO con JSON:',
-      '{"domande":[',
-      '  {"n":1,"par":1,"tipo":"sm","sez":0,"testo":"Chi è il protagonista?","opts":["op reale A","op reale B","op reale C","op reale D"],"ok":0},',
-      '  {"n":2,"par":1,"tipo":"vf","sez":0,"testo":"Segna V o F:","righeVF":[{"t":"aff vera","ok":true},{"t":"aff falsa","ok":false}]},',
-      '  {"n":3,"par":2,"tipo":"ap","sez":0,"testo":"Perché...?"},',
-      '  {"n":4,"par":2,"tipo":"comp","sez":1,"testo":"Completa:","frase":"Frase con ___.","parole":["corretta","d1","d2","d3"],"ok":0},',
-      '  {"n":5,"par":3,"tipo":"col","sez":1,"testo":"Collega:","sinistra":["A","B"],"destra":["X","Y"],"coppie":[0,1]}',
-      ']}'
-    ].filter(Boolean).join('\n');
+    // Modalità incolla: max 5000 char (~800 parole)
+    var testoPerPrompt = testoRaw.substring(0, 5000);
+    prompt = 'Didattica italiana scuola media. Rispondi SOLO con JSON valido, zero testo fuori.\n'
+      + 'TESTO:\n---\n' + testoPerPrompt + '\n---\n'
+      + 'Dividi in paragrafi. Genera ' + nComp + ' domande comprensione+lessico (tipi:' + tipiStr + ')'
+      + (hasGram ? ' + ' + nGram + ' domande grammatica' + gramStr : '') + '.\n'
+      + 'Distribuzione: ' + distStr + '. Opzioni SM = parole REALI del testo.\n'
+      + 'JSON: {"domande":[{"n":1,"par":1,"tipo":"sm","sez":0,"testo":"Domanda?","opts":["A","B","C","D"],"ok":0},'
+      + '{"n":2,"par":1,"tipo":"vf","sez":0,"testo":"V o F:","righeVF":[{"t":"frase vera","ok":true},{"t":"frase falsa","ok":false}]},'
+      + '{"n":3,"par":2,"tipo":"ap","sez":0,"testo":"Perché...?"}]}';
   }
 
   // ── Chiamata Gemini via Apps Script ──────────────────────────
