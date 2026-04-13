@@ -4316,6 +4316,9 @@ function getModalitaTesto() {
 }
 
 // [v6] Funzioni configurazione chiave rimosse — chiave gestita server-side in Apps Script
+
+// ── Countdown visivo durante l'attesa TPM ─────────────────────
+async function _attesaTPM(secondi, loadElId) {
   for (var s = secondi; s > 0; s--) {
     var el = document.getElementById(loadElId || 'dis-ai-loading');
     if (el) el.textContent = '⏳ Limite Groq raggiunto — attesa: ' + s + 's... (riprende automaticamente)';
