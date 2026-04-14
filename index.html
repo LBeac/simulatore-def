@@ -133,6 +133,15 @@ body.acc-spaziatura .opzione {
 .ripasso-ops .op-r.sbagliata{ background:#fce4e4; color:var(--rosso); }
 .ripasso-ops .op-r.neutrale{ background:var(--grigio-ch); color:#555; }
 
+/* ── TAB ANALISI: select fissato in alto per evitare apertura dropdown verso l'alto ── */
+#tab-analisi .finp#sel-sess-analisi {
+  position: relative;
+  z-index: 10;
+}
+/* ── Assicura che pannelli non-attivi nascondano completamente il contenuto ── */
+.panel:not(.att) { display: none !important; }
+.sub-panel:not(.att) { display: none !important; }
+
 /* ── BANNER NAI ─────────────────────────────────────────── */
 #banner-nai{ display:none; }
 #banner-nai.visible{
@@ -918,7 +927,14 @@ tr:hover td{background:var(--grigio-ch)}
       <button class="btn btn-s" onclick="caricaSessioniDaSheet()" style="font-size:12px;padding:7px 14px">
         ☁️ Sincronizza sessioni da Sheet
       </button>
-      <span id="sync-status" style="font-size:12px;color:var(--verde);font-weight:700"></span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn" onclick="eliminaSessioniVuote()" 
+          style="font-size:12px;padding:7px 14px;background:#fff3e0;color:#e65100;border:1.5px solid #ffcc80;border-radius:6px;cursor:pointer;font-family:var(--font);font-weight:700"
+          title="Elimina tutte le sessioni con 0 studenti (prove di test)">
+          🧹 Elimina sessioni vuote
+        </button>
+        <span id="sync-status" style="font-size:12px;color:var(--verde);font-weight:700"></span>
+      </div>
     </div>
     <div class="table-wrap">
       <table>
@@ -1381,6 +1397,10 @@ tr:hover td{background:var(--grigio-ch)}
       <h3>🔑 Cambia password docente</h3>
       <div class="info-panel">
         Password unica per accedere al pannello. Dopo il login scegli quale classe visualizzare.
+        <br><span style="font-size:11px;color:#888;margin-top:4px;display:block">
+          💡 La password è salvata in questo browser. Se cambi browser o dispositivo, usa la stessa password.
+          La password predefinita è <code style="background:#f0f4f8;padding:1px 5px;border-radius:3px">invalsi2025!</code>
+        </span>
       </div>
       <div class="fg">
         <label class="flbl">Nuova password</label>
@@ -1394,7 +1414,7 @@ tr:hover td{background:var(--grigio-ch)}
         <input class="pw-input finp" type="password" id="pw-conferma" placeholder="Ripeti la password">
       </div>
       <button class="btn btn-g" onclick="salvaPW()" style="width:100%;padding:11px">💾 Salva nuova password</button>
-      <div class="succ-msg" id="succ-pw"></div>
+      <div class="succ-msg" id="succ-pw" style="font-size:14px;font-weight:700;padding:12px;border-radius:8px;background:#e8f5e9;color:#2e7d32;border:2px solid #a5d6a7;margin-top:10px"></div>
       <div class="err-msg" id="err-pw" style="margin-top:10px"></div>
     </div>
   </div>
@@ -3774,9 +3794,10 @@ document.addEventListener('keydown',function(e){
 });
 
 function aggiornaGenerale(){
-  const ris = typeof getRisultatiStandard === 'function' ? getRisultatiStandard() : getRisultatiClasse().filter(r=>!r.flag_dis);
+  // [FIX-analisi] Include TUTTE le sessioni (standard + dis + bes) per la vista generale
+  const ris = getRisultatiClasse();
   const risDis = typeof getRisultatiDis === 'function' ? getRisultatiDis() : [];
-  const noData = '<p style="color:#aaa;font-size:13px">Nessun dato disponibile.</p>';
+  const noData = '<p style="color:#aaa;font-size:13px;padding:12px 0">Nessun dato disponibile — nessuno studente ha ancora consegnato una prova.<br><span style="font-size:11px">Usa <strong>Importa da Sheet</strong> se gli studenti hanno già svolto le prove su un altro dispositivo.</span></p>';
 
   if(!ris.length && !risDis.length){
     ['gen-kpi','gen-andamento','gen-competenze','gen-alunni','gen-top10','gen-bottom10','gen-suggerimenti'].forEach(id=>{const el=$(id);if(el)el.innerHTML=noData;});
@@ -5107,7 +5128,7 @@ function creaLinkDisAI(){
   };
   var ticAttivi=Object.keys(ticMap).filter(function(k){return ticMap[k];});
   var sessKey='dis-'+classe+'-'+Date.now();
-  DB.sessioni[sessKey]={provaId:'custom',classe:classe,tipo:'disabilita',tic:ticMap,data:new Date().toISOString(),studenti:0,chiusa:false};
+  DB.sessioni[sessKey]={provaId:'custom',titolo:_disAIProva.titolo||'Prova AI',classe:classe,tipo:'disabilita',tic:ticMap,data:new Date().toISOString(),studenti:0,chiusa:false};
   saveDB();
   try{
     fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},
@@ -5335,6 +5356,28 @@ function confermaDel(){
   aggiornaGenerale();
 }
 
+// ── ELIMINA SESSIONI VUOTE (prove di test con 0 studenti) ─────
+function eliminaSessioniVuote(){
+  const vuote = Object.entries(DB.sessioni).filter(([cod,s])=>{
+    const nStud = DB.risultati.filter(r=>r.sessione===cod).length;
+    return nStud === 0;
+  });
+  if(!vuote.length){
+    alert('✅ Nessuna sessione vuota da eliminare.\nTutte le sessioni hanno almeno uno studente.');
+    return;
+  }
+  const lista = vuote.slice(0,8).map(([c])=>c).join('\n') + (vuote.length>8 ? `\n... e altre ${vuote.length-8}` : '');
+  if(!confirm(`🧹 Elimina ${vuote.length} sessioni con 0 studenti?\n\n${lista}\n\nQuesta azione non è reversibile.`)) return;
+  vuote.forEach(([cod])=>{ delete DB.sessioni[cod]; });
+  saveDB();
+  aggiornaTabellaSessioni();
+  aggSelSessioni();
+  popolaSelImport();
+  aggiornaGenerale();
+  $('sync-status').textContent = `✅ Eliminate ${vuote.length} sessioni vuote`;
+  setTimeout(()=>{ $('sync-status').textContent=''; }, 4000);
+}
+
 function chiediDelStudente(codice, sessione){
   $('del-stud-cod').textContent = codice;
   $('del-stud-sess').textContent = sessione;
@@ -5422,8 +5465,9 @@ function popolaSelImport(){
   sel.innerHTML='<option value="">-- Seleziona sessione --</option>'+
     tutteSessioni.map(([cod,s])=>{
       const p=PROVE ? PROVE.find(x=>x.id===s.provaId) : null;
+      const titoloImp = s.titolo || (p ? p.titolo : (s.tipo==='disabilita' ? '🌟 Prova AI dis.' : ''));
       const cl = s.classe ? ` (${s.classe})` : '';
-      return `<option value="${cod}">${cod} – ${p?p.titolo:''}${cl}</option>`;
+      return `<option value="${cod}">${cod} – ${titoloImp}${cl}</option>`;
     }).join('');
 }
 
@@ -5442,8 +5486,9 @@ function aggSelSessioni(){
     tutteKeys.map(cod=>{
       const s = DB.sessioni[cod];
       const p = s ? PROVE.find(x=>x.id===s.provaId) : null;
+      const titoloSel = (s && s.titolo) || (p ? p.titolo : (s && s.tipo==='disabilita' ? '🌟 Prova AI dis.' : ''));
       const n = ris.filter(r=>r.sessione===cod).length;
-      return `<option value="${cod}">${cod} – ${p?p.titolo:''} (${n} stud.)</option>`;
+      return `<option value="${cod}">${cod} – ${titoloSel} (${n} stud.)</option>`;
     }).join('');
 }
 
@@ -5479,6 +5524,7 @@ function aggiornaTabellaSessioni(){
 
   tbody.innerHTML = tutteSessioni.map(([cod,s])=>{
     const p = PROVE ? PROVE.find(x=>x.id===s.provaId) : null;
+    const titoloSess = s.titolo || (p ? p.titolo : (s.tipo==='disabilita' ? '🌟 Prova AI dis.' : '–'));
     const chiusa = !!s.chiusa;
     const nStud = DB.risultati.filter(r=>r.sessione===cod).length;
     const isAltClasse = false; // ogni classe vede solo le sue sessioni
@@ -5490,7 +5536,7 @@ function aggiornaTabellaSessioni(){
       : `<span class="sessione-status status-attiva"><span class="status-dot"></span>Attiva</span>`;
     return `<tr style="${isAltClasse?'opacity:.4;':''}">
       <td><strong>${cod}</strong></td>
-      <td>${p?p.titolo:'–'}</td>
+      <td>${titoloSess}</td>
       <td><span style="font-weight:800;background:${colCl};padding:2px 8px;border-radius:4px;color:var(--blu)">${s.classe||'–'}</span></td>
       <td>${dataStr}</td>
       <td>${nStud}</td>
@@ -5871,9 +5917,32 @@ function mostraTab(id, btn){
   const panel = $(id);
   if(panel) panel.classList.add('att');
   if(btn) btn.classList.add('att');
+
+  // ── RESET UI dis/AI quando si esce dal tab Nuova sessione ──────
+  if(id !== 'tab-new'){
+    const elDisSuc = document.getElementById('dis-succ');
+    if(elDisSuc) elDisSuc.style.display = 'none';
+    const elDisPrev = document.getElementById('dis-ai-preview');
+    if(elDisPrev) elDisPrev.style.display = 'none';
+    const elDisTPrev = document.getElementById('dis-testo-preview-box');
+    if(elDisTPrev) elDisTPrev.style.display = 'none';
+    const elDisWarn = document.getElementById('dis-url-warn');
+    if(elDisWarn) elDisWarn.style.display = 'none';
+    const elCpSuc = document.getElementById('cp-succ');
+    if(elCpSuc) elCpSuc.style.display = 'none';
+    const elSucNew = document.getElementById('succ-new');
+    if(elSucNew) elSucNew.style.display = 'none';
+  }
+
   // Aggiorna contenuti al cambio tab — con protezione errori
   try{ if(id==='tab-generale') aggiornaGenerale(); }catch(e){}
-  try{ if(id==='tab-analisi') { aggSelSessioni(); popolaSelProvaAnalisi(); } }catch(e){}
+  try{ if(id==='tab-analisi') {
+    aggSelSessioni();
+    popolaSelProvaAnalisi();
+    // [FIX-dropdown] forza il select al top del pannello per evitare apertura verso l'alto
+    const selA = document.getElementById('sel-sess-analisi');
+    if(selA) selA.scrollIntoView({block:'nearest'});
+  }}catch(e){}
   try{ if(id==='tab-sess') aggiornaTabellaSessioni(); }catch(e){}
   try{ if(id==='tab-import') popolaSelImport(); }catch(e){}
 }
@@ -5887,6 +5956,11 @@ function mostraSubTab(id, btn){
   if(id !== 'st-dis'){
     if(testoB) testoB.style.display = 'none';
     if(btnB)   btnB.style.display = 'none';
+    // [FIX] resetta anche il risultato generato quando si torna a Prove standard
+    var dSuc = document.getElementById('dis-succ');
+    if(dSuc) dSuc.style.display = 'none';
+    var dPrev = document.getElementById('dis-ai-preview');
+    if(dPrev) dPrev.style.display = 'none';
   } else {
     if(btnB)   btnB.style.display = '';
   }
@@ -6048,12 +6122,16 @@ function salvaPW(){
   const n2 = ($('pw-conferma')||{}).value||'';
   const errEl=$('err-pw'), sucEl=$('succ-pw');
   if(errEl) errEl.style.display='none';
+  if(sucEl) sucEl.style.display='none';
   if(!n1){ if(errEl){errEl.textContent='Inserisci la nuova password.';errEl.style.display='block';} return; }
   if(n1!==n2){ if(errEl){errEl.textContent='Le password non coincidono.';errEl.style.display='block';} return; }
   if(n1.length<6){ if(errEl){errEl.textContent='La password deve avere almeno 6 caratteri.';errEl.style.display='block';} return; }
   setPW_doc(n1);
-  if(sucEl){ sucEl.textContent='✅ Password aggiornata!'; sucEl.style.display='block'; }
-  setTimeout(()=>{ if(sucEl) sucEl.style.display='none'; },3000);
+  if(sucEl){
+    sucEl.textContent='✅ Password aggiornata! Usa questa password al prossimo accesso.';
+    sucEl.style.display='block';
+  }
+  // Non nascondere automaticamente — l'utente deve vedere conferma
   if($('pw-nuova')) $('pw-nuova').value='';
   if($('pw-conferma')) $('pw-conferma').value='';
 }
