@@ -133,6 +133,19 @@ body.acc-spaziatura .opzione {
 .ripasso-ops .op-r.sbagliata{ background:#fce4e4; color:var(--rosso); }
 .ripasso-ops .op-r.neutrale{ background:var(--grigio-ch); color:#555; }
 
+/* ── SCHERMATA SELEZIONE MATERIA ─────────────────────── */
+.materia-card:hover{
+  transform:translateY(-4px) scale(1.03);
+  box-shadow:0 10px 28px rgba(0,0,0,.15);
+  opacity:1 !important;
+}
+.materia-card:active{ transform:scale(.97); }
+
+/* ── SUB-NAV CAA: tab arancione ────────────────────────── */
+#btn-caa-tab { background:linear-gradient(135deg,#fb8c00,#e65100) !important; color:#fff !important; }
+#btn-caa-tab.att { background:linear-gradient(135deg,#e65100,#bf360c) !important; box-shadow:inset 0 2px 6px rgba(0,0,0,.18); }
+.sub-nav-btn.att { background:var(--blu) !important; color:#fff !important; }
+
 /* ── TAB ANALISI: select fissato in alto per evitare apertura dropdown verso l'alto ── */
 #tab-analisi .finp#sel-sess-analisi {
   position: relative;
@@ -668,7 +681,12 @@ tr:hover td{background:var(--grigio-ch)}
         <select class="finp" id="sel-classe-stud" style="padding:11px 14px;font-size:15px;font-weight:700;cursor:pointer">
           <option value="">— Seleziona la tua classe —</option>
           <option value="3A">3A</option>
+          <option value="3B">3B</option>
+          <option value="3C">3C</option>
+          <option value="3D">3D</option>
           <option value="3E">3E</option>
+          <option value="3F">3F</option>
+          <option value="3G">3G</option>
         </select>
       </div>
 
@@ -883,6 +901,74 @@ tr:hover td{background:var(--grigio-ch)}
 </div>
 
 <!-- ═══════════════════════════════════════════════════════
+     SCHERMO SELEZIONE MATERIA (dopo login docente)
+════════════════════════════════════════════════════════ -->
+<div id="scr-materia" class="hidden">
+<div style="min-height:100vh;background:linear-gradient(135deg,#001f5c 0%,#1a5fa8 100%);
+  display:flex;align-items:center;justify-content:center;padding:24px">
+  <div style="background:#fff;border-radius:20px;padding:36px 32px;max-width:520px;width:100%;
+    box-shadow:0 12px 48px rgba(0,0,0,.3);text-align:center">
+
+    <!-- Logo e benvenuto -->
+    <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:6px">
+      <div style="width:48px;height:48px;background:var(--blu);border-radius:10px;
+        display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;color:#fff">G8</div>
+      <div style="text-align:left">
+        <div style="font-size:18px;font-weight:800;color:var(--blu-s)">Pannello Docente</div>
+        <div style="font-size:12px;color:#888">Simulatore INVALSI · Grado 8</div>
+      </div>
+    </div>
+    <div style="font-size:13px;color:#666;margin-bottom:28px;padding-top:8px;border-top:2px solid var(--grigio);margin-top:12px">
+      Seleziona la <strong>materia</strong> che insegni per accedere al pannello
+    </div>
+
+    <!-- Card materie -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:24px">
+
+      <!-- ITALIANO -->
+      <button onclick="selezionaMateria('italiano')" class="materia-card"
+        style="background:linear-gradient(135deg,#e3f2fd,#bbdefb);border:2px solid #90caf9;
+          border-radius:14px;padding:22px 12px;cursor:pointer;transition:all .15s;text-align:center">
+        <div style="font-size:2.2rem;margin-bottom:8px">📖</div>
+        <div style="font-size:14px;font-weight:800;color:#1565c0">Italiano</div>
+        <div style="font-size:10px;color:#1976d2;margin-top:4px">10 prove · CAA · DSA</div>
+        <div style="margin-top:10px;background:#1565c0;color:#fff;border-radius:6px;
+          padding:4px 8px;font-size:11px;font-weight:700">✅ Attivo</div>
+      </button>
+
+      <!-- MATEMATICA -->
+      <button onclick="selezionaMateria('matematica')" class="materia-card"
+        style="background:linear-gradient(135deg,#f3e5f5,#e1bee7);border:2px dashed #ce93d8;
+          border-radius:14px;padding:22px 12px;cursor:pointer;transition:all .15s;text-align:center;opacity:.8">
+        <div style="font-size:2.2rem;margin-bottom:8px">📐</div>
+        <div style="font-size:14px;font-weight:800;color:#6a1b9a">Matematica</div>
+        <div style="font-size:10px;color:#7b1fa2;margin-top:4px">Prove in arrivo</div>
+        <div style="margin-top:10px;background:#e1bee7;color:#6a1b9a;border-radius:6px;
+          padding:4px 8px;font-size:11px;font-weight:700">🔜 In sviluppo</div>
+      </button>
+
+      <!-- INGLESE -->
+      <button onclick="selezionaMateria('inglese')" class="materia-card"
+        style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border:2px dashed #a5d6a7;
+          border-radius:14px;padding:22px 12px;cursor:pointer;transition:all .15s;text-align:center;opacity:.8">
+        <div style="font-size:2.2rem;margin-bottom:8px">🇬🇧</div>
+        <div style="font-size:14px;font-weight:800;color:#1b5e20">Inglese</div>
+        <div style="font-size:10px;color:#2e7d32;margin-top:4px">Prove in arrivo</div>
+        <div style="margin-top:10px;background:#c8e6c9;color:#1b5e20;border-radius:6px;
+          padding:4px 8px;font-size:11px;font-weight:700">🔜 In sviluppo</div>
+      </button>
+    </div>
+
+    <button onclick="logout()"
+      style="background:none;border:none;color:#bbb;font-size:12px;cursor:pointer;
+        font-family:var(--font);text-decoration:underline">
+      ← Esci e torna al login
+    </button>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
      SCHERMO DOCENTE
 ════════════════════════════════════════════════════════ -->
 <div id="scr-doc" class="hidden">
@@ -890,16 +976,35 @@ tr:hover td{background:var(--grigio-ch)}
 
   <div class="doc-hdr">
     <div class="doc-hdr-info">
-      <h2>Pannello Docente</h2>
-      <p id="doc-cl-lbl">Seleziona la classe da visualizzare</p>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <h2 style="margin:0">Pannello Docente</h2>
+        <span id="materia-badge"
+          style="font-size:12px;font-weight:700;padding:3px 12px;border-radius:20px;
+            background:#e3f2fd;color:#1565c0;border:1.5px solid #90caf9">
+          📖 Italiano
+        </span>
+      </div>
+      <p id="doc-cl-lbl" style="margin-top:4px">Tutte le classi</p>
     </div>
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <button onclick="mostraScr('scr-materia')"
+        style="background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.4);
+          color:#fff;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:12px;
+          font-family:var(--font);font-weight:600;transition:all .15s"
+        title="Cambia materia">
+        🔄 Cambia materia
+      </button>
       <div style="display:flex;align-items:center;gap:8px">
         <span style="font-size:13px;opacity:.8;color:#fff">Classe:</span>
         <select id="sel-cl-panel" class="finp" style="padding:7px 12px;font-size:13px;width:90px;background:#fff"
           onchange="cambiaClassePanel(this.value)">
           <option value="3A">3A</option>
+          <option value="3B">3B</option>
+          <option value="3C">3C</option>
+          <option value="3D">3D</option>
           <option value="3E">3E</option>
+          <option value="3F">3F</option>
+          <option value="3G">3G</option>
         </select>
       </div>
       <button class="btn btn-s" onclick="logout()" style="font-size:12px">Esci</button>
@@ -907,12 +1012,31 @@ tr:hover td{background:var(--grigio-ch)}
   </div>
 
   <!-- SELETTORE CLASSE -->
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;background:#fff;padding:14px 18px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.07)">
-    <span style="font-size:13px;font-weight:700;color:#555">Classe visualizzata:</span>
-    <button id="btn-cl-3A" class="btn btn-p" onclick="cambiaClasse('3A')" style="padding:7px 18px;font-size:13px">3A</button>
-    <button id="btn-cl-3E" class="btn btn-s" onclick="cambiaClasse('3E')" style="padding:7px 18px;font-size:13px">3E</button>
-    <button id="btn-cl-ALL" class="btn btn-s" onclick="cambiaClasse('ALL')" style="padding:7px 18px;font-size:13px;opacity:.7">Tutte</button>
-    <span id="lbl-classe-attiva" style="font-size:12px;color:#888;margin-left:4px">Classe selezionata: 3A</span>
+  <div style="display:flex;align-items:center;gap:6px;margin-bottom:16px;background:#fff;padding:14px 18px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.07);flex-wrap:wrap">
+    <span style="font-size:13px;font-weight:700;color:#555;margin-right:4px">Classe:</span>
+    <!-- 3A e 3E = classi con Sheet attivo (colorate) -->
+    <button id="btn-cl-3A" class="btn btn-p" onclick="cambiaClasse('3A')"
+      style="padding:6px 16px;font-size:13px" title="3A — con Google Sheet attivo">3A</button>
+    <button id="btn-cl-3E" class="btn btn-s" onclick="cambiaClasse('3E')"
+      style="padding:6px 16px;font-size:13px;background:#e8f5e9;color:#2e7d32;border-color:#a5d6a7" title="3E — con Google Sheet attivo">3E</button>
+    <!-- Separatore -->
+    <span style="width:1px;height:24px;background:#dde4ed;margin:0 4px"></span>
+    <!-- Classi senza Sheet — grigie, dati solo locali -->
+    <button id="btn-cl-3B" class="btn btn-s" onclick="cambiaClasse('3B')"
+      style="padding:6px 14px;font-size:13px;opacity:.7" title="3B — dati solo locali">3B</button>
+    <button id="btn-cl-3C" class="btn btn-s" onclick="cambiaClasse('3C')"
+      style="padding:6px 14px;font-size:13px;opacity:.7" title="3C — dati solo locali">3C</button>
+    <button id="btn-cl-3D" class="btn btn-s" onclick="cambiaClasse('3D')"
+      style="padding:6px 14px;font-size:13px;opacity:.7" title="3D — dati solo locali">3D</button>
+    <button id="btn-cl-3F" class="btn btn-s" onclick="cambiaClasse('3F')"
+      style="padding:6px 14px;font-size:13px;opacity:.7" title="3F — dati solo locali">3F</button>
+    <button id="btn-cl-3G" class="btn btn-s" onclick="cambiaClasse('3G')"
+      style="padding:6px 14px;font-size:13px;opacity:.7" title="3G — dati solo locali">3G</button>
+    <!-- Separatore + Tutte -->
+    <span style="width:1px;height:24px;background:#dde4ed;margin:0 4px"></span>
+    <button id="btn-cl-ALL" class="btn btn-s" onclick="cambiaClasse('ALL')"
+      style="padding:6px 14px;font-size:13px;opacity:.6">📋 Tutte</button>
+    <span id="lbl-classe-attiva" style="font-size:11px;color:#888;margin-left:8px;font-style:italic">Classe: 3A</span>
   </div>
 
   <div class="doc-tabs">
@@ -1028,10 +1152,13 @@ tr:hover td{background:var(--grigio-ch)}
   <div class="panel" id="tab-new">
 
     <!-- Sub-navigazione interna -->
-    <div class="sub-nav">
+    <div class="sub-nav" id="tab-new-subnav">
       <button class="sub-nav-btn att" onclick="mostraSubTab('st-standard',this)">📋 Prove standard</button>
       <button class="sub-nav-btn" onclick="mostraSubTab('st-dis',this)">🌟 Per disabilità</button>
-      <!-- CAA: gestita in pagina separata -->
+      <button class="sub-nav-btn" id="btn-caa-tab" onclick="mostraSubTab('st-caa',this)"
+        style="background:linear-gradient(135deg,#fb8c00,#e65100);color:#fff;border-right:none">
+        🗣️ Prove CAA
+      </button>
     </div>
 
     <!-- ══ SOTTO-PANNELLO 1: PROVE STANDARD ══════════════════ -->
@@ -1322,6 +1449,26 @@ tr:hover td{background:var(--grigio-ch)}
     </div><!-- fine st-dis -->
 
     <!-- Pannello CAA rimosso: gestito in pagina dedicata -->
+
+    <!-- ══ SOTTO-PANNELLO 3: PROVE CAA ══════════════════════ -->
+    <div class="sub-panel" id="st-caa">
+      <div id="vista-caa-container">
+        <!-- Il modulo CAA viene iniettato qui da caa.js -->
+        <div style="background:linear-gradient(135deg,#fff8f0,#fff3e0);border:2px solid #ffcc80;border-radius:14px;padding:28px 22px;text-align:center">
+          <div style="font-size:2.5rem;margin-bottom:12px">🗣️</div>
+          <div style="font-size:18px;font-weight:800;color:#e65100;margin-bottom:8px">Prove in CAA</div>
+          <div style="font-size:13px;color:#bf360c;margin-bottom:20px;line-height:1.7">
+            La <strong>Comunicazione Aumentativa e Alternativa</strong> semplifica il testo con immagini e simboli.<br>
+            Crea prove adattate per alunni con bisogni comunicativi complessi.
+          </div>
+          <div id="caa-tab-content">
+            <div style="background:#fff;border-radius:10px;padding:16px;border:1.5px solid #ffe0b2;margin-bottom:16px;font-size:12px;color:#888">
+              ⏳ Caricamento modulo CAA...
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
   </div><!-- fine tab-new -->
 
@@ -2302,7 +2449,7 @@ let S = {
 };
 
 // ── UTILS ──────────────────────────────────────────────
-const SCR=['scr-acc','scr-istr','scr-test','scr-ris','scr-doc'];
+const SCR=['scr-acc','scr-istr','scr-test','scr-ris','scr-materia','scr-doc'];
 function mostraScr(id){
   SCR.forEach(s=>$(s).classList.toggle('hidden',s!==id));
   S.scr=id;
@@ -2375,7 +2522,6 @@ function accDoc(){
     return;
   }
   bfSuccess();
-  // Controlla che le prove siano caricate
   if(typeof PROVE === 'undefined' || !PROVE || !PROVE.length){
     showErr('err-acc','⏳ Pagina ancora in caricamento. Attendi 2 secondi e riprova.');
     return;
@@ -2383,8 +2529,8 @@ function accDoc(){
   S.classe = 'ALL';
   if($('doc-cl-lbl')) $('doc-cl-lbl').textContent = 'Tutte le classi';
   hideErr('err-acc');
-  popolaDocente();
-  mostraScr('scr-doc');
+  // Vai prima alla selezione materia
+  mostraScr('scr-materia');
 }
 
 function resetPW(){
@@ -2392,7 +2538,7 @@ function resetPW(){
 }
 
 function logout(){
-  S.classe=''; $('pw-doc').value=''; mostraScr('scr-acc');
+  S.classe=''; S.materia=''; $('pw-doc').value=''; mostraScr('scr-acc');
 }
 
 // ── INIZIO PROVA ────────────────────────────────────────
@@ -5216,7 +5362,7 @@ function creaSessione(){
   hideErr('err-new'); $('succ-new').style.display='none';
 
   if(!classe){
-    showErr('err-new','Seleziona prima una classe (3A o 3E) dal selettore in alto.');
+    showErr('err-new','Seleziona prima una classe dal selettore in alto (es. 3A o 3E).');
     return;
   }
 
@@ -5559,7 +5705,7 @@ function aggiornaTabellaSessioni(){
     const isAltClasse = false; // ogni classe vede solo le sue sessioni
     const data = s.data ? new Date(s.data) : null;
     const dataStr = data && !isNaN(data) ? data.toLocaleDateString('it-IT') : '—';
-    const colCl = s.classe==='3A' ? '#dce8f8' : s.classe==='3E' ? '#e8f5e9' : '#f5f5f5';
+    const colCl = (typeof CLASSE_COL!=='undefined' && CLASSE_COL[s.classe]) ? CLASSE_COL[s.classe] : '#f5f5f5';
     const statoH = chiusa
       ? `<span class="sessione-status status-chiusa"><span class="status-dot"></span>Chiusa</span>`
       : `<span class="sessione-status status-attiva"><span class="status-dot"></span>Attiva</span>`;
@@ -6156,19 +6302,149 @@ function mostraSubTab(id, btn){
   if(id !== 'st-dis'){
     if(testoB) testoB.style.display = 'none';
     if(btnB)   btnB.style.display = 'none';
-    // [FIX] resetta anche il risultato generato quando si torna a Prove standard
     var dSuc = document.getElementById('dis-succ');
     if(dSuc) dSuc.style.display = 'none';
     var dPrev = document.getElementById('dis-ai-preview');
     if(dPrev) dPrev.style.display = 'none';
   } else {
-    if(btnB)   btnB.style.display = '';
+    if(btnB) btnB.style.display = '';
   }
   document.querySelectorAll('.sub-panel').forEach(p=>p.classList.remove('att'));
-  document.querySelectorAll('.sub-nav-btn').forEach(b=>b.classList.remove('att'));
+  document.querySelectorAll('.sub-nav-btn').forEach(b=>{
+    b.classList.remove('att');
+    // ripristina stile base per CAA
+    if(b.id==='btn-caa-tab' && b!==btn){
+      b.style.cssText='background:linear-gradient(135deg,#fb8c00,#e65100);color:#fff;border-right:none';
+    }
+  });
   const el = document.getElementById(id);
   if(el) el.classList.add('att');
   if(btn) btn.classList.add('att');
+
+  // Se si apre CAA, inizializza il modulo
+  if(id === 'st-caa') _inizializzaCAA();
+}
+
+// Inizializza il pannello CAA inline (senza usare il vecchio sistema di iniezione)
+function _inizializzaCAA(){
+  var cont = document.getElementById('caa-tab-content');
+  if(!cont || cont.dataset.initialized) return;
+  cont.dataset.initialized = '1';
+  // Leggi classi disponibili
+  var opzioniClassi = ['3A','3B','3C','3D','3E','3F','3G'].map(function(c){
+    return '<option value="'+c+'">'+c+'</option>';
+  }).join('');
+  cont.innerHTML = [
+    '<div class="caa-form-section">',
+    '  <h3>👤 Dati sessione</h3>',
+    '  <div class="caa-field"><label>Classe</label>',
+    '    <select id="caa-classe">'+opzioniClassi+'</select>',
+    '  </div>',
+    '  <div class="caa-field"><label>Nome alunno (opzionale)</label>',
+    '    <input type="text" id="caa-nome" placeholder="es. Mario R." maxlength="40">',
+    '  </div>',
+    '</div>',
+    '<div class="caa-form-section">',
+    '  <h3>📄 Testo della prova</h3>',
+    '  <div class="caa-field">',
+    '    <label>Titolo</label><input type="text" id="caa-titolo" placeholder="es. La quercia di Samuele">',
+    '  </div>',
+    '  <div class="caa-field">',
+    '    <label>Testo (max ~500 parole — verrà semplificato con simboli)</label>',
+    '    <textarea id="caa-testo" rows="6" placeholder="Incolla qui il testo da adattare in CAA..."></textarea>',
+    '  </div>',
+    '</div>',
+    '<div class="caa-form-section">',
+    '  <h3>❓ Domande (max 6)</h3>',
+    '  <div id="caa-domande-wrap"></div>',
+    '  <button class="caa-btn caa-btn-add" onclick="_caaAggiungiDom()" style="margin-top:8px">+ Aggiungi domanda</button>',
+    '</div>',
+    '<button class="caa-btn caa-btn-primary" onclick="_caaGeneraLink()" style="width:100%;padding:13px;font-size:15px;margin-top:8px">',
+    '  🔗 Genera link prova CAA',
+    '</button>',
+    '<div id="caa-succ" style="display:none;margin-top:14px;background:#e8f5e9;border:2px solid #a5d6a7;border-radius:10px;padding:14px;font-size:13px"></div>',
+    '<div id="caa-err" style="display:none;margin-top:10px;background:#fce4e4;border:1.5px solid #ef9a9a;border-radius:8px;padding:10px;font-size:12px;color:#c62828"></div>',
+  ].join('');
+  // Aggiungi 2 domande default
+  _caaAggiungiDom(); _caaAggiungiDom();
+}
+
+var _caaDomN = 0;
+function _caaAggiungiDom(){
+  var wrap = document.getElementById('caa-domande-wrap');
+  if(!wrap) return;
+  if(wrap.children.length >= 6){ alert('Massimo 6 domande CAA.'); return; }
+  _caaDomN++;
+  var n = _caaDomN;
+  var div = document.createElement('div');
+  div.className = 'caa-domanda-item'; div.id = 'caa-dom-'+n;
+  div.innerHTML = '<div class="caa-dom-num">Domanda '+wrap.children.length+'</div>'
+    +'<button class="caa-rm" onclick="this.closest(\'.caa-domanda-item\').remove()" title="Rimuovi">✕</button>'
+    +'<div class="caa-field"><label>Testo domanda</label><input type="text" class="caa-d-testo" placeholder="es. Chi è il protagonista?"></div>'
+    +'<div class="caa-opz-row"><span class="opz-letter A">A</span><input type="text" class="caa-op" placeholder="Prima opzione"></div>'
+    +'<div class="caa-opz-row"><span class="opz-letter B">B</span><input type="text" class="caa-op" placeholder="Seconda opzione"></div>'
+    +'<div class="caa-opz-row"><span class="opz-letter C">C</span><input type="text" class="caa-op" placeholder="Terza opzione"></div>'
+    +'<div class="caa-field" style="margin-top:8px"><label>Risposta corretta</label>'
+    +'<select class="caa-ok"><option value="0">A</option><option value="1">B</option><option value="2">C</option></select></div>';
+  wrap.appendChild(div);
+}
+
+function _caaGeneraLink(){
+  var errEl = document.getElementById('caa-err');
+  var sucEl = document.getElementById('caa-succ');
+  if(errEl) errEl.style.display='none';
+  if(sucEl) sucEl.style.display='none';
+
+  var titolo = (document.getElementById('caa-titolo')||{}).value||'';
+  var testo  = (document.getElementById('caa-testo')||{}).value||'';
+  var classe = (document.getElementById('caa-classe')||{}).value||'';
+  var nome   = (document.getElementById('caa-nome')||{}).value||'';
+  if(!titolo){ if(errEl){errEl.textContent='⚠️ Inserisci un titolo.';errEl.style.display='block';} return; }
+  if(!testo) { if(errEl){errEl.textContent='⚠️ Incolla il testo della prova.';errEl.style.display='block';} return; }
+
+  var domande = [];
+  document.querySelectorAll('#caa-domande-wrap .caa-domanda-item').forEach(function(card,i){
+    var dtEl = card.querySelector('.caa-d-testo'); var dt = dtEl ? dtEl.value.trim() : '';
+    if(!dt) return;
+    var opts = Array.from(card.querySelectorAll('.caa-op')).map(function(el){return el.value.trim();}).filter(Boolean);
+    if(opts.length < 2) return;
+    var okEl = card.querySelector('.caa-ok');
+    domande.push({n:domande.length+1,par:1,tipo:'sm',sez:0,testo:dt,opts:opts,ok:parseInt(okEl?okEl.value:'0')});
+  });
+  if(!domande.length){ if(errEl){errEl.textContent='⚠️ Aggiungi almeno una domanda completa.';errEl.style.display='block';} return; }
+
+  var paragrafi = testo.trim().split(/\n\n+/).filter(Boolean).map(function(t,i){return {n:i+1,testo:t.trim()};});
+  if(!paragrafi.length) paragrafi=[{n:1,testo:testo.trim()}];
+
+  var prova = {titolo:titolo,sottotitolo:'Prova CAA',glossario:[],paragrafi:paragrafi,domande:domande,modoCaa:true};
+  var b64 = btoa(unescape(encodeURIComponent(JSON.stringify(prova))));
+  var sessKey = 'caa-'+classe+'-'+Date.now();
+  DB.sessioni[sessKey]={provaId:'custom',titolo:titolo,classe:classe,tipo:'caa',data:new Date().toISOString(),studenti:0,chiusa:false};
+  saveDB();
+
+  var base = window.location.href.replace(/[^/]*$/,'')+'grado8_dis.html';
+  var params = new URLSearchParams();
+  params.set('prova','custom'); params.set('data',b64); params.set('sessione',sessKey);
+  params.set('classe',classe); params.set('bes','1'); params.set('caa','1');
+  if(nome) params.set('nome',nome);
+  var link = base+'?'+params.toString();
+  window._linkCaa = link;
+
+  try{
+    fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({token:SCRIPT_TOKEN,action:'salvaSessione',sessione:sessKey,classe:classe,provaId:'custom',provaTitolo:titolo,data:new Date().toISOString()})
+    }).catch(function(){});
+  }catch(e){}
+
+  aggiornaTabellaSessioni(); aggSelSessioni();
+  if(sucEl){
+    sucEl.innerHTML='✅ Sessione CAA creata!<br>'
+      +'<div style="margin-top:8px;padding:8px 12px;background:#fff;border:1px solid #a5d6a7;border-radius:6px;word-break:break-all;font-size:11px;font-family:monospace">'+link.substring(0,160)+'…</div>'
+      +'<button onclick="navigator.clipboard.writeText(window._linkCaa).then(function(){alert(\'✅ Link copiato!\')})" '
+      +'style="margin-top:10px;width:100%;padding:9px;background:#fb8c00;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">📋 Copia link</button>'
+      +'<div style="margin-top:6px;font-size:11px;color:#555">Classe: <strong>'+classe+'</strong> · Domande: <strong>'+domande.length+'</strong> · Titolo: <strong>'+titolo+'</strong></div>';
+    sucEl.style.display='block';
+  }
 }
 
 // creaSessioneCAA rimossa
@@ -6288,15 +6564,110 @@ function generaProvaCustom(){
   succ.style.display='block';
 }
 
+// ── SELEZIONE MATERIA ────────────────────────────────────────
+const MATERIE = {
+  italiano:  { nome:'Italiano',    ico:'📖', col:'#1565c0', bg:'#e3f2fd', attiva:true  },
+  matematica:{ nome:'Matematica',  ico:'📐', col:'#6a1b9a', bg:'#f3e5f5', attiva:false },
+  inglese:   { nome:'Inglese',     ico:'🇬🇧', col:'#1b5e20', bg:'#e8f5e9', attiva:false },
+};
+
+function selezionaMateria(materia){
+  S.materia = materia;
+  const m = MATERIE[materia];
+
+  // Aggiorna badge materia nell'header del pannello
+  const badge = document.getElementById('materia-badge');
+  if(badge){
+    badge.textContent = (m ? m.ico+' '+m.nome : materia);
+    badge.style.background = m ? m.bg : '#f0f0f0';
+    badge.style.color = m ? m.col : '#333';
+  }
+
+  // Se materia non attiva mostra pannello "in sviluppo"
+  if(m && !m.attiva){
+    mostraScr('scr-doc');
+    popolaDocente();
+    // Dopo il render mostra overlay "in sviluppo"
+    setTimeout(()=>{ _mostraWIPOverlay(m); }, 100);
+    return;
+  }
+
+  // Materia attiva → pannello normale
+  mostraScr('scr-doc');
+  popolaDocente();
+}
+
+function _mostraWIPOverlay(m){
+  // Sovrappone un banner "in sviluppo" sopra i tab del pannello
+  var existing = document.getElementById('wip-overlay');
+  if(!existing){
+    existing = document.createElement('div');
+    existing.id = 'wip-overlay';
+    existing.style.cssText = 'position:fixed;inset:0;background:rgba(255,255,255,.92);'
+      +'z-index:800;display:flex;align-items:center;justify-content:center;padding:24px';
+    existing.innerHTML = '<div style="background:#fff;border-radius:20px;padding:40px 32px;max-width:460px;'
+      +'text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.15);border:2px solid '+m.bg+'">'
+      +'<div style="font-size:3rem;margin-bottom:12px">'+m.ico+'</div>'
+      +'<div style="font-size:20px;font-weight:800;color:'+m.col+';margin-bottom:8px">'+m.nome+' — in sviluppo</div>'
+      +'<div style="font-size:14px;color:#666;margin-bottom:24px;line-height:1.7">'
+      +'Le prove di <strong>'+m.nome+'</strong> sono in fase di creazione.<br>'
+      +'Il modulo sarà disponibile prossimamente.</div>'
+      +'<button onclick="document.getElementById(\'wip-overlay\').remove();mostraScr(\'scr-materia\')" '
+      +'style="background:'+m.col+';color:#fff;border:none;border-radius:10px;padding:12px 28px;'
+      +'font-size:14px;font-weight:700;cursor:pointer;font-family:var(\'--font\')">← Torna alla selezione materia</button>'
+      +'</div>';
+    document.body.appendChild(existing);
+  }
+}
+
+// Colori badge per classe nella tabella sessioni
+const CLASSE_COL = {
+  '3A':'#dce8f8','3B':'#f3e5f5','3C':'#fff3e0',
+  '3D':'#e8f5e9','3E':'#e8f5e9','3F':'#fce4ec','3G':'#e0f7fa'
+};
+// Classi con Sheet Google attivo
+const CLASSI_SHEET = new Set(['3A','3E']);
+const TUTTE_CLASSI = ['3A','3B','3C','3D','3E','3F','3G'];
+
 function cambiaClasse(cl){
   S.classe = cl;
-  ['3A','3E','ALL'].forEach(c=>{
+  // Aggiorna stile bottoni — 3A blu primario, 3E verde, altre grigie
+  TUTTE_CLASSI.forEach(c=>{
     const b=$(`btn-cl-${c}`);
     if(!b) return;
-    b.className = c===cl ? 'btn btn-p' : 'btn btn-s';
-    b.style.cssText = 'padding:7px 18px;font-size:13px';
+    const isAtt = c === cl;
+    if(isAtt){
+      if(c==='3A'){ b.className='btn btn-p'; b.style.cssText='padding:6px 16px;font-size:13px;opacity:1'; }
+      else if(c==='3E'){ b.className='btn btn-s'; b.style.cssText='padding:6px 16px;font-size:13px;background:#2e7d32;color:#fff;border-color:#2e7d32;opacity:1'; }
+      else { b.className='btn btn-p'; b.style.cssText='padding:6px 14px;font-size:13px;opacity:1'; }
+    } else {
+      b.className='btn btn-s';
+      if(c==='3A') b.style.cssText='padding:6px 16px;font-size:13px;opacity:.7';
+      else if(c==='3E') b.style.cssText='padding:6px 16px;font-size:13px;background:#e8f5e9;color:#2e7d32;border-color:#a5d6a7;opacity:.7';
+      else b.style.cssText='padding:6px 14px;font-size:13px;opacity:.5';
+    }
   });
-  $('lbl-classe-attiva').textContent = cl==='ALL' ? 'Tutte le classi' : `Classe selezionata: ${cl}`;
+  const bAll=$('btn-cl-ALL');
+  if(bAll){ bAll.className=cl==='ALL'?'btn btn-p':'btn btn-s'; bAll.style.cssText='padding:6px 14px;font-size:13px;opacity:'+(cl==='ALL'?'1':'.6'); }
+
+  // Avviso se classe senza Sheet
+  const avvSheet = document.getElementById('avv-no-sheet');
+  if(cl !== 'ALL' && !CLASSI_SHEET.has(cl)){
+    if(!avvSheet){
+      const div=document.createElement('div');
+      div.id='avv-no-sheet';
+      div.style.cssText='background:#fff8e1;border:1.5px solid #ffd54f;border-radius:8px;padding:8px 14px;font-size:12px;color:#5d4037;margin-bottom:10px';
+      div.innerHTML='⚠️ <strong>'+cl+'</strong> — nessuna prova ancora svolta. I dati sono solo locali (nessun Google Sheet collegato).';
+      const selettore=document.querySelector('#scr-doc .doc-tabs');
+      if(selettore) selettore.parentNode.insertBefore(div, selettore);
+    } else {
+      avvSheet.innerHTML='⚠️ <strong>'+cl+'</strong> — nessuna prova ancora svolta. I dati sono solo locali (nessun Google Sheet collegato).';
+      avvSheet.style.display='block';
+    }
+  } else if(avvSheet){ avvSheet.style.display='none'; }
+
+  const lbl=$('lbl-classe-attiva');
+  if(lbl) lbl.textContent = cl==='ALL' ? '— tutte le classi' : `— ${cl}${CLASSI_SHEET.has(cl)?' ☁️':''}`;
   if($('doc-cl-lbl')) $('doc-cl-lbl').textContent = cl==='ALL' ? 'Tutte le classi' : `Classe: ${cl}`;
   try{ aggiornaTabellaSessioni(); }catch(e){}
   try{ aggSelSessioni(); }catch(e){}
