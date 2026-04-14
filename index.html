@@ -138,6 +138,9 @@ body.acc-spaziatura .opzione {
   position: relative;
   z-index: 10;
 }
+/* [FIX-DROPDOWN] Garantisce spazio sufficiente sotto i select per aprirsi verso il basso */
+#tab-analisi { min-height: 700px; }
+#tab-generale { min-height: 500px; }
 /* ── Assicura che pannelli non-attivi nascondano completamente il contenuto ── */
 .panel:not(.att) { display: none !important; }
 .sub-panel:not(.att) { display: none !important; }
@@ -1240,7 +1243,7 @@ tr:hover td{background:var(--grigio-ch)}
       </div>
 
       <!-- Pulsante aggiungi secondo testo -->
-      <div style="margin-top:8px;text-align:center" id="btn-aggiungi-b-wrap">
+      <div style="margin-top:8px;text-align:center;display:none" id="btn-aggiungi-b-wrap">
         <button onclick="mostraTestoB()" style="background:none;border:2px dashed #1976d2;color:#1976d2;padding:9px 24px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">
           + Aggiungi Testo B (prova su due brani)
         </button>
@@ -1420,13 +1423,39 @@ tr:hover td{background:var(--grigio-ch)}
   </div>
 
   <!-- TAB: IMPORTA DA SHEET -->
-  <div class="panel" id="tab-import">
+  <div class="panel" id="tab-import" style="min-height:600px">
     <div class="panel-card" style="max-width:640px">
       <h3>☁️ Importa risultati dal Google Sheet</h3>
       <div class="info-panel" style="margin-bottom:16px">
         I risultati degli studenti vengono salvati automaticamente sul Google Sheet quando consegnano la prova,
         anche da browser o dispositivi diversi dal tuo. Usa questa funzione per importarli nel pannello docente
         sul tuo computer.
+      </div>
+
+      <!-- ══ IMPORTAZIONE MASSIVA (nuova) ══════════════════ -->
+      <div style="background:#e8f5e9;border:2px solid #a5d6a7;border-radius:10px;padding:16px;margin-bottom:20px">
+        <div style="font-size:14px;font-weight:800;color:#1b5e20;margin-bottom:8px">🚀 Importa tutte le sessioni in un click</div>
+        <div style="font-size:12px;color:#2e7d32;margin-bottom:12px">
+          Legge tutti i risultati dal Sheet in una volta sola. Importa solo le sessioni con almeno N studenti che hanno consegnato.
+          Dopo l'importazione puoi scegliere se eliminare le sessioni locali di test (0 studenti).
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:8px">
+            <label style="font-size:12px;font-weight:700;color:#333">Min. studenti:</label>
+            <input type="number" id="import-min-stud" value="2" min="1" max="30"
+              style="width:60px;padding:6px 10px;border:2px solid #a5d6a7;border-radius:6px;font-size:14px;font-weight:700;text-align:center">
+          </div>
+          <button class="btn btn-g" onclick="importaTutteSessioni()" style="flex:1;padding:11px;font-size:13px;min-width:180px">
+            🌐 Importa tutte le sessioni dal Sheet
+          </button>
+        </div>
+        <div id="import-tutte-status" style="display:none;margin-top:10px;font-size:12px;line-height:1.6"></div>
+      </div>
+
+      <div style="border-top:2px solid var(--grigio);padding-top:16px;margin-bottom:12px">
+        <div style="font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">
+          — oppure importa una sessione specifica —
+        </div>
       </div>
 
       <div class="fg">
@@ -5910,6 +5939,172 @@ function _elaboraImport(risultati, sessione, sessBase, status, preview){
 
 // CAMBIO CLASSE via bottoni nel pannello
 
+// ══════════════════════════════════════════════════════════════
+//  IMPORTA TUTTE LE SESSIONI IN UN CLICK
+//  Legge TUTTI i risultati dal Sheet (senza filtro sessione),
+//  raggruppa per sessione, importa solo quelle con ≥ minStudenti.
+//  Poi propone di eliminare le sessioni locali vuote (test).
+// ══════════════════════════════════════════════════════════════
+async function importaTutteSessioni(){
+  const minEl   = document.getElementById('import-min-stud');
+  const statEl  = document.getElementById('import-tutte-status');
+  const minStud = Math.max(1, parseInt(minEl ? minEl.value : '2') || 2);
+
+  if(statEl){ statEl.style.display='block'; statEl.innerHTML='⏳ Connessione al Google Sheet…'; statEl.style.color='#555'; }
+
+  // ── Fetch TUTTI i risultati (nessun parametro sessione) ────
+  const url = `${SCRIPT_URL}?action=leggi&token=${encodeURIComponent(SCRIPT_TOKEN)}`;
+  let tuttiRis = [];
+
+  try{
+    const resp = await fetch(url);
+    if(resp.ok){
+      const data = await resp.json();
+      if(data && data.risultati) tuttiRis = data.risultati;
+    }
+  } catch(e){}
+
+  // Fallback JSONP se fetch fallisce per CORS
+  if(!tuttiRis.length){
+    try{
+      tuttiRis = await new Promise((resolve, reject)=>{
+        const cbName = '_inv_all_' + Date.now();
+        const script = document.createElement('script');
+        const timeout = setTimeout(()=>{ delete window[cbName]; document.body.removeChild(script); reject(new Error('timeout')); }, 12000);
+        window[cbName] = (data)=>{ clearTimeout(timeout); delete window[cbName]; document.body.removeChild(script); resolve(data.risultati||[]); };
+        script.src = `${url}&callback=${cbName}`;
+        script.onerror = ()=>{ clearTimeout(timeout); reject(new Error('errore script')); };
+        document.body.appendChild(script);
+      });
+    } catch(e){
+      if(statEl){ statEl.innerHTML=`<div style="background:#fff8e1;border:1px solid #ffc107;padding:10px;border-radius:6px;color:#5d4037">⚠️ Questo browser non permette la lettura dal Sheet.<br>Usa Chrome con il tuo account Gmail personale, oppure apri il Sheet direttamente da Drive.</div>`; }
+      return;
+    }
+  }
+
+  if(!tuttiRis.length){
+    if(statEl){ statEl.innerHTML='📭 Il Google Sheet non contiene ancora risultati.'; statEl.style.color='#888'; }
+    return;
+  }
+
+  // ── Raggruppa per sessione ─────────────────────────────────
+  const perSess = {};
+  tuttiRis.forEach(r=>{
+    const sess = (r['Sessione']||'').toString().trim();
+    if(!sess) return;
+    if(!perSess[sess]) perSess[sess]=[];
+    perSess[sess].push(r);
+  });
+
+  // ── Filtra sessioni con ≥ minStud studenti ─────────────────
+  const sessQualificate = Object.entries(perSess).filter(([,ris])=>ris.length>=minStud);
+
+  if(!sessQualificate.length){
+    if(statEl){ statEl.innerHTML=`📭 Nessuna sessione trovata con almeno ${minStud} studenti nel Sheet. Abbassa la soglia o verifica che gli studenti abbiano consegnato.`; statEl.style.color='#888'; }
+    return;
+  }
+
+  if(statEl) statEl.innerHTML=`⏳ Importo ${sessQualificate.length} sessioni (${tuttiRis.length} righe totali)…`;
+
+  // ── Importa ogni sessione qualificata ─────────────────────
+  let totNuovi=0, totAgg=0;
+  sessQualificate.forEach(([sessKey, risultatiSess])=>{
+    const sessBase = sessKey.replace(/-3[AE]$/,'');
+    const classeSessione = (DB.sessioni[sessKey]||{}).classe || '';
+
+    // Crea sessione nel DB se non esiste
+    if(!DB.sessioni[sessKey]){
+      const matchProva = sessKey.match(/^prova-(\d+)/);
+      const matchClasse = sessKey.match(/-([A-Z0-9]{2})$/);
+      const provaNum = matchProva ? parseInt(matchProva[1]) : 'custom';
+      const classeKey = matchClasse ? matchClasse[1] : '';
+      const titoloSheet = risultatiSess[0]['Prova'] || '';
+      const provaObj = typeof PROVE!=='undefined' ? PROVE.find(x=>x.id===provaNum) : null;
+      DB.sessioni[sessKey] = {
+        provaId: provaNum,
+        titolo: titoloSheet || (provaObj ? provaObj.titolo : ''),
+        classe: classeKey,
+        data: new Date().toISOString(),
+        studenti: risultatiSess.length,
+        chiusa: false
+      };
+    }
+
+    // Importa i risultati riga per riga (riusa la logica di _elaboraImport)
+    risultatiSess.forEach(r=>{
+      const codice    = (r['Codice studente']||'').toString().trim();
+      const sessSheet = (r['Sessione']||'').toString().trim();
+      const classeR   = (r['Classe']||classeSessione||'').toString().trim();
+      if(!codice) return;
+
+      let sessKeyR = sessSheet.startsWith('prova-') ? sessSheet : sessKey;
+
+      const entry = {
+        codice:  codice,
+        sessione:sessKeyR,
+        classe:  classeR,
+        totale:  Number(r['Punteggio'])||0,
+        su:      Number(r['Su'])||0,
+        pct:     Number(r['Percentuale'])||0,
+        sezioni:[
+          {c:Number(r['Lettura corr.'])||0,  t:Number(r['Lettura tot.'])||0},
+          {c:Number(r['Lessico corr.'])||0,  t:Number(r['Lessico tot.'])||0},
+          {c:Number(r['Grammatica corr.'])||0,t:Number(r['Grammatica tot.'])||0}
+        ],
+        errori:{}, data:new Date().toISOString(), det:[]
+      };
+      ['Competenza debole 1','Competenza debole 2','Competenza debole 3'].forEach((col,i)=>{
+        const val=(r[col]||'').toString().trim();
+        if(val && val!=='undefined' && val!=='null') entry.errori[val]=3-i;
+      });
+
+      const idx=DB.risultati.findIndex(x=>x.codice===entry.codice && x.sessione===entry.sessione);
+      if(idx>=0){ DB.risultati[idx]=entry; totAgg++; }
+      else      { DB.risultati.push(entry); totNuovi++; }
+    });
+  });
+
+  // ── Aggiorna contatore studenti per ogni sessione ──────────
+  Object.keys(DB.sessioni).forEach(sk=>{
+    DB.sessioni[sk].studenti = DB.risultati.filter(r=>r.sessione===sk).length;
+  });
+  saveDB();
+
+  // ── Sessioni vuote da eliminare ─────────────────────────────
+  const sessVuote = Object.entries(DB.sessioni).filter(([cod])=>{
+    return DB.risultati.filter(r=>r.sessione===cod).length === 0;
+  });
+
+  let msgClean = '';
+  if(sessVuote.length){
+    const conferma = confirm(
+      `✅ Importazione completata!\n\n` +
+      `📥 ${totNuovi} nuovi risultati · ${totAgg} aggiornati\n` +
+      `📋 ${sessQualificate.length} sessioni importate\n\n` +
+      `🧹 Ci sono ${sessVuote.length} sessioni con 0 studenti (prove di test).\n\n` +
+      `Vuoi eliminarle adesso per pulire il pannello?`
+    );
+    if(conferma){
+      sessVuote.forEach(([cod])=>delete DB.sessioni[cod]);
+      saveDB();
+      msgClean = ` · 🧹 Eliminate ${sessVuote.length} sessioni vuote.`;
+    }
+  } else {
+    alert(`✅ Importazione completata!\n\n📥 ${totNuovi} nuovi · ${totAgg} aggiornati\n📋 ${sessQualificate.length} sessioni`);
+  }
+
+  // ── Aggiorna la UI ─────────────────────────────────────────
+  aggiornaTabellaSessioni();
+  aggSelSessioni();
+  popolaSelImport();
+  try{ aggiornaGenerale(); }catch(e){}
+
+  if(statEl){
+    statEl.style.color='var(--verde)';
+    statEl.innerHTML=`✅ <strong>${sessQualificate.length} sessioni</strong> importate · ${totNuovi} nuovi risultati · ${totAgg} aggiornati${msgClean}`;
+  }
+}
+
 // ── TAB DOCENTE ───────────────────────────────────────────────
 function mostraTab(id, btn){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('att'));
@@ -5932,6 +6127,11 @@ function mostraTab(id, btn){
     if(elCpSuc) elCpSuc.style.display = 'none';
     const elSucNew = document.getElementById('succ-new');
     if(elSucNew) elSucNew.style.display = 'none';
+    // [FIX-B] nascondi sempre il pulsante Testo B fuori da tab-new
+    const elBtnB = document.getElementById('btn-aggiungi-b-wrap');
+    if(elBtnB) elBtnB.style.display = 'none';
+    const elPanB = document.getElementById('panel-testo-b');
+    if(elPanB) elPanB.style.display = 'none';
   }
 
   // Aggiorna contenuti al cambio tab — con protezione errori
