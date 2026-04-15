@@ -949,13 +949,13 @@ tr:hover td{background:var(--grigio-ch)}
 
       <!-- INGLESE -->
       <button onclick="selezionaMateria('inglese')" class="materia-card"
-        style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border:2px dashed #a5d6a7;
-          border-radius:14px;padding:22px 12px;cursor:pointer;transition:all .15s;text-align:center;opacity:.8">
+        style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border:2px solid #a5d6a7;
+          border-radius:14px;padding:22px 12px;cursor:pointer;transition:all .15s;text-align:center">
         <div style="font-size:2.2rem;margin-bottom:8px">🇬🇧</div>
         <div style="font-size:14px;font-weight:800;color:#1b5e20">Inglese</div>
-        <div style="font-size:10px;color:#2e7d32;margin-top:4px">Prove in arrivo</div>
-        <div style="margin-top:10px;background:#c8e6c9;color:#1b5e20;border-radius:6px;
-          padding:4px 8px;font-size:11px;font-weight:700">🔜 In sviluppo</div>
+        <div style="font-size:10px;color:#2e7d32;margin-top:4px">5 prove · Reading · Listening</div>
+        <div style="margin-top:10px;background:#1b5e20;color:#fff;border-radius:6px;
+          padding:4px 8px;font-size:11px;font-weight:700">✅ Attivo</div>
       </button>
     </div>
 
@@ -2309,6 +2309,112 @@ const ESERC = {
   ],
 };
 
+// ── ESERCIZI MATEMATICA ────────────────────────────────────────
+const ESERC_MAT = {
+  numeri:[
+    `Calcola il valore dell'espressione:\n(-3)² + 2³ – (4 × 5) : 2\n\nRisultato: ___`,
+    `Ordina dal più piccolo al più grande:\n√5, π, 3.14, 16/5, 3\n\nOrdine: ___`,
+    `Il 30% di 240 è: ___\nIl 75% di 80 è: ___`,
+  ],
+  algebra:[
+    `Risolvi l'equazione:\n3x – 5 = 2x + 7\n\nx = ___`,
+    `La somma di due numeri consecutivi è 45. Scrivi l'equazione e trovai i due numeri.\n\nEquazione: ___\nNumeri: ___ e ___`,
+    `Risolvi e verifica:\n2(x + 3) = 4x – 2\n\nx = ___   Verifica: ___`,
+  ],
+  frazioni:[
+    `Calcola e semplifica:\n³⁄₄ + ²⁄₃ – ¹⁄₂ = ___`,
+    `Una ricetta richiede ²⁄₃ di tazza di farina per 4 persone. Quanta ne serve per 6 persone?\n\nRisultato: ___`,
+    `Quale è maggiore: ⁷⁄₉ oppure ⁵⁄₇? Motiva la risposta.\n\nRisposta: ___`,
+  ],
+  percentuali:[
+    `Un prodotto costava 80 € e ora è scontato del 15%. Qual è il nuovo prezzo?\n\nSvolgimento: ___\nPrezzo finale: €___`,
+    `Un negozio aumenta i prezzi del 10% e poi applica uno sconto del 10%. Il prezzo finale è uguale, maggiore o minore dell'originale? Perché?\n\nRisposta: ___`,
+    `400 studenti frequentano una scuola. Il 35% è in classi terze. Quanti sono gli studenti di terza?\n\nRisultato: ___`,
+  ],
+  proporzioni:[
+    `Risolvi la proporzione: 3 : x = 5 : 20\n\nx = ___`,
+    `Se 4 operai costruiscono un muro in 6 giorni, in quanti giorni lo costruiscono 3 operai?\n\nRisultato: ___ giorni`,
+    `In una mappa in scala 1:50 000, due città distano 8 cm. Qual è la distanza reale in km?\n\nRisultato: ___ km`,
+  ],
+  geometria_piana:[
+    `Un rettangolo ha base 12 cm e diagonale 13 cm. Calcola:\n- L'altezza: ___\n- Il perimetro: ___\n- L'area: ___`,
+    `Calcola l'area del trapezio con basi 8 cm e 14 cm, altezza 6 cm.\n\nArea = ___`,
+    `Un cerchio ha circonferenza di 31,4 cm. Calcola raggio e area. (π ≈ 3,14)\n\nRaggio = ___   Area = ___`,
+  ],
+  geometria_solida:[
+    `Un parallelepipedo ha dimensioni 5 cm × 3 cm × 4 cm. Calcola volume e superficie totale.\n\nVolume = ___   Superficie = ___`,
+    `Un cilindro ha raggio 4 cm e altezza 7 cm. Calcola il volume. (π ≈ 3,14)\n\nVolume = ___`,
+    `Quante scatole cubiche di lato 3 cm entrano in una scatola di 9 cm × 12 cm × 6 cm?\n\nRisultato = ___`,
+  ],
+  pitagora:[
+    `Un triangolo rettangolo ha cateti di 9 cm e 12 cm. Calcola l'ipotenusa.\n\nIpotenusa = ___`,
+    `Una scala di 5 m è appoggiata a un muro. La base è a 3 m dal muro. A che altezza arriva?\n\nAltezza = ___`,
+    `Verifica se i seguenti triangoli sono rettangoli:\n(a) lati: 6, 8, 10 → ___\n(b) lati: 5, 7, 9 → ___`,
+  ],
+  probabilita:[
+    `Si lancia un dado regolare. Qual è la probabilità di ottenere un numero pari?\n\nP = ___`,
+    `Da un mazzo di 40 carte si estrae una carta. Qual è la probabilità di estrarre un re o un asso? (4 re, 4 assi)\n\nP = ___`,
+    `In una classe ci sono 15 maschi e 12 femmine. Si sceglie un rappresentante a caso. Qual è la probabilità che sia femmina?\n\nP = ___`,
+  ],
+  statistica:[
+    `Calcola media, mediana e moda della serie:\n4, 7, 3, 7, 5, 8, 7, 6, 2, 9\n\nMedia = ___   Mediana = ___   Moda = ___`,
+    `Le temperature di una settimana: 18, 22, 19, 25, 21, 20, 23. Calcola la media e il range.\n\nMedia = ___   Range = ___`,
+    `Un sondaggio su 200 persone mostra che il 40% preferisce il calcio. Quante persone preferiscono altri sport?\n\nRisultato = ___`,
+  ],
+  funzioni:[
+    `Una funzione lineare passa per i punti (0, 2) e (3, 8). Trova la formula y = mx + q.\n\ny = ___`,
+    `Data y = 2x – 1:\n- Calcola y quando x = 0, 1, 3\n- Il grafico è crescente o decrescente?\n\nRisposte: ___`,
+    `Una vasca si riempie con 20 litri al minuto. Scrivila formula per il volume V dopo t minuti se inizialmente ci sono 50 litri.\n\nV = ___`,
+  ],
+  relazioni:[
+    `y è direttamente proporzionale a x. Se x = 4, y = 12. Calcola y quando x = 7.\n\ny = ___`,
+    `Il costo di un taxi è 3 € più 0,80 € al km. Scrivi la formula del costo C al variare dei km k.\n\nC = ___\nCosto per 15 km: C = ___`,
+    `Indica se le seguenti sono proporzionalità diretta (D), inversa (I) o nessuna (N):\n- Lati e perimetro di un quadrato: ___\n- Velocità e tempo a distanza fissa: ___\n- Prezzo unitario e totale a quantità fissa: ___`,
+  ],
+};
+
+// ── ESERCIZI INGLESE ────────────────────────────────────────────
+const ESERC_ENG = {
+  reading_globale:[
+    `Read the text and choose the best title:\n"Every year, millions of tourists visit Rome. They come to see the Colosseum, the Vatican and many other famous monuments. The city also has excellent food and a lively atmosphere."\n\n(A) Italy's Economy   (B) Rome: A City for Tourists   (C) The History of the Vatican   (D) How to Cook Italian Food\n\nAnswer: ___`,
+    `Read and identify the main idea:\n"Regular exercise has many benefits. It helps maintain a healthy weight, improves mood, reduces stress and can prevent many serious illnesses. Doctors recommend at least 30 minutes of physical activity per day."\n\nMain idea: ___`,
+    `What is the purpose of this text? Write one sentence.\n"Sale! All winter clothes are 50% off this weekend only. Visit our store at 14 High Street or shop online at www.fashionstore.com."\n\nPurpose: ___`,
+  ],
+  reading_locale:[
+    `Read and answer the questions:\n"Ben is 14 and lives in Bristol. He has two brothers: Jack (16) and Tom (10). Ben plays guitar and loves science. His favourite subject at school is chemistry."\n\nHow old is Ben's youngest brother? ___\nWhat instrument does Ben play? ___\nWhat is Ben's favourite subject? ___`,
+    `Read and complete the sentences:\n"The library opens at 9 am and closes at 6 pm on weekdays. On Saturdays it closes at 4 pm. It is closed on Sundays and public holidays."\n\nThe library closes at ___ on Saturdays.\nThe library is closed on ___ and ___.`,
+    `True (T) or False (F)?\n"Sara is a vegetarian. She doesn't eat meat or fish, but she eats dairy products and eggs. She loves cooking and often makes vegetable curry for her friends."\n\nSara eats fish. ___\nSara eats eggs. ___\nSara doesn't like cooking. ___`,
+  ],
+  listening_globale:[
+    `Listen to the description and choose the correct answer:\n"Good morning! I'm calling from the sports centre. Your swimming lesson tomorrow is cancelled. We're very sorry. You can rebook for Thursday at the same time or Saturday morning."\n\nWhy is the person calling?\n(A) To confirm a booking   (B) To cancel a lesson   (C) To change the price   (D) To ask a question\n\nAnswer: ___`,
+    `After listening, write one sentence to summarise what you heard.\n"Hi Mia! It's Sam. I can't come to football training today because I have a dentist appointment at 4 o'clock. I'll be there on Thursday for sure. Sorry!"\n\nSummary: ___`,
+    `What is the main topic of the announcement?\n"Attention passengers! The train to London Paddington departing at 15:45 from Platform 3 is delayed by approximately 20 minutes. We apologise for any inconvenience."\n\nMain topic: ___`,
+  ],
+  listening_locale:[
+    `Listen and answer:\n"Welcome to Green Park Zoo! We open every day from 9 am to 6 pm. Adult tickets cost £15, children under 12 pay £8, and children under 3 enter free. Our famous penguin feeding happens at 2 pm and 4 pm daily."\n\nHow much does a child aged 10 pay? ___\nAt what times is the penguin feeding? ___`,
+    `Fill in the gaps:\n"This is a message for all students. The school play will take place on ___ 15th at ___ pm in the school hall. Tickets are available from the school office for £___. All money raised goes to charity."\n(Use: December / 7 / 5)`,
+    `True (T) or False (F)?\n"Hi everyone! My name's Alex. I started at this school last month. I come from Canada originally, but I've lived in Italy for three years. I can speak English, French and a little Italian."\n\nAlex is new to the school. ___\nAlex is from Italy. ___\nAlex speaks three languages. ___`,
+  ],
+  vocabulary:[
+    `Match the words with their definitions:\n\n1. generous    a) feeling worried or nervous about something\n2. anxious     b) giving more than expected, not selfish\n3. patient     c) willing to wait without becoming annoyed\n4. determined  d) not giving up, very motivated to achieve something\n\nAnswers: 1___ 2___ 3___ 4___`,
+    `Choose the correct word to complete each sentence:\n(exhausted / ancient / convenient / confident)\n\nAfter the marathon, the runner was completely ___.\nRome has many ___ monuments dating back thousands of years.\nOnline shopping is very ___ — you can buy anything from home.\nShe spoke ___ in front of the whole class without any notes.\n\nAnswers: ___`,
+    `What does each phrasal verb mean? Match:\n\n1. give up     a) continue doing something\n2. look after  b) stop trying\n3. carry on    c) take care of someone\n4. find out    d) discover information\n\nAnswers: 1___ 2___ 3___ 4___`,
+  ],
+  grammar_eng:[
+    `Complete with the correct form of the verb in brackets:\n\nShe ___ (study) English for three years now.\nBy next summer, they ___ (finish) building the new school.\nIf it rains tomorrow, we ___ (not go) to the beach.\n\nAnswers: ___`,
+    `Choose the correct option:\n\nShe's the girl (who / which / whose) won the competition.\nThis is the book (that / who / whom) I told you about.\nThe man (which / whose / who) car is red is my neighbour.\n\nAnswers: ___`,
+    `Rewrite using the passive voice:\n"The teacher corrected all the tests yesterday."\n→ ___\n\n"They built this bridge in 1985."\n→ ___`,
+  ],
+};
+
+// Funzione per ottenere gli esercizi della materia corrente
+function getEsercMateria(){
+  const m = S.materia || 'italiano';
+  if(m === 'matematica') return ESERC_MAT;
+  if(m === 'inglese')    return ESERC_ENG;
+  return ESERC;
+}
+
 // ══════════════════════════════════════════════════════
 //  CONFIGURAZIONE
 // ══════════════════════════════════════════════════════
@@ -3630,11 +3736,13 @@ function calcolaRisultati(){
   // ESERCIZI DI RECUPERO (15, aree più deboli) — variati per prova
   const ordinate=Object.entries(errComp).sort((a,b)=>b[1]-a[1]);
   const compDeboli=ordinate.slice(0,4).map(x=>x[0]);
+  const ESERC_CUR = getEsercMateria();
   let eH='', num=0; const usati=new Set();
   // Usa provaId come seed per variare gli esercizi tra prove diverse
   const seed = (S.provaIdDaURL || 1) - 1;
   function addE(comp){
-    const lista = ESERC[comp]||[];
+    const lista = ESERC_CUR[comp]||[];
+    if(!lista.length) return;
     // Ruota la lista in base alla prova — ogni prova parte da un esercizio diverso
     const rotated = [...lista.slice(seed % lista.length), ...lista.slice(0, seed % lista.length)];
     rotated.forEach((txt,pi)=>{
@@ -3651,7 +3759,7 @@ function calcolaRisultati(){
     });
   }
   compDeboli.forEach(addE);
-  Object.keys(ESERC).forEach(c=>{
+  Object.keys(ESERC_CUR).forEach(c=>{
     if(num>=15||compDeboli.includes(c)) return;
     addE(c);
   });
@@ -3749,12 +3857,13 @@ function scaricaEserciziPDF(){
   doc.text('Completa gli esercizi a mano nello spazio indicato. Poi consegna questo foglio al docente.',20,y); y+=10;
 
   // ESERCIZI (senza soluzioni)
+  const ESERC_PDF = getEsercMateria();
   let numEs=0;
-  const COMP_ORDER=[...r.compDeboli, ...Object.keys(ESERC).filter(c=>!r.compDeboli.includes(c))];
+  const COMP_ORDER=[...r.compDeboli, ...Object.keys(ESERC_PDF).filter(c=>!r.compDeboli.includes(c))];
   const _sh=a=>{const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;};
   const _pool=[];const _pd=Math.ceil(15/Math.max(r.compDeboli.length,1));
   COMP_ORDER.forEach((comp,ci)=>{
-    _sh(ESERC[comp]||[]).slice(0,ci<r.compDeboli.length?Math.min(_pd,(ESERC[comp]||[]).length):Math.min(2,(ESERC[comp]||[]).length)).forEach(txt=>_pool.push({comp,txt}));
+    _sh(ESERC_PDF[comp]||[]).slice(0,ci<r.compDeboli.length?Math.min(_pd,(ESERC_PDF[comp]||[]).length):Math.min(2,(ESERC_PDF[comp]||[]).length)).forEach(txt=>_pool.push({comp,txt}));
   });
   _sh(_pool).slice(0,15).forEach(({comp,txt},pi)=>{
     if(true){
@@ -3785,14 +3894,15 @@ function scaricaEserciziPDF(){
 
   // FOOTER su ogni pagina
   const pp=doc.internal.getNumberOfPages();
+  const matLblEx = {italiano:'Italiano',matematica:'Matematica',inglese:'Inglese'}[S.materia||'italiano']||'Italiano';
   for(let p=1;p<=pp;p++){
     doc.setPage(p);
     doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(160,160,160);
-    doc.text(`Esercizi di recupero INVALSI · ${S.stud} · Pag. ${p}/${pp}`,105,292,{align:'center'});
+    doc.text(`Esercizi di recupero INVALSI ${matLblEx} · ${S.stud} · Pag. ${p}/${pp}`,105,292,{align:'center'});
   }
 
   // Filename sicuro: nessun riferimento alle risposte
-  const fn=`Esercizi_INVALSI_${S.stud}_${S.classe}_${new Date().toLocaleDateString('it-IT').replace(/\//g,'-')}.pdf`;
+  const fn=`Esercizi_INVALSI_${matLblEx}_${S.stud}_${S.classe}_${new Date().toLocaleDateString('it-IT').replace(/\//g,'-')}.pdf`;
   doc.save(fn);
 }
 function scaricaPDF(){
@@ -3889,9 +3999,10 @@ function scaricaPDF(){
   doc.setFontSize(8);doc.setTextColor(80,80,80);
   doc.text('Completa gli esercizi a mano e consegna al docente.',20,y);y+=10;
 
+  const ESERC_RPDF = getEsercMateria();
   let numEs=0; const usatiP=new Set();
   function addEP(comp){
-    (ESERC[comp]||[]).forEach((txt,pi)=>{
+    (ESERC_RPDF[comp]||[]).forEach((txt,pi)=>{
       if(numEs>=10) return;
       const key=`${comp}_${pi}`; if(usatiP.has(key)) return; usatiP.add(key);
       y=chY(y,38);
@@ -3910,15 +4021,16 @@ function scaricaPDF(){
     });
   }
   r.compDeboli.forEach(addEP);
-  if(numEs<10) Object.keys(ESERC).forEach(c=>{if(numEs>=10||r.compDeboli.includes(c)) return; addEP(c);});
+  if(numEs<10) Object.keys(ESERC_RPDF).forEach(c=>{if(numEs>=10||r.compDeboli.includes(c)) return; addEP(c);});
 
   // FOOTER
   const pp=doc.internal.getNumberOfPages();
+  const matLabel = {italiano:'Italiano',matematica:'Matematica',inglese:'Inglese'}[S.materia||'italiano']||'Italiano';
   for(let p=1;p<=pp;p++){
     doc.setPage(p);doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(160,160,160);
-    doc.text(`Simulazione INVALSI – Italiano Grado 8  •  Pag. ${p} di ${pp}`,105,292,{align:'center'});
+    doc.text(`Simulazione INVALSI – ${matLabel} Grado 8  •  Pag. ${p} di ${pp}`,105,292,{align:'center'});
   }
-  doc.save(`INVALSI_${S.stud}_${S.classe}_${new Date().toLocaleDateString('it-IT').replace(/\//g,'-')}.pdf`);
+  doc.save(`INVALSI_${S.stud}_${S.classe}_${matLabel}_${new Date().toLocaleDateString('it-IT').replace(/\//g,'-')}.pdf`);
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -4068,7 +4180,7 @@ function aggiornaGenerale(){
       const avg=Math.round(rS.reduce((s,r)=>s+r.pct,0)/rS.length);
       const col=avg>=70?'var(--verde)':avg>=40?'var(--giallo)':'var(--rosso)';
       const pid=parseInt(sId.replace(/prova-(\d+).*/,'$1'));
-      const p=typeof PROVE!=='undefined'?PROVE.find(x=>x.id===pid):null;
+      const p=getProveMateria().find(x=>x.id===pid)||(typeof PROVE!=='undefined'?PROVE.find(x=>x.id===pid):null);
       const titolo=p?p.titolo.substring(0,18)+'…':'Sess.'+sId.substring(0,8);
       andH+='<div style="background:var(--grigio-ch);border-radius:8px;padding:10px 14px;min-width:110px;text-align:center;border-left:4px solid '+col+'"><div style="font-size:10px;color:#888;margin-bottom:4px">'+titolo+'</div><div style="font-size:22px;font-weight:800;color:'+col+'">'+avg+'%</div><div style="font-size:10px;color:#aaa">'+rS.length+' stud.</div></div>';
     });
@@ -5455,6 +5567,7 @@ function creaSessione(){
   // Costruisce URL con i TIC attivi
   const base = window.location.href.split('?')[0];
   const params = new URLSearchParams();
+  params.set('materia', S.materia || 'italiano');
   params.set('prova', provaId);
   params.set('classe', classe);
   if(TIC.bes)        params.set('bes','1');
@@ -5502,7 +5615,7 @@ function creaSessione(){
 
 // Salva sessione su Google Sheet (tab "Sessioni")
 function salvaSessOnSheet(sessKey, sessData){
-  const prova = PROVE.find(p=>p.id===sessData.provaId);
+  const prova = getProveMateria().find(p=>p.id===sessData.provaId);
   fetch(SCRIPT_URL, {
     method:'POST', mode:'no-cors',
     headers:{'Content-Type':'application/json'},
@@ -5701,7 +5814,7 @@ function popolaSelImport(){
   });
   sel.innerHTML='<option value="">-- Seleziona sessione --</option>'+
     tutteSessioni.map(([cod,s])=>{
-      const p=PROVE ? PROVE.find(x=>x.id===s.provaId) : null;
+      const p=getProveMateria().find(x=>x.id===s.provaId)||PROVE?.find(x=>x.id===s.provaId);
       const titoloImp = s.titolo || (p ? p.titolo : (s.tipo==='disabilita' ? '🌟 Prova AI dis.' : ''));
       const cl = s.classe ? ` (${s.classe})` : '';
       return `<option value="${cod}">${cod} – ${titoloImp}${cl}</option>`;
@@ -5722,7 +5835,7 @@ function aggSelSessioni(){
   sel.innerHTML = '<option value="">-- Seleziona sessione --</option>' +
     tutteKeys.map(cod=>{
       const s = DB.sessioni[cod];
-      const p = s ? PROVE.find(x=>x.id===s.provaId) : null;
+      const p = s ? (getProveMateria().find(x=>x.id===s.provaId)||PROVE?.find(x=>x.id===s.provaId)) : null;
       const titoloSel = (s && s.titolo) || (p ? p.titolo : (s && s.tipo==='disabilita' ? '🌟 Prova AI dis.' : ''));
       const n = ris.filter(r=>r.sessione===cod).length;
       return `<option value="${cod}">${cod} – ${titoloSel} (${n} stud.)</option>`;
@@ -5760,7 +5873,7 @@ function aggiornaTabellaSessioni(){
   });
 
   tbody.innerHTML = tutteSessioni.map(([cod,s])=>{
-    const p = PROVE ? PROVE.find(x=>x.id===s.provaId) : null;
+    const p = getProveMateria().find(x=>x.id===s.provaId)||PROVE?.find(x=>x.id===s.provaId);
     const titoloSess = s.titolo || (p ? p.titolo : (s.tipo==='disabilita' ? '🌟 Prova AI dis.' : '–'));
     const chiusa = !!s.chiusa;
     const nStud = DB.risultati.filter(r=>r.sessione===cod).length;
@@ -5872,7 +5985,7 @@ function popolaSelProvaAnalisi(){
   const provaIds = [...new Set(ris.map(r=>parseInt(r.sessione.replace('prova-',''))))].filter(n=>!isNaN(n));
   sel.innerHTML = '<option value="">-- Seleziona prova --</option>' +
     provaIds.sort((a,b)=>a-b).map(id=>{
-      const p = PROVE.find(x=>x.id===id);
+      const p = getProveMateria().find(x=>x.id===id)||(typeof PROVE!=='undefined'?PROVE.find(x=>x.id===id):null);
       const n = ris.filter(r=>r.sessione===`prova-${id}`).length;
       return `<option value="${id}">${id}. ${p?p.titolo:''} (${n} stud.)</option>`;
     }).join('');
@@ -5982,6 +6095,7 @@ function popolaDocente(){
   try{ popolaSelImport(); }catch(e){}
   try{ popolaSelProvaAnalisi(); }catch(e){}
   try{ aggiornaGenerale(); }catch(e){}
+  try{ _aggiornaPannelloNuovaSessione(); }catch(e){}
   ['3A','3E','ALL'].forEach(c=>{
     const b = $(`btn-cl-${c}`);
     if(b){
@@ -6227,7 +6341,7 @@ async function importaTutteSessioni(){
       const provaNum = matchProva ? parseInt(matchProva[1]) : 'custom';
       const classeKey = matchClasse ? matchClasse[1] : '';
       const titoloSheet = risultatiSess[0]['Prova'] || '';
-      const provaObj = typeof PROVE!=='undefined' ? PROVE.find(x=>x.id===provaNum) : null;
+      const provaObj = typeof PROVE!=='undefined' ? (getProveMateria().find(x=>x.id===provaNum)||PROVE.find(x=>x.id===provaNum)) : null;
       DB.sessioni[sessKey] = {
         provaId: provaNum,
         titolo: titoloSheet || (provaObj ? provaObj.titolo : ''),
@@ -6385,6 +6499,8 @@ function mostraSubTab(id, btn){
 
   // Se si apre CAA, inizializza il modulo
   if(id === 'st-caa') _inizializzaCAA();
+  // Filtra per materia corrente
+  _aggiornaPannelloNuovaSessione();
 }
 
 // Inizializza il pannello CAA inline (senza usare il vecchio sistema di iniezione)
@@ -6429,6 +6545,73 @@ function _inizializzaCAA(){
   ].join('');
   // Aggiungi 2 domande default
   _caaAggiungiDom(); _caaAggiungiDom();
+}
+
+// ── AGGIORNA PANNELLO NUOVA SESSIONE IN BASE ALLA MATERIA ──────
+function _aggiornaPannelloNuovaSessione(){
+  const m = S.materia || 'italiano';
+
+  // 1. Titolo pannello standard
+  const h3Std = document.querySelector('#st-standard h3');
+  const matIco = {italiano:'📖',matematica:'📐',inglese:'🇬🇧'};
+  const matNome = {italiano:'Italiano',matematica:'Matematica',inglese:'Inglese'};
+  if(h3Std) h3Std.textContent = `${matIco[m]||''} Crea sessione — ${matNome[m]||m} standard`;
+
+  // 2. Sezione Per disabilità — placeholder per mat/eng
+  const stDis = document.getElementById('st-dis');
+  if(stDis){
+    if(m !== 'italiano'){
+      if(!stDis.dataset.wip){
+        stDis.dataset.origHtml = stDis.innerHTML;
+      }
+      stDis.dataset.wip = '1';
+      stDis.innerHTML = `
+        <div style="text-align:center;padding:40px 20px;color:#888">
+          <div style="font-size:3rem;margin-bottom:12px">🚧</div>
+          <div style="font-size:16px;font-weight:700;color:#555;margin-bottom:8px">
+            Prove per disabilità — ${matNome[m]}
+          </div>
+          <div style="font-size:13px;color:#999;max-width:340px;margin:0 auto">
+            Questa sezione è in sviluppo.<br>
+            Disponibile prossimamente per ${matNome[m]}.
+          </div>
+        </div>`;
+    } else {
+      if(stDis.dataset.origHtml && stDis.dataset.wip){
+        stDis.innerHTML = stDis.dataset.origHtml;
+        delete stDis.dataset.wip;
+      }
+    }
+  }
+
+  // 3. Sezione CAA — placeholder per mat/eng
+  const stCaa = document.getElementById('st-caa');
+  if(stCaa){
+    const caaContent = document.getElementById('caa-tab-content');
+    if(m !== 'italiano'){
+      if(!stCaa.dataset.wip){
+        stCaa.dataset.origHtml = stCaa.innerHTML;
+      }
+      stCaa.dataset.wip = '1';
+      stCaa.innerHTML = `
+        <div style="text-align:center;padding:40px 20px;color:#888">
+          <div style="font-size:3rem;margin-bottom:12px">🚧</div>
+          <div style="font-size:16px;font-weight:700;color:#555;margin-bottom:8px">
+            Prove CAA — ${matNome[m]}
+          </div>
+          <div style="font-size:13px;color:#999;max-width:340px;margin:0 auto">
+            La sezione CAA per ${matNome[m]} è in sviluppo.<br>
+            Disponibile prossimamente.
+          </div>
+        </div>`;
+    } else {
+      if(stCaa.dataset.origHtml && stCaa.dataset.wip){
+        stCaa.innerHTML = stCaa.dataset.origHtml;
+        delete stCaa.dataset.wip;
+        delete stCaa.dataset.initialized; // force re-init
+      }
+    }
+  }
 }
 
 var _caaDomN = 0;
@@ -6630,7 +6813,7 @@ function generaProvaCustom(){
 const MATERIE = {
   italiano:  { nome:'Italiano',    ico:'📖', col:'#1565c0', bg:'#e3f2fd', attiva:true  },
   matematica:{ nome:'Matematica',  ico:'📐', col:'#6a1b9a', bg:'#f3e5f5', attiva:true  },
-  inglese:   { nome:'Inglese',     ico:'🇬🇧', col:'#1b5e20', bg:'#e8f5e9', attiva:false },
+  inglese:   { nome:'Inglese',     ico:'🇬🇧', col:'#1b5e20', bg:'#e8f5e9', attiva:true  },
 };
 
 // Restituisce l'array prove della materia corrente
@@ -7019,7 +7202,7 @@ function stampaSchedaStudente(codice, sessione){
   if(!r){ alert('Risultato non trovato.'); return; }
 
   const p = DB.sessioni[sessione];
-  const prova = p ? PROVE.find(x=>x.id===p.provaId) : null;
+  const prova = p ? (getProveMateria().find(x=>x.id===p.provaId)||(typeof PROVE!=='undefined'?PROVE.find(x=>x.id===p.provaId):null)) : null;
   const SUGG = {
     comprensione_globale:'Esercitare sintesi e titolazione di testi.',
     comprensione_locale:'Ricerca di informazioni esplicite. Sottolineare con criteri.',
@@ -7249,7 +7432,7 @@ function avviaAnimazioneBenvenuto(){
   }, 3200);
 }
 
-// URL PARAMS – legge ?prova=3 oppure ?prova=3A-MAR26 oppure ?prova=3B-APR26-2
+// URL PARAMS – legge ?prova=3 oppure ?materia=matematica&prova=1&classe=3A
 window.addEventListener('load', () => {
   // Avvia animazione benvenuto
   avviaAnimazioneBenvenuto();
@@ -7257,6 +7440,7 @@ window.addEventListener('load', () => {
   const raw     = params.get('prova');
   const classe  = params.get('classe') || '';
   const isBES   = params.get('bes') === '1';
+  const materiaURL = params.get('materia') || 'italiano';
 
   let provaId = 1;
   if(raw){
@@ -7272,6 +7456,8 @@ window.addEventListener('load', () => {
   S.provaIdDaURL = provaId;
   S.classeDaURL  = classe;
   S.isBES        = isBES;
+  S.materia      = materiaURL;
+  applicaCFG(materiaURL);
 
   // Timer BES: 117 minuti invece di 90
   if(isBES) CFG.durata = 117;
@@ -7298,9 +7484,11 @@ window.addEventListener('load', () => {
   }
 
   // Mostra banner con nome della prova
-  const prova = PROVE.find(p => p.id === provaId);
+  const proveBanner = getProveMateria();
+  const prova = proveBanner.find(p => p.id === provaId);
   if(raw && prova){
-    $('banner-prova-nome').textContent = `${provaId}. ${prova.titolo}`;
+    const matLabel = {italiano:'📖 Italiano',matematica:'📐 Matematica',inglese:'🇬🇧 Inglese'}[materiaURL]||materiaURL;
+    $('banner-prova-nome').textContent = `${matLabel} — ${provaId}. ${prova.titolo}`;
     $('banner-prova').classList.remove('hidden');
     $('banner-no-prova').style.display = 'none';
     // Link studente: nasconde il tasto Docente
@@ -7520,5 +7708,17 @@ function generaLinkCP(){
 <!-- ═══ PROVE 6-10 COMPLETE ═══ -->
 <script src="prove_6_10.js"></script>
 <script src="caa.js"></script>
+<!-- ═══ PROVE MATEMATICA ═══ -->
+<script src="prove_mat_p1.js"></script>
+<script src="prove_mat_p2.js"></script>
+<script src="prove_mat_p3.js"></script>
+<script src="prove_mat_p4.js"></script>
+<script src="prove_mat_p5.js"></script>
+<!-- ═══ PROVE INGLESE ═══ -->
+<script src="prove_eng_p1.js"></script>
+<script src="prove_eng_p2.js"></script>
+<script src="prove_eng_p3.js"></script>
+<script src="prove_eng_p4.js"></script>
+<script src="prove_eng_p5.js"></script>
 </body>
 </html>
