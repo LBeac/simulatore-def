@@ -938,13 +938,13 @@ tr:hover td{background:var(--grigio-ch)}
 
       <!-- MATEMATICA -->
       <button onclick="selezionaMateria('matematica')" class="materia-card"
-        style="background:linear-gradient(135deg,#f3e5f5,#e1bee7);border:2px dashed #ce93d8;
-          border-radius:14px;padding:22px 12px;cursor:pointer;transition:all .15s;text-align:center;opacity:.8">
+        style="background:linear-gradient(135deg,#f3e5f5,#e1bee7);border:2px solid #ce93d8;
+          border-radius:14px;padding:22px 12px;cursor:pointer;transition:all .15s;text-align:center">
         <div style="font-size:2.2rem;margin-bottom:8px">📐</div>
         <div style="font-size:14px;font-weight:800;color:#6a1b9a">Matematica</div>
-        <div style="font-size:10px;color:#7b1fa2;margin-top:4px">Prove in arrivo</div>
-        <div style="margin-top:10px;background:#e1bee7;color:#6a1b9a;border-radius:6px;
-          padding:4px 8px;font-size:11px;font-weight:700">🔜 In sviluppo</div>
+        <div style="font-size:10px;color:#7b1fa2;margin-top:4px">5 prove · DSA · Calcolatrice</div>
+        <div style="margin-top:10px;background:#6a1b9a;color:#fff;border-radius:6px;
+          padding:4px 8px;font-size:11px;font-weight:700">✅ Attivo</div>
       </button>
 
       <!-- INGLESE -->
@@ -2312,12 +2312,44 @@ const ESERC = {
 // ══════════════════════════════════════════════════════
 //  CONFIGURAZIONE
 // ══════════════════════════════════════════════════════
-const CFG = {
-  durata: 90,
-  sezLabel: ['Lettura','Lessico','Grammatica'],
-  sezNomi:  ['A – Comprensione della lettura','B – Lessico','C – Riflessione sulla lingua'],
+// ── CFG PER MATERIA ────────────────────────────────────
+const CFG_MATERIE = {
+  italiano: {
+    durata: 90,
+    sezLabel: ['Lettura','Lessico','Grammatica'],
+    sezNomi:  ['A – Comprensione della lettura','B – Lessico','C – Riflessione sulla lingua'],
+    istrSub:  'Italiano – Grado 8 · 90 minuti',
+    besDurata: 117,
+  },
+  matematica: {
+    durata: 90,
+    sezLabel: ['Numeri e Algebra','Geometria','Dati e Funzioni'],
+    sezNomi:  ['A – Numeri e Algebra','B – Geometria e Misura','C – Dati, Previsioni e Funzioni'],
+    istrSub:  'Matematica – Grado 8 · 90 minuti',
+    besDurata: 117,
+  },
+  inglese: {
+    durata: 90,
+    sezLabel: ['Reading','Listening','Vocabulary'],
+    sezNomi:  ['A – Comprensione della lettura','B – Comprensione dell\'ascolto','C – Vocabolario'],
+    istrSub:  'Inglese – Grado 8 · 90 minuti',
+    besDurata: 117,
+  },
 };
+
+let CFG = Object.assign({}, CFG_MATERIE.italiano);
+
+function applicaCFG(materia){
+  const c = CFG_MATERIE[materia] || CFG_MATERIE.italiano;
+  CFG.durata   = c.durata;
+  CFG.sezLabel = c.sezLabel;
+  CFG.sezNomi  = c.sezNomi;
+  CFG.istrSub  = c.istrSub;
+  CFG.besDurata= c.besDurata;
+}
+
 const COMP_NOMI = {
+  // Italiano
   comprensione_globale:'Comprensione globale',
   comprensione_locale:'Comprensione locale',
   inferenza:'Inferenza e interpretazione',
@@ -2329,6 +2361,31 @@ const COMP_NOMI = {
   ortografia:'Ortografia',
   punteggiatura:'Punteggiatura',
   coesione:'Coesione testuale',
+  // Matematica
+  numeri:'Numeri',
+  algebra:'Algebra',
+  frazioni:'Frazioni e decimali',
+  percentuali:'Percentuali',
+  proporzioni:'Proporzioni',
+  potenze:'Potenze e radici',
+  radici:'Radici',
+  geometria_piana:'Geometria piana',
+  geometria_solida:'Geometria solida',
+  misura:'Misura',
+  pitagora:'Teorema di Pitagora',
+  similitudine:'Similitudine',
+  probabilita:'Probabilità',
+  statistica:'Statistica',
+  funzioni:'Funzioni',
+  grafici:'Grafici e relazioni',
+  relazioni:'Relazioni',
+  // Inglese
+  reading_globale:'Reading – Comprensione globale',
+  reading_locale:'Reading – Comprensione locale',
+  listening_globale:'Listening – Comprensione globale',
+  listening_locale:'Listening – Comprensione locale',
+  vocabulary:'Vocabolario',
+  grammar_eng:'Grammar',
 };
 const nC = c => COMP_NOMI[c]||c||'';
 const $ = id => document.getElementById(id);
@@ -2489,10 +2546,12 @@ function accStud(){
   }
 
   const provaId = S.provaIdDaURL || 1;
-  const prova   = PROVE.find(p => p.id === provaId);
+  const prove   = getProveMateria();
+  const prova   = prove.find(p => p.id === provaId);
   if(!prova){ showErr('err-acc','Prova non trovata. Usa il link corretto fornito dal docente su Classroom.'); return; }
 
   S.modoTest = false;
+  const materiaLabel = S.materia === 'matematica' ? 'Matematica' : S.materia === 'inglese' ? 'Inglese' : 'Italiano';
   Object.assign(S, {
     stud: cod, prova,
     sessione: `prova-${provaId}-${classe}`,
@@ -2500,7 +2559,7 @@ function accStud(){
     risposte:{}, segnati: new Set(), cur:0, uscite:0, calcolo:null
   });
   $('istr-title').textContent = prova.titolo;
-  $('istr-sub').textContent   = `Italiano – Grado 8 · ${CFG.durata} minuti`;
+  $('istr-sub').textContent   = `${materiaLabel} – Grado 8 · ${CFG.durata} minuti`;
   $('istr-stud').textContent  = `${cod} · Classe ${classe}`;
   hideErr('err-acc');
   mostraScr('scr-istr');
@@ -2527,6 +2586,8 @@ function accDoc(){
     return;
   }
   S.classe = 'ALL';
+  S.materia = S.materia || 'italiano';
+  applicaCFG(S.materia);
   if($('doc-cl-lbl')) $('doc-cl-lbl').textContent = 'Tutte le classi';
   hideErr('err-acc');
   // Vai prima alla selezione materia
@@ -5405,7 +5466,8 @@ function creaSessione(){
   if(TIC.maiuscolo)  params.set('maiuscolo','1');
 
   const link = `${base}?${params.toString()}`;
-  const prova = PROVE.find(p => p.id === provaId);
+  const prove = getProveMateria();
+  const prova = prove.find(p => p.id === provaId);
 
   // Etichette TIC attivi per la visualizzazione
   const ticAttivi = [];
@@ -5911,9 +5973,9 @@ function renderSuggerimenti(elId, compDeboli, globale=false){
 function popolaDocente(){
   if($('doc-cl-lbl')) $('doc-cl-lbl').textContent = S.classe === 'ALL' ? 'Tutte le classi' : 'Classe: ' + S.classe;
   const selNew = $('sel-prova-new');
-  if(selNew && typeof PROVE !== 'undefined'){
-    selNew.innerHTML = PROVE.map(p=>`<option value="${p.id}">${p.id}. ${p.titolo}</option>`).join('');
-    // opzione BES rimossa: la personalizzazione si applica a qualsiasi prova via checkbox TIC
+  const prove  = getProveMateria();
+  if(selNew && prove.length){
+    selNew.innerHTML = prove.map(p=>`<option value="${p.id}">${p.id}. ${p.titolo}</option>`).join('');
   }
   try{ aggiornaTabellaSessioni(); }catch(e){}
   try{ aggSelSessioni(); }catch(e){}
@@ -6567,13 +6629,24 @@ function generaProvaCustom(){
 // ── SELEZIONE MATERIA ────────────────────────────────────────
 const MATERIE = {
   italiano:  { nome:'Italiano',    ico:'📖', col:'#1565c0', bg:'#e3f2fd', attiva:true  },
-  matematica:{ nome:'Matematica',  ico:'📐', col:'#6a1b9a', bg:'#f3e5f5', attiva:false },
+  matematica:{ nome:'Matematica',  ico:'📐', col:'#6a1b9a', bg:'#f3e5f5', attiva:true  },
   inglese:   { nome:'Inglese',     ico:'🇬🇧', col:'#1b5e20', bg:'#e8f5e9', attiva:false },
 };
+
+// Restituisce l'array prove della materia corrente
+function getProveMateria(){
+  const m = S.materia || 'italiano';
+  if(m === 'matematica' && typeof window.PROVE_MAT !== 'undefined') return window.PROVE_MAT;
+  if(m === 'inglese'    && typeof window.PROVE_ENG !== 'undefined') return window.PROVE_ENG;
+  return (typeof PROVE !== 'undefined') ? PROVE : [];
+}
 
 function selezionaMateria(materia){
   S.materia = materia;
   const m = MATERIE[materia];
+
+  // Applica CFG corretto
+  applicaCFG(materia);
 
   // Aggiorna badge materia nell'header del pannello
   const badge = document.getElementById('materia-badge');
@@ -6581,13 +6654,13 @@ function selezionaMateria(materia){
     badge.textContent = (m ? m.ico+' '+m.nome : materia);
     badge.style.background = m ? m.bg : '#f0f0f0';
     badge.style.color = m ? m.col : '#333';
+    badge.style.border = '1.5px solid ' + (m ? m.col : '#ccc');
   }
 
-  // Se materia non attiva mostra pannello "in sviluppo"
+  // Se materia non attiva mostra overlay "in sviluppo"
   if(m && !m.attiva){
     mostraScr('scr-doc');
     popolaDocente();
-    // Dopo il render mostra overlay "in sviluppo"
     setTimeout(()=>{ _mostraWIPOverlay(m); }, 100);
     return;
   }
