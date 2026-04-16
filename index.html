@@ -949,13 +949,13 @@ tr:hover td{background:var(--grigio-ch)}
 
       <!-- INGLESE -->
       <button onclick="selezionaMateria('inglese')" class="materia-card"
-        style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border:2px dashed #a5d6a7;
-          border-radius:14px;padding:22px 12px;cursor:pointer;transition:all .15s;text-align:center;opacity:.8">
+        style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border:2px solid #a5d6a7;
+          border-radius:14px;padding:22px 12px;cursor:pointer;transition:all .15s;text-align:center">
         <div style="font-size:2.2rem;margin-bottom:8px">🇬🇧</div>
         <div style="font-size:14px;font-weight:800;color:#1b5e20">Inglese</div>
-        <div style="font-size:10px;color:#2e7d32;margin-top:4px">Prove in arrivo</div>
-        <div style="margin-top:10px;background:#c8e6c9;color:#1b5e20;border-radius:6px;
-          padding:4px 8px;font-size:11px;font-weight:700">🔜 In sviluppo</div>
+        <div style="font-size:10px;color:#2e7d32;margin-top:4px">5 prove · Reading · Listening</div>
+        <div style="margin-top:10px;background:#1b5e20;color:#fff;border-radius:6px;
+          padding:4px 8px;font-size:11px;font-weight:700">✅ Attivo</div>
       </button>
     </div>
 
@@ -7039,7 +7039,7 @@ function generaProvaCustom(){
 const MATERIE = {
   italiano:  { nome:'Italiano',    ico:'📖', col:'#1565c0', bg:'#e3f2fd', attiva:true  },
   matematica:{ nome:'Matematica',  ico:'📐', col:'#6a1b9a', bg:'#f3e5f5', attiva:true  },
-  inglese:   { nome:'Inglese',     ico:'🇬🇧', col:'#1b5e20', bg:'#e8f5e9', attiva:false },
+  inglese:   { nome:'Inglese',     ico:'🇬🇧', col:'#1b5e20', bg:'#e8f5e9', attiva:true  },
 };
 
 // Restituisce l'array prove della materia corrente
