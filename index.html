@@ -1169,17 +1169,17 @@ tr:hover td{background:var(--grigio-ch)}
           <label class="flbl">Prova da somministrare</label>
           <select class="finp" id="sel-prova-new" style="padding:9px 12px"></select>
         </div>
-        <!-- TIC DSA -->
+        <!-- TIC DSA — stessi per tutte le materie + strumenti aggiuntivi per matematica -->
         <div style="margin-top:14px;border:2px solid #e3eaf7;border-radius:8px;padding:12px 14px">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--blu);margin-bottom:10px">Personalizzazione DSA</div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--blu);margin-bottom:10px">Personalizzazioni DSA / BES</div>
           <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px;cursor:pointer"><input type="checkbox" id="tic-large" style="width:16px;height:16px"> Testo grande</label>
           <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px;cursor:pointer"><input type="checkbox" id="tic-contrasto" style="width:16px;height:16px"> Alto contrasto</label>
           <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px;cursor:pointer"><input type="checkbox" id="tic-font" style="width:16px;height:16px"> Font per dislessia (Lexend)</label>
           <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px;cursor:pointer"><input type="checkbox" id="tic-spaziatura" style="width:16px;height:16px"> Spaziatura aumentata</label>
           <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px;cursor:pointer"><input type="checkbox" id="tic-tempo" style="width:16px;height:16px"> Tempo esteso +30% <span style="font-size:11px;color:#888;margin-left:4px">(117 min)</span></label>
-          <!-- TIC matematica — visibili solo per matematica -->
+          <!-- Strumenti compensativi matematica — visibili solo per matematica -->
           <div id="tic-mat-section" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid #e0e8f0">
-            <div style="font-size:11px;font-weight:700;color:#6a1b9a;margin-bottom:8px">📐 Strumenti compensativi matematica</div>
+            <div style="font-size:11px;font-weight:700;color:#6a1b9a;margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px">📐 Strumenti compensativi – Matematica</div>
             <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px;cursor:pointer"><input type="checkbox" id="tic-calc" style="width:16px;height:16px"> 🔢 Calcolatrice</label>
             <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px;cursor:pointer"><input type="checkbox" id="tic-formulario" style="width:16px;height:16px"> 📋 Formulario geometrico</label>
             <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="tic-pitagorica" style="width:16px;height:16px"> 🔢 Tavola pitagorica</label>
@@ -6302,8 +6302,15 @@ function popolaDocente(){
   if($('doc-cl-lbl')) $('doc-cl-lbl').textContent = S.classe === 'ALL' ? 'Tutte le classi' : 'Classe: ' + S.classe;
   const selNew = $('sel-prova-new');
   const prove  = getProveMateria();
-  if(selNew && prove.length){
-    selNew.innerHTML = prove.map(p=>`<option value="${p.id}">${p.id}. ${p.titolo}</option>`).join('');
+  if(selNew){
+    if(prove.length){
+      selNew.innerHTML = prove.map(p=>`<option value="${p.id}">${p.id}. ${p.titolo}</option>`).join('');
+      selNew.disabled = false;
+    } else {
+      const matNome = {italiano:'Italiano',matematica:'Matematica',inglese:'Inglese'}[S.materia||'italiano']||'';
+      selNew.innerHTML = `<option value="">⚠️ Prove ${matNome} non caricate</option>`;
+      selNew.disabled = true;
+    }
   }
   try{ aggiornaTabellaSessioni(); }catch(e){}
   try{ aggSelSessioni(); }catch(e){}
@@ -7038,8 +7045,16 @@ const MATERIE = {
 // Restituisce l'array prove della materia corrente
 function getProveMateria(){
   const m = S.materia || 'italiano';
-  if(m === 'matematica' && typeof window.PROVE_MAT !== 'undefined') return window.PROVE_MAT;
-  if(m === 'inglese'    && typeof window.PROVE_ENG !== 'undefined') return window.PROVE_ENG;
+  if(m === 'matematica'){
+    if(typeof window.PROVE_MAT !== 'undefined' && window.PROVE_MAT.length) return window.PROVE_MAT;
+    // Fallback: array vuoto se i file non sono ancora caricati
+    return [];
+  }
+  if(m === 'inglese'){
+    if(typeof window.PROVE_ENG !== 'undefined' && window.PROVE_ENG.length) return window.PROVE_ENG;
+    return [];
+  }
+  // Italiano
   return (typeof PROVE !== 'undefined') ? PROVE : [];
 }
 
@@ -7929,8 +7944,20 @@ function generaLinkCP(){
 </script>
 <!-- ═══ PROVE 1-5 COMPLETE (carica dopo il motore principale) ═══ -->
 <script src="prove_1_5.js"></script>
-<!-- ═══ PROVE 6-10 COMPLETE ═══ -->
+<!-- ═══ PROVE 6-10 ITALIANO ═══ -->
 <script src="prove_6_10.js"></script>
 <script src="caa.js"></script>
+<!-- ═══ PROVE MATEMATICA ═══ -->
+<script src="prove_mat_p1.js"></script>
+<script src="prove_mat_p2.js"></script>
+<script src="prove_mat_p3.js"></script>
+<script src="prove_mat_p4.js"></script>
+<script src="prove_mat_p5.js"></script>
+<!-- ═══ PROVE INGLESE ═══ -->
+<script src="prove_eng_p1.js"></script>
+<script src="prove_eng_p2.js"></script>
+<script src="prove_eng_p3.js"></script>
+<script src="prove_eng_p4.js"></script>
+<script src="prove_eng_p5.js"></script>
 </body>
 </html>
