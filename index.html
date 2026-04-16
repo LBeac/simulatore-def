@@ -3164,6 +3164,10 @@ function renderDom(idx){
       ${ref.fonte?`<div class="fonte-txt">${ref.fonte}</div>`:''}
     </div>`;
     if(S.provaIdDaURL==='custom') ttsSetTesto(ref.testo);
+    // Reimposta layout normale se c'è un testo di riferimento
+    colTesto.style.cssText = '';
+    const cdRef = document.getElementById('col-dom');
+    if(cdRef) cdRef.style.cssText = '';
   } else {
     colTesto.innerHTML=`<div class="no-testo">
       <div class="no-testo-ico">📝</div>
@@ -3175,11 +3179,6 @@ function renderDom(idx){
       const cd = document.getElementById('col-dom');
       if(cd) cd.style.cssText = 'flex:1;max-width:100%;min-width:0;border-left:none';
     }
-  } else {
-    // Reimposta layout normale se c'è un testo di riferimento
-    colTesto.style.cssText = '';
-    const cd = document.getElementById('col-dom');
-    if(cd) cd.style.cssText = '';
   }
 
   // Su mobile: mostra testo collassato con pulsante "Leggi testo" se presente
