@@ -1184,6 +1184,12 @@ tr:hover td{background:var(--grigio-ch)}
             <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px;cursor:pointer"><input type="checkbox" id="tic-formulario" style="width:16px;height:16px"> 📋 Formulario geometrico</label>
             <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="tic-pitagorica" style="width:16px;height:16px"> 🔢 Tavola pitagorica</label>
           </div>
+          <!-- Strumenti inglese — visibili solo per inglese -->
+          <div id="tic-eng-section" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid #e0e8f0">
+            <div style="font-size:11px;font-weight:700;color:#1b5e20;margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px">🇬🇧 Strumenti compensativi – Inglese</div>
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px;cursor:pointer"><input type="checkbox" id="tic-dizionario" style="width:16px;height:16px"> 📖 Dizionario monolingue</label>
+            <div style="font-size:10px;color:#888;margin-top:4px;margin-left:24px">Consente l'uso del dizionario inglese-inglese (A1/A2) durante la prova.</div>
+          </div>
         </div>
 
         <button class="btn btn-g" onclick="creaSessione()" style="width:100%;padding:11px;font-size:14px;margin-top:12px">✅ Crea sessione e genera link</button>
@@ -2735,6 +2741,10 @@ function iniziaProva(){
   if(S.materia === 'matematica' && S.matTools){
     setTimeout(()=>{ _iniziaStrumentiMat(); }, 400);
   }
+  // Strumenti compensativi inglese (dizionario)
+  if(S.materia === 'inglese' && S.matTools && S.matTools.dizionario){
+    setTimeout(()=>{ _iniziaDizionario(); }, 400);
+  }
 
   // Player audio — solo per DSA/BES/personalizzazioni accessibilità
   // Secondi corretti per browser (regressione lineare su 8 punti, scarto max ±1s)
@@ -2753,8 +2763,8 @@ function iniziaProva(){
   };
   const AUDIO_MASTER = 'GRADO 8.mp3';
   const _up = new URLSearchParams(window.location.search);
-  const needsAudio = S.isBES || _up.get('font')==='1' || _up.get('large')==='1'
-    || _up.get('contrasto')==='1' || _up.get('spaziatura')==='1';
+  const needsAudio = (S.materia === 'italiano') && (S.isBES || _up.get('font')==='1' || _up.get('large')==='1'
+    || _up.get('contrasto')==='1' || _up.get('spaziatura')==='1');
   if(needsAudio && AUDIO_TESTI[S.provaIdDaURL] && !$('bes-player')){
     const testi = AUDIO_TESTI[S.provaIdDaURL];
     const pd = document.createElement('div');
@@ -2880,14 +2890,145 @@ function iniziaProva(){
 
 // ── STRUMENTI COMPENSATIVI MATEMATICA ────────────────────
 function _iniziaStrumentiMat(){
-  if(document.getElementById('mat-tools-panel')) return;
+  if(document.getElementById('mat-tools-container')) return;
   const mt = S.matTools || {};
   if(!mt.calc && !mt.formulario && !mt.pitagorica) return;
 
-  // Pannello floating
-  const panel = document.createElement('div');
-  panel.id = 'mat-tools-panel';
-  panel.style.cssText = 'position:fixed;bottom:70px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;align-items:flex-end';
+  // Utility drag per qualsiasi widget
+  function makeDraggable(el){
+    let ox=0,oy=0,mx=0,my=0;
+    const hdr = el.querySelector('.mat-drag-hdr');
+    if(!hdr) return;
+    hdr.style.cursor='grab';
+    hdr.addEventListener('mousedown',function(e){
+      e.preventDefault();
+      mx=e.clientX; my=e.clientY;
+      hdr.style.cursor='grabbing';
+      function move(e){
+        ox=mx-e.clientX; oy=my-e.clientY;
+        mx=e.clientX; my=e.clientY;
+        el.style.top=(el.offsetTop-oy)+'px';
+        el.style.left=(el.offsetLeft-ox)+'px';
+        el.style.right='auto'; el.style.bottom='auto';
+      }
+      function up(){ document.removeEventListener('mousemove',move); document.removeEventListener('mouseup',up); hdr.style.cursor='grab'; }
+      document.addEventListener('mousemove',move);
+      document.addEventListener('mouseup',up);
+    });
+    // Touch drag
+    hdr.addEventListener('touchstart',function(e){
+      const t=e.touches[0]; mx=t.clientX; my=t.clientY;
+      function tmove(e){ const t=e.touches[0]; ox=mx-t.clientX; oy=my-t.clientY; mx=t.clientX; my=t.clientY; el.style.top=(el.offsetTop-oy)+'px'; el.style.left=(el.offsetLeft-ox)+'px'; el.style.right='auto'; el.style.bottom='auto'; }
+      function tup(){ hdr.removeEventListener('touchmove',tmove); hdr.removeEventListener('touchend',tup); }
+      hdr.addEventListener('touchmove',tmove); hdr.addEventListener('touchend',tup);
+    },{passive:true});
+  }
+
+  // Contenitore pallini (fisso in basso a destra)
+  const container = document.createElement('div');
+  container.id = 'mat-tools-container';
+  container.style.cssText = 'position:fixed;bottom:72px;right:12px;z-index:9990;display:flex;flex-direction:column;gap:8px;align-items:flex-end';
+  document.body.appendChild(container);
+
+  // ── CALCOLATRICE ──────────────────────────────────────────
+  if(mt.calc){
+    // Pallino
+    const btn = document.createElement('button');
+    btn.id='calc-bubble';
+    btn.title='Calcolatrice';
+    btn.innerHTML='🔢';
+    btn.style.cssText='width:44px;height:44px;border-radius:50%;background:#6a1b9a;color:#fff;border:none;font-size:20px;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center';
+    btn.onclick=()=>{ const w=document.getElementById('calc-widget'); w.style.display=w.style.display==='none'?'block':'none'; };
+    container.appendChild(btn);
+
+    // Widget draggabile
+    const widget = document.createElement('div');
+    widget.id='calc-widget';
+    widget.style.cssText='position:fixed;bottom:130px;right:12px;z-index:9991;background:#fff;border:2px solid #6a1b9a;border-radius:12px;padding:0;box-shadow:0 4px 20px rgba(0,0,0,.3);width:210px;user-select:none;display:none';
+    widget.innerHTML=`
+      <div class="mat-drag-hdr" style="background:#6a1b9a;color:#fff;padding:8px 12px;border-radius:10px 10px 0 0;font-size:12px;font-weight:700;display:flex;justify-content:space-between;align-items:center">
+        🔢 Calcolatrice
+        <button onclick="document.getElementById('calc-widget').style.display='none'" style="background:none;border:none;color:#fff;font-size:16px;cursor:pointer;line-height:1">×</button>
+      </div>
+      <div style="padding:10px">
+        <div id="calc-disp" style="background:#1a1a2e;color:#00e676;font-family:monospace;font-size:19px;text-align:right;padding:8px 10px;border-radius:6px;margin-bottom:8px;min-height:34px;overflow:hidden;word-break:break-all">0</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px">
+          ${[['C','←','%','÷'],['7','8','9','×'],['4','5','6','−'],['1','2','3','+'],['±','0','.','=']]
+            .map(row=>row.map(k=>{
+              const col=k==='='?'#6a1b9a':['÷','×','−','+'].includes(k)?'#7b1fa2':k==='C'?'#c62828':'#424242';
+              return `<button onclick="_calcPress('${k}')" style="background:${col};color:#fff;border:none;border-radius:6px;padding:9px 4px;cursor:pointer;font-size:14px;font-weight:600;touch-action:manipulation">${k}</button>`;
+            }).join('')).join('')}
+        </div>
+      </div>`;
+    document.body.appendChild(widget);
+    makeDraggable(widget);
+  }
+
+  // ── FORMULARIO ────────────────────────────────────────────
+  if(mt.formulario){
+    const btn2 = document.createElement('button');
+    btn2.title='Formulario geometrico';
+    btn2.innerHTML='📐';
+    btn2.style.cssText='width:44px;height:44px;border-radius:50%;background:#1565c0;color:#fff;border:none;font-size:20px;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center';
+    btn2.onclick=()=>{ const w=document.getElementById('form-widget'); w.style.display=w.style.display==='none'?'block':'none'; };
+    container.appendChild(btn2);
+
+    // Calcola le formule utili per questa prova
+    const pId = S.provaIdDaURL||1;
+    const formulePerProva = {
+      1:'<strong>Figure piane</strong><br>Rettangolo: A = b·h<br>Triangolo: A = (b·h)/2<br>Rombo: A = (d₁·d₂)/2<br>Trapezio: A = (a+b)/2·h<br>Cerchio: A = π·r² | C = 2πr<br>π ≈ 3,14<br><strong>Pitagora</strong><br>c² = a² + b²<br><strong>Solidi</strong><br>Cubo: V = l³ | Pball: V = l·h·p',
+      2:'<strong>Figure piane</strong><br>Rettangolo: A=b·h, P=2(b+h)<br>Cerchio: A=πr², C=2πr<br>Triangolo: A=(b·h)/2<br>Trapezio: A=(a+b)/2·h<br><strong>Pitagora</strong><br>c²=a²+b²<br><strong>Solidi</strong><br>Cilindro: V=πr²h<br>Parallelepipedo: V=l·h·p<br>π≈3,14',
+      3:'<strong>Figure piane</strong><br>Cerchio: A=πr², C=2πr<br>Settore: A=πr²·α/360°<br>Triangolo: A=(b·h)/2<br>Poligoni: somma angoli=(n-2)·180°<br><strong>Pitagora</strong><br>c²=a²+b²<br><strong>Solidi</strong><br>Cilindro: V=πr²h<br>Piramide: V=(1/3)·B·h<br>π≈3,14',
+      4:'<strong>Figure piane</strong><br>Settore: A=πr²·α/360°<br>Triangolo: A=(b·h)/2<br>Rettangolo: A=b·h<br><strong>Pitagora</strong><br>c²=a²+b²<br><strong>Solidi</strong><br>Parallelepipedo: V=l·h·p, S=2(lh+lp+hp)<br>Piramide: V=(1/3)·l²·h<br>π≈3,14',
+      5:'<strong>Figure piane</strong><br>Cerchio: A=πr², C=2πr<br>Corona: A=π(R²-r²)<br>Triangolo: A=(b·h)/2<br><strong>Pitagora</strong><br>c²=a²+b²<br><strong>Solidi</strong><br>Cilindro: V=πr²h<br>Cono: V=(1/3)πr²h<br>Sfera: V=(4/3)πr³<br>π≈3,14',
+    };
+    const formule = formulePerProva[pId] || formulePerProva[1];
+
+    const widget2 = document.createElement('div');
+    widget2.id='form-widget';
+    widget2.style.cssText='position:fixed;bottom:190px;right:12px;z-index:9991;background:#fff;border:2px solid #1565c0;border-radius:12px;padding:0;box-shadow:0 4px 20px rgba(0,0,0,.3);width:230px;user-select:none;display:none';
+    widget2.innerHTML=`
+      <div class="mat-drag-hdr" style="background:#1565c0;color:#fff;padding:8px 12px;border-radius:10px 10px 0 0;font-size:12px;font-weight:700;display:flex;justify-content:space-between;align-items:center">
+        📐 Formulario — Prova ${pId}
+        <button onclick="document.getElementById('form-widget').style.display='none'" style="background:none;border:none;color:#fff;font-size:16px;cursor:pointer;line-height:1">×</button>
+      </div>
+      <div style="padding:10px;font-size:12px;line-height:1.9;color:#222;max-height:320px;overflow-y:auto">${formule}</div>`;
+    document.body.appendChild(widget2);
+    makeDraggable(widget2);
+  }
+
+  // ── TAVOLA PITAGORICA ──────────────────────────────────────
+  if(mt.pitagorica){
+    const btn3 = document.createElement('button');
+    btn3.title='Tavola pitagorica';
+    btn3.innerHTML='✖';
+    btn3.style.cssText='width:44px;height:44px;border-radius:50%;background:#1b5e20;color:#fff;border:none;font-size:20px;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;font-weight:900';
+    btn3.onclick=()=>{ const w=document.getElementById('pit-widget'); w.style.display=w.style.display==='none'?'block':'none'; };
+    container.appendChild(btn3);
+
+    let rows='<tr><th style="background:#1b5e20;color:#fff;padding:3px 6px;font-size:10px">×</th>';
+    for(let c=1;c<=10;c++) rows+=`<th style="background:#1b5e20;color:#fff;padding:3px 6px;font-size:10px">${c}</th>`;
+    rows+='</tr>';
+    for(let r=1;r<=10;r++){
+      rows+=`<tr><th style="background:#e8f5e9;padding:3px 6px;font-size:10px;font-weight:700">${r}</th>`;
+      for(let c=1;c<=10;c++) rows+=`<td style="padding:3px 6px;text-align:center;font-size:10px;${r===c?'background:#c8e6c9;font-weight:700':''}">${r*c}</td>`;
+      rows+='</tr>';
+    }
+    const widget3 = document.createElement('div');
+    widget3.id='pit-widget';
+    widget3.style.cssText='position:fixed;bottom:250px;right:12px;z-index:9991;background:#fff;border:2px solid #1b5e20;border-radius:12px;padding:0;box-shadow:0 4px 20px rgba(0,0,0,.3);user-select:none;display:none';
+    widget3.innerHTML=`
+      <div class="mat-drag-hdr" style="background:#1b5e20;color:#fff;padding:8px 12px;border-radius:10px 10px 0 0;font-size:12px;font-weight:700;display:flex;justify-content:space-between;align-items:center">
+        ✖ Tavola pitagorica
+        <button onclick="document.getElementById('pit-widget').style.display='none'" style="background:none;border:none;color:#fff;font-size:16px;cursor:pointer;line-height:1">×</button>
+      </div>
+      <div style="padding:10px;overflow-x:auto">
+        <table style="border-collapse:collapse">${rows}</table>
+      </div>`;
+    document.body.appendChild(widget3);
+    makeDraggable(widget3);
+  }
+}
 
   // ── CALCOLATRICE ────────────────────────────────────────
   if(mt.calc){
@@ -2908,86 +3049,7 @@ function _iniziaStrumentiMat(){
           }).join('')).join('')}
       </div>
     </div>
-    <button id="calc-toggle" onclick="document.getElementById('calc-widget').style.display='block';this.style.display='none'"
-      style="display:none;background:#6a1b9a;color:#fff;border:none;border-radius:10px;padding:8px 14px;cursor:pointer;font-size:13px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.3)">
-      🔢 Calcolatrice
-    </button>`;
-    const calcDiv = document.createElement('div');
-    calcDiv.innerHTML = calcHTML;
-    panel.appendChild(calcDiv);
-  }
 
-  // ── FORMULARIO GEOMETRICO ──────────────────────────────
-  if(mt.formulario){
-    const formHTML = `
-    <div id="form-widget" style="background:#fff;border:2px solid #1565c0;border-radius:12px;padding:12px;box-shadow:0 4px 20px rgba(0,0,0,.25);width:220px">
-      <div style="font-size:11px;font-weight:700;color:#1565c0;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
-        📋 Formulario
-        <button onclick="document.getElementById('form-widget').style.display='none';document.getElementById('form-toggle').style.display='flex'"
-          style="background:none;border:none;font-size:14px;cursor:pointer;color:#aaa">−</button>
-      </div>
-      <div style="font-size:11px;line-height:1.8;color:#333">
-        <strong style="color:#1565c0">Figure piane</strong><br>
-        □ Area rettangolo: b × h<br>
-        △ Area triangolo: (b × h) ÷ 2<br>
-        ◇ Area rombo: (d₁ × d₂) ÷ 2<br>
-        ⬡ Area trapezio: (a+b) ÷ 2 × h<br>
-        ○ Area cerchio: π × r²<br>
-        ○ Circonf.: 2 × π × r<br>
-        π ≈ 3,14<br>
-        <strong style="color:#1565c0">Solidi</strong><br>
-        □ V. cubo: l³<br>
-        □ V. parall.: l × h × p<br>
-        ○ V. cilindro: π × r² × h<br>
-        <strong style="color:#1565c0">Pitagora</strong><br>
-        c² = a² + b²<br>
-        <strong style="color:#1565c0">Proporzioni</strong><br>
-        a:b = c:d → a×d = b×c
-      </div>
-    </div>
-    <button id="form-toggle" onclick="document.getElementById('form-widget').style.display='block';this.style.display='none'"
-      style="display:none;background:#1565c0;color:#fff;border:none;border-radius:10px;padding:8px 14px;cursor:pointer;font-size:13px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.3)">
-      📋 Formulario
-    </button>`;
-    const formDiv = document.createElement('div');
-    formDiv.innerHTML = formHTML;
-    panel.appendChild(formDiv);
-  }
-
-  // ── TAVOLA PITAGORICA ──────────────────────────────────
-  if(mt.pitagorica){
-    let rows='<tr><th style="background:#1b5e20;color:#fff;padding:3px 5px">×</th>';
-    for(let c=1;c<=10;c++) rows+=`<th style="background:#1b5e20;color:#fff;padding:3px 5px">${c}</th>`;
-    rows+='</tr>';
-    for(let r=1;r<=10;r++){
-      rows+=`<tr><th style="background:#e8f5e9;padding:3px 5px">${r}</th>`;
-      for(let c=1;c<=10;c++) rows+=`<td style="padding:3px 5px;text-align:center;font-size:10px;${r===c?'background:#c8e6c9;font-weight:700':''}">${r*c}</td>`;
-      rows+='</tr>';
-    }
-    const pitHTML = `
-    <div id="pit-widget" style="background:#fff;border:2px solid #1b5e20;border-radius:12px;padding:10px;box-shadow:0 4px 20px rgba(0,0,0,.25)">
-      <div style="font-size:11px;font-weight:700;color:#1b5e20;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center">
-        🔢 Tavola pitagorica
-        <button onclick="document.getElementById('pit-widget').style.display='none';document.getElementById('pit-toggle').style.display='flex'"
-          style="background:none;border:none;font-size:14px;cursor:pointer;color:#aaa">−</button>
-      </div>
-      <div style="overflow-x:auto">
-        <table style="border-collapse:collapse;font-size:10px">${rows}</table>
-      </div>
-    </div>
-    <button id="pit-toggle" onclick="document.getElementById('pit-widget').style.display='block';this.style.display='none'"
-      style="display:none;background:#1b5e20;color:#fff;border:none;border-radius:10px;padding:8px 14px;cursor:pointer;font-size:13px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.3)">
-      🔢 Tavola pita.
-    </button>`;
-    const pitDiv = document.createElement('div');
-    pitDiv.innerHTML = pitHTML;
-    panel.appendChild(pitDiv);
-  }
-
-  document.body.appendChild(panel);
-}
-
-// Logica calcolatrice
 let _calcExpr = '0', _calcNew = true;
 function _calcPress(k){
   const disp = document.getElementById('calc-disp');
@@ -3008,6 +3070,105 @@ function _calcPress(k){
   if(['+','−','×','÷'].includes(k)){ _calcNew=false; _calcExpr+=k; disp.textContent=_calcExpr; return; }
   if(_calcNew){ _calcExpr=k; _calcNew=false; } else { _calcExpr=(_calcExpr==='0'&&k!=='.')?k:_calcExpr+k; }
   disp.textContent=_calcExpr;
+}
+
+// ── DIZIONARIO INGLESE ─────────────────────────────────
+function _iniziaDizionario(){
+  if(document.getElementById('diz-container')) return;
+
+  function makeDraggable(el){
+    let ox=0,oy=0,mx=0,my=0;
+    const hdr=el.querySelector('.diz-drag-hdr'); if(!hdr) return;
+    hdr.style.cursor='grab';
+    hdr.addEventListener('mousedown',function(e){
+      e.preventDefault(); mx=e.clientX; my=e.clientY; hdr.style.cursor='grabbing';
+      function move(e){ ox=mx-e.clientX; oy=my-e.clientY; mx=e.clientX; my=e.clientY; el.style.top=(el.offsetTop-oy)+'px'; el.style.left=(el.offsetLeft-ox)+'px'; el.style.right='auto'; el.style.bottom='auto'; }
+      function up(){ document.removeEventListener('mousemove',move); document.removeEventListener('mouseup',up); hdr.style.cursor='grab'; }
+      document.addEventListener('mousemove',move); document.addEventListener('mouseup',up);
+    });
+  }
+
+  // Pallino
+  const cont = document.createElement('div');
+  cont.id='diz-container';
+  cont.style.cssText='position:fixed;bottom:72px;right:12px;z-index:9990;display:flex;flex-direction:column;gap:8px;align-items:flex-end';
+  const btn = document.createElement('button');
+  btn.title='Dizionario monolingue';
+  btn.innerHTML='📖';
+  btn.style.cssText='width:44px;height:44px;border-radius:50%;background:#1b5e20;color:#fff;border:none;font-size:20px;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center';
+  btn.onclick=()=>{ const w=document.getElementById('diz-widget'); w.style.display=w.style.display==='none'?'block':'none'; };
+  cont.appendChild(btn);
+  document.body.appendChild(cont);
+
+  // Vocabolario A1/A2
+  const voc = {
+    A:['able – capable of doing something','adventure – an exciting or unusual experience','afraid – feeling fear','agree – to have the same opinion as someone','allow – to let someone do something','angry – feeling strong displeasure','answer – a reply to a question','arrive – to reach a place'],
+    B:['beautiful – pleasing to look at','because – for the reason that','believe – to think something is true','boring – not interesting','brave – not afraid of danger','build – to make or construct something','busy – having a lot of things to do'],
+    C:['careful – giving attention to avoid mistakes','carry – to hold and take somewhere','change – to become different','cheap – low in price','choose – to select from options','clever – intelligent, quick to understand','comfortable – feeling physical ease','complain – to express dissatisfaction'],
+    D:['dangerous – likely to cause harm','decide – to make a choice','delicious – having a very pleasant taste','describe – to say what something is like','different – not the same','difficult – not easy','discover – to find or learn something new','dream – images and thoughts during sleep'],
+    E:['easy – not difficult','education – the process of learning','enjoy – to get pleasure from something','enough – as much as needed','enter – to go into a place','environment – the natural world','especially – more than usual','exciting – causing enthusiasm'],
+    F:['famous – well-known by many people','feel – to experience an emotion','finally – at the end','follow – to go after someone or something','friendly – kind and pleasant to others','frightened – feeling scared','funny – causing laughter'],
+    G:['generous – willing to give or share','glad – pleased and happy','grow – to increase in size','guess – to give an answer without being sure'],
+    H:['happen – to take place','healthy – in good physical condition','help – to make things easier for someone','honest – telling the truth','hope – to wish for something','hungry – feeling the need to eat','hurry – to move or act quickly'],
+    I:['imagine – to form a picture in your mind','important – having great significance','improve – to make better','include – to have as a part','interesting – attracting attention or curiosity','invite – to ask someone to come'],
+    J:['jealous – feeling upset about someone having more','journey – a trip from one place to another','just – only / very recently'],
+    K:['keep – to continue to have something','kind – caring and generous','know – to have information about something'],
+    L:['large – big in size','late – after the expected time','learn – to gain knowledge or skill','leave – to go away from a place','lonely – sad because of being alone','lose – to no longer have something'],
+    M:['maybe – perhaps, possibly','mean – to have a particular meaning / unkind','meet – to come together with someone','miss – to feel sad without something/someone','modern – relating to the present time','move – to change position'],
+    N:['natural – existing in nature','necessary – needed, essential','nervous – worried or anxious','notice – to become aware of something'],
+    O:['often – frequently, many times','opposite – completely different','ordinary – normal, not special'],
+    P:['patient – able to wait without getting upset','perhaps – maybe, possibly','popular – liked by many people','prepare – to make ready','problem – a difficult situation','promise – to say you will do something'],
+    Q:['question – something you ask to get information','quickly – in a short time, fast','quiet – making little or no noise'],
+    R:['reach – to arrive at','ready – prepared for something','realize – to understand something','receive – to get something sent to you','remember – to keep in mind','return – to go back to a place','right – correct / on the right side'],
+    S:['safe – free from danger','same – exactly like something else','scared – feeling fear','season – a period of year (spring, summer…)','seem – to appear to be','serious – important / not joking','share – to use something with others','shy – nervous around people','simple – easy to understand','smart – intelligent'],
+    T:['terrible – very bad','tired – feeling the need to rest','together – with each other','travel – to make a journey','true – correct, real','typical – having usual qualities'],
+    U:['understand – to know the meaning of','unusual – not common or ordinary','upset – unhappy or worried','useful – helpful, good for something'],
+    V:['visit – to go to see a place or person','voice – the sound made when speaking'],
+    W:['wait – to stay until something happens','want – to wish for something','warm – slightly hot','waste – to use more than needed','weak – not strong','win – to come first in a competition','wonder – to think about something curiously','worried – anxious about something'],
+    Y:['young – not old'],
+  };
+
+  let dizHtml = '<div style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:8px">';
+  Object.keys(voc).forEach(l=>{ dizHtml+=`<button onclick="_dizLettera('${l}')" style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:4px;padding:2px 6px;font-size:11px;font-weight:700;cursor:pointer;color:#1b5e20">${l}</button>`; });
+  dizHtml+='</div><div id="diz-results" style="font-size:12px;line-height:1.9;color:#333;max-height:250px;overflow-y:auto"></div>';
+
+  const widget = document.createElement('div');
+  widget.id='diz-widget';
+  widget.style.cssText='position:fixed;bottom:130px;right:12px;z-index:9991;background:#fff;border:2px solid #1b5e20;border-radius:12px;padding:0;box-shadow:0 4px 20px rgba(0,0,0,.3);width:280px;user-select:none;display:none';
+  widget.innerHTML=`
+    <div class="diz-drag-hdr" style="background:#1b5e20;color:#fff;padding:8px 12px;border-radius:10px 10px 0 0;font-size:12px;font-weight:700;display:flex;justify-content:space-between;align-items:center">
+      📖 Dictionary (A1/A2)
+      <button onclick="document.getElementById('diz-widget').style.display='none'" style="background:none;border:none;color:#fff;font-size:16px;cursor:pointer;line-height:1">×</button>
+    </div>
+    <div style="padding:10px">
+      <input id="diz-search" type="text" placeholder="Search a word…" oninput="_dizSearch(this.value)"
+        style="width:100%;border:1.5px solid #a5d6a7;border-radius:6px;padding:6px 10px;font-size:13px;box-sizing:border-box;margin-bottom:8px;outline:none">
+      ${dizHtml}
+    </div>`;
+  document.body.appendChild(widget);
+  makeDraggable(widget);
+
+  // Store vocabulary for search
+  window._dizVoc = voc;
+}
+
+function _dizLettera(l){
+  const voc = window._dizVoc||{};
+  const res = document.getElementById('diz-results');
+  if(!res) return;
+  const entries = (voc[l]||[]).map(e=>`<div style="padding:2px 0;border-bottom:1px solid #f0f0f0">${e}</div>`).join('');
+  res.innerHTML = entries || '<em style="color:#aaa">No entries</em>';
+}
+
+function _dizSearch(q){
+  const voc = window._dizVoc||{};
+  const res = document.getElementById('diz-results');
+  if(!res) return;
+  if(!q.trim()){ res.innerHTML=''; return; }
+  const ql = q.toLowerCase();
+  const matches = [];
+  Object.values(voc).forEach(arr=>arr.forEach(e=>{ if(e.toLowerCase().startsWith(ql)) matches.push(e); }));
+  res.innerHTML = matches.slice(0,10).map(e=>`<div style="padding:2px 0;border-bottom:1px solid #f0f0f0">${e}</div>`).join('') || '<em style="color:#aaa">No results</em>';
 }
 
 // ── TIMER ──────────────────────────────────────────────
@@ -3094,28 +3255,96 @@ function renderDom(idx){
 
   // ── BLOCCO TESTO PURO ─────────────────────────────────
   if(d.tipo==='testo'){
-    const _ttsBarBrano = S.provaIdDaURL==='custom' ? `
-      <div id="tts-browser-hint"></div>
-      <div class="tts-bar">
-        <button class="tts-btn tts-play" id="tts-play-btn" onclick="ttsToggle('brano')" title="Ascolta il testo">▶</button>
-        <button class="tts-btn tts-stop" onclick="ttsStop()" title="Ferma">■</button>
-        <span class="tts-lbl" id="tts-lbl">🔊 Ascolta il testo</span>
-        <div class="tts-vel">
-          <span>Velocità:</span>
-          <select id="tts-speed" onchange="ttsSetSpeed(this.value)">
-            <option value="0.75">🐢 Lenta</option>
-            <option value="1" selected>🚶 Normale</option>
-            <option value="1.3">🏃 Veloce</option>
-          </select>
+    const isListening = d.tit && d.tit.toUpperCase().includes('LISTENING');
+
+    if(isListening && S.materia === 'inglese'){
+      // ── LISTENING MODE: nascondi testo, leggi con TTS automaticamente ──
+      colTesto.innerHTML=`<div class="brano-wrap">
+        <div class="brano-tit">🎧 ${d.tit||'Listening'}</div>
+        <div id="listening-status" style="text-align:center;padding:30px 20px">
+          <div style="font-size:48px;margin-bottom:12px">🎧</div>
+          <div id="listening-msg" style="font-size:16px;font-weight:700;color:#1565c0;margin-bottom:8px">
+            Listen carefully. The text will be read twice.
+          </div>
+          <div id="listening-count" style="font-size:13px;color:#888;margin-bottom:16px"></div>
+          <div id="listening-progress" style="width:100%;background:#e0e0e0;border-radius:4px;height:6px;overflow:hidden;max-width:300px;margin:0 auto">
+            <div id="listening-bar" style="width:0%;background:#1565c0;height:100%;transition:width .5s;border-radius:4px"></div>
+          </div>
+          <div id="listening-warning" style="font-size:12px;color:#e65100;margin-top:12px;display:none">
+            ⚠️ Non è possibile mettere in pausa il listening.
+          </div>
         </div>
-      </div>` : '';
-    colTesto.innerHTML=`<div class="brano-wrap">
-      ${_ttsBarBrano}
-      <div class="brano-tit">📄 ${d.tit||'Testo'}</div>
-      <div class="brano-body" id="tts-brano-text">${d.testo}</div>
-      ${d.fonte?`<div class="fonte-txt">${d.fonte}</div>`:''}
-    </div>`;
-    if(S.provaIdDaURL==='custom') ttsSetTesto(d.testo);
+      </div>`;
+      // Avvia TTS automatico — 2 volte
+      const testoListen = d.testo.replace(/\[Listen[^\]]+\]/gi,'').trim();
+      let playCount = 0;
+      function playListening(){
+        playCount++;
+        const msg = document.getElementById('listening-msg');
+        const cnt = document.getElementById('listening-count');
+        const bar = document.getElementById('listening-bar');
+        const warn = document.getElementById('listening-warning');
+        if(msg) msg.textContent = playCount === 1 ? '🔊 First listening...' : '🔊 Second listening...';
+        if(cnt) cnt.textContent = `Ascolto ${playCount} di 2`;
+        if(warn) warn.style.display = 'block';
+        if(bar) bar.style.width = '0%';
+
+        const utt = new SpeechSynthesisUtterance(testoListen);
+        utt.lang = 'en-GB'; utt.rate = 0.88; utt.pitch = 1;
+        const voices = speechSynthesis.getVoices();
+        const engVoice = voices.find(v=>v.lang.startsWith('en-GB'))||voices.find(v=>v.lang.startsWith('en'))||null;
+        if(engVoice) utt.voice = engVoice;
+
+        let elapsed = 0;
+        const estDur = testoListen.split(' ').length * 0.55 * 1000; // stima ms
+        const prog = setInterval(()=>{ elapsed+=200; if(bar) bar.style.width=Math.min(100,elapsed/estDur*100)+'%'; },200);
+
+        utt.onend = ()=>{
+          clearInterval(prog);
+          if(bar) bar.style.width='100%';
+          if(playCount < 2){
+            if(msg) msg.textContent = '⏳ Pausa breve — secondo ascolto tra 5 secondi...';
+            setTimeout(playListening, 5000);
+          } else {
+            if(msg) msg.textContent = '✅ Listening completato. Rispondi alle domande.';
+            if(cnt) cnt.textContent = 'Puoi ora rispondere alle domande nella colonna di destra.';
+          }
+        };
+        speechSynthesis.cancel();
+        speechSynthesis.speak(utt);
+      }
+      // Pausa di 3 secondi poi inizia
+      setTimeout(()=>{
+        const msg = document.getElementById('listening-msg');
+        if(msg) msg.textContent = '▶ Inizio tra 3 secondi...';
+        setTimeout(playListening, 3000);
+      }, 500);
+
+    } else {
+      // ── READING MODE (o altro): mostra il testo normalmente ──
+      const _ttsBarBrano = S.provaIdDaURL==='custom' ? `
+        <div id="tts-browser-hint"></div>
+        <div class="tts-bar">
+          <button class="tts-btn tts-play" id="tts-play-btn" onclick="ttsToggle('brano')" title="Ascolta il testo">▶</button>
+          <button class="tts-btn tts-stop" onclick="ttsStop()" title="Ferma">■</button>
+          <span class="tts-lbl" id="tts-lbl">🔊 Ascolta il testo</span>
+          <div class="tts-vel">
+            <span>Velocità:</span>
+            <select id="tts-speed" onchange="ttsSetSpeed(this.value)">
+              <option value="0.75">🐢 Lenta</option>
+              <option value="1" selected>🚶 Normale</option>
+              <option value="1.3">🏃 Veloce</option>
+            </select>
+          </div>
+        </div>` : '';
+      colTesto.innerHTML=`<div class="brano-wrap">
+        ${_ttsBarBrano}
+        <div class="brano-tit">📄 ${d.tit||'Testo'}</div>
+        <div class="brano-body" id="tts-brano-text">${d.testo}</div>
+        ${d.fonte?`<div class="fonte-txt">${d.fonte}</div>`:''}
+      </div>`;
+      if(S.provaIdDaURL==='custom') ttsSetTesto(d.testo);
+    }
 
     // Su mobile: bottone Avanti dentro col-dom sotto al testo
     if(mobile){
@@ -5756,6 +5985,8 @@ function creaSessione(){
     calc:       $('tic-calc')       ? $('tic-calc').checked       : false,
     formulario: $('tic-formulario') ? $('tic-formulario').checked : false,
     pitagorica: $('tic-pitagorica') ? $('tic-pitagorica').checked : false,
+    // Strumenti inglese
+    dizionario: $('tic-dizionario') ? $('tic-dizionario').checked : false,
   };
 
   // sessKey: aggiunge suffisso -bes solo se la modalità BES è attiva
@@ -5789,6 +6020,7 @@ function creaSessione(){
   if(TIC.calc)       params.set('calc','1');
   if(TIC.formulario) params.set('formulario','1');
   if(TIC.pitagorica) params.set('pitagorica','1');
+  if(TIC.dizionario) params.set('dizionario','1');
 
   const link = `${base}?${params.toString()}`;
   const prove = getProveMateria();
@@ -5806,6 +6038,7 @@ function creaSessione(){
   if(TIC.calc)       ticAttivi.push('🔢 Calcolatrice');
   if(TIC.formulario) ticAttivi.push('📋 Formulario');
   if(TIC.pitagorica) ticAttivi.push('🔢 Tavola pita.');
+  if(TIC.dizionario) ticAttivi.push('📖 Dizionario');
   const ticLabel = ticAttivi.length ? ticAttivi.join(' · ') : 'Standard';
   const titoloDisplay = prova?.titolo||'';
 
@@ -6777,6 +7010,10 @@ function _aggiornaPannelloNuovaSessione(){
   const ticMat = document.getElementById('tic-mat-section');
   if(ticMat) ticMat.style.display = m === 'matematica' ? 'block' : 'none';
 
+  // 0b. TIC strumenti inglese — mostra solo per inglese
+  const ticEng = document.getElementById('tic-eng-section');
+  if(ticEng) ticEng.style.display = m === 'inglese' ? 'block' : 'none';
+
   // 1. Titolo pannello standard
   const h3Std = document.querySelector('#st-standard h3');
   const matIco = {italiano:'📖',matematica:'📐',inglese:'🇬🇧'};
@@ -7695,6 +7932,7 @@ window.addEventListener('load', () => {
     calc:       params.get('calc')       === '1',
     formulario: params.get('formulario') === '1',
     pitagorica: params.get('pitagorica') === '1',
+    dizionario: params.get('dizionario') === '1',
   };
   applicaCFG(materiaURL);
 
