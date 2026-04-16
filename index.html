@@ -2945,23 +2945,34 @@ function _iniziaStrumentiMat(){
     const widget = document.createElement('div');
     widget.id='calc-widget';
     widget.style.cssText='position:fixed;bottom:130px;right:12px;z-index:9991;background:#fff;border:2px solid #6a1b9a;border-radius:12px;padding:0;box-shadow:0 4px 20px rgba(0,0,0,.3);width:210px;user-select:none;display:none';
-    widget.innerHTML=`
-      <div class="mat-drag-hdr" style="background:#6a1b9a;color:#fff;padding:8px 12px;border-radius:10px 10px 0 0;font-size:12px;font-weight:700;display:flex;justify-content:space-between;align-items:center">
-        🔢 Calcolatrice
-        <button onclick="document.getElementById('calc-widget').style.display='none'" style="background:none;border:none;color:#fff;font-size:16px;cursor:pointer;line-height:1">×</button>
-      </div>
-      <div style="padding:10px">
-        <div id="calc-disp" style="background:#1a1a2e;color:#00e676;font-family:monospace;font-size:19px;text-align:right;padding:8px 10px;border-radius:6px;margin-bottom:8px;min-height:34px;overflow:hidden;word-break:break-all">0</div>
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px">
-          ${[['C','←','%','÷'],['7','8','9','×'],['4','5','6','−'],['1','2','3','+'],['±','0','.','=']]
-            .map(row=>row.map(k=>{
-              const col=k==='='?'#6a1b9a':['÷','×','−','+'].includes(k)?'#7b1fa2':k==='C'?'#c62828':'#424242';
-              return `<button onclick="_calcPress('${k}')" style="background:${col};color:#fff;border:none;border-radius:6px;padding:9px 4px;cursor:pointer;font-size:14px;font-weight:600;touch-action:manipulation">${k}</button>`;
-            }).join('')).join('')}
-        </div>
-      </div>`;
+    // Build innerHTML senza template literal annidati
+    widget.innerHTML =
+      '<div class="mat-drag-hdr" style="background:#6a1b9a;color:#fff;padding:8px 12px;border-radius:10px 10px 0 0;font-size:12px;font-weight:700;display:flex;justify-content:space-between;align-items:center">'
+      + '<span>&#x1F522; Calcolatrice</span>'
+      + '<button onclick="document.getElementById(\'calc-widget\').style.display=\'none\'" style="background:none;border:none;color:#fff;font-size:16px;cursor:pointer">&#x2715;</button>'
+      + '</div>'
+      + '<div style="padding:10px">'
+      + '<div id="calc-disp" style="background:#1a1a2e;color:#00e676;font-family:monospace;font-size:19px;text-align:right;padding:8px 10px;border-radius:6px;margin-bottom:8px;min-height:34px;overflow:hidden;word-break:break-all">0</div>'
+      + '<div id="calc-keys" style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px"></div>'
+      + '</div>';
     document.body.appendChild(widget);
+    // Genera tasti dinamicamente (evita template literal annidati)
+    (function(){
+      var keys = [['C','←','%','÷'],['7','8','9','×'],['4','5','6','−'],['1','2','3','+'],['±','0','.','=']];
+      var grid = widget.querySelector('#calc-keys');
+      keys.forEach(function(row){
+        row.forEach(function(k){
+          var col = k==='='?'#6a1b9a':(k==='÷'||k==='×'||k==='−'||k==='+')?'#7b1fa2':k==='C'?'#c62828':'#424242';
+          var b = document.createElement('button');
+          b.textContent = k;
+          b.style.cssText = 'background:'+col+';color:#fff;border:none;border-radius:6px;padding:9px 4px;cursor:pointer;font-size:14px;font-weight:600;touch-action:manipulation;width:100%';
+          b.addEventListener('click', function(){ _calcPress(this.textContent); });
+          grid.appendChild(b);
+        });
+      });
+    })();
     makeDraggable(widget);
+
   }
 
   // ── FORMULARIO ────────────────────────────────────────────
@@ -3007,49 +3018,28 @@ function _iniziaStrumentiMat(){
     container.appendChild(btn3);
 
     let rows='<tr><th style="background:#1b5e20;color:#fff;padding:3px 6px;font-size:10px">×</th>';
-    for(let c=1;c<=10;c++) rows+=`<th style="background:#1b5e20;color:#fff;padding:3px 6px;font-size:10px">${c}</th>`;
+    for(let c=1;c<=10;c++) rows+='<th style="background:#1b5e20;color:#fff;padding:3px 6px;font-size:10px">'+c+'</th>';
     rows+='</tr>';
     for(let r=1;r<=10;r++){
-      rows+=`<tr><th style="background:#e8f5e9;padding:3px 6px;font-size:10px;font-weight:700">${r}</th>`;
-      for(let c=1;c<=10;c++) rows+=`<td style="padding:3px 6px;text-align:center;font-size:10px;${r===c?'background:#c8e6c9;font-weight:700':''}">${r*c}</td>`;
+      rows+='<tr><th style="background:#e8f5e9;padding:3px 6px;font-size:10px;font-weight:700">'+r+'</th>';
+      for(let c=1;c<=10;c++) rows+='<td style="padding:3px 6px;text-align:center;font-size:10px;'+(r===c?'background:#c8e6c9;font-weight:700':'')+'">'+r*c+'</td>';
       rows+='</tr>';
     }
     const widget3 = document.createElement('div');
     widget3.id='pit-widget';
     widget3.style.cssText='position:fixed;bottom:250px;right:12px;z-index:9991;background:#fff;border:2px solid #1b5e20;border-radius:12px;padding:0;box-shadow:0 4px 20px rgba(0,0,0,.3);user-select:none;display:none';
-    widget3.innerHTML=`
-      <div class="mat-drag-hdr" style="background:#1b5e20;color:#fff;padding:8px 12px;border-radius:10px 10px 0 0;font-size:12px;font-weight:700;display:flex;justify-content:space-between;align-items:center">
-        ✖ Tavola pitagorica
-        <button onclick="document.getElementById('pit-widget').style.display='none'" style="background:none;border:none;color:#fff;font-size:16px;cursor:pointer;line-height:1">×</button>
-      </div>
-      <div style="padding:10px;overflow-x:auto">
-        <table style="border-collapse:collapse">${rows}</table>
-      </div>`;
+    widget3.innerHTML =
+      '<div class="mat-drag-hdr" style="background:#1b5e20;color:#fff;padding:8px 12px;border-radius:10px 10px 0 0;font-size:12px;font-weight:700;display:flex;justify-content:space-between;align-items:center">'
+      +'<span>&#10006; Tavola pitagorica</span>'
+      +'<button onclick="document.getElementById(\'pit-widget\').style.display=\'none\'" style="background:none;border:none;color:#fff;font-size:16px;cursor:pointer">&#x2715;</button>'
+      +'</div>'
+      +'<div style="padding:10px;overflow-x:auto"><table style="border-collapse:collapse">'+rows+'</table></div>';
     document.body.appendChild(widget3);
     makeDraggable(widget3);
   }
 }
 
   // ── CALCOLATRICE ────────────────────────────────────────
-  if(mt.calc){
-    let calcExpr = '0', calcNew = true;
-    const calcHTML = `
-    <div id="calc-widget" style="background:#fff;border:2px solid #6a1b9a;border-radius:12px;padding:12px;box-shadow:0 4px 20px rgba(0,0,0,.25);width:200px">
-      <div style="font-size:11px;font-weight:700;color:#6a1b9a;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
-        🔢 Calcolatrice
-        <button onclick="document.getElementById('calc-widget').style.display='none';document.getElementById('calc-toggle').style.display='flex'"
-          style="background:none;border:none;font-size:14px;cursor:pointer;color:#aaa">−</button>
-      </div>
-      <div id="calc-disp" style="background:#1a1a2e;color:#00e676;font-family:monospace;font-size:18px;text-align:right;padding:8px 10px;border-radius:6px;margin-bottom:8px;min-height:32px;overflow:hidden;word-break:break-all">0</div>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;font-size:13px">
-        ${[['C','←','%','÷'],['7','8','9','×'],['4','5','6','−'],['1','2','3','+'],['±','0','.','=']]
-          .map(row=>row.map(k=>{
-            const col=k==='='?'#6a1b9a':['÷','×','−','+'].includes(k)?'#4a0090':k==='C'?'#c62828':'#333';
-            return `<button onclick="_calcPress('${k}')" style="background:${col};color:#fff;border:none;border-radius:6px;padding:8px 4px;cursor:pointer;font-size:13px;font-weight:600">${k}</button>`;
-          }).join('')).join('')}
-      </div>
-    </div>
-
 let _calcExpr = '0', _calcNew = true;
 function _calcPress(k){
   const disp = document.getElementById('calc-disp');
@@ -3101,35 +3091,10 @@ function _iniziaDizionario(){
   document.body.appendChild(cont);
 
   // Vocabolario A1/A2
-  const voc = {
-    A:['able – capable of doing something','adventure – an exciting or unusual experience','afraid – feeling fear','agree – to have the same opinion as someone','allow – to let someone do something','angry – feeling strong displeasure','answer – a reply to a question','arrive – to reach a place'],
-    B:['beautiful – pleasing to look at','because – for the reason that','believe – to think something is true','boring – not interesting','brave – not afraid of danger','build – to make or construct something','busy – having a lot of things to do'],
-    C:['careful – giving attention to avoid mistakes','carry – to hold and take somewhere','change – to become different','cheap – low in price','choose – to select from options','clever – intelligent, quick to understand','comfortable – feeling physical ease','complain – to express dissatisfaction'],
-    D:['dangerous – likely to cause harm','decide – to make a choice','delicious – having a very pleasant taste','describe – to say what something is like','different – not the same','difficult – not easy','discover – to find or learn something new','dream – images and thoughts during sleep'],
-    E:['easy – not difficult','education – the process of learning','enjoy – to get pleasure from something','enough – as much as needed','enter – to go into a place','environment – the natural world','especially – more than usual','exciting – causing enthusiasm'],
-    F:['famous – well-known by many people','feel – to experience an emotion','finally – at the end','follow – to go after someone or something','friendly – kind and pleasant to others','frightened – feeling scared','funny – causing laughter'],
-    G:['generous – willing to give or share','glad – pleased and happy','grow – to increase in size','guess – to give an answer without being sure'],
-    H:['happen – to take place','healthy – in good physical condition','help – to make things easier for someone','honest – telling the truth','hope – to wish for something','hungry – feeling the need to eat','hurry – to move or act quickly'],
-    I:['imagine – to form a picture in your mind','important – having great significance','improve – to make better','include – to have as a part','interesting – attracting attention or curiosity','invite – to ask someone to come'],
-    J:['jealous – feeling upset about someone having more','journey – a trip from one place to another','just – only / very recently'],
-    K:['keep – to continue to have something','kind – caring and generous','know – to have information about something'],
-    L:['large – big in size','late – after the expected time','learn – to gain knowledge or skill','leave – to go away from a place','lonely – sad because of being alone','lose – to no longer have something'],
-    M:['maybe – perhaps, possibly','mean – to have a particular meaning / unkind','meet – to come together with someone','miss – to feel sad without something/someone','modern – relating to the present time','move – to change position'],
-    N:['natural – existing in nature','necessary – needed, essential','nervous – worried or anxious','notice – to become aware of something'],
-    O:['often – frequently, many times','opposite – completely different','ordinary – normal, not special'],
-    P:['patient – able to wait without getting upset','perhaps – maybe, possibly','popular – liked by many people','prepare – to make ready','problem – a difficult situation','promise – to say you will do something'],
-    Q:['question – something you ask to get information','quickly – in a short time, fast','quiet – making little or no noise'],
-    R:['reach – to arrive at','ready – prepared for something','realize – to understand something','receive – to get something sent to you','remember – to keep in mind','return – to go back to a place','right – correct / on the right side'],
-    S:['safe – free from danger','same – exactly like something else','scared – feeling fear','season – a period of year (spring, summer…)','seem – to appear to be','serious – important / not joking','share – to use something with others','shy – nervous around people','simple – easy to understand','smart – intelligent'],
-    T:['terrible – very bad','tired – feeling the need to rest','together – with each other','travel – to make a journey','true – correct, real','typical – having usual qualities'],
-    U:['understand – to know the meaning of','unusual – not common or ordinary','upset – unhappy or worried','useful – helpful, good for something'],
-    V:['visit – to go to see a place or person','voice – the sound made when speaking'],
-    W:['wait – to stay until something happens','want – to wish for something','warm – slightly hot','waste – to use more than needed','weak – not strong','win – to come first in a competition','wonder – to think about something curiously','worried – anxious about something'],
-    Y:['young – not old'],
-  };
+  const voc = window._dizVoc || {};
 
   let dizHtml = '<div style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:8px">';
-  Object.keys(voc).forEach(l=>{ dizHtml+=`<button onclick="_dizLettera('${l}')" style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:4px;padding:2px 6px;font-size:11px;font-weight:700;cursor:pointer;color:#1b5e20">${l}</button>`; });
+  Object.keys(voc).forEach(function(l){ dizHtml+='<button data-l="'+l+'" onclick="_dizLettera(this.dataset.l)" style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:4px;padding:2px 6px;font-size:11px;font-weight:700;cursor:pointer;color:#1b5e20">'+l+'</button>'; });
   dizHtml+='</div><div id="diz-results" style="font-size:12px;line-height:1.9;color:#333;max-height:250px;overflow-y:auto"></div>';
 
   const widget = document.createElement('div');
@@ -8181,6 +8146,7 @@ function generaLinkCP(){
 }
 </script>
 <!-- ═══ PROVE 1-5 COMPLETE (carica dopo il motore principale) ═══ -->
+<script src="diz_eng.js"></script>
 <script src="prove_1_5.js"></script>
 <!-- ═══ PROVE 6-10 ITALIANO ═══ -->
 <script src="prove_6_10.js"></script>
