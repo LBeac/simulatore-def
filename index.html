@@ -3230,7 +3230,7 @@ function renderDom(idx){
     // Su mobile: VF verticale (un'affermazione per riga con bottoni grandi)
     if(mobile){
       html+=`<div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">`;
-      d.righe.forEach((r,i)=>{
+      (d.righe||d.righeVF||[]).forEach((r,i)=>{
         const selV=risp[i]==='V', selF=risp[i]==='F';
         html+=`<div style="border:2px solid ${selV||selF?'var(--az)':'var(--grigio)'};border-radius:10px;padding:12px;background:${selV||selF?'#e8f0fb':'#fff'}">
           <div style="font-size:13px;line-height:1.5;margin-bottom:10px;color:#222">
@@ -3249,7 +3249,7 @@ function renderDom(idx){
         <th style="width:22%;text-align:center">${col1}</th>
         <th style="width:23%;text-align:center">${col2}</th>
       </tr></thead><tbody>`;
-      d.righe.forEach((r,i)=>{
+      (d.righe||d.righeVF||[]).forEach((r,i)=>{
         const selV=risp[i]==='V', selF=risp[i]==='F';
         html+=`<tr>
           <td>${String.fromCharCode(97+i)}) ${r.t}</td>
@@ -3817,9 +3817,9 @@ function calcolaRisultati(){
 
     } else if(d.tipo==='vf'){
       const risp=mia||{};
-      d.righe.forEach((r,i)=>{
+      (d.righe||d.righeVF||[]).forEach((r,i)=>{
         tot++; sez[d.sez].t++;
-        const corr=r.ok?'V':'F';
+        const corr=r.ok==='V'||r.ok===true?'V':'F';
         const ok=risp[i]===corr;
         if(ok){corrette++;sez[d.sez].c++;}
         else errComp[d.comp]=(errComp[d.comp]||0)+1;
@@ -4566,9 +4566,9 @@ function ttsPrepDomanda(d){
     t += '. Le opzioni sono: ';
     var lettere = ['A','B','C','D'];
     d.ops.forEach(function(op, i){ t += lettere[i] + ': ' + op + '. '; });
-  } else if(d.tipo === 'vf' && d.righe){
+  } else if(d.tipo === 'vf' && (d.righe||d.righeVF)){
     t += '. Indica vero o falso per: ';
-    d.righe.forEach(function(r, i){ t += (i+1) + ': ' + r.t + '. '; });
+    (d.righe||d.righeVF||[]).forEach(function(r, i){ t += (i+1) + ': ' + r.t + '. '; });
   }
   _ttsDomId = d.id;
   window._ttsDomTesto = t;
