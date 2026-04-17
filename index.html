@@ -457,7 +457,7 @@ html, body{
 #ris-detail{font-size:15px;line-height:1.7}
 #ris-detail .risp-sez-group{margin-bottom:20px}
 #ris-detail .risp-sez-hdr{font-size:12px;font-weight:700;text-transform:uppercase;color:#fff;background:var(--blu);padding:8px 14px;border-radius:6px;margin-bottom:10px;letter-spacing:.5px}
-#ris-detail .risp-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--grigio-ch);line-height:1.6}
+#ris-detail .risp-item{display:block;padding:10px 0;border-bottom:1px solid var(--grigio-ch);line-height:1.6}
 #ris-detail .risp-ico{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;margin-top:2px}
 #ris-detail .risp-ico.ok{background:#e8f5e9;color:var(--verde)}
 #ris-detail .risp-ico.no{background:#fce4e4;color:var(--rosso)}
@@ -491,7 +491,7 @@ html, body{
 .risp-detail{padding:0 20px 20px}
 .risp-detail h3{font-size:14px;font-weight:700;color:var(--blu);margin-bottom:14px;padding-top:14px;border-top:2px solid var(--grigio)}
 .risp-sez-hdr{font-size:11px;font-weight:700;text-transform:uppercase;color:#fff;background:var(--blu);padding:6px 12px;border-radius:5px;margin-bottom:8px;letter-spacing:.5px}
-.risp-item{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid var(--grigio-ch);font-size:12px;line-height:1.5}
+.risp-item{display:block;padding:10px 0;border-bottom:1px solid var(--grigio-ch);font-size:13px;line-height:1.6}
 .risp-ico{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;margin-top:2px}
 .risp-ico.ok{background:#e8f5e9;color:var(--verde)}
 .risp-ico.no{background:#fce4e4;color:var(--rosso)}
@@ -2927,7 +2927,7 @@ function _iniziaStrumentiMat(){
   // Contenitore pallini (fisso in basso a destra)
   const container = document.createElement('div');
   container.id = 'mat-tools-container';
-  container.style.cssText = 'position:fixed;bottom:72px;right:12px;z-index:9990;display:flex;flex-direction:column;gap:8px;align-items:flex-end';
+  container.style.cssText = 'position:fixed;bottom:72px;right:12px;z-index:9990;display:flex;flex-direction:column;gap:10px;align-items:flex-end';
   document.body.appendChild(container);
 
   // ── CALCOLATRICE ──────────────────────────────────────────
@@ -3081,7 +3081,7 @@ function _iniziaDizionario(){
   // Pallino
   const cont = document.createElement('div');
   cont.id='diz-container';
-  cont.style.cssText='position:fixed;bottom:72px;right:12px;z-index:9990;display:flex;flex-direction:column;gap:8px;align-items:flex-end';
+  cont.style.cssText='position:fixed;bottom:130px;right:12px;z-index:9990;display:flex;flex-direction:column;gap:8px;align-items:flex-end';
   const btn = document.createElement('button');
   btn.title='Dizionario monolingue';
   btn.innerHTML='📖';
@@ -3132,7 +3132,7 @@ function _dizSearch(q){
   if(!q.trim()){ res.innerHTML=''; return; }
   const ql = q.toLowerCase();
   const matches = [];
-  Object.values(voc).forEach(arr=>arr.forEach(e=>{ if(e.toLowerCase().startsWith(ql)) matches.push(e); }));
+  Object.values(voc).forEach(arr=>arr.forEach(e=>{ if(e.toLowerCase().includes(ql)) matches.push(e); }));
   res.innerHTML = matches.slice(0,10).map(e=>`<div style="padding:2px 0;border-bottom:1px solid #f0f0f0">${e}</div>`).join('') || '<em style="color:#aaa">No results</em>';
 }
 
@@ -3223,67 +3223,101 @@ function renderDom(idx){
     const isListening = d.tit && d.tit.toUpperCase().includes('LISTENING');
 
     if(isListening && S.materia === 'inglese'){
-      // ── LISTENING MODE: nascondi testo, leggi con TTS automaticamente ──
+      // ── LISTENING MODE: testo nascosto, audio su click ──────
+      const testoListen = d.testo.replace(/\[Listen[^\]]+\]/gi,'').trim();
       colTesto.innerHTML=`<div class="brano-wrap">
         <div class="brano-tit">🎧 ${d.tit||'Listening'}</div>
         <div id="listening-status" style="text-align:center;padding:30px 20px">
-          <div style="font-size:48px;margin-bottom:12px">🎧</div>
-          <div id="listening-msg" style="font-size:16px;font-weight:700;color:#1565c0;margin-bottom:8px">
-            Listen carefully. The text will be read twice.
+          <div style="font-size:56px;margin-bottom:14px">🎧</div>
+          <div id="listening-msg" style="font-size:15px;font-weight:700;color:#1565c0;margin-bottom:6px">
+            Listen carefully. You can listen <strong>twice</strong>.
           </div>
-          <div id="listening-count" style="font-size:13px;color:#888;margin-bottom:16px"></div>
-          <div id="listening-progress" style="width:100%;background:#e0e0e0;border-radius:4px;height:6px;overflow:hidden;max-width:300px;margin:0 auto">
-            <div id="listening-bar" style="width:0%;background:#1565c0;height:100%;transition:width .5s;border-radius:4px"></div>
+          <div id="listening-count" style="font-size:13px;color:#888;margin-bottom:18px"></div>
+          <button id="btn-listen" onclick="listenStart()"
+            style="background:#1565c0;color:#fff;border:none;border-radius:10px;
+                   padding:14px 32px;font-size:16px;font-weight:700;cursor:pointer;
+                   box-shadow:0 3px 12px rgba(21,101,192,.4);display:inline-flex;
+                   align-items:center;gap:10px">
+            ▶&nbsp; Listen (1st time)
+          </button>
+          <div id="listening-progress" style="width:100%;max-width:340px;background:#e0e0e0;
+               border-radius:4px;height:6px;overflow:hidden;margin:18px auto 0;display:none">
+            <div id="listening-bar" style="width:0%;background:#1565c0;height:100%;
+                 transition:width .4s;border-radius:4px"></div>
           </div>
-          <div id="listening-warning" style="font-size:12px;color:#e65100;margin-top:12px;display:none">
-            ⚠️ Non è possibile mettere in pausa il listening.
+          <div id="listening-done" style="display:none;margin-top:18px;
+               background:#e8f5e9;border-radius:8px;padding:12px 16px;
+               font-size:13px;color:#1b5e20;font-weight:600">
+            ✅ Listening completato. Rispondi alle domande.
           </div>
         </div>
       </div>`;
-      // Avvia TTS automatico — 2 volte
-      const testoListen = d.testo.replace(/\[Listen[^\]]+\]/gi,'').trim();
-      let playCount = 0;
-      function playListening(){
-        playCount++;
-        const msg = document.getElementById('listening-msg');
-        const cnt = document.getElementById('listening-count');
-        const bar = document.getElementById('listening-bar');
-        const warn = document.getElementById('listening-warning');
-        if(msg) msg.textContent = playCount === 1 ? '🔊 First listening...' : '🔊 Second listening...';
-        if(cnt) cnt.textContent = `Ascolto ${playCount} di 2`;
-        if(warn) warn.style.display = 'block';
-        if(bar) bar.style.width = '0%';
+
+      // Funzione avvia ascolto — max 2 volte
+      let _listenCount = 0;
+      window.listenStart = function(){
+        if(_listenCount >= 2) return;
+        _listenCount++;
+        const btn  = document.getElementById('btn-listen');
+        const msg  = document.getElementById('listening-msg');
+        const cnt  = document.getElementById('listening-count');
+        const bar  = document.getElementById('listening-bar');
+        const prog = document.getElementById('listening-progress');
+        const done = document.getElementById('listening-done');
+
+        // Aggiorna UI durante ascolto
+        if(btn)  { btn.disabled = true; btn.style.opacity='0.5'; btn.textContent = '🔊 Playing...'; }
+        if(msg)  msg.textContent = _listenCount === 1 ? '🔊 First listening...' : '🔊 Second listening...';
+        if(cnt)  cnt.textContent = 'Listening ' + _listenCount + ' of 2';
+        if(prog) prog.style.display = 'block';
+        if(bar)  bar.style.width = '0%';
 
         const utt = new SpeechSynthesisUtterance(testoListen);
-        utt.lang = 'en-GB'; utt.rate = 0.88; utt.pitch = 1;
-        const voices = speechSynthesis.getVoices();
-        const engVoice = voices.find(v=>v.lang.startsWith('en-GB'))||voices.find(v=>v.lang.startsWith('en'))||null;
+        utt.lang  = 'en-GB';
+        utt.rate  = 0.85;
+        utt.pitch = 1;
+        // Scegli voce inglese se disponibile
+        const engVoice = speechSynthesis.getVoices().find(function(v){ return v.lang.startsWith('en-GB'); })
+                      || speechSynthesis.getVoices().find(function(v){ return v.lang.startsWith('en'); })
+                      || null;
         if(engVoice) utt.voice = engVoice;
 
+        // Barra di avanzamento
         let elapsed = 0;
-        const estDur = testoListen.split(' ').length * 0.55 * 1000; // stima ms
-        const prog = setInterval(()=>{ elapsed+=200; if(bar) bar.style.width=Math.min(100,elapsed/estDur*100)+'%'; },200);
+        const estMs = testoListen.split(' ').length * 600;
+        const progInt = setInterval(function(){
+          elapsed += 200;
+          if(bar) bar.style.width = Math.min(96, elapsed / estMs * 100) + '%';
+        }, 200);
 
-        utt.onend = ()=>{
-          clearInterval(prog);
-          if(bar) bar.style.width='100%';
-          if(playCount < 2){
-            if(msg) msg.textContent = '⏳ Pausa breve — secondo ascolto tra 5 secondi...';
-            setTimeout(playListening, 5000);
+        utt.onend = function(){
+          clearInterval(progInt);
+          if(bar) bar.style.width = '100%';
+
+          if(_listenCount < 2){
+            // Primo ascolto finito: riabilita pulsante per il secondo
+            if(btn){
+              btn.disabled = false;
+              btn.style.opacity = '1';
+              btn.innerHTML = '▶&nbsp; Listen (2nd time)';
+              btn.style.background = '#0d47a1';
+            }
+            if(msg) msg.textContent = 'You may listen one more time.';
+            if(cnt) cnt.textContent = '1 of 2 listenings done';
           } else {
-            if(msg) msg.textContent = '✅ Listening completato. Rispondi alle domande.';
-            if(cnt) cnt.textContent = 'Puoi ora rispondere alle domande nella colonna di destra.';
+            // Secondo ascolto finito: blocca tutto
+            if(btn)  { btn.style.display = 'none'; }
+            if(msg)  msg.style.display = 'none';
+            if(cnt)  cnt.style.display = 'none';
+            if(prog) prog.style.display = 'none';
+            if(done) done.style.display = 'block';
           }
         };
+
         speechSynthesis.cancel();
         speechSynthesis.speak(utt);
-      }
-      // Pausa di 3 secondi poi inizia
-      setTimeout(()=>{
-        const msg = document.getElementById('listening-msg');
-        if(msg) msg.textContent = '▶ Inizio tra 3 secondi...';
-        setTimeout(playListening, 3000);
-      }, 500);
+      };
+
 
     } else {
       // ── READING MODE (o altro): mostra il testo normalmente ──
@@ -3312,7 +3346,18 @@ function renderDom(idx){
     }
 
     // Su mobile: bottone Avanti dentro col-dom sotto al testo
-    if(mobile){
+    if(isListening && S.materia === 'inglese'){
+      // Listening: col-dom mostra solo istruzione ascolto
+      $('col-dom').innerHTML=`
+        <div style="padding:18px 16px 20px;text-align:center">
+          <div style="font-size:13px;color:#888;margin-bottom:14px">
+            🎧 Ascolta il testo, poi premi <strong>Avanti</strong> per le domande.
+          </div>
+          <button class="btn btn-p" onclick="avanti()" style="width:100%;padding:14px;font-size:16px;border-radius:10px">
+            Avanti → Le domande
+          </button>
+        </div>`;
+    } else if(mobile){
       $('col-dom').innerHTML=`
         <div style="padding:18px 16px 20px;text-align:center">
           <div style="font-size:13px;color:#888;margin-bottom:14px">
@@ -3336,32 +3381,48 @@ function renderDom(idx){
   // ── DOMANDA: aggiorna colonna testo con brano di riferimento ──
   const ref=trovaRef(domande,idx);
   if(ref){
-    const _ttsBarRef = S.provaIdDaURL==='custom' ? `
-      <div id="tts-browser-hint"></div>
-      <div class="tts-bar">
-        <button class="tts-btn tts-play" id="tts-play-btn" onclick="ttsToggle('brano')" title="Ascolta il testo">▶</button>
-        <button class="tts-btn tts-stop" onclick="ttsStop()" title="Ferma">■</button>
-        <span class="tts-lbl" id="tts-lbl">🔊 Ascolta il testo</span>
-        <div class="tts-vel">
-          <span>Velocità:</span>
-          <select id="tts-speed" onchange="ttsSetSpeed(this.value)">
-            <option value="0.75">🐢 Lenta</option>
-            <option value="1" selected>🚶 Normale</option>
-            <option value="1.3">🏃 Veloce</option>
-          </select>
+    const isRefListening = ref.tit && ref.tit.toUpperCase().includes('LISTENING') && S.materia==='inglese';
+    if(isRefListening){
+      // Listening: non mostrare il testo — solo indicatore audio
+      colTesto.innerHTML=`<div class="brano-wrap">
+        <div class="brano-tit">🎧 ${ref.tit||'Listening'}</div>
+        <div style="text-align:center;padding:30px 20px;color:#888">
+          <div style="font-size:48px;margin-bottom:10px">🎧</div>
+          <div style="font-size:14px;font-weight:600;color:#1565c0">Testo audio</div>
+          <div style="font-size:12px;margin-top:6px">Il testo è disponibile solo in formato audio.<br>Rispondi in base a quello che hai ascoltato.</div>
         </div>
-      </div>` : '';
-    colTesto.innerHTML=`<div class="brano-wrap">
-      ${_ttsBarRef}
-      <div class="brano-tit">📄 ${ref.tit||'Testo'}</div>
-      <div class="brano-body" id="tts-brano-text">${ref.testo}</div>
-      ${ref.fonte?`<div class="fonte-txt">${ref.fonte}</div>`:''}
-    </div>`;
-    if(S.provaIdDaURL==='custom') ttsSetTesto(ref.testo);
-    // Reimposta layout normale se c'è un testo di riferimento
-    colTesto.style.cssText = '';
-    const cdRef = document.getElementById('col-dom');
-    if(cdRef) cdRef.style.cssText = '';
+      </div>`;
+      colTesto.style.cssText = '';
+      const cdRef = document.getElementById('col-dom');
+      if(cdRef) cdRef.style.cssText = '';
+    } else {
+      const _ttsBarRef = S.provaIdDaURL==='custom' ? `
+        <div id="tts-browser-hint"></div>
+        <div class="tts-bar">
+          <button class="tts-btn tts-play" id="tts-play-btn" onclick="ttsToggle('brano')" title="Ascolta il testo">▶</button>
+          <button class="tts-btn tts-stop" onclick="ttsStop()" title="Ferma">■</button>
+          <span class="tts-lbl" id="tts-lbl">🔊 Ascolta il testo</span>
+          <div class="tts-vel">
+            <span>Velocità:</span>
+            <select id="tts-speed" onchange="ttsSetSpeed(this.value)">
+              <option value="0.75">🐢 Lenta</option>
+              <option value="1" selected>🚶 Normale</option>
+              <option value="1.3">🏃 Veloce</option>
+            </select>
+          </div>
+        </div>` : '';
+      colTesto.innerHTML=`<div class="brano-wrap">
+        ${_ttsBarRef}
+        <div class="brano-tit">📄 ${ref.tit||'Testo'}</div>
+        <div class="brano-body" id="tts-brano-text">${ref.testo}</div>
+        ${ref.fonte?`<div class="fonte-txt">${ref.fonte}</div>`:''}
+      </div>`;
+      if(S.provaIdDaURL==='custom') ttsSetTesto(ref.testo);
+      // Reimposta layout normale se c'è un testo di riferimento
+      colTesto.style.cssText = '';
+      const cdRef = document.getElementById('col-dom');
+      if(cdRef) cdRef.style.cssText = '';
+    }
   } else {
     colTesto.innerHTML=`<div class="no-testo">
       <div class="no-testo-ico">📝</div>
@@ -3565,7 +3626,6 @@ function renderDom(idx){
             style="background:none;border:1.5px solid var(--grigio);border-radius:6px;padding:8px 12px;
                    cursor:pointer;color:#888;font-size:12px">✕ Cancella</button>
         </div>
-        ${d.suggerimento ? `<div style="margin-top:10px;font-size:12px;color:#888;background:#f5f7fa;padding:6px 10px;border-radius:6px">💡 ${d.suggerimento}</div>` : ''}
       </div>`;
   }
 
@@ -4116,14 +4176,16 @@ function calcolaRisultati(){
     ds.forEach((x,i)=>{
       const icoC=x.ok?'ok':(x.mia===undefined?'sk':'no');
       rH+=`<div class="risp-item">
-        <div class="risp-ico ${icoC}">${x.ok?'✓':(x.mia===undefined?'–':'✗')}</div>
-        <div style="flex:1">
-          <div class="risp-q"><strong>${i+1}.</strong> ${x.d.testo.substring(0,100)}${x.d.testo.length>100?'…':''}</div>
-          <div class="risp-mia" style="margin-top:4px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+          <div class="risp-ico ${icoC}">${x.ok?'✓':(x.mia===undefined?'–':'✗')}</div>
+          <div class="risp-q" style="font-weight:700"><strong>${i+1}.</strong> ${x.d.testo.substring(0,120)}${x.d.testo.length>120?'…':''}</div>
+        </div>
+        <div style="padding-left:28px">
+          <div class="risp-mia">
             La tua risposta: <span style="font-weight:700;color:${x.ok?'var(--verde)':'var(--rosso)'}">${x.miaLbl}</span>
-            ${!x.ok?`&ensp;→&ensp;<span class="risp-giusta">✓ Corretta: ${x.okLbl}</span>`:''}
           </div>
-          <div style="font-size:11px;color:#bbb;margin-top:2px">${nC(x.d.comp)}</div>
+          ${!x.ok?`<div style="color:var(--verde);margin-top:3px">✓ Corretta: <strong>${x.okLbl}</strong></div>`:''}
+          <div style="font-size:11px;color:#aaa;margin-top:3px">${nC(x.d.comp)}</div>
         </div>
       </div>`;
     });
