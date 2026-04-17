@@ -8411,16 +8411,11 @@ function generaLinkCP(){
     return;
   }
  
-  const base = window.location.href.replace(/[^/]*$/, '') + 'grado8_dis.html';
+    const base = window.location.href.replace(/[^/]*$/, '') + 'grado8_dis.html';
   const params = new URLSearchParams();
   params.set('prova', 'custom');
   params.set('data', encoded);
-  if(useLZ) params.set('fmt', 'lz');  // Aggiunge flag LZ se usato
-  if(classe) params.set('classe', classe);
-  if(nome)   params.set('nome', nome);
-  if(ticCP.length) params.set('tic', ticCP.join(','));
-  const link = base + '?' + params.toString();
-*/
+  if(useLZ) params.set('fmt', 'lz');
   if(classe) params.set('classe', classe);
   if(nome)   params.set('nome', nome);
   if(ticCP.length) params.set('tic', ticCP.join(','));
