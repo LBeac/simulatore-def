@@ -1093,17 +1093,18 @@
       'Rispondi SOLO con JSON valido, senza markdown:\n' +
       '[{"testo":"…","A":"…","B":"…","C":"…","D":"…","corretta":"A"}]';
 
-    // Chiama Apps Script (stesso endpoint di index.html, chiave lato server)
-    var resp = await fetch(window.SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbyi3j1opanbfed0PuGITdHE4f8BHjPBwWEKuSubnKr4kJjvgfGIXZMUOTfEoXDBvRSu/exec', {
-      method: 'POST',
-      body: JSON.stringify({
-        token:  window.SCRIPT_TOKEN || 'inv8_2026_Gd7kPqR3',
-        action: 'generaDomande',
-        prompt: PROMPT
-      })
-    });
+    try {
+      // Chiama Apps Script (stesso endpoint di index.html, chiave lato server)
+      var resp = await fetch(window.SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbyi3j1opanbfed0PuGITdHE4f8BHjPBwWEKuSubnKr4kJjvgfGIXZMUOTfEoXDBvRSu/exec', {
+        method: 'POST',
+        body: JSON.stringify({
+          token:  window.SCRIPT_TOKEN || 'inv8_2026_Gd7kPqR3',
+          action: 'generaDomande',
+          prompt: PROMPT
+        })
+      });
 
-          if (!resp.ok) {
+      if (!resp.ok) {
         var errData = await resp.json().catch(function () { return {}; });
         throw new Error(errData.error ? errData.error.message : 'HTTP ' + resp.status);
       }
