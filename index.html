@@ -2856,7 +2856,10 @@ function mostraScr(id){
 }
 function showErr(id,msg){ const el=$(id); if(!el)return; el.textContent=msg; el.style.display='block'; }
 function hideErr(id){ const el=$(id); if(el) el.style.display='none'; }
-function getDomRis(){ return S.prova.domande.filter(d=>d.tipo!=='testo'); }
+function getDomRis(){ 
+  if(!S.prova || !S.prova.domande) return []; // ← GUARD: ritorna array vuoto se prova non caricata
+  return S.prova.domande.filter(d=>d.tipo!=='testo'); 
+}
 function L(){ return ['A','B','C','D']; }
 
 // ── ACCESSO ────────────────────────────────────────────
@@ -3394,6 +3397,7 @@ function chiudiOvFin(){ $('ov-fin').classList.add('hidden'); }
 
 // ── SIDEBAR ────────────────────────────────────────────
 function buildSidebar(){
+  if(!S.prova || !S.prova.domande) return; // ← GUARD: evita crash se prova non è caricata
   const dr=getDomRis();
   const c=$('nav-domande'); c.innerHTML='';
   CFG.sezLabel.forEach((lbl,iSez)=>{
@@ -3413,6 +3417,7 @@ function buildSidebar(){
 }
 
 function aggSidebar(){
+  if(!S.prova || !S.prova.domande) return; // ← GUARD: evita crash se prova non è caricata
   const tutte=S.prova.domande, dr=getDomRis();
   dr.forEach(d=>{
     const btn=$(`nb-${d.id}`); if(!btn)return;
@@ -3427,6 +3432,7 @@ function aggSidebar(){
 function isMobileLayout(){ return window.innerWidth < 1024; }
 
 function renderDom(idx){
+  if(!S.prova || !S.prova.domande) return; // ← GUARD: evita crash se prova non è caricata
   S.cur=idx;
   const domande=S.prova.domande, d=domande[idx];
   const dr=getDomRis(), pos=dr.indexOf(d);
@@ -3643,8 +3649,9 @@ if(isRefListening){
       // Reimposta layout normale se c'è un testo di riferimento
       colTesto.style.cssText = '';
       const cdRef = document.getElementById('col-dom');
-      if(cdRef) cdRef.style.cssText = '';
- else {
+      if(cdRef) {
+        cdRef.style.cssText = '';
+      } else {
     colTesto.innerHTML=`<div class="no-testo">
       <div class="no-testo-ico">📝</div>
       <div>Questa domanda non fa riferimento a un testo specifico</div>
@@ -4022,6 +4029,7 @@ function colReset(id){
   renderDom(S.cur);
 }
 function avanti(){
+  if(!S.prova || !S.prova.domande) return; // ← GUARD
   ttsStop();
   if(S.cur>=S.prova.domande.length-1) return;
   let next = S.cur+1;
@@ -4037,6 +4045,7 @@ function avanti(){
 }
 
 function indietro(){
+  if(!S.prova || !S.prova.domande) return; // ← GUARD
   ttsStop();
   if(S.cur<=0) return;
   let prev = S.cur-1;
