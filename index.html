@@ -564,6 +564,227 @@ tr:hover td{background:var(--grigio-ch)}
 .doc-ris-wrap{background:#fff;border-radius:10px;margin-top:16px;box-shadow:0 2px 8px rgba(0,0,0,.07);overflow:hidden}
 .doc-ris-hdr{background:var(--blu-s);color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between}
 .doc-ris-body{padding:18px;max-height:400px;overflow-y:auto;min-height:60px}
+/* ══ BARRA ACCESSIBILITÀ — LAYOUT VERTICALE PULITO ══ */
+
+#acc-bar {
+  position: fixed;
+  bottom: 80px;
+  right: 12px;
+  z-index: 991;
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  width: 54px;
+  max-height: calc(100vh - 160px);
+  overflow-y: auto;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 2px solid var(--az);
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  scrollbar-width: thin;
+  scrollbar-color: var(--az) transparent;
+}
+
+#acc-bar::-webkit-scrollbar {
+  width: 4px;
+}
+
+#acc-bar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#acc-bar::-webkit-scrollbar-thumb {
+  background: var(--az);
+  border-radius: 2px;
+}
+
+#acc-bar.visible {
+  display: flex;
+}
+
+/* Singolo pulsante TIC */
+.acc-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  border: 2px solid rgba(0, 50, 128, 0.4);
+  background: linear-gradient(135deg, #f5f9ff 0%, #e8f0fb 100%);
+  color: var(--blu);
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  transition: all 0.15s ease-out;
+  font-family: var(--font);
+  font-weight: 700;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.acc-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 50, 128, 0.15);
+  border-color: var(--az);
+  background: linear-gradient(135deg, #e8f0fb 0%, #dce8f8 100%);
+}
+
+.acc-btn:active {
+  transform: scale(0.95);
+}
+
+/* Pulsante TIC attivo */
+.acc-btn.attivo {
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  color: var(--verde);
+  border-color: var(--verde);
+  font-weight: 800;
+}
+
+.acc-btn.attivo:hover {
+  background: linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%);
+  box-shadow: 0 4px 12px rgba(46, 125, 50, 0.15);
+}
+
+/* Label tooltip */
+.acc-btn-lbl {
+  position: absolute;
+  right: 56px;
+  background: rgba(26, 36, 54, 0.92);
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+  font-weight: 600;
+  z-index: 1000;
+  border: 1px solid rgba(0, 50, 128, 0.3);
+}
+
+.acc-btn:hover .acc-btn-lbl {
+  opacity: 1;
+}
+
+/* ══ BOTTONE TOGGLE APRIRE/CHIUDERE ══ */
+
+#acc-toggle-btn {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 3px solid var(--rosso);
+  background: linear-gradient(135deg, #ffcdd2 0%, #ef5350 100%);
+  color: #fff;
+  cursor: pointer;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(211, 47, 47, 0.25);
+  transition: all 0.2s ease-out;
+  font-family: var(--font);
+  font-weight: 700;
+  z-index: 992;
+  line-height: 1;
+  padding: 0;
+}
+
+#acc-toggle-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(211, 47, 47, 0.3);
+}
+
+#acc-toggle-btn:active {
+  transform: scale(0.95);
+}
+
+#acc-toggle-btn.apri {
+  border-color: var(--verde);
+  background: linear-gradient(135deg, #c8e6c9 0%, #4caf50 100%);
+  box-shadow: 0 4px 14px rgba(46, 125, 50, 0.25);
+}
+
+#acc-toggle-btn.apri:hover {
+  box-shadow: 0 6px 20px rgba(46, 125, 50, 0.3);
+}
+
+#acc-toggle-tooltip {
+  position: absolute;
+  bottom: 65px;
+  right: 50%;
+  transform: translateX(50%);
+  background: rgba(26, 36, 54, 0.92);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+  font-weight: 600;
+  z-index: 1001;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+#acc-toggle-btn:hover #acc-toggle-tooltip {
+  opacity: 1;
+}
+
+/* Domande — evita overflow */
+.dom-col {
+  padding: 20px 24px;
+  overflow-y: auto;
+  max-height: calc(100vh - 88px);
+}
+
+.d-testo {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.opzione {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.vf-table {
+  table-layout: auto;
+  width: 100%;
+}
+
+.vf-table td {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.comp-select {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  #acc-toggle-btn {
+    display: none;
+  }
+  
+  #acc-bar {
+    bottom: 12px;
+    right: 12px;
+    width: 50px;
+    max-height: calc(100vh - 80px);
+  }
+}
 </style>
 </head>
 <body>
@@ -2491,7 +2712,7 @@ const COMP_NOMI = {
   geometria_piana:'Geometria piana',
   geometria_solida:'Geometria solida',
   misura:'Misura',
-  pitagora:'Teorema di Pitagora',
+  pitagora:'Π — Teorema di Pitagora',
   similitudine:'Similitudine',
   probabilita:'Probabilità',
   statistica:'Statistica',
@@ -3381,20 +3602,21 @@ function renderDom(idx){
   // ── DOMANDA: aggiorna colonna testo con brano di riferimento ──
   const ref=trovaRef(domande,idx);
   if(ref){
-    const isRefListening = ref.tit && ref.tit.toUpperCase().includes('LISTENING') && S.materia==='inglese';
-    if(isRefListening){
-      // Listening: non mostrare il testo — solo indicatore audio
-      colTesto.innerHTML=`<div class="brano-wrap">
-        <div class="brano-tit">🎧 ${ref.tit||'Listening'}</div>
-        <div style="text-align:center;padding:30px 20px;color:#888">
-          <div style="font-size:48px;margin-bottom:10px">🎧</div>
-          <div style="font-size:14px;font-weight:600;color:#1565c0">Testo audio</div>
-          <div style="font-size:12px;margin-top:6px">Il testo è disponibile solo in formato audio.<br>Rispondi in base a quello che hai ascoltato.</div>
-        </div>
-      </div>`;
-      colTesto.style.cssText = '';
-      const cdRef = document.getElementById('col-dom');
-      if(cdRef) cdRef.style.cssText = '';
+const isRefListening = ref.tit && ref.tit.toUpperCase().includes('LISTENING') && S.materia==='inglese';
+if(isRefListening){
+  // Listening: non mostrare il testo — solo indicatore audio
+  colTesto.innerHTML=`<div class="brano-wrap">
+    <div class="brano-tit">🎧 ${ref.tit||'Listening'}</div>
+    <div style="text-align:center;padding:30px 20px;color:#888">
+      <div style="font-size:48px;margin-bottom:10px">🎧</div>
+      <div style="font-size:14px;font-weight:600;color:#1565c0">Testo audio</div>
+      <div style="font-size:12px;margin-top:6px">Il testo è disponibile solo in formato audio.<br>Rispondi in base a quello che hai ascoltato.</div>
+    </div>
+  </div>`;
+  colTesto.style.cssText = '';
+  const cdRef = document.getElementById('col-dom');
+  if(cdRef) cdRef.style.cssText = '';
+}
     } else {
       const _ttsBarRef = S.provaIdDaURL==='custom' ? `
         <div id="tts-browser-hint"></div>
@@ -8225,5 +8447,73 @@ function generaLinkCP(){
 <script src="prove_eng_p3.js"></script>
 <script src="prove_eng_p4.js"></script>
 <script src="prove_eng_p5.js"></script>
+<script src="PATCH_AUDIO_LISTENING.js"></script>
+  <script>
+// Crea bottone toggle e inizializza
+function initAccToggleButton() {
+  // Controlla se già esiste
+  if(document.getElementById('acc-toggle-btn')) return;
+  
+  // Crea il bottone
+  const btn = document.createElement('button');
+  btn.id = 'acc-toggle-btn';
+  btn.className = 'chiudi';
+  btn.innerHTML = '✕';
+  btn.title = 'Chiudi/Apri i tic di accessibilità';
+  
+  // Crea il tooltip
+  const tooltip = document.createElement('div');
+  tooltip.id = 'acc-toggle-tooltip';
+  tooltip.textContent = 'Chiudi tic';
+  btn.appendChild(tooltip);
+  
+  // Evento click
+  btn.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const accBar = document.getElementById('acc-bar');
+    if(!accBar) return;
+    
+    const isVisible = accBar.classList.contains('visible');
+    
+    if(isVisible) {
+      // Chiudi
+      accBar.classList.remove('visible');
+      btn.classList.remove('chiudi');
+      btn.classList.add('apri');
+      btn.innerHTML = '➜';
+      tooltip.textContent = 'Apri tic';
+    } else {
+      // Apri
+      accBar.classList.add('visible');
+      btn.classList.remove('apri');
+      btn.classList.add('chiudi');
+      btn.innerHTML = '✕';
+      tooltip.textContent = 'Chiudi tic';
+    }
+  });
+  
+  document.body.appendChild(btn);
+}
+
+// Chiama quando il DOM è pronto
+if(document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initAccToggleButton);
+} else {
+  initAccToggleButton();
+}
+
+// Fallback: riprova ogni 500ms
+let initAttempts = 0;
+const initInterval = setInterval(function() {
+  if(document.getElementById('acc-bar') && !document.getElementById('acc-toggle-btn')) {
+    initAccToggleButton();
+    clearInterval(initInterval);
+  }
+  initAttempts++;
+  if(initAttempts > 20) clearInterval(initInterval);
+}, 500);
+</script>
 </body>
 </html>
