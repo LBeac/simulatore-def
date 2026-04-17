@@ -8395,15 +8395,32 @@ function generaLinkCP(){
   const ticCP = ['grande','maiuscolo','contrasto','spaziatura','font','bes']
     .filter(t => document.getElementById(`cp-tic-${t}`)?.checked);
 
-  const prova = { id:'custom', titolo, sottotitolo: sottotit, paragrafi, glossario:[], domande };
-  let encoded;
-  try { encoded = btoa(unescape(encodeURIComponent(JSON.stringify(prova)))); }
-  catch(e){ alert('Errore nella codifica della prova. Controlla che non ci siano caratteri speciali.'); return; }
-
+   const prova = { id:'custom', titolo, sottotitolo: sottotit, paragrafi, glossario:[], domande };
+  
+  // Compressione con LZString se disponibile (come in creaLinkDisAI)
+  let encoded, useLZ = false;
+  try {
+    useLZ = (typeof LZString !== 'undefined');
+    if(useLZ){
+      encoded = LZString.compressToEncodedURIComponent(JSON.stringify(prova));
+    } else {
+      encoded = btoa(unescape(encodeURIComponent(JSON.stringify(prova))));
+    }
+  } catch(e){
+    alert('Errore nella codifica della prova. Controlla che non ci siano caratteri speciali.');
+    return;
+  }
+ 
   const base = window.location.href.replace(/[^/]*$/, '') + 'grado8_dis.html';
   const params = new URLSearchParams();
   params.set('prova', 'custom');
   params.set('data', encoded);
+  if(useLZ) params.set('fmt', 'lz');  // Aggiunge flag LZ se usato
+  if(classe) params.set('classe', classe);
+  if(nome)   params.set('nome', nome);
+  if(ticCP.length) params.set('tic', ticCP.join(','));
+  const link = base + '?' + params.toString();
+*/
   if(classe) params.set('classe', classe);
   if(nome)   params.set('nome', nome);
   if(ticCP.length) params.set('tic', ticCP.join(','));
