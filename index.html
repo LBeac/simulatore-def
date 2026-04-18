@@ -90,11 +90,7 @@ body.acc-spaziatura .opzione {
   word-spacing:0.2em !important;
 }
 
-/* ── BARRA ACCESSIBILITÀ ────────────────────────────────── */
-#acc-bar{
-  position:fixed; bottom:60px; right:12px; z-index:990;
-  display:none; flex-direction:column; gap:6px;
-}
+/* ── BARRA ACCESSIBILITÀ (pulsanti singoli) ────────────── */
 #acc-bar.visible{ display:flex; }
 .acc-btn{
   width:44px; height:44px; border-radius:50%; border:2px solid rgba(255,255,255,.5);
@@ -566,11 +562,39 @@ tr:hover td{background:var(--grigio-ch)}
 .doc-ris-body{padding:18px;max-height:400px;overflow-y:auto;min-height:60px}
 /* ══ BARRA ACCESSIBILITÀ — LAYOUT VERTICALE PULITO ══ */
 
-#acc-bar {
+/* ── STACK TIC UNICO VERTICALE (accessibilità + strumenti matematica/inglese) ── */
+#tic-stack {
   position: fixed;
-  bottom: 80px;
   right: 12px;
-  z-index: 991;
+  bottom: 72px;
+  z-index: 990;
+  display: flex;
+  flex-direction: column-reverse; /* ultimo aggiunto sta in fondo = più in alto */
+  gap: 8px;
+  align-items: flex-end;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  pointer-events: none; /* lascia passare i click fuori dai figli */
+}
+#tic-stack > * { pointer-events: auto; }
+
+#acc-bar {
+  position: static !important;   /* override: ora vive dentro #tic-stack */
+  right: auto !important;
+  bottom: auto !important;
+  margin: 0;
+}
+
+/* I container matematica e dizionario: stessi comportamenti dentro lo stack */
+#mat-tools-container,
+#diz-container {
+  position: static !important;
+  right: auto !important;
+  bottom: auto !important;
+}
+
+/* ── Regole base della barra TIC accessibilità (contenitore dei pulsanti A+/contrasto/ecc.) ── */
+#acc-bar {
   display: none;
   flex-direction: column;
   gap: 8px;
@@ -1019,8 +1043,10 @@ tr:hover td{background:var(--grigio-ch)}
     <button id="mnb-av"  class="btn btn-p" onclick="avanti()"   style="flex:1;padding:12px;font-size:15px">Avanti →</button>
   </div>
 
-  <!-- BARRA ACCESSIBILITÀ -->
-  <div id="acc-bar">
+  <!-- STACK TIC UNIFICATO: accessibilità + strumenti materia -->
+  <div id="tic-stack">
+    <!-- BARRA ACCESSIBILITÀ -->
+    <div id="acc-bar">
     <div style="position:relative">
       <button class="acc-btn" id="btn-acc-large" onclick="toggleAccLarge()">
         <span style="font-size:14px;font-weight:900">A+</span>
@@ -1033,6 +1059,8 @@ tr:hover td{background:var(--grigio-ch)}
         <span class="acc-btn-lbl">Alto contrasto</span>
       </button>
     </div>
+    </div>
+    <!-- Gli altri widget (#mat-tools-container, #diz-container) si inseriscono qui via JS -->
   </div>
 </div>
 
@@ -1684,21 +1712,17 @@ tr:hover td{background:var(--grigio-ch)}
 
     <!-- Pannello CAA rimosso: gestito in pagina dedicata -->
 
-    <!-- ══ SOTTO-PANNELLO 3: PROVE CAA ══════════════════════ -->
+    <!-- ══ SOTTO-PANNELLO 3: PROVE CAA (🚧 Lavori in corso) ══════════ -->
     <div class="sub-panel" id="st-caa">
       <div id="vista-caa-container">
-        <!-- Il modulo CAA viene iniettato qui da caa.js -->
-        <div style="background:linear-gradient(135deg,#fff8f0,#fff3e0);border:2px solid #ffcc80;border-radius:14px;padding:28px 22px;text-align:center">
-          <div style="font-size:2.5rem;margin-bottom:12px">🗣️</div>
-          <div style="font-size:18px;font-weight:800;color:#e65100;margin-bottom:8px">Prove in CAA</div>
-          <div style="font-size:13px;color:#bf360c;margin-bottom:20px;line-height:1.7">
-            La <strong>Comunicazione Aumentativa e Alternativa</strong> semplifica il testo con immagini e simboli.<br>
-            Crea prove adattate per alunni con bisogni comunicativi complessi.
+        <div style="background:linear-gradient(135deg,#fff8f0,#fff3e0);border:2px solid #ffcc80;border-radius:14px;padding:40px 22px;text-align:center">
+          <div style="font-size:3.5rem;margin-bottom:16px">🚧</div>
+          <div style="font-size:20px;font-weight:800;color:#e65100;margin-bottom:12px">Prove CAA — Lavori in corso</div>
+          <div style="font-size:14px;color:#bf360c;line-height:1.7;max-width:520px;margin:0 auto 8px">
+            La sezione dedicata alla <strong>Comunicazione Aumentativa e Alternativa</strong> è in fase di sviluppo.
           </div>
-          <div id="caa-tab-content">
-            <div style="background:#fff;border-radius:10px;padding:16px;border:1.5px solid #ffe0b2;margin-bottom:16px;font-size:12px;color:#888">
-              ⏳ Caricamento modulo CAA...
-            </div>
+          <div style="font-size:12px;color:#8d6e63;line-height:1.6;max-width:480px;margin:12px auto 0;font-style:italic">
+            Sarà disponibile presto con creazione guidata di prove semplificate con simboli e immagini per alunni con bisogni comunicativi complessi.
           </div>
         </div>
       </div>
@@ -3148,11 +3172,12 @@ function _iniziaStrumentiMat(){
     },{passive:true});
   }
 
-  // Contenitore pallini (fisso in basso a destra)
+  // Contenitore pallini (dentro lo stack TIC unificato)
   const container = document.createElement('div');
   container.id = 'mat-tools-container';
-  container.style.cssText = 'position:fixed;bottom:72px;right:12px;z-index:9990;display:flex;flex-direction:column;gap:10px;align-items:flex-end';
-  document.body.appendChild(container);
+  container.style.cssText = 'display:flex;flex-direction:column;gap:10px;align-items:flex-end';
+  const stack = document.getElementById('tic-stack') || document.body;
+  stack.appendChild(container);
 
   // ── CALCOLATRICE ──────────────────────────────────────────
   if(mt.calc){
@@ -3302,23 +3327,29 @@ function _iniziaDizionario(){
     });
   }
 
-  // Pallino
+  // Pallino (dentro lo stack TIC unificato)
   const cont = document.createElement('div');
   cont.id='diz-container';
-  cont.style.cssText='position:fixed;bottom:130px;right:12px;z-index:9990;display:flex;flex-direction:column;gap:8px;align-items:flex-end';
+  cont.style.cssText='display:flex;flex-direction:column;gap:8px;align-items:flex-end';
   const btn = document.createElement('button');
   btn.title='Dizionario monolingue';
   btn.innerHTML='📖';
   btn.style.cssText='width:44px;height:44px;border-radius:50%;background:#1b5e20;color:#fff;border:none;font-size:20px;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center';
   btn.onclick=()=>{ const w=document.getElementById('diz-widget'); w.style.display=w.style.display==='none'?'block':'none'; };
   cont.appendChild(btn);
-  document.body.appendChild(cont);
+  const stack = document.getElementById('tic-stack') || document.body;
+  stack.appendChild(cont);
 
-  // Vocabolario A1/A2
-  const voc = window._dizVoc || {};
+  // Vocabolario A1/A2 — popolato da diz_eng.js (window.vocabEnglish)
+  // Struttura: {parola: definizione}
+  const voc = window._dizVoc || (typeof vocabEnglish !== 'undefined' ? vocabEnglish : {}) || {};
+  window._dizVoc = voc;
+
+  // Ricava le lettere iniziali disponibili dalle chiavi
+  const lettere = [...new Set(Object.keys(voc).map(k => k.charAt(0).toUpperCase()).filter(c => /[A-Z]/.test(c)))].sort();
 
   let dizHtml = '<div style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:8px">';
-  Object.keys(voc).forEach(function(l){ dizHtml+='<button data-l="'+l+'" onclick="_dizLettera(this.dataset.l)" style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:4px;padding:2px 6px;font-size:11px;font-weight:700;cursor:pointer;color:#1b5e20">'+l+'</button>'; });
+  lettere.forEach(function(l){ dizHtml+='<button data-l="'+l+'" onclick="_dizLettera(this.dataset.l)" style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:4px;padding:2px 6px;font-size:11px;font-weight:700;cursor:pointer;color:#1b5e20">'+l+'</button>'; });
   dizHtml+='</div><div id="diz-results" style="font-size:12px;line-height:1.9;color:#333;max-height:250px;overflow-y:auto"></div>';
 
   const widget = document.createElement('div');
@@ -3336,16 +3367,19 @@ function _iniziaDizionario(){
     </div>`;
   document.body.appendChild(widget);
   makeDraggable(widget);
-
-  // Store vocabulary for search
-  window._dizVoc = voc;
 }
 
 function _dizLettera(l){
   const voc = window._dizVoc||{};
   const res = document.getElementById('diz-results');
   if(!res) return;
-  const entries = (voc[l]||[]).map(e=>`<div style="padding:2px 0;border-bottom:1px solid #f0f0f0">${e}</div>`).join('');
+  // Struttura: {parola: definizione}. Filtra parole che iniziano con la lettera.
+  const L = l.toLowerCase();
+  const entries = Object.keys(voc)
+    .filter(k => k.toLowerCase().startsWith(L))
+    .sort()
+    .map(k => `<div style="padding:4px 0;border-bottom:1px solid #f0f0f0"><strong style="color:#1b5e20">${k}</strong>: ${voc[k]}</div>`)
+    .join('');
   res.innerHTML = entries || '<em style="color:#aaa">No entries</em>';
 }
 
@@ -3355,9 +3389,22 @@ function _dizSearch(q){
   if(!res) return;
   if(!q.trim()){ res.innerHTML=''; return; }
   const ql = q.toLowerCase();
-  const matches = [];
-  Object.values(voc).forEach(arr=>arr.forEach(e=>{ if(e.toLowerCase().includes(ql)) matches.push(e); }));
-  res.innerHTML = matches.slice(0,10).map(e=>`<div style="padding:2px 0;border-bottom:1px solid #f0f0f0">${e}</div>`).join('') || '<em style="color:#aaa">No results</em>';
+  // Cerca sia nelle parole (chiavi) che nelle definizioni (valori)
+  const matches = Object.keys(voc).filter(k => {
+    return k.toLowerCase().includes(ql) || (voc[k]||'').toLowerCase().includes(ql);
+  });
+  // Ordina: prima match esatti, poi che iniziano, poi il resto
+  matches.sort((a,b) => {
+    const aL = a.toLowerCase(), bL = b.toLowerCase();
+    if(aL === ql && bL !== ql) return -1;
+    if(bL === ql && aL !== ql) return 1;
+    if(aL.startsWith(ql) && !bL.startsWith(ql)) return -1;
+    if(bL.startsWith(ql) && !aL.startsWith(ql)) return 1;
+    return aL.localeCompare(bL);
+  });
+  res.innerHTML = matches.slice(0,15)
+    .map(k => `<div style="padding:4px 0;border-bottom:1px solid #f0f0f0"><strong style="color:#1b5e20">${k}</strong>: ${voc[k]}</div>`)
+    .join('') || '<em style="color:#aaa">No results</em>';
 }
 
 // ── TIMER ──────────────────────────────────────────────
@@ -3608,22 +3655,19 @@ function renderDom(idx){
   // ── DOMANDA: aggiorna colonna testo con brano di riferimento ──
   const ref=trovaRef(domande,idx);
   if(ref){
-const isRefListening = ref.tit && ref.tit.toUpperCase().includes('LISTENING') && S.materia==='inglese';
-if(isRefListening){
-  // Listening: non mostrare il testo — solo indicatore audio
-  colTesto.innerHTML=`<div class="brano-wrap">
-    <div class="brano-tit">🎧 ${ref.tit||'Listening'}</div>
-    <div style="text-align:center;padding:30px 20px;color:#888">
-      <div style="font-size:48px;margin-bottom:10px">🎧</div>
-      <div style="font-size:14px;font-weight:600;color:#1565c0">Testo audio</div>
-      <div style="font-size:12px;margin-top:6px">Il testo è disponibile solo in formato audio.<br>Rispondi in base a quello che hai ascoltato.</div>
-    </div>
-  </div>`;
-  colTesto.style.cssText = '';
-  const cdRef = document.getElementById('col-dom');
-  if(cdRef) cdRef.style.cssText = '';
-}
+    const isRefListening = ref.tit && ref.tit.toUpperCase().includes('LISTENING') && S.materia==='inglese';
+    if(isRefListening){
+      // Listening: non mostrare il testo — solo indicatore audio
+      colTesto.innerHTML=`<div class="brano-wrap">
+        <div class="brano-tit">🎧 ${ref.tit||'Listening'}</div>
+        <div style="text-align:center;padding:30px 20px;color:#888">
+          <div style="font-size:48px;margin-bottom:10px">🎧</div>
+          <div style="font-size:14px;font-weight:600;color:#1565c0">Testo audio</div>
+          <div style="font-size:12px;margin-top:6px">Il testo è disponibile solo in formato audio.<br>Rispondi in base a quello che hai ascoltato.</div>
+        </div>
+      </div>`;
     } else {
+      // Reading: mostra il testo del brano di riferimento
       const _ttsBarRef = S.provaIdDaURL==='custom' ? `
         <div id="tts-browser-hint"></div>
         <div class="tts-bar">
@@ -3646,12 +3690,13 @@ if(isRefListening){
         ${ref.fonte?`<div class="fonte-txt">${ref.fonte}</div>`:''}
       </div>`;
       if(S.provaIdDaURL==='custom') ttsSetTesto(ref.testo);
-      // Reimposta layout normale se c'è un testo di riferimento
-      colTesto.style.cssText = '';
-      const cdRef = document.getElementById('col-dom');
-      if(cdRef) {
-        cdRef.style.cssText = '';
-      } else {
+    }
+    // Reimposta layout normale quando c'è un testo di riferimento
+    colTesto.style.cssText = '';
+    const cdRef = document.getElementById('col-dom');
+    if(cdRef) cdRef.style.cssText = '';
+  } else {
+    // Nessun testo di riferimento (tipico per matematica)
     colTesto.innerHTML=`<div class="no-testo">
       <div class="no-testo-ico">📝</div>
       <div>Questa domanda non fa riferimento a un testo specifico</div>
@@ -3881,7 +3926,6 @@ if(isRefListening){
   aggSidebar();
   aggMobileNav(idx);
   // NON scrollare automaticamente — lo scroll avviene solo su avanti/indietro
-}
 }
 
 // Toggle testo di riferimento su mobile
@@ -7821,6 +7865,9 @@ function ripristiaPreferenzeAcc(){
 function aggBarraAcc(){
   const bar = $('acc-bar');
   if(bar) bar.classList.toggle('visible', S.scr==='scr-test');
+  // Mostra/nascondi anche l'intero stack TIC (che contiene anche matematica/dizionario)
+  const stack = document.getElementById('tic-stack');
+  if(stack) stack.style.display = S.scr==='scr-test' ? 'flex' : 'none';
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -8455,7 +8502,8 @@ function generaLinkCP(){
 <script src="prove_1_5.js"></script>
 <!-- ═══ PROVE 6-10 ITALIANO ═══ -->
 <script src="prove_6_10.js"></script>
-<script src="caa.js"></script>
+<!-- caa.js disabilitato: causava duplicato tab "Prove CAA". Riabilitare dopo refactoring. -->
+<!-- <script src="caa.js"></script> -->
 <!-- ═══ PROVE MATEMATICA ═══ -->
 <script src="prove_mat_p1.js"></script>
 <script src="prove_mat_p2.js"></script>
@@ -8494,13 +8542,16 @@ function initAccToggleButton() {
     e.stopPropagation();
     
     const accBar = document.getElementById('acc-bar');
-    if(!accBar) return;
+    const stack  = document.getElementById('tic-stack');
+    if(!accBar || !stack) return;
     
     const isVisible = accBar.classList.contains('visible');
     
     if(isVisible) {
       // Chiudi
       accBar.classList.remove('visible');
+      // Nascondi TUTTI i widget dentro lo stack (TIC, matematica, dizionario)
+      Array.from(stack.children).forEach(c => { c.dataset._prevDisplay = c.style.display; c.style.display = 'none'; });
       btn.classList.remove('chiudi');
       btn.classList.add('apri');
       btn.innerHTML = '➜';
@@ -8508,6 +8559,7 @@ function initAccToggleButton() {
     } else {
       // Apri
       accBar.classList.add('visible');
+      Array.from(stack.children).forEach(c => { c.style.display = c.dataset._prevDisplay || ''; });
       btn.classList.remove('apri');
       btn.classList.add('chiudi');
       btn.innerHTML = '✕';
