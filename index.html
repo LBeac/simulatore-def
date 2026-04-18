@@ -2923,9 +2923,15 @@ function accStud(){
 
   S.modoTest = false;
   const materiaLabel = S.materia === 'matematica' ? 'Matematica' : S.materia === 'inglese' ? 'Inglese' : 'Italiano';
+  // Namespace sessione per materia: evita collisione IT/MAT/ENG su stessa prova+classe
+  // Retrocompatibile: italiano mantiene la chiave storica senza suffisso materia
+  const _matKey  = S.materia === 'matematica' ? 'mat' : S.materia === 'inglese' ? 'eng' : '';
+  const _sessKey = _matKey
+    ? `prova-${_matKey}-${provaId}-${classe}`
+    : `prova-${provaId}-${classe}`;
   Object.assign(S, {
     stud: cod, prova,
-    sessione: `prova-${provaId}-${classe}`,
+    sessione: _sessKey,
     classe: classe,
     risposte:{}, segnati: new Set(), cur:0, uscite:0, calcolo:null
   });
@@ -4724,6 +4730,7 @@ function calcolaRisultati(){
 
     const entry={
       codice:S.stud, sessione:S.sessione, classe:S.classe,
+      materia: S.materia || 'italiano',   // [FIX-SHEET] routing tab Risultati_IT/MAT/ENG
       totale:corrette, su:tot, pct, sezioni:sez, errori:errComp,
       data:new Date().toISOString(),
       modalita:  _modalita,   // [FIX-5]
@@ -6419,11 +6426,13 @@ function creaLinkDisAI(){
   };
   var ticAttivi=Object.keys(ticMap).filter(function(k){return ticMap[k];});
   var sessKey='dis-'+classe+'-'+Date.now();
-  DB.sessioni[sessKey]={provaId:'custom',titolo:_disAIProva.titolo||'Prova AI',classe:classe,tipo:'disabilita',tic:ticMap,data:new Date().toISOString(),studenti:0,chiusa:false};
+  // [FIX-SHEET] rileva materia corrente per salvataggio DIS
+  var _disMat = S.materia || 'italiano';
+  DB.sessioni[sessKey]={provaId:'custom',titolo:_disAIProva.titolo||'Prova AI',classe:classe,materia:_disMat,tipo:'disabilita',tic:ticMap,data:new Date().toISOString(),studenti:0,chiusa:false};
   saveDB();
   try{
     fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({token:SCRIPT_TOKEN,action:'salvaSessione',sessione:sessKey,classe:classe,provaId:'custom',provaTitolo:prova.titolo,data:new Date().toISOString()})
+      body:JSON.stringify({token:SCRIPT_TOKEN,action:'salvaSessione',sessione:sessKey,classe:classe,materia:_disMat,provaId:'custom',provaTitolo:prova.titolo,data:new Date().toISOString()})
     }).catch(function(){});
   }catch(e){}
   var base=window.location.href.replace(/[^/]*$/,'')+'grado8_dis.html';
@@ -6582,6 +6591,7 @@ function salvaSessOnSheet(sessKey, sessData){
       action: 'salvaSessione',
       sessione: sessKey,
       classe: sessData.classe,
+      materia: sessData.materia || S.materia || 'italiano',  // [FIX-SHEET]
       provaId: sessData.provaId,
       provaTitolo: prova?.titolo||'',
       data: sessData.data
@@ -7637,7 +7647,8 @@ function _caaGeneraLink(){
   var prova = {titolo:titolo,sottotitolo:'Prova CAA',glossario:[],paragrafi:paragrafi,domande:domande,modoCaa:true};
   var b64 = btoa(unescape(encodeURIComponent(JSON.stringify(prova))));
   var sessKey = 'caa-'+classe+'-'+Date.now();
-  DB.sessioni[sessKey]={provaId:'custom',titolo:titolo,classe:classe,tipo:'caa',data:new Date().toISOString(),studenti:0,chiusa:false};
+  var _caaMat = S.materia || 'italiano';  // [FIX-SHEET]
+  DB.sessioni[sessKey]={provaId:'custom',titolo:titolo,classe:classe,materia:_caaMat,tipo:'caa',data:new Date().toISOString(),studenti:0,chiusa:false};
   saveDB();
 
   var base = window.location.href.replace(/[^/]*$/,'')+'grado8_dis.html';
@@ -7650,7 +7661,7 @@ function _caaGeneraLink(){
 
   try{
     fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({token:SCRIPT_TOKEN,action:'salvaSessione',sessione:sessKey,classe:classe,provaId:'custom',provaTitolo:titolo,data:new Date().toISOString()})
+      body:JSON.stringify({token:SCRIPT_TOKEN,action:'salvaSessione',sessione:sessKey,classe:classe,materia:_caaMat,provaId:'custom',provaTitolo:titolo,data:new Date().toISOString()})
     }).catch(function(){});
   }catch(e){}
 
@@ -7962,9 +7973,10 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyi3j1opanbfed0PuGIT
 const SCRIPT_TOKEN = 'inv8_2026_Gd7kPqR3'; // ⚠️ Aggiorna anche Apps Script e rideploya se lo cambi // token condiviso con Apps Script per validare le richieste
 
 function inviaARisultatiSheet(entry){
-  // Aggiunge il titolo della prova
+  // Aggiunge il titolo della prova e (se assente) la materia corrente
   const payload = {
     ...entry,
+    materia: entry.materia || S.materia || 'italiano',   // [FIX-SHEET] routing tab
     titolo: S.prova ? S.prova.titolo : '',
     token: SCRIPT_TOKEN,
   };
