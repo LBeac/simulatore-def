@@ -148,8 +148,9 @@ body.acc-spaziatura .opzione {
   z-index: 10;
 }
 /* [FIX-DROPDOWN] Garantisce spazio sufficiente sotto i select per aprirsi verso il basso */
-#tab-analisi { min-height: 700px; }
-#tab-generale { min-height: 500px; }
+#tab-analisi { min-height: 900px; }
+#tab-generale { min-height: 600px; }
+#tab-sess { min-height: 700px; }
 /* ── Assicura che pannelli non-attivi nascondano completamente il contenuto ── */
 .panel:not(.att) { display: none !important; }
 .sub-panel:not(.att) { display: none !important; }
@@ -1240,13 +1241,16 @@ body.prova-finita #tic-stack { display: none !important; }
       <p id="doc-cl-lbl" style="margin-top:4px">Tutte le classi</p>
     </div>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-      <button onclick="mostraScr('scr-materia')"
-        style="background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.4);
-          color:#fff;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:12px;
-          font-family:var(--font);font-weight:600;transition:all .15s"
-        title="Cambia materia">
-        🔄 Cambia materia
-      </button>
+      <!-- [FIX-SHEET] Dropdown inline materia (niente più schermata intermedia) -->
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="font-size:13px;opacity:.8;color:#fff">Materia:</span>
+        <select id="sel-mat-panel" class="finp" style="padding:7px 12px;font-size:13px;width:140px;background:#fff;font-weight:600"
+          onchange="cambiaMateriaPanel(this.value)">
+          <option value="italiano">📖 Italiano</option>
+          <option value="matematica">📐 Matematica</option>
+          <option value="inglese">🇬🇧 Inglese</option>
+        </select>
+      </div>
       <div style="display:flex;align-items:center;gap:8px">
         <span style="font-size:13px;opacity:.8;color:#fff">Classe:</span>
         <select id="sel-cl-panel" class="finp" style="padding:7px 12px;font-size:13px;width:90px;background:#fff"
@@ -1327,7 +1331,7 @@ body.prova-finita #tic-stack { display: none !important; }
   <!-- TAB: ANALISI SESSIONE -->
   <div class="panel" id="tab-analisi">
     <div style="background:#fff;border-radius:10px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.07);margin-bottom:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-      <select class="finp" id="sel-sess-analisi" style="max-width:320px;padding:9px 12px" onchange="caricaAnalisi()">
+      <select class="finp" id="sel-sess-analisi" style="max-width:320px;padding:9px 12px" onchange="caricaAnalisi()" onmousedown="_scrollSelectIntoView(this)">
         <option value="">-- Seleziona sessione da analizzare --</option>
       </select>
       <button class="btn btn-s" onclick="esportaCSV()" style="font-size:12px" title="Esporta tutti i risultati della classe">📥 Esporta CSV classe</button>
@@ -6612,6 +6616,7 @@ async function caricaSessioniDaSheet(){
           DB.sessioni[key] = {
             provaId: parseInt(s.provaId)||1,
             classe: s.classe||'',
+            materia: s.materia || 'italiano',   // [FIX-SHEET]
             data: s.data || new Date().toISOString(),
             studenti: 0,
             chiusa: false
@@ -6793,9 +6798,11 @@ function aggSelSessioni(){
   const sel = $('sel-sess-analisi');
   if(!sel) return;
   const ris = getRisultatiClasse();
-  // Mostra solo sessioni della classe attiva (o tutte se ALL)
+  // [FIX-SHEET] Mostra solo sessioni della materia corrente + classe attiva
+  const matCur = S.materia || 'italiano';
   const tutteSessioni = Object.entries(DB.sessioni).filter(([cod,s])=>{
     if(!cod || cod==='undefined') return false;
+    if(_sessMateria(cod, s) !== matCur) return false;
     if(S.classe === 'ALL') return true;
     return s.classe === S.classe;
   });
@@ -6810,11 +6817,24 @@ function aggSelSessioni(){
     }).join('');
 }
 
+// [FIX-SHEET] Deduce la materia di una sessione da chiave o campo .materia
+//  • 'prova-mat-N-CL' / 'prova-mat-N' → matematica
+//  • 'prova-eng-N-CL' / 'prova-eng-N' → inglese
+//  • 'dis-…' / 'caa-…' / 'prova-N-CL' → usa s.materia se presente, altrimenti italiano
+function _sessMateria(cod, s){
+  if(!cod) return 'italiano';
+  if(/^prova-mat-/.test(cod)) return 'matematica';
+  if(/^prova-eng-/.test(cod)) return 'inglese';
+  if(s && s.materia) return s.materia;
+  return 'italiano';
+}
+
 function aggiornaTabellaSessioni(){
   const tbody = $('tbody-sess');
   if(!tbody) return;
 
-  // Mostra solo sessioni della classe attiva (niente grigio)
+  // [FIX-SHEET] Filtra per materia corrente + classe attiva
+  const matCur = S.materia || 'italiano';
   const tutteSessioni = Object.entries(DB.sessioni).filter(([cod, s])=>{
     if(!cod || cod==='undefined') return false;
     // Nascondi legacy prova-N se esiste versione con classe
@@ -6822,6 +6842,7 @@ function aggiornaTabellaSessioni(){
       const n = cod.replace('prova-','');
       if(DB.sessioni[`prova-${n}-3A`] || DB.sessioni[`prova-${n}-3E`]) return false;
     }
+    if(_sessMateria(cod, s) !== matCur) return false;
     if(S.classe === 'ALL') return true;
     return s.classe === S.classe;
   });
@@ -7053,6 +7074,9 @@ function renderSuggerimenti(elId, compDeboli, globale=false){
 // ── POPOLADOCENTE ─────────────────────────────────────────────
 function popolaDocente(){
   if($('doc-cl-lbl')) $('doc-cl-lbl').textContent = S.classe === 'ALL' ? 'Tutte le classi' : 'Classe: ' + S.classe;
+  // [FIX-SHEET] sincronizza dropdown materia con S.materia
+  const selMat = $('sel-mat-panel');
+  if(selMat) selMat.value = S.materia || 'italiano';
   const selNew = $('sel-prova-new');
   const prove  = getProveMateria();
   if(selNew){
@@ -7311,16 +7335,35 @@ async function importaTutteSessioni(){
 
     // Crea sessione nel DB se non esiste
     if(!DB.sessioni[sessKey]){
-      const matchProva = sessKey.match(/^prova-(\d+)/);
+      // [FIX-SHEET] Riconosce anche le chiavi con namespace materia
+      //   prova-mat-4-3A → provaId 4, materia=matematica
+      //   prova-eng-3-3E → provaId 3, materia=inglese
+      //   prova-1-3A     → provaId 1, materia=italiano
+      //   dis-3A-...     → custom, materia da riga Sheet (se presente)
+      let matSess = 'italiano';
+      let provaNum;
+      let matNs = sessKey.match(/^prova-(mat|eng)-(\d+)/);
+      if(matNs){
+        matSess  = matNs[1] === 'mat' ? 'matematica' : 'inglese';
+        provaNum = parseInt(matNs[2]);
+      } else {
+        const mSimple = sessKey.match(/^prova-(\d+)/);
+        provaNum = mSimple ? parseInt(mSimple[1]) : 'custom';
+      }
+      // Materia dalla riga Sheet (se disponibile) sovrascrive la deduzione
+      const rigaPrima = risultatiSess[0] || {};
+      if(rigaPrima['Materia']) matSess = String(rigaPrima['Materia']).toLowerCase();
+      else if(rigaPrima.Materia) matSess = String(rigaPrima.Materia).toLowerCase();
+
       const matchClasse = sessKey.match(/-([A-Z0-9]{2})$/);
-      const provaNum = matchProva ? parseInt(matchProva[1]) : 'custom';
       const classeKey = matchClasse ? matchClasse[1] : '';
-      const titoloSheet = risultatiSess[0]['Prova'] || '';
+      const titoloSheet = rigaPrima['Prova'] || '';
       const provaObj = typeof PROVE!=='undefined' ? (getProveMateria().find(x=>x.id===provaNum)||PROVE.find(x=>x.id===provaNum)) : null;
       DB.sessioni[sessKey] = {
         provaId: provaNum,
         titolo: titoloSheet || (provaObj ? provaObj.titolo : ''),
         classe: classeKey,
+        materia: matSess,    // [FIX-SHEET]
         data: new Date().toISOString(),
         studenti: risultatiSess.length,
         chiusa: false
@@ -7964,6 +8007,39 @@ function cambiaClassePanel(cl){
   $('sel-sess-analisi').value='';
   $('tbody-ris').innerHTML='';
   $('doc-ris-wrap').classList.add('hidden');
+}
+
+// [FIX-SHEET] CAMBIO MATERIA DENTRO IL PANNELLO (senza tornare a scr-materia)
+function cambiaMateriaPanel(mat){
+  S.materia = mat;
+  applicaCFG(mat);
+  const m = (typeof MATERIE !== 'undefined') ? MATERIE[mat] : null;
+  const badge = document.getElementById('materia-badge');
+  if(badge){
+    badge.textContent = (m ? m.ico+' '+m.nome : mat);
+    badge.style.background = m ? m.bg : '#f0f0f0';
+    badge.style.color = m ? m.col : '#333';
+    badge.style.border = '1.5px solid ' + (m ? m.col : '#ccc');
+  }
+  // Aggiorna pannello (tabella sessioni, dropdown sessioni, nuova sessione, analisi)
+  try{ popolaDocente(); }catch(e){}
+  // Reset dropdown analisi per evitare selezioni stantie di altra materia
+  const selAn = $('sel-sess-analisi'); if(selAn) selAn.value='';
+  $('tbody-ris').innerHTML='';
+  $('doc-ris-wrap').classList.add('hidden');
+}
+
+// [FIX-DROPDOWN] Scrolla il select in alto prima che il menu si apra,
+// così il dropdown nativo ha spazio per aprirsi verso il basso.
+function _scrollSelectIntoView(el){
+  try{
+    const rect = el.getBoundingClientRect();
+    const vh   = window.innerHeight || document.documentElement.clientHeight;
+    // Se il select è nella metà inferiore della viewport, scrollalo in alto
+    if(rect.top > vh * 0.4){
+      el.scrollIntoView({block:'start', behavior:'smooth'});
+    }
+  }catch(e){}
 }
 
 // ══════════════════════════════════════════════════════
