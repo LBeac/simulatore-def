@@ -3545,14 +3545,50 @@ function renderDom(idx){
       // Cancella eventuali code TTS residue da pagine precedenti
       if(window.ListeningTTS) window.ListeningTTS.stop();
 
-      // Funzione avvia ascolto — max 2 volte, nessuna pausa manuale
-      let _listenCount = 0;
+      // Stato condiviso per-task: persiste tra pagina testo e pagine domande
+      window.__listenCounts = window.__listenCounts || {};
+      const taskId = d.id;
+      if(window.__listenCounts[taskId] == null) window.__listenCounts[taskId] = 0;
+
+      // Se il task è già stato ascoltato 2 volte, mostra subito lo stato "done"
+      if(window.__listenCounts[taskId] >= 2){
+        const btnEl  = document.getElementById('btn-listen');
+        const msgEl  = document.getElementById('listening-msg');
+        const cntEl  = document.getElementById('listening-count');
+        const progEl = document.getElementById('listening-progress');
+        const doneEl = document.getElementById('listening-done');
+        if(btnEl)  btnEl.style.display = 'none';
+        if(msgEl)  msgEl.style.display = 'none';
+        if(cntEl)  cntEl.style.display = 'none';
+        if(progEl) progEl.style.display = 'none';
+        if(doneEl) doneEl.style.display = 'block';
+      } else if(window.__listenCounts[taskId] === 1){
+        // Già ascoltato 1 volta: aggiorna UI per 2° tentativo
+        const btnEl  = document.getElementById('btn-listen');
+        const msgEl  = document.getElementById('listening-msg');
+        const cntEl  = document.getElementById('listening-count');
+        if(btnEl){ btnEl.innerHTML = '▶&nbsp; Listen (2nd and final time)'; btnEl.style.background = '#0d47a1'; }
+        if(msgEl) msgEl.textContent = '✅ First listening completed. You may listen one more time.';
+        if(cntEl) cntEl.textContent = '1 of 2 listenings done';
+      }
+
+      // Esponi dati per il player (letti anche dalla vista domanda)
+      window.__listenTaskData = {
+        id: taskId,
+        text: testoListen,
+        instruction: instrText,
+        title: d.tit || 'Listening'
+      };
+
       let _listenHandle = null;
 
       window.listenStart = function(){
-        if(_listenCount >= 2) return;
+        window.__listenCounts = window.__listenCounts || {};
+        const tId = (window.__listenTaskData && window.__listenTaskData.id) || taskId;
+        if((window.__listenCounts[tId]||0) >= 2) return;
         if(_listenHandle) return;  // già in riproduzione
-        _listenCount++;
+        window.__listenCounts[tId] = (window.__listenCounts[tId]||0) + 1;
+        const curCount = window.__listenCounts[tId];
 
         const btn  = document.getElementById('btn-listen');
         const msg  = document.getElementById('listening-msg');
@@ -3570,27 +3606,26 @@ function renderDom(idx){
                              'Usa Chrome, Edge o Safari su un dispositivo con voci TTS installate.';
           }
           if(btn) btn.style.display = 'none';
-          _listenCount = 2;
+          window.__listenCounts[tId] = 2;
           return;
         }
 
         // Lock UI durante riproduzione
         if(errB) errB.style.display = 'none';
         if(btn)  { btn.disabled = true; btn.style.opacity='0.55'; btn.textContent='🔊 Playing…'; }
-        if(msg)  msg.textContent = _listenCount === 1
+        if(msg)  msg.textContent = curCount === 1
                    ? '🔊 First listening in progress — please listen without interruption'
                    : '🔊 Second and final listening in progress';
-        if(cnt)  cnt.textContent = 'Listening ' + _listenCount + ' of 2';
+        if(cnt)  cnt.textContent = 'Listening ' + curCount + ' of 2';
         if(prog) prog.style.display = 'block';
         if(bar)  bar.style.width = '0%';
 
-        // Costruisci il testo da leggere:
-        //  • 1° ascolto → istruzioni + (pausa) + testo prova
-        //  • 2° ascolto → breve avviso + testo prova
-        const introSpoken = _listenCount === 1
-          ? instrText + '. ... ... Here is the first listening. ... '
+        // Testo da leggere: 1° ascolto → istruzioni + testo; 2° ascolto → avviso + testo
+        const data = window.__listenTaskData || { text: testoListen, instruction: instrText };
+        const introSpoken = curCount === 1
+          ? data.instruction + '. ... ... Here is the first listening. ... '
           : 'This is the second and final listening. ... ';
-        const fullText = introSpoken + testoListen;
+        const fullText = introSpoken + data.text;
 
         // Stima progress bar (≈420ms per parola a rate 0.9)
         const wordCount  = fullText.split(/\s+/).length;
@@ -3610,8 +3645,7 @@ function renderDom(idx){
             _listenHandle = null;
             if(bar) bar.style.width = '100%';
 
-            if(_listenCount < 2){
-              // 1° ascolto finito → abilita 2°
+            if((window.__listenCounts[tId]||0) < 2){
               if(btn){
                 btn.disabled = false;
                 btn.style.opacity = '1';
@@ -3621,7 +3655,6 @@ function renderDom(idx){
               if(msg) msg.textContent = '✅ First listening completed. You may listen one more time.';
               if(cnt) cnt.textContent = '1 of 2 listenings done';
             } else {
-              // 2° ascolto finito → nascondi controlli, mostra conferma
               if(btn)  btn.style.display = 'none';
               if(msg)  msg.style.display = 'none';
               if(cnt)  cnt.style.display = 'none';
@@ -3634,7 +3667,7 @@ function renderDom(idx){
             _listenHandle = null;
             console.error('[Listening] TTS error:', err);
             // Non consumare il tentativo in caso di errore
-            _listenCount = Math.max(0, _listenCount - 1);
+            window.__listenCounts[tId] = Math.max(0, (window.__listenCounts[tId]||1) - 1);
             if(bar) bar.style.width = '0%';
             if(prog) prog.style.display = 'none';
             if(btn){
@@ -3646,7 +3679,7 @@ function renderDom(idx){
             if(msg) msg.textContent = '⚠️ Audio problem — please click Retry';
             if(errB){
               errB.style.display = 'block';
-              errB.innerHTML = '⚠️ L\'audio non è partito. Verifica che il volume sia alto e che il browser abbia voci inglesi installate. Questo tentativo non è stato contato.';
+              errB.innerHTML = '⚠️ L\'audio non è partito. Verifica il volume e che il browser abbia voci inglesi installate. Questo tentativo non è stato contato.';
             }
           }
         );
@@ -3716,15 +3749,131 @@ function renderDom(idx){
   if(ref){
     const isRefListening = ref.tit && ref.tit.toUpperCase().includes('LISTENING') && S.materia==='inglese';
     if(isRefListening){
-      // Listening: non mostrare il testo — solo indicatore audio
+      // Listening: non mostrare il testo — mostra player compatto condiviso
+      window.__listenCounts = window.__listenCounts || {};
+      const _taskId = ref.id;
+      const _count  = window.__listenCounts[_taskId] || 0;
+      const _rawRef = ref.testo || '';
+      const _instr  = (_rawRef.match(/\[([^\]]+)\]/) || [,'Listen carefully. You will hear the recording twice.'])[1].trim();
+      const _txt    = _rawRef.replace(/\[[^\]]*\]/g,'').trim();
+
+      // Espone i dati task al player condiviso
+      window.__listenTaskData = { id:_taskId, text:_txt, instruction:_instr, title: ref.tit||'Listening' };
+
+      const _btnLabel = _count === 0 ? '▶&nbsp; Listen (1st time)'
+                      : _count === 1 ? '▶&nbsp; Listen (2nd and final time)'
+                      : '';
+      const _btnBg    = _count === 1 ? '#0d47a1' : '#1565c0';
+      const _statusHtml = _count >= 2
+        ? `<div id="listening-done" style="margin-top:4px;background:#e8f5e9;border-radius:8px;
+             padding:10px 14px;font-size:12px;color:#1b5e20;font-weight:600">
+             ✅ Ascolti completati. Rispondi alle domande.
+           </div>`
+        : `<div id="listening-msg" style="font-size:13px;font-weight:700;color:#1565c0;margin-bottom:4px">
+             ${_count === 0 ? 'Ascolta il testo. Massimo 2 ascolti.' : 'Puoi ascoltarlo una seconda e ultima volta.'}
+           </div>
+           <div id="listening-count" style="font-size:11px;color:#888;margin-bottom:12px">
+             ${_count} of 2 listenings done
+           </div>
+           <button id="btn-listen" onclick="listenStart()"
+             style="background:${_btnBg};color:#fff;border:none;border-radius:8px;
+                    padding:10px 22px;font-size:14px;font-weight:700;cursor:pointer;
+                    box-shadow:0 2px 8px rgba(21,101,192,.35)">
+             ${_btnLabel}
+           </button>
+           <div id="listening-progress" style="width:100%;max-width:260px;background:#e0e0e0;
+                border-radius:4px;height:5px;overflow:hidden;margin:12px auto 0;display:none">
+             <div id="listening-bar" style="width:0%;background:#1565c0;height:100%;
+                  transition:width .4s;border-radius:4px"></div>
+           </div>
+           <div id="listening-err" style="display:none;margin-top:12px;background:#ffebee;
+                border-radius:8px;padding:10px 14px;font-size:12px;color:#b71c1c;
+                font-weight:600;line-height:1.5"></div>`;
+
       colTesto.innerHTML=`<div class="brano-wrap">
         <div class="brano-tit">🎧 ${ref.tit||'Listening'}</div>
-        <div style="text-align:center;padding:30px 20px;color:#888">
-          <div style="font-size:48px;margin-bottom:10px">🎧</div>
-          <div style="font-size:14px;font-weight:600;color:#1565c0">Testo audio</div>
-          <div style="font-size:12px;margin-top:6px">Il testo è disponibile solo in formato audio.<br>Rispondi in base a quello che hai ascoltato.</div>
+        <div style="text-align:center;padding:24px 16px">
+          <div style="font-size:44px;margin-bottom:10px">🎧</div>
+          ${_statusHtml}
         </div>
       </div>`;
+
+      // Definisci listenStart anche qui (condivide __listenCounts con la pagina testo)
+      let _listenHandle = null;
+      window.listenStart = function(){
+        window.__listenCounts = window.__listenCounts || {};
+        const tId = (window.__listenTaskData && window.__listenTaskData.id) || _taskId;
+        if((window.__listenCounts[tId]||0) >= 2) return;
+        if(_listenHandle) return;
+        window.__listenCounts[tId] = (window.__listenCounts[tId]||0) + 1;
+        const curCount = window.__listenCounts[tId];
+
+        const btn  = document.getElementById('btn-listen');
+        const msg  = document.getElementById('listening-msg');
+        const cnt  = document.getElementById('listening-count');
+        const bar  = document.getElementById('listening-bar');
+        const prog = document.getElementById('listening-progress');
+        const errB = document.getElementById('listening-err');
+
+        if(!window.ListeningTTS || !window.ListeningTTS.isSupported()){
+          if(errB){
+            errB.style.display = 'block';
+            errB.innerHTML = '⚠️ <strong>Browser senza sintesi vocale.</strong> Usa Chrome, Edge o Safari.';
+          }
+          if(btn) btn.style.display = 'none';
+          window.__listenCounts[tId] = 2;
+          return;
+        }
+
+        if(errB) errB.style.display = 'none';
+        if(btn)  { btn.disabled = true; btn.style.opacity='0.55'; btn.textContent='🔊 Playing…'; }
+        if(msg)  msg.textContent = curCount === 1
+                   ? '🔊 First listening in progress'
+                   : '🔊 Second and final listening in progress';
+        if(cnt)  cnt.textContent = 'Listening ' + curCount + ' of 2';
+        if(prog) prog.style.display = 'block';
+        if(bar)  bar.style.width = '0%';
+
+        const data = window.__listenTaskData || { text:_txt, instruction:_instr };
+        const introSpoken = curCount === 1
+          ? data.instruction + '. ... ... Here is the first listening. ... '
+          : 'This is the second and final listening. ... ';
+        const fullText = introSpoken + data.text;
+
+        const wordCount  = fullText.split(/\s+/).length;
+        const estTotalMs = Math.max(10000, wordCount * 420);
+        let elapsed = 0;
+        const progInt = setInterval(function(){
+          elapsed += 250;
+          const pct = Math.min(96, elapsed / estTotalMs * 100);
+          if(bar) bar.style.width = pct + '%';
+        }, 250);
+
+        _listenHandle = window.ListeningTTS.speak(
+          fullText,
+          { lang: 'en-GB', rate: 0.9, pitch: 1 },
+          function onComplete(){
+            clearInterval(progInt);
+            _listenHandle = null;
+            // Re-render compatto aggiornato (riflette nuovo count)
+            renderDom(S.cur);
+          },
+          function onError(err){
+            clearInterval(progInt);
+            _listenHandle = null;
+            console.error('[Listening] TTS error:', err);
+            window.__listenCounts[tId] = Math.max(0, (window.__listenCounts[tId]||1) - 1);
+            if(bar) bar.style.width = '0%';
+            if(prog) prog.style.display = 'none';
+            if(btn){ btn.disabled = false; btn.style.opacity='1'; btn.innerHTML='▶&nbsp; Retry'; btn.style.background='#c62828'; }
+            if(msg) msg.textContent = '⚠️ Audio problem — please click Retry';
+            if(errB){
+              errB.style.display = 'block';
+              errB.innerHTML = '⚠️ L\'audio non è partito. Tentativo non contato.';
+            }
+          }
+        );
+      };
     } else {
       // Reading: mostra il testo del brano di riferimento
       const _ttsBarRef = S.provaIdDaURL==='custom' ? `
