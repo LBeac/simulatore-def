@@ -451,16 +451,23 @@ html, body{
 .ris-big-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.13)}
 
 /* Soluzioni - testo leggibile */
-#ris-detail{font-size:15px;line-height:1.7}
-#ris-detail .risp-sez-group{margin-bottom:20px}
+#ris-detail{font-size:15px;line-height:1.7;min-width:0}
+#ris-detail *{max-width:100%;box-sizing:border-box}
+/* [FIX-MAT-REPORT] Evita che HTML ricco (formule, tabelle, immagini) nelle domande matematiche
+   forzi una larghezza maggiore di 100%, rompendo il layout in colonne strette */
+#ris-detail img{max-width:100%;height:auto}
+#ris-detail table{max-width:100%;width:auto;border-collapse:collapse}
+#ris-detail pre,
+#ris-detail code{white-space:pre-wrap;word-break:break-word;max-width:100%;overflow-x:auto}
+#ris-detail .risp-sez-group{margin-bottom:20px;display:block;min-width:0}
 #ris-detail .risp-sez-hdr{font-size:12px;font-weight:700;text-transform:uppercase;color:#fff;background:var(--blu);padding:8px 14px;border-radius:6px;margin-bottom:10px;letter-spacing:.5px}
-#ris-detail .risp-item{display:block;padding:10px 0;border-bottom:1px solid var(--grigio-ch);line-height:1.6}
+#ris-detail .risp-item{display:block;padding:10px 0;border-bottom:1px solid var(--grigio-ch);line-height:1.6;min-width:0;word-break:break-word;overflow-wrap:anywhere}
 #ris-detail .risp-ico{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;margin-top:2px}
 #ris-detail .risp-ico.ok{background:#e8f5e9;color:var(--verde)}
 #ris-detail .risp-ico.no{background:#fce4e4;color:var(--rosso)}
 #ris-detail .risp-ico.sk{background:#fff8e1;color:var(--arancio)}
-#ris-detail .risp-q{color:#222;font-weight:600;margin-bottom:4px;font-size:15px}
-#ris-detail .risp-mia{font-size:13px;margin-top:2px}
+#ris-detail .risp-q{color:#222;font-weight:600;margin-bottom:4px;font-size:15px;min-width:0;word-break:break-word;overflow-wrap:anywhere;flex:1 1 auto}
+#ris-detail .risp-mia{font-size:13px;margin-top:2px;word-break:break-word;overflow-wrap:anywhere}
 #ris-detail .risp-giusta{font-size:13px;color:var(--verde);font-weight:700}
 
 /* ── RISULTATI ───────────────────────────────────────────── */
@@ -574,8 +581,15 @@ tr:hover td{background:var(--grigio-ch)}
   gap: 8px;
   align-items: flex-end;
   max-height: calc(100vh - 100px);
-  overflow-y: auto;
+  /* [FIX-TIC] overflow:visible al posto di auto: evita la comparsa della scrollbar
+     dinamica che causava reflow/vibrazione dei figli al hover. Se i TIC superano
+     l'altezza (caso estremo), lo scroll è gestito dal body. */
+  overflow: visible;
   pointer-events: none; /* lascia passare i click fuori dai figli */
+  /* [FIX-TIC] promozione su layer GPU: evita pixel bleeding tra fratelli durante hover */
+  isolation: isolate;
+  /* [FIX-TIC] padding-right assorbe lo scale dell'hover senza far scattare scrollbar del body */
+  padding-right: 6px;
 }
 #tic-stack > * { pointer-events: auto; }
 
@@ -636,20 +650,24 @@ tr:hover td{background:var(--grigio-ch)}
   align-items: center;
   justify-content: center;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
-  transition: all 0.15s ease-out;
+  transition: box-shadow 0.15s ease-out, filter 0.15s ease-out;
   font-family: var(--font);
   font-weight: 700;
   flex-shrink: 0;
   position: relative;
+  /* [FIX-TIC] GPU layer: l'hover non causa più reflow dei fratelli */
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 .acc-btn:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 14px rgba(13, 71, 161, 0.5);
+  /* [FIX-TIC] niente più scale (causa-vibrazione); feedback visivo tramite luminosità + ombra */
+  filter: brightness(1.12);
+  box-shadow: 0 5px 16px rgba(13, 71, 161, 0.55);
 }
 
 .acc-btn:active {
-  transform: scale(0.95);
+  filter: brightness(0.95);
 }
 
 .acc-btn.attivo {
@@ -729,6 +747,11 @@ body.in-prova #acc-toggle-btn { display: flex; }
 body.in-prova.prova-finita #acc-toggle-btn,
 body.prova-finita #acc-toggle-btn { display: none !important; }
 body.prova-finita #tic-stack { display: none !important; }
+/* [FIX-TIC] nasconde anche i widget matematica e dizionario che vivono su document.body */
+body.prova-finita #calc-widget,
+body.prova-finita #form-widget,
+body.prova-finita #pit-widget,
+body.prova-finita #diz-widget { display: none !important; }
 
 #acc-toggle-btn:active {
   transform: scale(0.95);
@@ -873,31 +896,47 @@ body.prova-finita #tic-stack { display: none !important; }
      SCHERMO ACCESSO
 ════════════════════════════════════════════════════════ -->
 <!-- ═══ SCHERMATA BENVENUTO ANIMATA ══════════════════════ -->
-<div id="scr-benvenuto" style="position:fixed;inset:0;z-index:9998;background:linear-gradient(135deg,#001f5c 0%,#003f8a 50%,#1a5fa8 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;overflow:hidden">
+<div id="scr-benvenuto" style="position:fixed;inset:0;z-index:9998;background:radial-gradient(ellipse at top,#1a3d80 0%,#001f5c 45%,#000b1e 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;overflow:hidden">
 
   <!-- Particelle sfondo -->
   <div id="particelle" style="position:absolute;inset:0;pointer-events:none;overflow:hidden"></div>
 
+  <!-- Aura luminosa dietro al logo -->
+  <div id="bv-aura" style="position:absolute;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle,rgba(74,144,217,.35) 0%,rgba(74,144,217,0) 70%);filter:blur(20px);opacity:0;transition:opacity 1.2s ease;pointer-events:none"></div>
+
   <!-- Logo animato -->
-  <div id="bv-logo" style="width:90px;height:90px;background:rgba(255,255,255,.15);border:3px solid rgba(255,255,255,.4);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;color:#fff;letter-spacing:-2px;margin-bottom:24px;opacity:0;transform:scale(.5) translateY(30px);transition:all .7s cubic-bezier(.34,1.56,.64,1)">G8</div>
+  <div id="bv-logo" style="position:relative;width:110px;height:110px;background:linear-gradient(135deg,rgba(255,255,255,.2),rgba(255,255,255,.05));backdrop-filter:blur(10px);border:3px solid rgba(255,255,255,.5);border-radius:24px;display:flex;align-items:center;justify-content:center;font-size:38px;font-weight:900;color:#fff;letter-spacing:-2px;margin-bottom:28px;opacity:0;transform:scale(.5) translateY(30px) rotate(-10deg);transition:all .9s cubic-bezier(.34,1.56,.64,1);box-shadow:0 10px 40px rgba(74,144,217,.4),inset 0 1px 2px rgba(255,255,255,.3);text-shadow:0 2px 8px rgba(0,0,0,.4)">G8</div>
 
   <!-- Testo scuola -->
-  <div id="bv-scuola" style="font-size:13px;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:3px;margin-bottom:10px;opacity:0;transform:translateY(20px);transition:all .6s ease .2s"></div>
+  <div id="bv-scuola" style="font-size:12px;color:rgba(255,255,255,.65);text-transform:uppercase;letter-spacing:4px;margin-bottom:12px;opacity:0;transform:translateY(20px);transition:all .6s ease .2s;font-weight:600"></div>
 
   <!-- Titolo principale -->
-  <div id="bv-titolo" style="font-size:clamp(22px,5vw,36px);font-weight:900;color:#fff;text-align:center;line-height:1.2;margin-bottom:10px;opacity:0;transform:translateY(20px);transition:all .6s ease .35s">Grado 8</div>
-  <div id="bv-sottotitolo" style="font-size:clamp(14px,3vw,19px);color:rgba(255,255,255,.85);text-align:center;margin-bottom:32px;opacity:0;transform:translateY(20px);transition:all .6s ease .5s">Simulazione INVALSI · Italiano Terza Media</div>
+  <div id="bv-titolo" style="font-size:clamp(26px,6vw,44px);font-weight:900;color:#fff;text-align:center;line-height:1.1;margin-bottom:12px;opacity:0;transform:translateY(20px);transition:all .6s ease .35s;letter-spacing:-0.02em;text-shadow:0 2px 20px rgba(0,0,0,.3)">Grado 8</div>
+  <div id="bv-sottotitolo" style="font-size:clamp(14px,3vw,19px);color:rgba(255,255,255,.85);text-align:center;margin-bottom:22px;opacity:0;transform:translateY(20px);transition:all .6s ease .5s;font-weight:500">Simulatore Prove INVALSI</div>
+
+  <!-- Chip delle tre materie -->
+  <div id="bv-materie" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:30px;opacity:0;transform:translateY(16px);transition:all .7s ease .65s">
+    <div class="bv-chip" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.25);border-radius:20px;color:#fff;font-size:13px;font-weight:600;backdrop-filter:blur(8px)">
+      <span style="font-size:16px">📖</span> Italiano
+    </div>
+    <div class="bv-chip" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.25);border-radius:20px;color:#fff;font-size:13px;font-weight:600;backdrop-filter:blur(8px)">
+      <span style="font-size:16px">📐</span> Matematica
+    </div>
+    <div class="bv-chip" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.25);border-radius:20px;color:#fff;font-size:13px;font-weight:600;backdrop-filter:blur(8px)">
+      <span style="font-size:16px">🇬🇧</span> Inglese
+    </div>
+  </div>
 
   <!-- Barra di caricamento -->
-  <div id="bv-barra-wrap" style="width:280px;height:4px;background:rgba(255,255,255,.2);border-radius:2px;overflow:hidden;margin-bottom:16px;opacity:0;transition:opacity .4s ease .7s">
-    <div id="bv-barra" style="height:100%;width:0%;background:linear-gradient(90deg,#4a90d9,#fff);border-radius:2px;transition:width 2s ease"></div>
+  <div id="bv-barra-wrap" style="width:300px;height:4px;background:rgba(255,255,255,.12);border-radius:2px;overflow:hidden;margin-bottom:14px;opacity:0;transition:opacity .4s ease .9s;box-shadow:inset 0 1px 2px rgba(0,0,0,.3)">
+    <div id="bv-barra" style="height:100%;width:0%;background:linear-gradient(90deg,#4a90d9,#7dd3fc,#fff);border-radius:2px;transition:width 1.8s cubic-bezier(.65,0,.35,1);box-shadow:0 0 12px rgba(125,211,252,.8)"></div>
   </div>
 
   <!-- Messaggio caricamento -->
-  <div id="bv-loading" style="font-size:12px;color:rgba(255,255,255,.6);letter-spacing:1px;opacity:0;transition:opacity .4s ease .7s">Caricamento prove in corso…</div>
+  <div id="bv-loading" style="font-size:12px;color:rgba(255,255,255,.6);letter-spacing:1px;opacity:0;transition:opacity .4s ease .9s;font-weight:500">Caricamento prove in corso…</div>
 
   <!-- Benvenuto finale -->
-  <div id="bv-benvenuto" style="position:absolute;bottom:40px;font-size:13px;color:rgba(255,255,255,.5);opacity:0;transition:opacity .6s ease">
+  <div id="bv-benvenuto" style="position:absolute;bottom:32px;font-size:12px;color:rgba(255,255,255,.5);opacity:0;transition:opacity .6s ease;letter-spacing:.5px">
     Anno scolastico 2025–2026
   </div>
 </div>
@@ -908,7 +947,7 @@ body.prova-finita #tic-stack { display: none !important; }
     <div class="acc-logo">
       <div class="acc-logo-box">G8</div>
       <div class="acc-title">Grado 8</div>
-      <div class="acc-sub">Simulazione INVALSI · Italiano Terza Media</div>
+      <div class="acc-sub">Simulatore Prove INVALSI · Terza Media</div>
     </div>
     <div class="tab-acc">
       <button class="tab-acc-btn att" onclick="setTipoAcc('studente',this)">🎓 Studente</button>
@@ -2762,6 +2801,24 @@ const COMP_NOMI = {
 const nC = c => COMP_NOMI[c]||c||'';
 const $ = id => document.getElementById(id);
 
+// [FIX-MAT-REPORT] Pulisce un testo-domanda per la visualizzazione nel report:
+//  - trasforma il placeholder [___] delle risposte aperte in una linea grigia
+//  - lascia l'HTML integro (niente più substring che tagliava a metà i tag,
+//    causando rendering rotto e layout scomposto per matematica)
+//  - tronca a 280 caratteri dopo aver strippato i tag, evitando di tagliare
+//    in mezzo a un tag HTML
+function _puliscTestoReport(t){
+  if(!t) return '';
+  var testo = String(t).replace(/\[_+\]/g, '<span style="color:#bbb">_____</span>');
+  // Strip tags per misurare la lunghezza reale
+  var plain = testo.replace(/<[^>]+>/g,'');
+  if(plain.length > 280){
+    // Per sicurezza: se il testo è lunghissimo, rimuovi tutti i tag e tronca
+    testo = plain.substring(0, 280) + '…';
+  }
+  return testo;
+}
+
 // ── BES AUDIO PLAYER ───────────────────────────────────
 function besTogglePlay(){
   const audio = document.getElementById('bes-audio');
@@ -4334,6 +4391,15 @@ function consegna(){
   clearInterval(S.timer);
   S.timer = null; // impedisce che il timer riprenda
   $('ov-cons').classList.add('hidden');
+  // [FIX-TIC] Chiudi tutti i widget e nascondi lo stack TIC: prova finita, niente strumenti
+  document.body.classList.add('prova-finita');
+  ['calc-widget','form-widget','pit-widget','diz-widget'].forEach(function(id){
+    var w = document.getElementById(id);
+    if(w) w.style.display = 'none';
+  });
+  // Ferma anche eventuale TTS residuo
+  try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){}
+  try{ if(window.ListeningTTS) window.ListeningTTS.stop(); }catch(e){}
   calcolaRisultati();
   mostraScr('scr-ris');
 }
@@ -4669,11 +4735,11 @@ function calcolaRisultati(){
     ds.forEach((x,i)=>{
       const icoC=x.ok?'ok':(x.mia===undefined?'sk':'no');
       rH+=`<div class="risp-item">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+        <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:5px;min-width:0">
           <div class="risp-ico ${icoC}">${x.ok?'✓':(x.mia===undefined?'–':'✗')}</div>
-          <div class="risp-q" style="font-weight:700"><strong>${i+1}.</strong> ${x.d.testo.substring(0,120)}${x.d.testo.length>120?'…':''}</div>
+          <div class="risp-q" style="font-weight:700"><strong>${i+1}.</strong> ${_puliscTestoReport(x.d.testo)}</div>
         </div>
-        <div style="padding-left:28px">
+        <div style="padding-left:28px;min-width:0">
           <div class="risp-mia">
             La tua risposta: <span style="font-weight:700;color:${x.ok?'var(--verde)':'var(--rosso)'}">${x.miaLbl}</span>
           </div>
@@ -8233,7 +8299,7 @@ function mostraRipasso(){
           <span>${i+1}</span>
         </div>
         <div class="ripasso-body">
-          <div class="ripasso-testo">${x.d.testo.substring(0,150)}${x.d.testo.length>150?'…':''}</div>`;
+          <div class="ripasso-testo">${_puliscTestoReport(x.d.testo)}</div>`;
 
       // Se ha opzioni (SM), mostrali con colori
       if(x.d.tipo==='sm' && x.d.ops){
@@ -8448,25 +8514,33 @@ function avviaAnimazioneBenvenuto(){
   const bv = $('scr-benvenuto');
   if(!bv) return;
 
-  // Crea particelle galleggianti
+  // Crea particelle galleggianti (più numerose e colorate)
   const contenitore = $('particelle');
-  for(let i = 0; i < 18; i++){
+  const colors = ['rgba(74,144,217,.4)', 'rgba(125,211,252,.35)', 'rgba(255,255,255,.25)', 'rgba(167,139,250,.3)'];
+  for(let i = 0; i < 28; i++){
     const p = document.createElement('div');
     p.className = 'particella';
-    const size = 6 + Math.random() * 18;
-    p.style.cssText = `
-      width:${size}px; height:${size}px;
-      left:${Math.random()*100}%;
-      animation-duration:${5 + Math.random()*8}s;
-      animation-delay:${Math.random()*4}s;
-    `;
+    const size = 5 + Math.random() * 20;
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    p.style.cssText =
+      'width:'+size+'px;height:'+size+'px;'+
+      'left:'+(Math.random()*100)+'%;'+
+      'background:'+color+';'+
+      'animation-duration:'+(6 + Math.random()*8)+'s;'+
+      'animation-delay:'+(Math.random()*4)+'s;';
     contenitore.appendChild(p);
   }
+
+  // Aura luminosa dietro al logo
+  setTimeout(()=>{
+    const aura = $('bv-aura');
+    if(aura) aura.style.opacity='1';
+  }, 50);
 
   // Sequenza animazione elementi
   setTimeout(()=>{
     const logo = $('bv-logo');
-    if(logo){ logo.style.opacity='1'; logo.style.transform='scale(1) translateY(0)'; }
+    if(logo){ logo.style.opacity='1'; logo.style.transform='scale(1) translateY(0) rotate(0deg)'; }
   }, 100);
 
   setTimeout(()=>{
@@ -8475,6 +8549,12 @@ function avviaAnimazioneBenvenuto(){
       if(el){ el.style.opacity='1'; el.style.transform='translateY(0)'; }
     });
   }, 300);
+
+  // Chip materie con entrata staggered
+  setTimeout(()=>{
+    const chip = $('bv-materie');
+    if(chip){ chip.style.opacity='1'; chip.style.transform='translateY(0)'; }
+  }, 650);
 
   setTimeout(()=>{
     const bw = $('bv-barra-wrap'), bl = $('bv-loading');
@@ -8485,7 +8565,7 @@ function avviaAnimazioneBenvenuto(){
       const bar = $('bv-barra');
       if(bar) bar.style.width='100%';
     }, 50);
-  }, 700);
+  }, 900);
 
   // Messaggio finale
   setTimeout(()=>{
@@ -8493,7 +8573,7 @@ function avviaAnimazioneBenvenuto(){
     if(bl) bl.textContent = '✅ Pronto!';
     const bb = $('bv-benvenuto');
     if(bb) bb.style.opacity='1';
-  }, 2400);
+  }, 2700);
 
   // Dissolvenza e rimozione
   setTimeout(()=>{
