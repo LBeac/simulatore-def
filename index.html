@@ -8633,12 +8633,12 @@ var _peiState = { prova: null, obiettivi: [], tic: [] };
 
 // Fallback statici se il backend non risponde (ampliare lato Apps Script con leggiObiettiviMat)
 var _peiFallbackObj = [
-  {codice:'N1', area:'Numeri',   nome:'Operazioni con numeri naturali'},
-  {codice:'N2', area:'Numeri',   nome:'Frazioni e decimali'},
-  {codice:'A1', area:'Algebra',  nome:'Equazioni di primo grado'},
-  {codice:'G1', area:'Geometria',nome:'Perimetro e area figure piane'},
-  {codice:'G2', area:'Geometria',nome:'Teorema di Pitagora'},
-  {codice:'D1', area:'Dati',     nome:'Media e mediana'}
+  {codice:'NUM-B-01', area:'Numeri',           nome:'Numeri entro 100'},
+  {codice:'NUM-B-02', area:'Numeri',           nome:'Addizione e sottrazione entro 100'},
+  {codice:'NUM-B-03', area:'Numeri',           nome:'Tabelline e moltiplicazione'},
+  {codice:'NUM-B-08', area:'Numeri',           nome:'Problema con una operazione'},
+  {codice:'SPA-B-06', area:'Spazio e figure',  nome:'Perimetro come somma dei lati'},
+  {codice:'DAT-B-01', area:'Dati e previsioni',nome:'Lettura di un grafico semplice'}
 ];
 var _peiFallbackTic = [
   {codice:'tic_calc',        nome:'🔢 Calcolatrice'},
@@ -8655,16 +8655,39 @@ function peiCaricaMetadati(){
   var wrapObj = document.getElementById('pei-obj-wrap');
   var wrapTic = document.getElementById('pei-tic-wrap');
   if(!wrapObj || !wrapTic) return;
-  fetch(SCRIPT_URL + '?action=leggiObiettiviMat&token=' + encodeURIComponent(SCRIPT_TOKEN))
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    redirect: 'follow',
+    body: JSON.stringify({ action: 'leggiObiettiviMat', token: SCRIPT_TOKEN })
+  })
     .then(function(r){ return r.ok ? r.json() : Promise.reject(); })
     .then(function(d){
-      _peiRenderObiettivi(d && d.obiettivi && d.obiettivi.length ? d.obiettivi : _peiFallbackObj);
-      _peiRenderTic(d && d.tic && d.tic.length ? d.tic : _peiFallbackTic);
+      // Normalizza i campi del backend (ambito/titolo_breve) verso quelli che il frontend si aspetta (area/nome)
+      var obs = (d && d.obiettivi && d.obiettivi.length) ? d.obiettivi.map(function(o){
+        return {
+          codice: o.codice,
+          area:   o.area || _peiAmbitoToArea(o.ambito),
+          nome:   o.nome || o.titolo_breve || o.codice
+        };
+      }) : _peiFallbackObj;
+      var tics = (d && d.tic && d.tic.length) ? d.tic : _peiFallbackTic;
+      _peiRenderObiettivi(obs);
+      _peiRenderTic(tics);
     })
     .catch(function(){
       _peiRenderObiettivi(_peiFallbackObj);
       _peiRenderTic(_peiFallbackTic);
     });
+}
+// Traduce i codici ambito del backend in etichette leggibili per il frontend
+function _peiAmbitoToArea(amb){
+  var map = {
+    'numeri':             'Numeri',
+    'spazio_figure':      'Spazio e figure',
+    'relazioni_funzioni': 'Relazioni e funzioni',
+    'dati_previsioni':    'Dati e previsioni'
+  };
+  return map[amb] || (amb ? amb.charAt(0).toUpperCase()+amb.slice(1) : 'Altro');
 }
 
 function _peiRenderObiettivi(lista){
