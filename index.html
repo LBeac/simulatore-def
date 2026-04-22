@@ -568,6 +568,30 @@ tr:hover td{background:var(--grigio-ch)}
 .doc-ris-wrap{background:#fff;border-radius:10px;margin-top:16px;box-shadow:0 2px 8px rgba(0,0,0,.07);overflow:hidden}
 .doc-ris-hdr{background:var(--blu-s);color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between}
 .doc-ris-body{padding:18px;max-height:400px;overflow-y:auto;min-height:60px}
+/* === BEGIN: PEI mat === */
+.v-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;line-height:1.3;white-space:nowrap;font-family:var(--font)}
+.v-badge.ok  {background:#e8f5e9;color:var(--verde);border:1px solid #a5d6a7}
+.v-badge.fix {background:#e3f2fd;color:var(--blu);  border:1px solid #90caf9}
+.v-badge.err {background:#fce4e4;color:var(--rosso);border:1px solid #ef9a9a}
+.v-badge.warn{background:#fff8e1;color:#b45309;     border:1px solid var(--giallo)}
+.v-badge.na  {background:var(--grigio-ch);color:#666;border:1px solid var(--grigio)}
+.v-badge.manual{background:#f3e5f5;color:#6a1b9a;border:1px solid #ce93d8}
+
+.pei-card{background:#fff;border:1.5px solid var(--grigio);border-radius:10px;padding:14px 16px;margin-bottom:10px;transition:border-color .15s}
+.pei-card.stato-err {border-left:4px solid var(--rosso)}
+.pei-card.stato-warn{border-left:4px solid var(--giallo)}
+.pei-card.stato-fix {border-left:4px solid var(--blu)}
+.pei-card.stato-ok  {border-left:4px solid var(--verde)}
+.pei-card .pei-opts{display:flex;flex-direction:column;gap:4px;margin:8px 0}
+.pei-card .pei-opt{padding:6px 10px;border-radius:4px;font-size:13px;background:var(--grigio-ch)}
+.pei-card .pei-opt.ok{background:#e8f5e9;color:var(--verde);font-weight:700}
+.pei-card .pei-msg{font-size:11px;color:#666;font-style:italic;margin-top:6px;padding-top:6px;border-top:1px dashed var(--grigio)}
+.pei-card .pei-fix-note{background:#e3f2fd;border-left:3px solid var(--blu);padding:5px 9px;margin-top:5px;font-size:11px;color:#0d47a1;border-radius:0 4px 4px 0}
+.pei-obj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px 10px;max-height:220px;overflow-y:auto;padding:10px;background:var(--grigio-ch);border-radius:6px;border:1px solid var(--grigio)}
+.pei-obj-grid label{display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:2px 0}
+.pei-obj-grid label input{width:14px;height:14px;accent-color:var(--blu);flex-shrink:0}
+/* === END: PEI mat === */
+
 /* ══ BARRA ACCESSIBILITÀ — LAYOUT VERTICALE PULITO ══ */
 
 /* ── STACK TIC UNICO VERTICALE (accessibilità + strumenti matematica/inglese) ── */
@@ -4792,7 +4816,10 @@ function calcolaRisultati(){
     const _modBes = document.body.classList.contains('bes-mode');
     const _modDis = (S.sessione||'').toLowerCase().startsWith('dis-');
     const _modCaa = (S.sessione||'').toLowerCase().startsWith('caa-');
-    const _modalita = _modCaa ? 'caa' : _modDis ? 'dis' : _modBes ? 'bes' : 'standard';
+    /* === BEGIN: PEI mat === */
+    const _modPei = (S.sessione||'').toLowerCase().startsWith('pei-');
+    const _modalita = _modPei ? 'pei' : _modCaa ? 'caa' : _modDis ? 'dis' : _modBes ? 'bes' : 'standard';
+    /* === END === */
 
     // [FIX-6] Conta domande risposte vs totale per flag completata
     const _nRisposte  = det.filter(x => x.mia !== undefined).length;
@@ -5163,7 +5190,9 @@ document.addEventListener('keydown',function(e){
 
 function aggiornaGenerale(){
   // [FIX-analisi] Include TUTTE le sessioni (standard + dis + bes) per la vista generale
-  const ris = getRisultatiClasse();
+  /* === BEGIN: PEI mat — escludi da medie === */
+  const ris = getRisultatiClasse().filter(r => r.modalita !== 'pei' && !(r.sessione||'').startsWith('pei-'));
+  /* === END === */
   const risDis = typeof getRisultatiDis === 'function' ? getRisultatiDis() : [];
   const noData = '<p style="color:#aaa;font-size:13px;padding:12px 0">Nessun dato disponibile — nessuno studente ha ancora consegnato una prova.<br><span style="font-size:11px">Usa <strong>Importa da Sheet</strong> se gli studenti hanno già svolto le prove su un altro dispositivo.</span></p>';
 
@@ -7649,10 +7678,21 @@ function _aggiornaPannelloNuovaSessione(){
   const matNome = {italiano:'Italiano',matematica:'Matematica',inglese:'Inglese'};
   if(h3Std) h3Std.textContent = `${matIco[m]||''} Crea sessione — ${matNome[m]||m} standard`;
 
-  // 2. Sezione Per disabilità — placeholder per mat/eng
+  // 2. Sezione Per disabilità — placeholder per eng / pannello PEI per mat
   const stDis = document.getElementById('st-dis');
   if(stDis){
-    if(m !== 'italiano'){
+    if(m === 'matematica'){
+      /* === BEGIN: PEI mat — inietta template === */
+      if(!stDis.dataset.wip) stDis.dataset.origHtml = stDis.innerHTML;
+      stDis.dataset.wip = 'pei';
+      var _tplPei = document.getElementById('tpl-pei-mat');
+      if(_tplPei){
+        stDis.innerHTML = '';
+        stDis.appendChild(_tplPei.content.cloneNode(true));
+        setTimeout(peiCaricaMetadati, 50);
+      }
+      /* === END === */
+    } else if(m !== 'italiano'){
       if(!stDis.dataset.wip){
         stDis.dataset.origHtml = stDis.innerHTML;
       }
@@ -8587,6 +8627,322 @@ function avviaAnimazioneBenvenuto(){
   }, 3200);
 }
 
+/* === BEGIN: PEI mat === */
+// Stato modulo PEI — vive solo nella tab, si azzera a ogni rigenera
+var _peiState = { prova: null, obiettivi: [], tic: [] };
+
+// Fallback statici se il backend non risponde (ampliare lato Apps Script con leggiObiettiviMat)
+var _peiFallbackObj = [
+  {codice:'N1', area:'Numeri',   nome:'Operazioni con numeri naturali'},
+  {codice:'N2', area:'Numeri',   nome:'Frazioni e decimali'},
+  {codice:'A1', area:'Algebra',  nome:'Equazioni di primo grado'},
+  {codice:'G1', area:'Geometria',nome:'Perimetro e area figure piane'},
+  {codice:'G2', area:'Geometria',nome:'Teorema di Pitagora'},
+  {codice:'D1', area:'Dati',     nome:'Media e mediana'}
+];
+var _peiFallbackTic = [
+  {codice:'tic_calc',        nome:'🔢 Calcolatrice'},
+  {codice:'tic_formulario',  nome:'📋 Formulario geometrico'},
+  {codice:'tic_pitagorica',  nome:'🔢 Tavola pitagorica'},
+  {codice:'tic_tempo',       nome:'⏱️ Tempo esteso +30%'},
+  {codice:'tic_testo_grande',nome:'🔍 Testo grande'},
+  {codice:'tic_contrasto',   nome:'🌗 Alto contrasto'},
+  {codice:'tic_font_dys',    nome:'✒️ Font dislessia'},
+  {codice:'tic_spaziatura',  nome:'↔️ Spaziatura aumentata'}
+];
+
+function peiCaricaMetadati(){
+  var wrapObj = document.getElementById('pei-obj-wrap');
+  var wrapTic = document.getElementById('pei-tic-wrap');
+  if(!wrapObj || !wrapTic) return;
+  fetch(SCRIPT_URL + '?action=leggiObiettiviMat&token=' + encodeURIComponent(SCRIPT_TOKEN))
+    .then(function(r){ return r.ok ? r.json() : Promise.reject(); })
+    .then(function(d){
+      _peiRenderObiettivi(d && d.obiettivi && d.obiettivi.length ? d.obiettivi : _peiFallbackObj);
+      _peiRenderTic(d && d.tic && d.tic.length ? d.tic : _peiFallbackTic);
+    })
+    .catch(function(){
+      _peiRenderObiettivi(_peiFallbackObj);
+      _peiRenderTic(_peiFallbackTic);
+    });
+}
+
+function _peiRenderObiettivi(lista){
+  var wrap = document.getElementById('pei-obj-wrap');
+  if(!wrap) return;
+  var perArea = {};
+  lista.forEach(function(o){
+    var area = o.area || 'Altro';
+    (perArea[area] = perArea[area] || []).push(o);
+  });
+  var html = '';
+  Object.keys(perArea).forEach(function(area){
+    html += '<div style="grid-column:1/-1;font-size:10px;font-weight:800;text-transform:uppercase;color:var(--blu);margin:6px 0 2px;letter-spacing:.5px">'+area+'</div>';
+    perArea[area].forEach(function(o){
+      var nome = (o.nome||'').substring(0,40);
+      html += '<label><input type="checkbox" class="pei-obj-chk" value="'+o.codice+'" onchange="_peiAggCountObj()"> <span title="'+(o.nome||'').replace(/"/g,'&quot;')+'"><strong>'+o.codice+'</strong> '+nome+'</span></label>';
+    });
+  });
+  wrap.innerHTML = html;
+}
+
+function _peiRenderTic(lista){
+  var wrap = document.getElementById('pei-tic-wrap');
+  if(!wrap) return;
+  wrap.innerHTML = lista.map(function(t){
+    return '<label style="display:flex;align-items:center;gap:6px;padding:3px 0;cursor:pointer"><input type="checkbox" class="pei-tic-chk" value="'+t.codice+'" style="width:14px;height:14px;accent-color:var(--blu)"> '+t.nome+'</label>';
+  }).join('');
+}
+
+function _peiAggCountObj(){
+  var n = document.querySelectorAll('.pei-obj-chk:checked').length;
+  var el = document.getElementById('pei-obj-count');
+  if(el) el.innerHTML = 'Selezionati: <strong>'+n+'</strong>' + (n>5?' <span style="color:var(--rosso)">— max 5</span>':'');
+}
+
+function peiGenera(){
+  var errEl = document.getElementById('pei-err');
+  var loadEl = document.getElementById('pei-load');
+  var prevEl = document.getElementById('pei-preview');
+  if(errEl) errEl.style.display='none';
+  if(prevEl) prevEl.style.display='none';
+
+  var obiettivi = Array.from(document.querySelectorAll('.pei-obj-chk:checked')).map(function(c){ return c.value; });
+  var tic       = Array.from(document.querySelectorAll('.pei-tic-chk:checked')).map(function(c){ return c.value; });
+  var livello   = (document.getElementById('pei-livello')||{}).value || 'intermedio';
+  var nDom      = parseInt((document.getElementById('pei-ndom')||{}).value || '8') || 8;
+  var classe    = (document.getElementById('pei-classe')||{}).value || '';
+  var nome      = ((document.getElementById('pei-nome')||{}).value || '').trim();
+
+  if(!obiettivi.length){ if(errEl){errEl.textContent='⚠️ Seleziona almeno un obiettivo.';errEl.style.display='block';} return; }
+  if(obiettivi.length>5){ if(errEl){errEl.textContent='⚠️ Massimo 5 obiettivi.';errEl.style.display='block';} return; }
+  if(!classe){ if(errEl){errEl.textContent='⚠️ Seleziona la classe.';errEl.style.display='block';} return; }
+
+  _peiState.obiettivi = obiettivi;
+  _peiState.tic = tic;
+  _peiState._classe = classe;
+  _peiState._nome = nome;
+  _peiState._livello = livello;
+
+  if(loadEl) loadEl.style.display='block';
+
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      token: SCRIPT_TOKEN,
+      action: 'generaProvaMatDifferenziata',
+      obiettivi: obiettivi,
+      tic: tic,
+      livello: livello,
+      nDomande: nDom,
+      classe: classe
+    })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if(loadEl) loadEl.style.display='none';
+    if(!d || d.ok === false) throw new Error(d && d.err ? d.err : 'Risposta backend non valida');
+    if(!d.prova || !d.prova.domande) throw new Error('Prova mancante nella risposta');
+    _peiState.prova = d.prova;
+    _peiRenderAnteprima();
+    if(prevEl) prevEl.style.display='block';
+  })
+  .catch(function(e){
+    if(loadEl) loadEl.style.display='none';
+    if(errEl){ errEl.textContent = '⚠️ ' + (e.message||'Errore di rete'); errEl.style.display='block'; }
+  });
+}
+
+function _peiRenderAnteprima(){
+  var list = document.getElementById('pei-dom-list');
+  var stats = document.getElementById('pei-stats');
+  if(!list || !_peiState.prova) return;
+  var domande = _peiState.prova.domande || [];
+  var cnt = {ok:0,auto_corretta:0,errata:0,non_verificabile:0,tipo_non_applicabile:0,editato_dal_docente:0};
+  domande.forEach(function(d){
+    var s = (d._verifica && d._verifica.stato) || 'non_verificabile';
+    cnt[s] = (cnt[s]||0) + 1;
+  });
+  if(stats){
+    stats.innerHTML = '';
+    var etichette = {ok:['✅ OK','ok'],auto_corretta:['🔧 Auto-corrette','fix'],errata:['❌ Errate','err'],non_verificabile:['⚠️ Non verif.','warn'],tipo_non_applicabile:['➖ N/A','na'],editato_dal_docente:['✎ Editate','manual']};
+    Object.keys(etichette).forEach(function(k){
+      if(cnt[k]>0){
+        var e = etichette[k];
+        stats.innerHTML += '<span class="v-badge '+e[1]+'">'+e[0]+': '+cnt[k]+'</span>';
+      }
+    });
+  }
+  list.innerHTML = '';
+  domande.forEach(function(d, idx){
+    list.appendChild(_peiCardDomanda(d, idx));
+  });
+}
+
+function _peiCardDomanda(d, idx){
+  var v = d._verifica || {stato:'non_verificabile', messaggio:''};
+  var statoMap = {
+    ok:{cls:'ok',  lbl:'✅ OK'},
+    auto_corretta:{cls:'fix', lbl:'🔧 Auto-corretta'},
+    errata:{cls:'err', lbl:'❌ Errata'},
+    non_verificabile:{cls:'warn',lbl:'⚠️ Non verificabile'},
+    tipo_non_applicabile:{cls:'na',lbl:'➖ N/A'},
+    editato_dal_docente:{cls:'manual',lbl:'✎ Editata dal docente'}
+  };
+  var st = statoMap[v.stato] || statoMap.non_verificabile;
+  var card = document.createElement('div');
+  card.className = 'pei-card stato-' + st.cls;
+  card.dataset.idx = idx;
+
+  var optsHtml = '';
+  if(d.tipo === 'sm' && d.ops) {
+    optsHtml = '<div class="pei-opts">' + d.ops.map(function(op, i){
+      return '<div class="pei-opt'+(i===d.ok?' ok':'')+'"><strong>'+['A','B','C','D'][i]+'.</strong> '+op+(i===d.ok?' ✓':'')+'</div>';
+    }).join('') + '</div>';
+  } else if(d.tipo === 'ra') {
+    optsHtml = '<div style="font-size:13px;margin:8px 0"><strong>Risposta:</strong> '+(d.ok_num!=null?d.ok_num:'—')+(d.unita?' '+d.unita:'')+'</div>';
+  }
+
+  var fixNote = '';
+  if(v.stato === 'auto_corretta' && v.ok_originale !== undefined){
+    fixNote = '<div class="pei-fix-note">↺ <strong>Auto-correzione server:</strong> AI aveva indicato opz. '+['A','B','C','D'][v.ok_originale]+', il server ha corretto in opz. '+['A','B','C','D'][v.indice_corretto]+' (valore atteso: '+v.risultato_atteso+')</div>';
+  }
+
+  card.innerHTML =
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px">'
+    +'  <div style="flex:1"><span style="font-weight:800;color:var(--blu);font-size:12px">Dom. '+(idx+1)+'</span> <span class="v-badge '+st.cls+'" style="margin-left:6px">'+st.lbl+'</span></div>'
+    +'  <div style="display:flex;gap:4px">'
+    +'    <button onclick="peiEditDom('+idx+')" style="background:#e3f2fd;color:var(--blu);border:1px solid #90caf9;border-radius:4px;padding:3px 8px;font-size:11px;cursor:pointer;font-family:var(--font)">✎ Modifica</button>'
+    +'    <button onclick="peiDelDom('+idx+')" style="background:#fce4e4;color:var(--rosso);border:1px solid #ef9a9a;border-radius:4px;padding:3px 8px;font-size:11px;cursor:pointer;font-family:var(--font)">🗑</button>'
+    +'  </div>'
+    +'</div>'
+    +'<div style="font-size:13px;font-weight:600;color:#1a2436">'+d.testo+'</div>'
+    + optsHtml
+    + fixNote
+    + (v.messaggio ? '<div class="pei-msg">💬 '+v.messaggio+'</div>' : '');
+  return card;
+}
+
+function peiEditDom(idx){
+  if(!_peiState.prova) return;
+  var d = _peiState.prova.domande[idx];
+  if(!d) return;
+  var card = document.querySelector('.pei-card[data-idx="'+idx+'"]');
+  if(!card) return;
+  if(typeof makeDomCardDis === 'function'){
+    var editor = makeDomCardDis(d, idx);
+    editor.style.border = '2px solid var(--blu)';
+    var saveBtn = document.createElement('button');
+    saveBtn.className = 'btn btn-g';
+    saveBtn.style.cssText = 'width:100%;margin-top:8px;padding:8px;font-size:12px';
+    saveBtn.textContent = '💾 Salva modifiche';
+    saveBtn.onclick = function(){ _peiSaveEdit(idx, editor); };
+    editor.appendChild(saveBtn);
+    card.replaceWith(editor);
+  } else {
+    alert('Editor avanzato non disponibile in questa versione.');
+  }
+}
+
+function _peiSaveEdit(idx, editor){
+  var tEl = editor.querySelector('.dom-testo');
+  var okEl = editor.querySelector('.dom-ok');
+  var opts = Array.from(editor.querySelectorAll('.dom-opt')).map(function(e){ return e.value.trim(); });
+  var d = _peiState.prova.domande[idx];
+  if(tEl) d.testo = tEl.value.trim();
+  if(opts.length && d.tipo==='sm'){ d.ops = opts; d.ok = parseInt(okEl?okEl.value:'0'); }
+  d._verifica = {stato:'editato_dal_docente', messaggio:'Modificata manualmente dal docente', pattern_riconosciuto:null, risultato_atteso:null, risultato_dichiarato:null, indice_corretto:d.ok};
+  _peiRenderAnteprima();
+}
+
+function peiDelDom(idx){
+  if(!_peiState.prova) return;
+  if(!confirm('Eliminare la domanda '+(idx+1)+'?')) return;
+  _peiState.prova.domande.splice(idx,1);
+  _peiRenderAnteprima();
+}
+
+function peiApprovaSalva(){
+  if(!_peiState.prova || !_peiState.prova.domande.length){
+    alert('Nessuna domanda da salvare.'); return;
+  }
+  var classe = _peiState._classe;
+  var nome   = _peiState._nome;
+  var prova  = _peiState.prova;
+
+  var provaPulita = {
+    titolo: prova.titolo || 'Prova PEI Matematica',
+    sottotitolo: 'Prova PEI — Matematica · Livello '+_peiState._livello,
+    paragrafi: prova.paragrafi || [],
+    glossario: [],
+    domande: prova.domande.map(function(d){
+      var dp = {}; Object.keys(d).forEach(function(k){ if(k!=='_verifica') dp[k]=d[k]; });
+      return dp;
+    })
+  };
+
+  var useLZ = (typeof LZString !== 'undefined');
+  var dataEncoded = useLZ
+    ? LZString.compressToEncodedURIComponent(JSON.stringify(provaPulita))
+    : btoa(unescape(encodeURIComponent(JSON.stringify(provaPulita))));
+
+  var sessKey = 'pei-mat-'+classe+'-'+Date.now();
+  DB.sessioni[sessKey] = {
+    provaId: 'custom',
+    titolo: provaPulita.titolo,
+    classe: classe,
+    materia: 'matematica',
+    tipo: 'pei',
+    obiettivi: _peiState.obiettivi,
+    tic: _peiState.tic,
+    livello: _peiState._livello,
+    data: new Date().toISOString(),
+    studenti: 0,
+    chiusa: false
+  };
+  saveDB();
+
+  try{
+    fetch(SCRIPT_URL, {
+      method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        token: SCRIPT_TOKEN, action:'salvaSessione',
+        sessione: sessKey, classe: classe, materia: 'matematica',
+        provaId: 'custom', provaTitolo: provaPulita.titolo,
+        tipo: 'pei', data: new Date().toISOString()
+      })
+    }).catch(function(){});
+  }catch(e){}
+
+  var base = window.location.href.replace(/[^/]*$/,'') + 'grado8_dis.html';
+  var params = new URLSearchParams();
+  params.set('prova','custom');
+  params.set('data', dataEncoded);
+  if(useLZ) params.set('fmt','lz');
+  params.set('sessione', sessKey);
+  params.set('classe', classe);
+  params.set('materia', 'matematica');
+  if(nome) params.set('nome', nome);
+  var ticMap = {tic_calc:'calc',tic_formulario:'formulario',tic_pitagorica:'pitagorica',tic_tempo:'tempo',tic_testo_grande:'large',tic_contrasto:'contrasto',tic_font_dys:'font',tic_spaziatura:'spaziatura'};
+  _peiState.tic.forEach(function(t){ if(ticMap[t]) params.set(ticMap[t],'1'); });
+  var link = base + '?' + params.toString();
+  window._peiLink = link;
+
+  try{ aggiornaTabellaSessioni(); }catch(e){}
+  try{ aggSelSessioni(); }catch(e){}
+
+  var succ = document.getElementById('pei-succ');
+  if(succ){
+    succ.innerHTML = '✅ Sessione PEI <strong>'+sessKey+'</strong> creata ('+provaPulita.domande.length+' domande)<br>'
+      +'<div style="margin-top:8px;padding:8px 12px;background:#fff;border:1px solid var(--verde);border-radius:6px;word-break:break-all;font-size:11px;font-family:monospace">'+link.substring(0,180)+(link.length>180?'…':'')+'</div>'
+      +'<button onclick="navigator.clipboard.writeText(window._peiLink).then(function(){alert(\'✅ Copiato!\')})" class="btn btn-g" style="margin-top:10px;width:100%;padding:9px;font-weight:700">📋 Copia link</button>'
+      +'<div style="margin-top:6px;font-size:11px;color:#555">⚠️ Questa prova non farà media nella dashboard — sarà visualizzabile solo individualmente.</div>';
+    succ.style.display='block';
+  }
+}
+/* === END: PEI mat === */
+
 // URL PARAMS – legge ?prova=3 oppure ?materia=matematica&prova=1&classe=3A
 window.addEventListener('load', () => {
   // Avvia animazione benvenuto
@@ -8876,6 +9232,76 @@ function generaLinkCP(){
     </div>`;
 }
 </script>
+<!-- === BEGIN: PEI mat === -->
+<template id="tpl-pei-mat">
+  <div class="info-panel" style="background:#f3e5f5;border-color:#ce93d8;color:#4a1580">
+    🧩 <strong>Prove PEI — Matematica</strong> — Seleziona obiettivi didattici, TIC e livello. Groq genera la prova, il server verifica e auto-corregge i calcoli. Revisiona l'anteprima e approva.
+  </div>
+
+  <!-- STEP 1: obiettivi -->
+  <div class="panel-card" style="max-width:none;margin-top:10px">
+    <h3>🎯 Passo 1 — Obiettivi didattici</h3>
+    <div style="font-size:11px;color:#888;margin-bottom:8px">Seleziona 1–5 obiettivi. La prova sarà tarata su questi.</div>
+    <div id="pei-obj-wrap" class="pei-obj-grid">
+      <div style="grid-column:1/-1;text-align:center;color:#aaa;font-size:12px;padding:10px">⏳ Carico obiettivi…</div>
+    </div>
+    <div id="pei-obj-count" style="margin-top:8px;font-size:12px;color:#666">Selezionati: <strong>0</strong></div>
+  </div>
+
+  <!-- STEP 2: TIC + livello -->
+  <div class="panel-card" style="max-width:none;margin-top:10px">
+    <h3>⚙️ Passo 2 — TIC e livello</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div>
+        <label class="flbl">TIC / strumenti compensativi</label>
+        <div id="pei-tic-wrap" style="max-height:180px;overflow-y:auto;padding:8px;background:var(--grigio-ch);border-radius:6px;border:1px solid var(--grigio);font-size:12px">
+          <div style="color:#aaa;text-align:center;padding:8px">⏳ Carico TIC…</div>
+        </div>
+      </div>
+      <div>
+        <label class="flbl">Livello di difficoltà</label>
+        <select id="pei-livello" class="finp" style="padding:9px 12px">
+          <option value="base">🟢 Base</option>
+          <option value="intermedio" selected>🔵 Intermedio</option>
+          <option value="avanzato">🟣 Avanzato</option>
+        </select>
+        <label class="flbl" style="margin-top:12px">N° domande</label>
+        <input type="number" id="pei-ndom" class="finp" value="8" min="3" max="15" style="padding:9px 12px;width:100px">
+        <label class="flbl" style="margin-top:12px">Classe</label>
+        <select id="pei-classe" class="finp" style="padding:9px 12px">
+          <option value="">— Seleziona —</option>
+          <option value="3A">3A</option><option value="3B">3B</option>
+          <option value="3C">3C</option><option value="3D">3D</option>
+          <option value="3E">3E</option><option value="3F">3F</option><option value="3G">3G</option>
+        </select>
+        <label class="flbl" style="margin-top:12px">Nome alunno (opzionale)</label>
+        <input type="text" id="pei-nome" class="finp" placeholder="es. Mario R." maxlength="40" style="padding:9px 12px">
+      </div>
+    </div>
+  </div>
+
+  <button onclick="peiGenera()" class="btn btn-p" style="width:100%;padding:13px;font-size:14px;margin-top:10px">🤖 Genera prova PEI con Groq</button>
+  <div id="pei-load" style="display:none;margin-top:12px;text-align:center;color:var(--blu);font-size:13px;font-weight:700">⏳ Generazione in corso (20–40 secondi)…</div>
+  <div id="pei-err" class="err-msg" style="display:none;margin-top:10px"></div>
+
+  <!-- STEP 3: anteprima -->
+  <div id="pei-preview" style="display:none;margin-top:14px">
+    <div class="panel-card" style="max-width:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+        <h3 style="margin:0">📝 Passo 3 — Anteprima e revisione</h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button onclick="peiGenera()" class="btn btn-s" style="font-size:12px;padding:6px 12px">🔄 Rigenera</button>
+          <button onclick="peiApprovaSalva()" class="btn btn-g" style="font-size:13px;padding:8px 18px;font-weight:800">✅ Approva &amp; genera link</button>
+        </div>
+      </div>
+      <div id="pei-stats" style="display:flex;gap:10px;flex-wrap:wrap;margin:12px 0;font-size:12px"></div>
+      <div id="pei-dom-list" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+    <div id="pei-succ" class="succ-msg" style="display:none;margin-top:12px"></div>
+  </div>
+</template>
+<!-- === END: PEI mat === -->
+
 <!-- ═══ PROVE 1-5 COMPLETE (carica dopo il motore principale) ═══ -->
 <script src="diz_eng.js"></script>
 <script src="prove_1_5.js"></script>
