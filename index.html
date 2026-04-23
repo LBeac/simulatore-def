@@ -8670,7 +8670,7 @@ function peiCaricaMetadati(){
           nome:   o.nome || o.titolo_breve || o.codice
         };
       }) : _peiFallbackObj;
-      var tics = (d && d.tic && d.tic.length) ? d.tic : _peiFallbackTic;
+      var tics = _peiFallbackTic;  // forza sempre 8 strumenti compensativi (UI/CSS, non backend)
       _peiRenderObiettivi(obs);
       _peiRenderTic(tics);
     })
