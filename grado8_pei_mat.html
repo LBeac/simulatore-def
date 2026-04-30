@@ -187,7 +187,10 @@ const TIC_DEF = [
   {id:'grande',    emoji:'🔍', label:'Testo grande',  col:'#01579b'},
   {id:'maiuscolo', emoji:'🔠', label:'Maiuscolo',      col:'#6a1b9a'},
   {id:'spaziatura',emoji:'↔',  label:'Spaziatura+',   col:'#00838f'},
-  {id:'contrasto', emoji:'🌗', label:'Alto contrasto', col:'#37474f'},
+{id:'contrasto', emoji:'🌗', label:'Alto contrasto', col:'#37474f'},
+  {id:'calc',       emoji:'🧮', label:'Calcolatrice',      col:'#5e35b1'},
+  {id:'pitagorica', emoji:'🔢', label:'Tab. pitagorica',   col:'#0277bd'},
+  {id:'formulario', emoji:'📐', label:'Formulario',        col:'#388e3c'},
 ];
 function buildTicDots(){
   const box = document.getElementById('tic-dots');
@@ -198,7 +201,8 @@ function buildTicDots(){
     btn.style.borderColor = t.col;
     if(document.body.classList.contains('tic-'+t.id)) btn.style.background = t.col;
     btn.setAttribute('title', t.label);
-    btn.innerHTML = '<span>'+t.emoji+'</span><span class="td-lbl">'+t.label+'</span>';
+   btn.innerHTML = '<span>'+t.emoji+'</span><span class="td-lbl">'+t.label+'</span>';
+      btn.setAttribute('data-id', t.id);
     btn.onclick = function(){
       document.body.classList.toggle('tic-'+t.id);
       const on = document.body.classList.contains('tic-'+t.id);
@@ -228,7 +232,10 @@ window.addEventListener('load', function(){
   if(p.get('grande')==='1')    togTicSilent('grande');
   if(p.get('maiuscolo')==='1') togTicSilent('maiuscolo');
   if(p.get('spaziatura')==='1')togTicSilent('spaziatura');
-  if(p.get('contrasto')==='1') togTicSilent('contrasto');
+ if(p.get('contrasto')==='1') togTicSilent('contrasto');
+    if(p.get('calc')==='1') togTicSilent('calc');
+    if(p.get('pitagorica')==='1') togTicSilent('pitagorica');
+    if(p.get('formulario')==='1') togTicSilent('formulario');
 
   if(p.get('tic-editable') === '1') buildTicDots();
 
@@ -607,5 +614,315 @@ function mostraErr(){
   document.getElementById('scr-err').style.display = 'flex';
 }
 </script>
+<!-- /* === BEGIN: tic_extra mat === */ -->
+<style>
+/* ─── Calcolatrice draggable ─── */
+.tic-calc-w{
+  display:none;position:fixed;bottom:20px;right:20px;z-index:1000;
+  width:240px;background:#fff;border:2px solid #5e35b1;border-radius:14px;
+  box-shadow:0 8px 28px rgba(0,0,0,.25);user-select:none;font-family:system-ui,sans-serif;
+}
+body.tic-calc .tic-calc-w{display:block}
+.tic-calc-w .cw-hdr{
+  background:#5e35b1;color:#fff;padding:10px 14px;
+  border-radius:12px 12px 0 0;cursor:grab;
+  display:flex;justify-content:space-between;align-items:center;
+  font-weight:700;font-size:.95rem;
+}
+.tic-calc-w .cw-hdr.grabbing{cursor:grabbing}
+.tic-calc-w .cw-disp{
+  padding:14px;background:#f5f5f5;text-align:right;
+  font-size:1.5rem;font-weight:700;min-height:50px;
+  word-break:break-all;color:#222;font-family:monospace;
+  border-bottom:1px solid #e0e0e0;
+}
+.tic-calc-w .cw-keys{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:5px;padding:10px;
+}
+.tic-calc-w .cw-keys button{
+  padding:14px 0;font-size:1.15rem;border:1px solid #ddd;
+  background:#fff;border-radius:8px;cursor:pointer;font-weight:700;
+  font-family:system-ui,sans-serif;color:#222;
+}
+.tic-calc-w .cw-keys button:hover{background:#f0f0f0}
+.tic-calc-w .cw-keys button.cw-op{background:#ede7f6;color:#5e35b1}
+.tic-calc-w .cw-keys button.cw-eq{background:#5e35b1;color:#fff}
+.tic-calc-w .cw-keys button.cw-clr{background:#ffebee;color:#c62828}
+.tic-calc-w .cw-x{
+  background:rgba(255,255,255,.2);border:none;color:#fff;
+  font-size:1.3rem;line-height:1;cursor:pointer;
+  width:26px;height:26px;border-radius:50%;font-weight:700;
+}
+.tic-calc-w .cw-x:hover{background:rgba(255,255,255,.35)}
+
+/* ─── Modali (pitagorica + formulario) ─── */
+.tic-modal{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);
+  z-index:1001;align-items:center;justify-content:center;padding:20px;
+}
+body.tic-pitagorica .tic-pita,
+body.tic-formulario .tic-form{display:flex}
+.tic-modal .mw-box{
+  background:#fff;padding:22px;border-radius:14px;
+  max-width:95vw;max-height:90vh;overflow:auto;position:relative;
+  box-shadow:0 12px 40px rgba(0,0,0,.4);
+}
+.tic-modal .mw-x{
+  position:absolute;top:10px;right:14px;background:#eee;border:none;
+  width:34px;height:34px;border-radius:50%;font-size:1.3rem;
+  font-weight:700;cursor:pointer;color:#333;line-height:1;
+}
+.tic-modal .mw-x:hover{background:#ddd}
+.tic-modal h2{margin:0 0 16px 0;font-size:1.25rem;color:#222;padding-right:40px}
+
+/* Tabella pitagorica */
+.tic-pita table{border-collapse:collapse;margin:0 auto}
+.tic-pita td,.tic-pita th{
+  border:1px solid #b0bec5;padding:9px 13px;text-align:center;
+  min-width:42px;font-weight:700;font-size:.95rem;color:#222;
+  background:#fff;
+}
+.tic-pita thead th,.tic-pita tbody th{background:#0277bd;color:#fff}
+.tic-pita td:hover{background:#e1f5fe;cursor:pointer;color:#01579b}
+.tic-pita td.hl{background:#0277bd;color:#fff}
+
+/* Formulario */
+.tic-form .fw-section{margin-bottom:18px}
+.tic-form .fw-section h3{
+  color:#388e3c;border-bottom:2px solid #388e3c;
+  padding-bottom:5px;margin:0 0 8px 0;font-size:1.05rem;
+}
+.tic-form .fw-formula{
+  padding:7px 0;border-bottom:1px dashed #ddd;
+  font-size:.95rem;color:#222;display:flex;
+  justify-content:space-between;gap:14px;flex-wrap:wrap;
+}
+.tic-form .fw-formula b{color:#388e3c;min-width:130px}
+.tic-form .fw-formula code{
+  font-family:monospace;background:#f5f5f5;
+  padding:2px 6px;border-radius:4px;font-size:.95rem;
+}
+
+/* In modalità contrasto i widget restano leggibili */
+body.tic-contrasto .tic-modal .mw-box,
+body.tic-contrasto .tic-calc-w{background:#fff;color:#222}
+body.tic-contrasto .tic-modal h2,
+body.tic-contrasto .tic-form .fw-formula,
+body.tic-contrasto .tic-pita td,
+body.tic-contrasto .tic-pita th{color:inherit}
+</style>
+
+<!-- ═══ Calcolatrice ═══ -->
+<div class="tic-calc-w" id="tic-calc-w">
+  <div class="cw-hdr" id="cw-hdr">
+    <span>🧮 Calcolatrice</span>
+    <button class="cw-x" onclick="ticOff('calc')" aria-label="Chiudi">×</button>
+  </div>
+  <div class="cw-disp" id="cw-disp">0</div>
+  <div class="cw-keys">
+    <button class="cw-clr" onclick="calcClr()">C</button>
+    <button onclick="calcSign()">±</button>
+    <button onclick="calcPercent()">%</button>
+    <button class="cw-op" onclick="calcOp('÷')">÷</button>
+    <button onclick="calcDigit('7')">7</button>
+    <button onclick="calcDigit('8')">8</button>
+    <button onclick="calcDigit('9')">9</button>
+    <button class="cw-op" onclick="calcOp('×')">×</button>
+    <button onclick="calcDigit('4')">4</button>
+    <button onclick="calcDigit('5')">5</button>
+    <button onclick="calcDigit('6')">6</button>
+    <button class="cw-op" onclick="calcOp('-')">−</button>
+    <button onclick="calcDigit('1')">1</button>
+    <button onclick="calcDigit('2')">2</button>
+    <button onclick="calcDigit('3')">3</button>
+    <button class="cw-op" onclick="calcOp('+')">+</button>
+    <button onclick="calcDigit('0')" style="grid-column:span 2">0</button>
+    <button onclick="calcDot()">,</button>
+    <button class="cw-eq" onclick="calcEq()">=</button>
+  </div>
+</div>
+
+<!-- ═══ Tabella pitagorica ═══ -->
+<div class="tic-modal tic-pita" id="tic-pita-w">
+  <div class="mw-box">
+    <button class="mw-x" onclick="ticOff('pitagorica')" aria-label="Chiudi">×</button>
+    <h2>🔢 Tabella pitagorica</h2>
+    <table id="tic-pita-tbl"></table>
+  </div>
+</div>
+
+<!-- ═══ Formulario ═══ -->
+<div class="tic-modal tic-form" id="tic-form-w">
+  <div class="mw-box" style="max-width:560px">
+    <button class="mw-x" onclick="ticOff('formulario')" aria-label="Chiudi">×</button>
+    <h2>📐 Formulario</h2>
+    <div class="fw-section">
+      <h3>Perimetri (P)</h3>
+      <div class="fw-formula"><b>Quadrato</b><code>P = 4 × l</code></div>
+      <div class="fw-formula"><b>Rettangolo</b><code>P = 2 × (b + h)</code></div>
+      <div class="fw-formula"><b>Triangolo</b><code>P = l₁ + l₂ + l₃</code></div>
+      <div class="fw-formula"><b>Rombo</b><code>P = 4 × l</code></div>
+      <div class="fw-formula"><b>Parallelogramma</b><code>P = 2 × (b + l)</code></div>
+      <div class="fw-formula"><b>Trapezio</b><code>P = somma dei 4 lati</code></div>
+      <div class="fw-formula"><b>Cerchio (C)</b><code>C = 2 × π × r</code></div>
+    </div>
+    <div class="fw-section">
+      <h3>Aree (A)</h3>
+      <div class="fw-formula"><b>Quadrato</b><code>A = l × l = l²</code></div>
+      <div class="fw-formula"><b>Rettangolo</b><code>A = b × h</code></div>
+      <div class="fw-formula"><b>Triangolo</b><code>A = (b × h) ÷ 2</code></div>
+      <div class="fw-formula"><b>Rombo</b><code>A = (d₁ × d₂) ÷ 2</code></div>
+      <div class="fw-formula"><b>Parallelogramma</b><code>A = b × h</code></div>
+      <div class="fw-formula"><b>Trapezio</b><code>A = (B + b) × h ÷ 2</code></div>
+      <div class="fw-formula"><b>Cerchio</b><code>A = π × r²</code></div>
+    </div>
+    <div class="fw-section">
+      <h3>Volumi (V)</h3>
+      <div class="fw-formula"><b>Cubo</b><code>V = l × l × l = l³</code></div>
+      <div class="fw-formula"><b>Parallelepipedo</b><code>V = b × h × p</code></div>
+      <div class="fw-formula"><b>Cilindro</b><code>V = π × r² × h</code></div>
+      <div class="fw-formula"><b>Cono</b><code>V = (π × r² × h) ÷ 3</code></div>
+      <div class="fw-formula"><b>Piramide</b><code>V = (A_base × h) ÷ 3</code></div>
+      <div class="fw-formula"><b>Sfera</b><code>V = (4/3) × π × r³</code></div>
+    </div>
+    <div class="fw-section">
+      <h3>Equivalenze e altro</h3>
+      <div class="fw-formula"><b>Pi greco</b><code>π ≈ 3,14</code></div>
+      <div class="fw-formula"><b>Lunghezze</b><code>1 m = 100 cm = 1000 mm</code></div>
+      <div class="fw-formula"><b>Capacità</b><code>1 L = 1 dm³ = 1000 cm³</code></div>
+      <div class="fw-formula"><b>Massa</b><code>1 kg = 1000 g</code></div>
+      <div class="fw-formula"><b>Percentuale</b><code>x% di N = (N × x) ÷ 100</code></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ─── Sincronizzazione X widget ↔ pallino TIC ─── */
+function ticOff(id){
+  // Simula click sul pallino corrispondente: tutto si sincronizza
+  // (classe sul body, classe 'on' sul pallino, background)
+  const btn = document.querySelector('#tic-dots .td[data-id="'+id+'"]');
+  if(btn) btn.click();
+  else document.body.classList.remove('tic-'+id); // fallback
+}
+
+/* ─── Calcolatrice ─── */
+let _calc = { disp:'0', prev:null, op:null, wait:false };
+function _calcSync(){ document.getElementById('cw-disp').textContent = _calc.disp; }
+function calcDigit(d){
+  if(_calc.wait){ _calc.disp = d; _calc.wait = false; }
+  else _calc.disp = (_calc.disp === '0') ? d : _calc.disp + d;
+  _calcSync();
+}
+function calcDot(){
+  if(_calc.wait){ _calc.disp = '0,'; _calc.wait = false; _calcSync(); return; }
+  if(!_calc.disp.includes(',')){ _calc.disp += ','; _calcSync(); }
+}
+function _toNum(s){ return parseFloat(String(s).replace(',','.')); }
+function _fromNum(n){
+  if(!isFinite(n)) return 'Errore';
+  let s = String(Math.round(n*1e10)/1e10);
+  return s.replace('.',',');
+}
+function _doOp(a, b, op){
+  switch(op){
+    case '+': return a+b;
+    case '-': return a-b;
+    case '×': return a*b;
+    case '÷': return b===0 ? NaN : a/b;
+  }
+  return b;
+}
+function calcOp(op){
+  const cur = _toNum(_calc.disp);
+  if(_calc.prev !== null && _calc.op && !_calc.wait){
+    const r = _doOp(_calc.prev, cur, _calc.op);
+    _calc.disp = _fromNum(r);
+    _calc.prev = r;
+    _calcSync();
+  } else {
+    _calc.prev = cur;
+  }
+  _calc.op = op;
+  _calc.wait = true;
+}
+function calcEq(){
+  if(_calc.op !== null && _calc.prev !== null){
+    const r = _doOp(_calc.prev, _toNum(_calc.disp), _calc.op);
+    _calc.disp = _fromNum(r);
+    _calc.prev = null; _calc.op = null; _calc.wait = true;
+    _calcSync();
+  }
+}
+function calcClr(){
+  _calc = { disp:'0', prev:null, op:null, wait:false };
+  _calcSync();
+}
+function calcSign(){
+  if(_calc.disp === '0') return;
+  _calc.disp = _calc.disp.startsWith('-') ? _calc.disp.slice(1) : '-'+_calc.disp;
+  _calcSync();
+}
+function calcPercent(){
+  _calc.disp = _fromNum(_toNum(_calc.disp) / 100);
+  _calcSync();
+}
+
+/* ─── Drag della calcolatrice (mouse + touch) ─── */
+(function(){
+  const w = document.getElementById('tic-calc-w');
+  const h = document.getElementById('cw-hdr');
+  let dx=0, dy=0, dragging=false;
+  function start(x,y){
+    const r = w.getBoundingClientRect();
+    dx = x - r.left; dy = y - r.top;
+    dragging = true; h.classList.add('grabbing');
+  }
+  function move(x,y){
+    if(!dragging) return;
+    const nx = Math.max(4, Math.min(window.innerWidth - w.offsetWidth - 4, x - dx));
+    const ny = Math.max(4, Math.min(window.innerHeight - w.offsetHeight - 4, y - dy));
+    w.style.left = nx + 'px';
+    w.style.top  = ny + 'px';
+    w.style.right = 'auto';
+    w.style.bottom = 'auto';
+  }
+  function end(){ dragging = false; h.classList.remove('grabbing'); }
+  h.addEventListener('mousedown', e => { start(e.clientX, e.clientY); e.preventDefault(); });
+  document.addEventListener('mousemove', e => move(e.clientX, e.clientY));
+  document.addEventListener('mouseup', end);
+  h.addEventListener('touchstart', e => { const t = e.touches[0]; start(t.clientX, t.clientY); }, {passive:true});
+  document.addEventListener('touchmove', e => { if(dragging){ const t = e.touches[0]; move(t.clientX, t.clientY); e.preventDefault(); } }, {passive:false});
+  document.addEventListener('touchend', end);
+})();
+
+/* ─── Tabella pitagorica: render dinamico al primo bisogno ─── */
+(function(){
+  const tbl = document.getElementById('tic-pita-tbl');
+  let html = '<thead><tr><th>×</th>';
+  for(let c=1;c<=10;c++) html += '<th>'+c+'</th>';
+  html += '</tr></thead><tbody>';
+  for(let r=1;r<=10;r++){
+    html += '<tr><th>'+r+'</th>';
+    for(let c=1;c<=10;c++) html += '<td>'+(r*c)+'</td>';
+    html += '</tr>';
+  }
+  html += '</tbody>';
+  tbl.innerHTML = html;
+  // Click su cella → toggle highlight (utile per studenti)
+  tbl.addEventListener('click', e => {
+    if(e.target.tagName === 'TD') e.target.classList.toggle('hl');
+  });
+})();
+
+/* ─── Chiusura modali con Esc ─── */
+document.addEventListener('keydown', e => {
+  if(e.key !== 'Escape') return;
+  if(document.body.classList.contains('tic-pitagorica')) ticOff('pitagorica');
+  else if(document.body.classList.contains('tic-formulario')) ticOff('formulario');
+});
+</script>
+<!-- /* === END: tic_extra mat === */ -->
+
 </body>
 </html>
