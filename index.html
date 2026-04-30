@@ -9177,8 +9177,9 @@ function peiApprovaSalva(){
   params.set('sessione', sessKey);
   params.set('classe', classe);
   params.set('materia', 'matematica');
+    params.set('tic-editable','1');
   if(nome) params.set('nome', nome);
-  var ticMap = {tic_calc:'calc',tic_formulario:'formulario',tic_pitagorica:'pitagorica',tic_tempo:'tempo',tic_testo_grande:'large',tic_contrasto:'contrasto',tic_font_dys:'font',tic_spaziatura:'spaziatura'};
+  var ticMap = {tic_calc:'calc',tic_formulario:'formulario',tic_pitagorica:'pitagorica',tic_tempo:'tempo',tic_testo_grande:'grande',tic_contrasto:'contrasto',tic_font_dys:'font',tic_spaziatura:'spaziatura'};
   _peiState.tic.forEach(function(t){ if(ticMap[t]) params.set(ticMap[t],'1'); });
   var link = base + '?' + params.toString();
   window._peiLink = link;
