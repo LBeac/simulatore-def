@@ -568,6 +568,141 @@ tr:hover td{background:var(--grigio-ch)}
 .doc-ris-wrap{background:#fff;border-radius:10px;margin-top:16px;box-shadow:0 2px 8px rgba(0,0,0,.07);overflow:hidden}
 .doc-ris-hdr{background:var(--blu-s);color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between}
 .doc-ris-body{padding:18px;max-height:400px;overflow-y:auto;min-height:60px}
+  /* === BEGIN: editor figure mat === */
+/* Modal overlay */
+#ov-editor-figure{
+  position:fixed; inset:0; background:rgba(0,0,0,.72);
+  display:none; align-items:center; justify-content:center;
+  z-index:10000; padding:14px;
+}
+#ov-editor-figure.vis{ display:flex; }
+.ef-card{
+  background:#fff; border-radius:14px; width:100%; max-width:1200px;
+  max-height:96vh; display:flex; flex-direction:column;
+  box-shadow:0 12px 48px rgba(0,0,0,.4); overflow:hidden;
+}
+.ef-hdr{
+  background:var(--blu-s); color:#fff; padding:12px 18px;
+  display:flex; justify-content:space-between; align-items:center;
+  border-bottom:3px solid var(--az);
+}
+.ef-hdr h3{ font-size:15px; font-weight:800; margin:0; }
+.ef-hdr-sub{ font-size:11px; opacity:.75; margin-top:2px; }
+.ef-close{
+  background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.3);
+  color:#fff; padding:5px 12px; border-radius:6px; cursor:pointer;
+  font-size:12px; font-family:var(--font); font-weight:700;
+}
+.ef-close:hover{ background:rgba(255,255,255,.25); }
+
+/* Body: 3 zone (toolbar | canvas | pannello) */
+.ef-body{
+  display:grid; grid-template-columns:60px 1fr 200px;
+  flex:1; min-height:0; background:#f0f4f8;
+}
+
+/* Toolbar sinistra */
+.ef-toolbar{
+  background:#fff; border-right:2px solid var(--grigio);
+  padding:8px 6px; display:flex; flex-direction:column; gap:4px;
+  overflow-y:auto;
+}
+.ef-tool{
+  width:48px; height:44px; border:2px solid var(--grigio); background:#fff;
+  border-radius:8px; cursor:pointer; display:flex; align-items:center;
+  justify-content:center; font-size:18px; color:var(--testo);
+  transition:all .12s; font-family:var(--font);
+}
+.ef-tool:hover{ border-color:var(--az); background:var(--grigio-ch); }
+.ef-tool.att{ background:var(--blu); color:#fff; border-color:var(--blu); }
+.ef-tool-sep{
+  height:1px; background:var(--grigio); margin:4px 2px;
+}
+
+/* Canvas centrale */
+.ef-canvas-wrap{
+  display:flex; align-items:center; justify-content:center;
+  padding:14px; overflow:auto;
+}
+#ef-canvas{
+  background:#fff; border:2px solid var(--grigio); border-radius:6px;
+  box-shadow:0 2px 12px rgba(0,0,0,.08); cursor:crosshair;
+  display:block;
+}
+#ef-canvas.tool-select{ cursor:default; }
+
+/* Pannello destro */
+.ef-panel{
+  background:#fff; border-left:2px solid var(--grigio);
+  padding:12px 14px; overflow-y:auto; display:flex; flex-direction:column; gap:14px;
+}
+.ef-panel h4{
+  font-size:10px; font-weight:800; text-transform:uppercase;
+  color:var(--blu); letter-spacing:.5px; margin-bottom:6px;
+  padding-bottom:4px; border-bottom:1.5px solid var(--grigio-ch);
+}
+.ef-panel label{
+  font-size:11px; color:#555; display:block; margin-bottom:4px; font-weight:600;
+}
+.ef-panel input[type="color"]{
+  width:100%; height:32px; border:1.5px solid var(--grigio);
+  border-radius:5px; cursor:pointer; padding:2px; background:#fff;
+}
+.ef-panel input[type="range"]{
+  width:100%; accent-color:var(--blu); cursor:pointer;
+}
+.ef-range-val{
+  font-size:11px; color:var(--blu); font-weight:700; text-align:right;
+}
+.ef-check{
+  display:flex; align-items:center; gap:7px; cursor:pointer;
+  font-size:12px; color:#333; padding:5px 0;
+}
+.ef-check input{ width:15px; height:15px; accent-color:var(--blu); }
+
+/* Footer */
+.ef-footer{
+  background:#fafbfc; padding:10px 18px; border-top:2px solid var(--grigio);
+  display:flex; justify-content:space-between; align-items:center; gap:10px;
+}
+.ef-footer-info{ font-size:11px; color:#888; }
+.ef-footer-btns{ display:flex; gap:8px; }
+
+/* Anteprima figura nella card Passo 3 */
+.pei-figura-preview{
+  background:#f8faff; border:1.5px dashed var(--az); border-radius:8px;
+  padding:8px; margin-top:8px; text-align:center; position:relative;
+}
+.pei-figura-preview svg{
+  max-width:100%; max-height:200px; display:inline-block;
+}
+.pei-figura-preview .ef-del{
+  position:absolute; top:4px; right:4px;
+  background:#fce4e4; color:var(--rosso); border:1px solid #ef9a9a;
+  border-radius:50%; width:24px; height:24px; font-size:12px;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  font-family:var(--font);
+}
+.pei-figura-preview .ef-del:hover{ background:var(--rosso); color:#fff; }
+.pei-figura-btn{
+  background:linear-gradient(135deg,#e3f2fd,#bbdefb); color:var(--blu);
+  border:1.5px solid var(--az); border-radius:6px; padding:5px 11px;
+  font-size:11px; font-weight:700; cursor:pointer; font-family:var(--font);
+  margin-top:6px; display:inline-flex; align-items:center; gap:5px;
+}
+.pei-figura-btn:hover{ background:var(--blu); color:#fff; }
+
+/* Responsive: su schermi stretti impila il pannello sotto */
+@media(max-width:900px){
+  .ef-body{ grid-template-columns:56px 1fr; }
+  .ef-panel{ display:none; }
+  .ef-body.panel-open{ grid-template-columns:56px 1fr; }
+  .ef-body.panel-open .ef-panel{
+    display:flex; position:absolute; right:0; top:0; bottom:0;
+    width:220px; z-index:5; box-shadow:-4px 0 16px rgba(0,0,0,.2);
+  }
+}
+/* === END: editor figure mat === */
 /* === BEGIN: PEI mat === */
 .v-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;line-height:1.3;white-space:nowrap;font-family:var(--font)}
 .v-badge.ok  {background:#e8f5e9;color:var(--verde);border:1px solid #a5d6a7}
@@ -902,7 +1037,90 @@ body.prova-finita #diz-widget { display: none !important; }
     </div>
   </div>
 </div>
+<!-- ═══ EDITOR FIGURE MATEMATICA (sessione 1) ═════════════ -->
+<div id="ov-editor-figure">
+  <div class="ef-card">
+    <div class="ef-hdr">
+      <div>
+        <h3>✏️ Editor figure matematica</h3>
+        <div class="ef-hdr-sub" id="ef-sub">Domanda —</div>
+      </div>
+      <button class="ef-close" onclick="efAnnulla()">✕ Annulla</button>
+    </div>
 
+    <div class="ef-body" id="ef-body">
+      <!-- TOOLBAR SINISTRA -->
+      <div class="ef-toolbar">
+        <button class="ef-tool att" id="ef-t-select" onclick="efSetTool('select')" title="Seleziona / sposta">🖱️</button>
+        <div class="ef-tool-sep"></div>
+        <button class="ef-tool" id="ef-t-line"    onclick="efSetTool('line')"    title="Linea">➖</button>
+        <button class="ef-tool" id="ef-t-arrow"   onclick="efSetTool('arrow')"   title="Freccia">➡️</button>
+        <button class="ef-tool" id="ef-t-segq"    onclick="efSetTool('segq')"    title="Segmento quotato">📏</button>
+        <div class="ef-tool-sep"></div>
+        <button class="ef-tool" id="ef-t-rect"    onclick="efSetTool('rect')"    title="Rettangolo">▭</button>
+        <button class="ef-tool" id="ef-t-square"  onclick="efSetTool('square')"  title="Quadrato">◻</button>
+        <button class="ef-tool" id="ef-t-circle"  onclick="efSetTool('circle')"  title="Cerchio">◯</button>
+        <button class="ef-tool" id="ef-t-ellipse" onclick="efSetTool('ellipse')" title="Ellisse">⬭</button>
+        <button class="ef-tool" id="ef-t-triangle" onclick="efSetTool('triangle')" title="Triangolo">△</button>
+        <div class="ef-tool-sep"></div>
+        <button class="ef-tool" id="ef-t-text"    onclick="efSetTool('text')"    title="Testo">🅰️</button>
+        <button class="ef-tool" onclick="efCancSel()"  title="Cancella selezione">🧽</button>
+        <div class="ef-tool-sep"></div>
+        <button class="ef-tool" onclick="efUndo()" title="Annulla">↶</button>
+        <button class="ef-tool" onclick="efRedo()" title="Ripristina">↷</button>
+        <button class="ef-tool" onclick="efClearAll()" title="Pulisci tutto" style="color:#c62828">🗑️</button>
+      </div>
+
+      <!-- CANVAS -->
+      <div class="ef-canvas-wrap">
+        <canvas id="ef-canvas" width="900" height="600"></canvas>
+      </div>
+
+      <!-- PANNELLO DESTRO -->
+      <div class="ef-panel">
+        <div>
+          <h4>Colori</h4>
+          <label>Tratto</label>
+          <input type="color" id="ef-stroke" value="#1a2436" onchange="efSetColor('stroke',this.value)">
+          <label style="margin-top:8px">Riempimento</label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input type="color" id="ef-fill" value="#ffffff" onchange="efSetColor('fill',this.value)" style="flex:1">
+            <label class="ef-check" style="margin:0">
+              <input type="checkbox" id="ef-fill-none" onchange="efToggleFillNone(this.checked)"> trasp.
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <h4>Tratto</h4>
+          <label>Spessore: <span class="ef-range-val" id="ef-sw-val">2</span> px</label>
+          <input type="range" id="ef-sw" min="1" max="10" value="2" oninput="efSetStrokeWidth(this.value)">
+        </div>
+
+        <div>
+          <h4>Griglia</h4>
+          <label class="ef-check">
+            <input type="checkbox" id="ef-grid" onchange="efToggleGrid(this.checked)">
+            Mostra griglia a quadretti
+          </label>
+        </div>
+
+        <div>
+          <h4>Oggetto selezionato</h4>
+          <div id="ef-sel-info" style="font-size:11px;color:#888;font-style:italic">Nessun oggetto selezionato. Usa lo strumento 🖱️ per selezionare.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ef-footer">
+      <div class="ef-footer-info" id="ef-info">Clic-trascina sul canvas per disegnare. Strumento attivo: <strong id="ef-tool-lbl">Seleziona</strong></div>
+      <div class="ef-footer-btns">
+        <button class="btn btn-s" onclick="efAnnulla()" style="padding:7px 14px;font-size:12px">Annulla</button>
+        <button class="btn btn-g" onclick="efSalva()"   style="padding:7px 18px;font-size:13px;font-weight:800">💾 Salva figura</button>
+      </div>
+    </div>
+  </div>
+</div>
 <!-- ═══ OVERLAY CONFERMA ELIMINA STUDENTE ════════════════ -->
 <div class="overlay hidden" id="ov-del-stud">
   <div class="ov-card">
@@ -6268,20 +6486,29 @@ function makeDomCardDis(d,idx){
   var sezOpts='<option value="0"'+(autoSez===0?' selected':'')+'>Comprensione</option>'+
     '<option value="1"'+(autoSez===1?' selected':'')+'>Lessico</option>'+
     '<option value="2"'+(autoSez===2?' selected':'')+'>Grammatica</option>';
+  var figuraBlock = '';
+  if(d.svg){
+    figuraBlock = '<div class="pei-figura-preview">'
+      + '<button class="ef-del" title="Rimuovi figura" onclick="_efRimuoviFig('+idx+')">✕</button>'
+      + d.svg
+      + '<div style="font-size:10px;color:#666;margin-top:4px">Figura allegata — clic su "✏️ Disegna figura" per modificarla</div>'
+      + '</div>';
+  }
   var html='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
-    +'<div style="display:flex;align-items:center;gap:8px">'
+    +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
     +'<span class="tipo-badge" style="background:'+bg+';color:'+fg+';border-radius:4px;padding:2px 8px;font-size:11px;font-weight:800">'+lbl+'</span>'
     +'<span style="font-size:11px;color:#888">Dom.'+(idx+1)+' Par.</span>'
     +'<input type="number" class="dom-par" value="'+(d.par||1)+'" min="1" max="20" style="width:45px;padding:2px 5px;border:1px solid #ccc;border-radius:4px;font-size:12px;text-align:center">'
     +'<select class="dom-sez" style="padding:3px 6px;border:1px solid #ccc;border-radius:4px;font-size:11px">'+sezOpts+'</select>'
+    +'<button type="button" class="pei-figura-btn" onclick="apriEditorFigura('+idx+')">✏️ '+(d.svg?'Modifica figura':'Disegna figura')+'</button>'
     +'</div>'
     +'<button onclick="this.closest(\'.ap-dom\').remove()" style="background:none;border:none;color:#c62828;cursor:pointer;font-size:14px;padding:2px 6px">\u2715</button>'
     +'</div>'
     +'<div style="margin-bottom:8px">'
     +'<label style="font-size:10px;font-weight:700;color:#666;text-transform:uppercase">Domanda</label>'
     +'<input type="text" class="finp dom-testo" value="'+escHtml(d.testo||'')+'" style="padding:7px 10px;font-size:13px;margin-top:3px">'
-    +'</div>';
-
+    +'</div>'
+    + figuraBlock;
   if(tipo==='sm'){
     var opts=d.opts||['','','',''];
     var ok=typeof d.ok==='number'?d.ok:0;
@@ -6348,7 +6575,12 @@ function makeDomCardDis(d,idx){
   setTimeout(function(){ var s=div.querySelector('.dom-sez'); if(s) s.value=String(d.sez||0); },0);
   return div;
 }
-
+function _efRimuoviFig(idx){
+  if(!_peiState || !_peiState.prova || !_peiState.prova.domande) return;
+  if(!confirm('Rimuovere la figura da questa domanda?')) return;
+  delete _peiState.prova.domande[idx].svg;
+  if(typeof _peiRenderAnteprima === 'function') _peiRenderAnteprima();
+}
 function aggiungiRigaVF(btn){
   var rows=btn.previousElementSibling;
   var div=document.createElement('div');
@@ -8964,7 +9196,538 @@ function peiApprovaSalva(){
   }
 }
 /* === END: PEI mat === */
+/* === BEGIN: editor figure mat === */
+/*
+ Motore editor vettoriale per figure matematiche PEI — Sessione 1.
+ - Canvas 900x600 fisso.
+ - Output: SVG puro salvato in d.svg della domanda corrente.
+ - Paradigma: click-drag per posizionare forme preimpostate, no mano libera.
+ - Strumenti: select, line, arrow, segq, rect, square, circle, ellipse, triangle, text.
+*/
 
+var _ef = {
+  canvas:null, ctx:null,
+  shapes:[],           // array di forme: {id, tipo, x, y, w, h, stroke, fill, sw, label?, text?}
+  selectedId:null,     // id della forma selezionata
+  tool:'select',       // strumento attivo
+  stroke:'#1a2436', fill:'#ffffff', fillNone:false, sw:2,
+  grid:false,
+  dragging:false,      // true durante click-drag
+  dragStart:null,      // {x,y} punto iniziale click-drag
+  dragShape:null,      // forma in costruzione durante drag
+  moveOffset:null,     // offset per sposta forma selezionata
+  undoStack:[], redoStack:[],
+  domIdx:null,         // indice della domanda PEI su cui lavoriamo
+  _seq:0               // contatore id interno
+};
+
+function _efNewId(){ _ef._seq++; return 'sh_'+_ef._seq; }
+
+// ── Apertura/chiusura modal ───────────────────────────────────
+function apriEditorFigura(idx){
+  if(!_peiState || !_peiState.prova || !_peiState.prova.domande) return;
+  var d = _peiState.prova.domande[idx];
+  if(!d) return;
+
+  _ef.domIdx = idx;
+  _ef.shapes = [];
+  _ef.selectedId = null;
+  _ef.undoStack = []; _ef.redoStack = [];
+  _ef._seq = 0;
+
+  // Se la domanda ha già un SVG, lo parsiamo (versione basic: estrae shapes v1)
+  if(d.svg && d.svg.indexOf('data-ef="1"') !== -1){
+    try{ _efImportFromSVG(d.svg); }catch(e){ console.warn('Import SVG fallito:', e); }
+  }
+
+  document.getElementById('ef-sub').textContent = 'Domanda '+(idx+1)+' — '+(d.testo||'').substring(0,60)+((d.testo||'').length>60?'…':'');
+  document.getElementById('ov-editor-figure').classList.add('vis');
+
+  // Inizializza canvas (al primo aprire)
+  if(!_ef.canvas){
+    _ef.canvas = document.getElementById('ef-canvas');
+    _ef.ctx    = _ef.canvas.getContext('2d');
+    _efBindEvents();
+  }
+  _efRedraw();
+  _efAggSelInfo();
+}
+
+function efAnnulla(){
+  if(_ef.shapes.length && !confirm('Chiudere l\'editor? Le modifiche non salvate andranno perse.')) return;
+  document.getElementById('ov-editor-figure').classList.remove('vis');
+  _ef.domIdx = null;
+}
+
+function efSalva(){
+  if(_ef.domIdx===null || !_peiState.prova) return;
+  var svg = _efExportSVG();
+  _peiState.prova.domande[_ef.domIdx].svg = svg;
+  document.getElementById('ov-editor-figure').classList.remove('vis');
+  // Re-render anteprima domande
+  if(typeof _peiRenderAnteprima === 'function') _peiRenderAnteprima();
+}
+
+// ── Strumenti ─────────────────────────────────────────────────
+function efSetTool(t){
+  _ef.tool = t;
+  document.querySelectorAll('.ef-tool').forEach(function(b){ b.classList.remove('att'); });
+  var btn = document.getElementById('ef-t-'+t);
+  if(btn) btn.classList.add('att');
+  var labels = {select:'Seleziona',line:'Linea',arrow:'Freccia',segq:'Segmento quotato',rect:'Rettangolo',square:'Quadrato',circle:'Cerchio',ellipse:'Ellisse',triangle:'Triangolo',text:'Testo'};
+  var lblEl = document.getElementById('ef-tool-lbl');
+  if(lblEl) lblEl.textContent = labels[t] || t;
+  _ef.canvas.className = t==='select' ? 'tool-select' : '';
+  _ef.selectedId = null;
+  _efRedraw();
+  _efAggSelInfo();
+}
+
+function efSetColor(which, val){
+  if(which==='stroke') _ef.stroke = val;
+  if(which==='fill')   { _ef.fill = val; _ef.fillNone = false; var chk=document.getElementById('ef-fill-none'); if(chk) chk.checked=false; }
+  // Se c'è una forma selezionata, applica subito
+  if(_ef.selectedId){
+    var sh = _efFindShape(_ef.selectedId);
+    if(sh){ _efPushUndo(); if(which==='stroke') sh.stroke = val; else { sh.fill = val; sh.fillNone = false; } _efRedraw(); }
+  }
+}
+function efToggleFillNone(on){
+  _ef.fillNone = on;
+  if(_ef.selectedId){
+    var sh = _efFindShape(_ef.selectedId);
+    if(sh){ _efPushUndo(); sh.fillNone = on; _efRedraw(); }
+  }
+}
+function efSetStrokeWidth(v){
+  _ef.sw = parseInt(v);
+  document.getElementById('ef-sw-val').textContent = v;
+  if(_ef.selectedId){
+    var sh = _efFindShape(_ef.selectedId);
+    if(sh){ _efPushUndo(); sh.sw = _ef.sw; _efRedraw(); }
+  }
+}
+function efToggleGrid(on){ _ef.grid = on; _efRedraw(); }
+
+function efCancSel(){
+  if(!_ef.selectedId) return;
+  _efPushUndo();
+  _ef.shapes = _ef.shapes.filter(function(s){ return s.id !== _ef.selectedId; });
+  _ef.selectedId = null;
+  _efRedraw(); _efAggSelInfo();
+}
+function efClearAll(){
+  if(!_ef.shapes.length) return;
+  if(!confirm('Cancellare tutte le forme del disegno?')) return;
+  _efPushUndo();
+  _ef.shapes = []; _ef.selectedId = null;
+  _efRedraw(); _efAggSelInfo();
+}
+
+// ── Undo / Redo ───────────────────────────────────────────────
+function _efPushUndo(){
+  _ef.undoStack.push(JSON.stringify(_ef.shapes));
+  if(_ef.undoStack.length > 50) _ef.undoStack.shift();
+  _ef.redoStack = [];
+}
+function efUndo(){
+  if(!_ef.undoStack.length) return;
+  _ef.redoStack.push(JSON.stringify(_ef.shapes));
+  _ef.shapes = JSON.parse(_ef.undoStack.pop());
+  _ef.selectedId = null;
+  _efRedraw(); _efAggSelInfo();
+}
+function efRedo(){
+  if(!_ef.redoStack.length) return;
+  _ef.undoStack.push(JSON.stringify(_ef.shapes));
+  _ef.shapes = JSON.parse(_ef.redoStack.pop());
+  _ef.selectedId = null;
+  _efRedraw(); _efAggSelInfo();
+}
+
+// ── Binding eventi canvas ─────────────────────────────────────
+function _efBindEvents(){
+  var c = _ef.canvas;
+  c.addEventListener('mousedown', _efOnDown);
+  c.addEventListener('mousemove', _efOnMove);
+  c.addEventListener('mouseup',   _efOnUp);
+  c.addEventListener('mouseleave',_efOnUp);
+}
+
+function _efPos(e){
+  var r = _ef.canvas.getBoundingClientRect();
+  return { x: (e.clientX - r.left) * (_ef.canvas.width / r.width),
+           y: (e.clientY - r.top)  * (_ef.canvas.height / r.height) };
+}
+
+function _efOnDown(e){
+  var p = _efPos(e);
+  if(_ef.tool === 'select'){
+    // Cerca forma sotto il cursore (dall'ultima alla prima = z-order)
+    var hit = null;
+    for(var i = _ef.shapes.length-1; i >= 0; i--){
+      if(_efHitTest(_ef.shapes[i], p)){ hit = _ef.shapes[i]; break; }
+    }
+    if(hit){
+      _ef.selectedId = hit.id;
+      _ef.moveOffset = { dx: p.x - hit.x, dy: p.y - hit.y };
+      _ef.dragging = true;
+      _efPushUndo();
+    } else {
+      _ef.selectedId = null;
+    }
+    _efRedraw(); _efAggSelInfo();
+    return;
+  }
+  if(_ef.tool === 'text'){
+    var t = prompt('Testo da inserire:','');
+    if(!t) return;
+    _efPushUndo();
+    _ef.shapes.push({ id:_efNewId(), tipo:'text', x:p.x, y:p.y, text:t,
+      stroke:_ef.stroke, fill:_ef.stroke, sw:_ef.sw, fontSize:18 });
+    _efRedraw();
+    return;
+  }
+  if(_ef.tool === 'segq'){
+    _ef.dragStart = p;
+    _ef.dragShape = { id:_efNewId(), tipo:'segq', x:p.x, y:p.y, w:0, h:0,
+      stroke:_ef.stroke, fill:_ef.fill, fillNone:_ef.fillNone, sw:_ef.sw, label:'' };
+    _ef.dragging = true;
+    return;
+  }
+  // Strumenti con click-drag
+  _ef.dragStart = p;
+  _ef.dragShape = { id:_efNewId(), tipo:_ef.tool, x:p.x, y:p.y, w:0, h:0,
+    stroke:_ef.stroke, fill:_ef.fill, fillNone:_ef.fillNone, sw:_ef.sw };
+  _ef.dragging = true;
+}
+
+function _efOnMove(e){
+  if(!_ef.dragging) return;
+  var p = _efPos(e);
+  if(_ef.tool === 'select' && _ef.selectedId){
+    var sh = _efFindShape(_ef.selectedId);
+    if(sh){ sh.x = p.x - _ef.moveOffset.dx; sh.y = p.y - _ef.moveOffset.dy; _efRedraw(); }
+    return;
+  }
+  if(_ef.dragShape){
+    var sh = _ef.dragShape;
+    sh.w = p.x - _ef.dragStart.x;
+    sh.h = p.y - _ef.dragStart.y;
+    // Vincolo 1:1 per quadrato e cerchio
+    if(sh.tipo === 'square' || sh.tipo === 'circle'){
+      var side = Math.max(Math.abs(sh.w), Math.abs(sh.h));
+      sh.w = (sh.w < 0 ? -side : side);
+      sh.h = (sh.h < 0 ? -side : side);
+    }
+    _efRedraw(true);
+  }
+}
+
+function _efOnUp(e){
+  if(!_ef.dragging) return;
+  _ef.dragging = false;
+  if(_ef.tool !== 'select' && _ef.dragShape){
+    var sh = _ef.dragShape;
+    // Scarta se troppo piccola (click singolo senza drag)
+    if(Math.abs(sh.w) < 5 && Math.abs(sh.h) < 5){
+      _ef.dragShape = null; _ef.dragStart = null;
+      _efRedraw(); return;
+    }
+    // Per segmento quotato chiedi il valore
+    if(sh.tipo === 'segq'){
+      var lbl = prompt('Misura del segmento (es. 5 cm, 6 dm, ? cm):','');
+      if(lbl === null){ _ef.dragShape = null; _ef.dragStart = null; _efRedraw(); return; }
+      sh.label = lbl.trim();
+    }
+    _efPushUndo();
+    _ef.shapes.push(sh);
+    _ef.selectedId = sh.id;
+    _ef.dragShape = null; _ef.dragStart = null;
+    efSetTool('select'); // torna a seleziona dopo il disegno
+  }
+  _ef.moveOffset = null;
+  _efRedraw(); _efAggSelInfo();
+}
+
+// ── Hit test per selezione ────────────────────────────────────
+function _efHitTest(sh, p){
+  var tol = Math.max(6, sh.sw+3);
+  if(sh.tipo === 'rect' || sh.tipo === 'square'){
+    var x1 = Math.min(sh.x, sh.x+sh.w), y1 = Math.min(sh.y, sh.y+sh.h);
+    var x2 = Math.max(sh.x, sh.x+sh.w), y2 = Math.max(sh.y, sh.y+sh.h);
+    return p.x >= x1-tol && p.x <= x2+tol && p.y >= y1-tol && p.y <= y2+tol;
+  }
+  if(sh.tipo === 'circle' || sh.tipo === 'ellipse'){
+    var cx = sh.x + sh.w/2, cy = sh.y + sh.h/2;
+    var rx = Math.abs(sh.w/2), ry = Math.abs(sh.h/2);
+    if(rx < 1 || ry < 1) return false;
+    var dx = (p.x-cx)/rx, dy = (p.y-cy)/ry;
+    return dx*dx + dy*dy <= 1.25;
+  }
+  if(sh.tipo === 'line' || sh.tipo === 'arrow' || sh.tipo === 'segq'){
+    // Distanza punto-segmento
+    var x1 = sh.x, y1 = sh.y, x2 = sh.x+sh.w, y2 = sh.y+sh.h;
+    var A = p.x-x1, B = p.y-y1, C = x2-x1, D = y2-y1;
+    var dot = A*C+B*D, len = C*C+D*D, t = len>0 ? Math.max(0,Math.min(1, dot/len)) : 0;
+    var px = x1 + t*C, py = y1 + t*D;
+    return Math.hypot(p.x-px, p.y-py) < tol;
+  }
+  if(sh.tipo === 'triangle'){
+    var x1 = Math.min(sh.x, sh.x+sh.w), y1 = Math.min(sh.y, sh.y+sh.h);
+    var x2 = Math.max(sh.x, sh.x+sh.w), y2 = Math.max(sh.y, sh.y+sh.h);
+    return p.x >= x1-tol && p.x <= x2+tol && p.y >= y1-tol && p.y <= y2+tol;
+  }
+  if(sh.tipo === 'text'){
+    var w = (sh.text||'').length * (sh.fontSize||18) * 0.6;
+    return p.x >= sh.x-tol && p.x <= sh.x+w+tol && p.y >= sh.y-(sh.fontSize||18)-tol && p.y <= sh.y+tol;
+  }
+  return false;
+}
+
+function _efFindShape(id){
+  for(var i=0;i<_ef.shapes.length;i++){ if(_ef.shapes[i].id===id) return _ef.shapes[i]; }
+  return null;
+}
+
+// ── Render canvas ─────────────────────────────────────────────
+function _efRedraw(withDragShape){
+  var ctx = _ef.ctx, W = _ef.canvas.width, H = _ef.canvas.height;
+  ctx.clearRect(0,0,W,H);
+  if(_ef.grid){
+    ctx.save();
+    ctx.strokeStyle = '#e0e8f0'; ctx.lineWidth = 1;
+    for(var x=20;x<W;x+=20){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+    for(var y=20;y<H;y+=20){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+    ctx.restore();
+  }
+  _ef.shapes.forEach(function(sh){ _efDrawShape(ctx, sh, sh.id === _ef.selectedId); });
+  if(withDragShape && _ef.dragShape) _efDrawShape(ctx, _ef.dragShape, false);
+}
+
+function _efDrawShape(ctx, sh, selected){
+  ctx.save();
+  ctx.strokeStyle = sh.stroke || '#000';
+  ctx.fillStyle   = sh.fill   || '#fff';
+  ctx.lineWidth   = sh.sw     || 2;
+
+  if(sh.tipo === 'line'){
+    ctx.beginPath(); ctx.moveTo(sh.x, sh.y); ctx.lineTo(sh.x+sh.w, sh.y+sh.h); ctx.stroke();
+  }
+  else if(sh.tipo === 'arrow'){
+    ctx.beginPath(); ctx.moveTo(sh.x, sh.y); ctx.lineTo(sh.x+sh.w, sh.y+sh.h); ctx.stroke();
+    _efDrawArrowHead(ctx, sh.x+sh.w, sh.y+sh.h, Math.atan2(sh.h, sh.w), sh.sw);
+  }
+  else if(sh.tipo === 'segq'){
+    // Segmento con piccoli trattini perpendicolari alle estremità + etichetta
+    ctx.beginPath(); ctx.moveTo(sh.x, sh.y); ctx.lineTo(sh.x+sh.w, sh.y+sh.h); ctx.stroke();
+    var ang = Math.atan2(sh.h, sh.w);
+    var tick = 8;
+    // tacca inizio
+    ctx.beginPath();
+    ctx.moveTo(sh.x + Math.cos(ang+Math.PI/2)*tick, sh.y + Math.sin(ang+Math.PI/2)*tick);
+    ctx.lineTo(sh.x - Math.cos(ang+Math.PI/2)*tick, sh.y - Math.sin(ang+Math.PI/2)*tick);
+    ctx.stroke();
+    // tacca fine
+    ctx.beginPath();
+    ctx.moveTo(sh.x+sh.w + Math.cos(ang+Math.PI/2)*tick, sh.y+sh.h + Math.sin(ang+Math.PI/2)*tick);
+    ctx.lineTo(sh.x+sh.w - Math.cos(ang+Math.PI/2)*tick, sh.y+sh.h - Math.sin(ang+Math.PI/2)*tick);
+    ctx.stroke();
+    // etichetta al centro, leggermente sopra il segmento
+    if(sh.label){
+      var cx = sh.x + sh.w/2, cy = sh.y + sh.h/2;
+      var nx = -Math.sin(ang), ny = Math.cos(ang); // normale
+      var tx = cx + nx*14, ty = cy + ny*14;
+      ctx.font = 'bold 15px Segoe UI, sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = sh.stroke;
+      ctx.fillText(sh.label, tx, ty);
+    }
+  }
+  else if(sh.tipo === 'rect' || sh.tipo === 'square'){
+    ctx.beginPath(); ctx.rect(sh.x, sh.y, sh.w, sh.h);
+    if(!sh.fillNone) ctx.fill();
+    ctx.stroke();
+  }
+  else if(sh.tipo === 'circle' || sh.tipo === 'ellipse'){
+    var cx = sh.x + sh.w/2, cy = sh.y + sh.h/2;
+    var rx = Math.abs(sh.w/2), ry = Math.abs(sh.h/2);
+    if(rx > 0 && ry > 0){
+      ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI*2);
+      if(!sh.fillNone) ctx.fill();
+      ctx.stroke();
+    }
+  }
+  else if(sh.tipo === 'triangle'){
+    // Triangolo generico: 3 vertici derivati dal bounding box (vertice alto-centro, basso-sx, basso-dx)
+    var x1 = sh.x, y1 = sh.y, x2 = sh.x+sh.w, y2 = sh.y+sh.h;
+    var topX = (x1+x2)/2, topY = Math.min(y1,y2);
+    var botY = Math.max(y1,y2);
+    ctx.beginPath();
+    ctx.moveTo(topX, topY);
+    ctx.lineTo(Math.min(x1,x2), botY);
+    ctx.lineTo(Math.max(x1,x2), botY);
+    ctx.closePath();
+    if(!sh.fillNone) ctx.fill();
+    ctx.stroke();
+  }
+  else if(sh.tipo === 'text'){
+    ctx.font = 'bold '+(sh.fontSize||18)+'px Segoe UI, sans-serif';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = sh.fill || sh.stroke;
+    ctx.fillText(sh.text || '', sh.x, sh.y);
+  }
+
+  // Selezione: bounding box tratteggiato
+  if(selected){
+    ctx.strokeStyle = '#1565c0';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([6,4]);
+    var bb = _efBBox(sh);
+    ctx.strokeRect(bb.x-4, bb.y-4, bb.w+8, bb.h+8);
+    ctx.setLineDash([]);
+  }
+  ctx.restore();
+}
+
+function _efDrawArrowHead(ctx, x, y, ang, sw){
+  var size = 10 + sw*1.5;
+  ctx.save();
+  ctx.translate(x, y); ctx.rotate(ang);
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(-size, -size*0.4);
+  ctx.lineTo(-size, size*0.4);
+  ctx.closePath();
+  ctx.fillStyle = ctx.strokeStyle;
+  ctx.fill();
+  ctx.restore();
+}
+
+function _efBBox(sh){
+  if(sh.tipo === 'text'){
+    var w = (sh.text||'').length * (sh.fontSize||18) * 0.6;
+    var h = (sh.fontSize||18);
+    return { x: sh.x, y: sh.y - h, w: w, h: h };
+  }
+  var x = Math.min(sh.x, sh.x + (sh.w||0));
+  var y = Math.min(sh.y, sh.y + (sh.h||0));
+  var w = Math.abs(sh.w||0), h = Math.abs(sh.h||0);
+  return { x:x, y:y, w:w, h:h };
+}
+
+// ── Aggiornamento info pannello destro ────────────────────────
+function _efAggSelInfo(){
+  var el = document.getElementById('ef-sel-info');
+  if(!el) return;
+  if(!_ef.selectedId){ el.innerHTML = 'Nessun oggetto selezionato. Usa 🖱️ per selezionare, o clic sul canvas per deselezionare.'; return; }
+  var sh = _efFindShape(_ef.selectedId);
+  if(!sh){ el.innerHTML='—'; return; }
+  var labels = {line:'Linea',arrow:'Freccia',segq:'Segmento quotato',rect:'Rettangolo',square:'Quadrato',circle:'Cerchio',ellipse:'Ellisse',triangle:'Triangolo',text:'Testo'};
+  var info = '<strong>'+(labels[sh.tipo]||sh.tipo)+'</strong>';
+  if(sh.tipo === 'segq') info += '<br>Misura: <strong>'+(sh.label||'—')+'</strong>';
+  if(sh.tipo === 'text') info += '<br>Testo: <strong>'+(sh.text||'')+'</strong>';
+  info += '<br><button onclick="efCancSel()" style="margin-top:6px;background:#fce4e4;color:var(--rosso);border:1px solid #ef9a9a;border-radius:4px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:var(--font)">🧽 Cancella</button>';
+  el.innerHTML = info;
+}
+
+// ── Esportazione SVG ──────────────────────────────────────────
+function _efExportSVG(){
+  var W = 900, H = 600;
+  var parts = [];
+  parts.push('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" data-ef="1" data-ef-state=\''+_efEncodeState()+'\'>');
+  parts.push('<rect width="'+W+'" height="'+H+'" fill="#ffffff"/>');
+  _ef.shapes.forEach(function(sh){ parts.push(_efShapeToSVG(sh)); });
+  parts.push('</svg>');
+  return parts.join('');
+}
+
+function _efShapeToSVG(sh){
+  var stroke = sh.stroke || '#000';
+  var fill   = sh.fillNone ? 'none' : (sh.fill || 'none');
+  var sw     = sh.sw || 2;
+  var common = 'stroke="'+stroke+'" fill="'+fill+'" stroke-width="'+sw+'" stroke-linecap="round" stroke-linejoin="round"';
+
+  if(sh.tipo === 'line'){
+    return '<line x1="'+sh.x+'" y1="'+sh.y+'" x2="'+(sh.x+sh.w)+'" y2="'+(sh.y+sh.h)+'" '+common+'/>';
+  }
+  if(sh.tipo === 'arrow'){
+    var out = '<line x1="'+sh.x+'" y1="'+sh.y+'" x2="'+(sh.x+sh.w)+'" y2="'+(sh.y+sh.h)+'" '+common+'/>';
+    var ang = Math.atan2(sh.h, sh.w);
+    var size = 10 + sw*1.5;
+    var hx = sh.x+sh.w, hy = sh.y+sh.h;
+    var p1x = hx + Math.cos(ang+Math.PI-0.4)*size, p1y = hy + Math.sin(ang+Math.PI-0.4)*size;
+    var p2x = hx + Math.cos(ang+Math.PI+0.4)*size, p2y = hy + Math.sin(ang+Math.PI+0.4)*size;
+    out += '<polygon points="'+hx+','+hy+' '+p1x.toFixed(1)+','+p1y.toFixed(1)+' '+p2x.toFixed(1)+','+p2y.toFixed(1)+'" fill="'+stroke+'" stroke="none"/>';
+    return out;
+  }
+  if(sh.tipo === 'segq'){
+    var ang = Math.atan2(sh.h, sh.w);
+    var tick = 8;
+    var out = '<line x1="'+sh.x+'" y1="'+sh.y+'" x2="'+(sh.x+sh.w)+'" y2="'+(sh.y+sh.h)+'" '+common+'/>';
+    // Tacche
+    var t1x1 = sh.x + Math.cos(ang+Math.PI/2)*tick, t1y1 = sh.y + Math.sin(ang+Math.PI/2)*tick;
+    var t1x2 = sh.x - Math.cos(ang+Math.PI/2)*tick, t1y2 = sh.y - Math.sin(ang+Math.PI/2)*tick;
+    var t2x1 = sh.x+sh.w + Math.cos(ang+Math.PI/2)*tick, t2y1 = sh.y+sh.h + Math.sin(ang+Math.PI/2)*tick;
+    var t2x2 = sh.x+sh.w - Math.cos(ang+Math.PI/2)*tick, t2y2 = sh.y+sh.h - Math.sin(ang+Math.PI/2)*tick;
+    out += '<line x1="'+t1x1.toFixed(1)+'" y1="'+t1y1.toFixed(1)+'" x2="'+t1x2.toFixed(1)+'" y2="'+t1y2.toFixed(1)+'" stroke="'+stroke+'" stroke-width="'+sw+'"/>';
+    out += '<line x1="'+t2x1.toFixed(1)+'" y1="'+t2y1.toFixed(1)+'" x2="'+t2x2.toFixed(1)+'" y2="'+t2y2.toFixed(1)+'" stroke="'+stroke+'" stroke-width="'+sw+'"/>';
+    if(sh.label){
+      var cx = sh.x + sh.w/2, cy = sh.y + sh.h/2;
+      var nx = -Math.sin(ang), ny = Math.cos(ang);
+      var tx = cx + nx*14, ty = cy + ny*14;
+      out += '<text x="'+tx.toFixed(1)+'" y="'+ty.toFixed(1)+'" font-family="Segoe UI,sans-serif" font-size="15" font-weight="bold" fill="'+stroke+'" text-anchor="middle" dominant-baseline="middle">'+_efEsc(sh.label)+'</text>';
+    }
+    return out;
+  }
+  if(sh.tipo === 'rect' || sh.tipo === 'square'){
+    var x = Math.min(sh.x, sh.x+sh.w), y = Math.min(sh.y, sh.y+sh.h);
+    var w = Math.abs(sh.w), h = Math.abs(sh.h);
+    return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" '+common+'/>';
+  }
+  if(sh.tipo === 'circle' || sh.tipo === 'ellipse'){
+    var cx = sh.x + sh.w/2, cy = sh.y + sh.h/2;
+    var rx = Math.abs(sh.w/2), ry = Math.abs(sh.h/2);
+    return '<ellipse cx="'+cx+'" cy="'+cy+'" rx="'+rx+'" ry="'+ry+'" '+common+'/>';
+  }
+  if(sh.tipo === 'triangle'){
+    var x1 = Math.min(sh.x, sh.x+sh.w), x2 = Math.max(sh.x, sh.x+sh.w);
+    var y1 = Math.min(sh.y, sh.y+sh.h), y2 = Math.max(sh.y, sh.y+sh.h);
+    var topX = (x1+x2)/2;
+    return '<polygon points="'+topX+','+y1+' '+x1+','+y2+' '+x2+','+y2+'" '+common+'/>';
+  }
+  if(sh.tipo === 'text'){
+    return '<text x="'+sh.x+'" y="'+sh.y+'" font-family="Segoe UI,sans-serif" font-size="'+(sh.fontSize||18)+'" font-weight="bold" fill="'+(sh.fill||sh.stroke)+'">'+_efEsc(sh.text||'')+'</text>';
+  }
+  return '';
+}
+
+function _efEsc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+// Serializza lo stato completo delle shapes in base64 dentro l'SVG, così al riapri possiamo editare
+function _efEncodeState(){
+  try{
+    var json = JSON.stringify(_ef.shapes);
+    return btoa(unescape(encodeURIComponent(json)));
+  }catch(e){ return ''; }
+}
+function _efImportFromSVG(svg){
+  var m = svg.match(/data-ef-state=['"]([^'"]+)['"]/);
+  if(!m) return;
+  try{
+    var json = decodeURIComponent(escape(atob(m[1])));
+    var arr = JSON.parse(json);
+    if(Array.isArray(arr)){
+      _ef.shapes = arr;
+      // Aggiorna _seq al massimo id presente per evitare collisioni
+      arr.forEach(function(s){
+        var n = parseInt((s.id||'').replace('sh_',''));
+        if(!isNaN(n) && n > _ef._seq) _ef._seq = n;
+      });
+    }
+  }catch(e){ console.warn('Impossibile ricaricare stato editor:', e); }
+}
+/* === END: editor figure mat === */
 // URL PARAMS – legge ?prova=3 oppure ?materia=matematica&prova=1&classe=3A
 window.addEventListener('load', () => {
   // Avvia animazione benvenuto
