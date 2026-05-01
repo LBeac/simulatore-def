@@ -10740,5 +10740,57 @@ const initInterval = setInterval(function() {
 })();
 // === END: 2A drawing+SVG recovery === //
 </script>
+<script>
+// === BEGIN: editor figure extras (viewBox stretto + cursor visibile) === //
+(function(){
+  // FIX 1 — viewBox stretto sul bbox unificato delle shape, padding 20px
+  if (typeof _efExportSVG === 'function') {
+    var _origExport = _efExportSVG;
+    window._efExportSVG = function(){
+      var svg = _origExport.apply(this, arguments);
+      if (!window._ef || !_ef.shapes || _ef.shapes.length === 0) return svg;
+      var minX=Infinity, minY=Infinity, maxX=-Infinity, maxY=-Infinity;
+      _ef.shapes.forEach(function(sh){
+        var bb = null;
+        try { bb = (typeof _efBBox === 'function') ? _efBBox(sh) : null; } catch(e){}
+        if (!bb || !isFinite(bb.x) || !isFinite(bb.y)) {
+          var x = Math.min(sh.x, sh.x+(sh.w||0));
+          var y = Math.min(sh.y, sh.y+(sh.h||0));
+          bb = {x:x, y:y, w:Math.abs(sh.w||0), h:Math.abs(sh.h||0)};
+        }
+        if (isFinite(bb.x) && isFinite(bb.y)) {
+          minX = Math.min(minX, bb.x);
+          minY = Math.min(minY, bb.y);
+          maxX = Math.max(maxX, bb.x + (bb.w||0));
+          maxY = Math.max(maxY, bb.y + (bb.h||0));
+        }
+      });
+      if (!isFinite(minX) || (maxX-minX)<=0 || (maxY-minY)<=0) return svg;
+      var pad = 20;
+      var nx = Math.floor(minX - pad);
+      var ny = Math.floor(minY - pad);
+      var nw = Math.ceil((maxX - minX) + 2*pad);
+      var nh = Math.ceil((maxY - minY) + 2*pad);
+      svg = svg.replace(/viewBox="0 0 900 600"/, 'viewBox="'+nx+' '+ny+' '+nw+' '+nh+'"');
+      svg = svg.replace(/<rect width="900" height="600" fill="#ffffff"\/>/,
+        '<rect x="'+nx+'" y="'+ny+'" width="'+nw+'" height="'+nh+'" fill="#ffffff"/>');
+      return svg;
+    };
+    console.log('[editor extras] viewBox stretto attivo');
+  } else {
+    console.warn('[editor extras] _efExportSVG non trovata, viewBox NON applicato');
+  }
+
+  // FIX 2 — cursor crosshair nero spesso, fallback crosshair di sistema
+  var css = document.createElement('style');
+  css.textContent =
+    "#ef-canvas:not(.tool-select){"
+    + "cursor:url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><line x1='12' y1='3' x2='12' y2='21' stroke='black' stroke-width='2'/><line x1='3' y1='12' x2='21' y2='12' stroke='black' stroke-width='2'/><circle cx='12' cy='12' r='1.5' fill='black'/></svg>\") 12 12, crosshair !important;"
+    + "}";
+  document.head.appendChild(css);
+  console.log('[editor extras] cursor crosshair nero attivo');
+})();
+// === END: editor figure extras === //
+</script>
 </body>
 </html>
