@@ -10792,5 +10792,49 @@ const initInterval = setInterval(function() {
 })();
 // === END: editor figure extras === //
 </script>
+  <script>
+// === BEGIN: editor figure cleanup (no-freepoly + badge figura) === //
+(function(){
+  // FIX A — nascondi tool "Poligono libero" (incompleto, rimosso da UI)
+  var css = document.createElement('style');
+  css.textContent =
+    "#ef-t-freepoly{display:none !important;}"
+    + ".fig-badge{background:#e0f2fe;color:#075985;border-radius:4px;"
+    + "padding:2px 8px;font-size:10px;font-weight:700;white-space:nowrap;}";
+  document.head.appendChild(css);
+
+  // FIX B — badge "🖼️ Figura" inserito nell'header card quando d.svg presente
+  function applyFigBadges(){
+    document.querySelectorAll('.ap-dom').forEach(function(card){
+      var hasFig = !!card.querySelector('.pei-figura-preview');
+      var existing = card.querySelector('.fig-badge');
+      if (hasFig && !existing) {
+        var headerLeft = card.querySelector('div > div');
+        if (!headerLeft) return;
+        var badge = document.createElement('span');
+        badge.className = 'fig-badge';
+        badge.textContent = '🖼️ Figura';
+        var tipoBadge = headerLeft.querySelector('.tipo-badge');
+        if (tipoBadge && tipoBadge.nextSibling) {
+          headerLeft.insertBefore(badge, tipoBadge.nextSibling);
+        } else {
+          headerLeft.appendChild(badge);
+        }
+      } else if (!hasFig && existing) {
+        existing.remove();
+      }
+    });
+  }
+  applyFigBadges();
+  var deb = null;
+  new MutationObserver(function(){
+    clearTimeout(deb);
+    deb = setTimeout(applyFigBadges, 50);
+  }).observe(document.body, {childList:true, subtree:true});
+
+  console.log('[editor cleanup] freepoly nascosto + badge figura attivo');
+})();
+// === END: editor figure cleanup === //
+</script>
 </body>
 </html>
