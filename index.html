@@ -10625,5 +10625,120 @@ const initInterval = setInterval(function() {
   if(initAttempts > 20) clearInterval(initInterval);
 }, 500);
 </script>
+  <script>
+// === BEGIN: 2A drawing+SVG recovery === //
+(function(){
+  if (typeof _efDrawShape !== 'function' || typeof _efShapeToSVG !== 'function') {
+    console.warn('[2A recovery] _efDrawShape/_efShapeToSVG non trovate, abort'); return;
+  }
+  var V2 = ['tri-equi','tri-iso','tri-rect','rombo','parallelo','trap-rect','trap-iso','trap-scal','poly-5','poly-6','poly-8','freepoly','sector'];
+  var _origDraw = _efDrawShape;
+  var _origSVG  = _efShapeToSVG;
+
+  function _norm(sh){
+    var x = Math.min(sh.x, sh.x+sh.w), y = Math.min(sh.y, sh.y+sh.h);
+    var w = Math.abs(sh.w), h = Math.abs(sh.h);
+    return {x:x, y:y, w:w, h:h, x2:x+w, y2:y+h, cx:x+w/2, cy:y+h/2};
+  }
+  function _polyVerts(n, b, theta0){
+    if(theta0 === undefined) theta0 = -Math.PI/2; // vertice in alto
+    var rx = b.w/2, ry = b.h/2, pts = [];
+    for(var i=0;i<n;i++){
+      var a = theta0 + i*2*Math.PI/n;
+      pts.push([b.cx + Math.cos(a)*rx, b.cy + Math.sin(a)*ry]);
+    }
+    return pts;
+  }
+  function _verts(sh){
+    var b = _norm(sh), t = sh.tipo;
+    if(t==='tri-equi')  return _polyVerts(3, b);
+    if(t==='tri-iso')   return [[b.cx,b.y],[b.x,b.y2],[b.x2,b.y2]];
+    if(t==='tri-rect')  return [[b.x,b.y],[b.x,b.y2],[b.x2,b.y2]];
+    if(t==='rombo')     return [[b.cx,b.y],[b.x2,b.cy],[b.cx,b.y2],[b.x,b.cy]];
+    if(t==='parallelo'){ var o=b.w*0.25; return [[b.x+o,b.y],[b.x2,b.y],[b.x2-o,b.y2],[b.x,b.y2]]; }
+    if(t==='trap-rect'){ var o=b.w*0.3; return [[b.x,b.y],[b.x2-o,b.y],[b.x2,b.y2],[b.x,b.y2]]; }
+    if(t==='trap-iso'){  var o=b.w*0.2; return [[b.x+o,b.y],[b.x2-o,b.y],[b.x2,b.y2],[b.x,b.y2]]; }
+    if(t==='trap-scal')  return [[b.x+b.w*0.15,b.y],[b.x2-b.w*0.35,b.y],[b.x2,b.y2],[b.x,b.y2]];
+    if(t==='poly-5') return _polyVerts(5, b);
+    if(t==='poly-6') return _polyVerts(6, b);
+    if(t==='poly-8') return _polyVerts(8, b);
+    if(t==='freepoly'){
+      if(Array.isArray(sh.points) && sh.points.length>=2)
+        return sh.points.map(function(p){ return [p.x, p.y]; });
+      return _polyVerts(3, b); // fallback
+    }
+    return null;
+  }
+  function _sectorAngles(sh){
+    var a0 = (typeof sh.a0==='number') ? sh.a0 : -Math.PI/2;
+    var a1 = (typeof sh.a1==='number') ? sh.a1 : a0 + Math.PI/3;
+    return [a0, a1];
+  }
+
+  window._efDrawShape = function(ctx, sh, selected){
+    if (V2.indexOf(sh.tipo) === -1) return _origDraw(ctx, sh, selected);
+    ctx.save();
+    ctx.strokeStyle = sh.stroke || '#000';
+    ctx.fillStyle   = sh.fill   || '#fff';
+    ctx.lineWidth   = sh.sw     || 2;
+    if (sh.tipo === 'sector') {
+      var b = _norm(sh), aa = _sectorAngles(sh);
+      ctx.beginPath();
+      ctx.moveTo(b.cx, b.cy);
+      ctx.ellipse(b.cx, b.cy, b.w/2, b.h/2, 0, aa[0], aa[1]);
+      ctx.closePath();
+      if(!sh.fillNone) ctx.fill();
+      ctx.stroke();
+    } else {
+      var pts = _verts(sh);
+      if (pts && pts.length >= 2) {
+        ctx.beginPath();
+        ctx.moveTo(pts[0][0], pts[0][1]);
+        for (var i=1; i<pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+        ctx.closePath();
+        if(!sh.fillNone) ctx.fill();
+        ctx.stroke();
+      }
+    }
+    if (selected) {
+      ctx.strokeStyle = '#1565c0';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([6,4]);
+      var bb = (typeof _efBBox === 'function') ? _efBBox(sh) : _norm(sh);
+      ctx.strokeRect(bb.x-4, bb.y-4, bb.w+8, bb.h+8);
+      ctx.setLineDash([]);
+    }
+    ctx.restore();
+  };
+
+  window._efShapeToSVG = function(sh){
+    if (V2.indexOf(sh.tipo) === -1) return _origSVG(sh);
+    var stroke = sh.stroke || '#000';
+    var fill   = sh.fillNone ? 'none' : (sh.fill || 'none');
+    var sw     = sh.sw || 2;
+    var common = 'stroke="'+stroke+'" fill="'+fill+'" stroke-width="'+sw+'" stroke-linecap="round" stroke-linejoin="round"';
+    if (sh.tipo === 'sector') {
+      var b = _norm(sh), aa = _sectorAngles(sh);
+      var rx = b.w/2, ry = b.h/2;
+      var x0 = b.cx + Math.cos(aa[0])*rx, y0 = b.cy + Math.sin(aa[0])*ry;
+      var x1 = b.cx + Math.cos(aa[1])*rx, y1 = b.cy + Math.sin(aa[1])*ry;
+      var large = (aa[1]-aa[0]) > Math.PI ? 1 : 0;
+      var d = 'M '+b.cx+' '+b.cy+' L '+x0.toFixed(1)+' '+y0.toFixed(1)+
+              ' A '+rx.toFixed(1)+' '+ry.toFixed(1)+' 0 '+large+' 1 '+x1.toFixed(1)+' '+y1.toFixed(1)+' Z';
+      return '<path d="'+d+'" '+common+'/>';
+    }
+    var pts = _verts(sh);
+    if (!pts || pts.length < 2) return '';
+    var s = pts.map(function(p){ return p[0].toFixed(1)+','+p[1].toFixed(1); }).join(' ');
+    return '<polygon points="'+s+'" '+common+'/>';
+  };
+
+  if (typeof _efRedraw === 'function' && window._ef && _ef.canvas) {
+    try { _efRedraw(); } catch(e){}
+  }
+  console.log('[2A recovery] OK — forme V2 ora disegnabili e esportabili');
+})();
+// === END: 2A drawing+SVG recovery === //
+</script>
 </body>
 </html>
