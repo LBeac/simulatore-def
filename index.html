@@ -568,7 +568,11 @@ tr:hover td{background:var(--grigio-ch)}
 .doc-ris-wrap{background:#fff;border-radius:10px;margin-top:16px;box-shadow:0 2px 8px rgba(0,0,0,.07);overflow:hidden}
 .doc-ris-hdr{background:var(--blu-s);color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between}
 .doc-ris-body{padding:18px;max-height:400px;overflow-y:auto;min-height:60px}
-  /* === BEGIN: editor figure mat === */
+ /* === BEGIN: editor figure mat === */
+/* sessione 2A: scroll toolbar */
+.ef-toolbar{ overflow-y:auto; max-height:calc(100vh - 180px); scrollbar-width:thin; }
+.ef-toolbar::-webkit-scrollbar{ width:6px; }
+.ef-toolbar::-webkit-scrollbar-thumb{ background:#cfd8dc; border-radius:3px; }
 /* Modal overlay */
 #ov-editor-figure{
   position:fixed; inset:0; background:rgba(0,0,0,.72);
@@ -703,6 +707,433 @@ tr:hover td{background:var(--grigio-ch)}
   }
 }
 /* === END: editor figure mat === */
+
+/* === BEGIN: editor figure mat — sessione 2A === */
+/*
+ Estensioni alla sessione 1: figure piane vincolate e poligoni.
+ - Wrappa _efRedraw e _efExportSVG senza modificarne il codice esistente.
+ - Le nuove forme usano tipo:'polygon' (con array points relativi al bbox) o tipo:'sector'.
+ - Bbox standard {x,y,w,h} → undo/redo, sposta, cancella, salva sono compatibili automaticamente.
+*/
+(function(){
+  var V2_TYPES = ['polygon','sector'];
+
+  // ── Generatori di punti relativi al bounding box (w,h) ──────
+  function _regular(n, w, h){
+    var cx = w/2, cy = h/2;
+    var r  = Math.min(w, h) / 2;
+    var pts = [];
+    for(var i=0; i<n; i++){
+      var ang = -Math.PI/2 + (i * 2 * Math.PI / n);
+      pts.push({x: cx + r*Math.cos(ang), y: cy + r*Math.sin(ang)});
+    }
+    return pts;
+  }
+
+  var GEN = {
+    'tri-equi': function(w,h){
+      // Triangolo equilatero: base orizzontale = larghezza disponibile, altezza = base * √3/2
+      // Centra in altezza dentro il bbox
+      var base = w;
+      var alt  = base * Math.sqrt(3) / 2;
+      var yTop = (h > alt) ? (h - alt) / 2 : 0;
+      var yBot = yTop + Math.min(alt, h);
+      return [
+        {x: w/2, y: yTop},
+        {x: 0,   y: yBot},
+        {x: w,   y: yBot}
+      ];
+    },
+    'tri-iso': function(w,h){
+      // Isoscele: base in basso = w, vertice apice in cima
+      return [
+        {x: w/2, y: 0},
+        {x: 0,   y: h},
+        {x: w,   y: h}
+      ];
+    },
+    'tri-rect': function(w,h){
+      // Rettangolo con angolo retto in basso-sinistra
+      return [
+        {x: 0, y: 0},
+        {x: 0, y: h},
+        {x: w, y: h}
+      ];
+    },
+    'rombo': function(w,h){
+      // Vertici sui punti medi del bbox
+      return [
+        {x: w/2, y: 0},
+        {x: w,   y: h/2},
+        {x: w/2, y: h},
+        {x: 0,   y: h/2}
+      ];
+    },
+    'parallelo': function(w,h){
+      // Offset orizzontale del 25%
+      var dx = w * 0.25;
+      return [
+        {x: dx,    y: 0},
+        {x: w,     y: 0},
+        {x: w-dx,  y: h},
+        {x: 0,     y: h}
+      ];
+    },
+    'trap-rect': function(w,h){
+      // Base maggiore in basso = w, base minore in alto = w*0.6, allineate a sinistra (lato sx verticale)
+      var bMin = w * 0.6;
+      return [
+        {x: 0,     y: 0},
+        {x: bMin,  y: 0},
+        {x: w,     y: h},
+        {x: 0,     y: h}
+      ];
+    },
+    'trap-iso': function(w,h){
+      // Base maggiore = w, base minore = w*0.6, centrata
+      var bMin = w * 0.6;
+      var dx   = (w - bMin) / 2;
+      return [
+        {x: dx,     y: 0},
+        {x: w-dx,   y: 0},
+        {x: w,      y: h},
+        {x: 0,      y: h}
+      ];
+    },
+    'trap-scal': function(w,h){
+      // Base maggiore = w, base minore = w*0.5, sbilanciata
+      var bMin = w * 0.5;
+      return [
+        {x: w * 0.15,        y: 0},
+        {x: w * 0.15 + bMin, y: 0},
+        {x: w,               y: h},
+        {x: 0,               y: h}
+      ];
+    },
+    'poly-5': function(w,h){ return _regular(5, w, h); },
+    'poly-6': function(w,h){ return _regular(6, w, h); },
+    'poly-8': function(w,h){ return _regular(8, w, h); }
+  };
+
+  function isV2Tool(t){ return GEN[t] || t === 'sector' || t === 'freepoly'; }
+
+  // ── Disegno V2 su canvas ────────────────────────────────────
+  function drawV2(ctx, sh, isPreview){
+    if(!ctx) return;
+    ctx.save();
+    ctx.strokeStyle = sh.stroke || '#1a2436';
+    ctx.lineWidth   = sh.sw || 2;
+    ctx.lineJoin    = 'round';
+    ctx.lineCap     = 'round';
+
+    if(sh.tipo === 'polygon'){
+      var pts = sh.points;
+      if(!pts || pts.length < 2){ ctx.restore(); return; }
+      ctx.beginPath();
+      ctx.moveTo(sh.x + pts[0].x, sh.y + pts[0].y);
+      for(var i=1; i<pts.length; i++) ctx.lineTo(sh.x + pts[i].x, sh.y + pts[i].y);
+      ctx.closePath();
+      if(!sh.fillNone){ ctx.fillStyle = sh.fill || '#ffffff'; ctx.fill(); }
+      ctx.stroke();
+    }
+    else if(sh.tipo === 'sector'){
+      var cx = sh.x + sh.w/2;
+      var cy = sh.y + sh.h/2;
+      var r  = Math.min(sh.w, sh.h) / 2;
+      var sa = (sh.startAng != null) ? sh.startAng : -Math.PI/2;
+      var ea = (sh.endAng   != null) ? sh.endAng   : 0;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + r*Math.cos(sa), cy + r*Math.sin(sa));
+      ctx.arc(cx, cy, r, sa, ea, false);
+      ctx.closePath();
+      if(!sh.fillNone){ ctx.fillStyle = sh.fill || '#ffffff'; ctx.fill(); }
+      ctx.stroke();
+    }
+
+    // Selezione: bbox tratteggiato
+    if(!isPreview && sh.id === _ef.selectedId){
+      ctx.save();
+      ctx.strokeStyle = '#0277bd';
+      ctx.lineWidth   = 1.5;
+      ctx.setLineDash([4, 3]);
+      ctx.strokeRect(sh.x - 2, sh.y - 2, sh.w + 4, sh.h + 4);
+      ctx.restore();
+    }
+
+    ctx.restore();
+  }
+
+  // ── Esportazione SVG per V2 ────────────────────────────────
+  function exportV2(sh){
+    var stroke = sh.stroke || '#1a2436';
+    var fill   = sh.fillNone ? 'none' : (sh.fill || '#ffffff');
+    var sw     = sh.sw || 2;
+
+    if(sh.tipo === 'polygon'){
+      var ptsStr = sh.points.map(function(p){
+        return (sh.x + p.x).toFixed(1) + ',' + (sh.y + p.y).toFixed(1);
+      }).join(' ');
+      return '<polygon points="' + ptsStr + '" fill="' + fill +
+             '" stroke="' + stroke + '" stroke-width="' + sw +
+             '" stroke-linejoin="round"/>';
+    }
+    if(sh.tipo === 'sector'){
+      var cx = sh.x + sh.w/2;
+      var cy = sh.y + sh.h/2;
+      var r  = Math.min(sh.w, sh.h) / 2;
+      var sa = (sh.startAng != null) ? sh.startAng : -Math.PI/2;
+      var ea = (sh.endAng   != null) ? sh.endAng   : 0;
+      var x1 = cx + r*Math.cos(sa), y1 = cy + r*Math.sin(sa);
+      var x2 = cx + r*Math.cos(ea), y2 = cy + r*Math.sin(ea);
+      var large = (ea - sa) > Math.PI ? 1 : 0;
+      var d = 'M ' + cx.toFixed(1) + ',' + cy.toFixed(1) +
+              ' L ' + x1.toFixed(1) + ',' + y1.toFixed(1) +
+              ' A ' + r.toFixed(1) + ',' + r.toFixed(1) + ' 0 ' + large + ',1 ' +
+              x2.toFixed(1) + ',' + y2.toFixed(1) + ' Z';
+      return '<path d="' + d + '" fill="' + fill +
+             '" stroke="' + stroke + '" stroke-width="' + sw + '"/>';
+    }
+    return '';
+  }
+
+  // ── Wrap di _efRedraw (rispetta z-order, aggiunge preview) ──
+  if(typeof _efRedraw === 'function'){
+    var _origRedraw = _efRedraw;
+    window._efRedraw = function(){
+      _origRedraw();
+      if(!_ef || !_ef.ctx) return;
+      // Rendi le forme V2 sopra V1 (sono in coda all'array; per z-order corretto serve rimettere in ordine)
+      _ef.shapes.forEach(function(sh){
+        if(V2_TYPES.indexOf(sh.tipo) !== -1) drawV2(_ef.ctx, sh, false);
+      });
+      // Drag preview V2
+      if(_ef.dragShape && V2_TYPES.indexOf(_ef.dragShape.tipo) !== -1){
+        drawV2(_ef.ctx, _ef.dragShape, true);
+      }
+      // Free polygon: linea tratteggiata + vertici provvisori
+      if(_freepoly.pts.length > 0){
+        var ctx = _ef.ctx;
+        ctx.save();
+        ctx.strokeStyle = _ef.stroke || '#1a2436';
+        ctx.lineWidth   = _ef.sw || 2;
+        ctx.setLineDash([6, 4]);
+        ctx.beginPath();
+        ctx.moveTo(_freepoly.pts[0].x, _freepoly.pts[0].y);
+        for(var i=1; i<_freepoly.pts.length; i++) ctx.lineTo(_freepoly.pts[i].x, _freepoly.pts[i].y);
+        if(_freepoly.hover) ctx.lineTo(_freepoly.hover.x, _freepoly.hover.y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#0277bd';
+        _freepoly.pts.forEach(function(p){
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 4, 0, 2*Math.PI);
+          ctx.fill();
+        });
+        ctx.restore();
+      }
+    };
+  }
+
+  // ── Wrap di _efExportSVG (inserisce tag V2 prima di </svg>) ─
+  if(typeof _efExportSVG === 'function'){
+    var _origExport = _efExportSVG;
+    window._efExportSVG = function(){
+      var svgV1 = _origExport();
+      var v2 = _ef.shapes
+        .filter(function(sh){ return V2_TYPES.indexOf(sh.tipo) !== -1; })
+        .map(exportV2)
+        .join('\n  ');
+      if(!v2) return svgV1;
+      return svgV1.replace(/<\/svg>/, '  ' + v2 + '\n</svg>');
+    };
+  }
+
+  // ── Stato free polygon ──────────────────────────────────────
+  var _freepoly = { pts:[], hover:null };
+
+  function _resetFreepoly(){
+    _freepoly.pts = [];
+    _freepoly.hover = null;
+  }
+
+  // ── Bind mouse handlers V2 (alongside V1) ───────────────────
+  function _v2Bind(){
+    var c = _ef.canvas;
+    if(!c || c._v2Bound) return;
+    c._v2Bound = true;
+
+    function getXY(e){
+      var rect = c.getBoundingClientRect();
+      var sx = c.width  / rect.width;
+      var sy = c.height / rect.height;
+      return {
+        x: (e.clientX - rect.left) * sx,
+        y: (e.clientY - rect.top)  * sy
+      };
+    }
+
+    c.addEventListener('mousedown', function(e){
+      var p = getXY(e);
+
+      // Hit test V2 in modalità seleziona — runs alongside V1's
+      if(_ef.tool === 'select'){
+        for(var i = _ef.shapes.length - 1; i >= 0; i--){
+          var sh = _ef.shapes[i];
+          if(V2_TYPES.indexOf(sh.tipo) === -1) continue;
+          if(p.x >= sh.x && p.x <= sh.x + sh.w &&
+             p.y >= sh.y && p.y <= sh.y + sh.h){
+            _ef.selectedId = sh.id;
+            if(typeof _efRedraw === 'function') _efRedraw();
+            if(typeof _efAggSelInfo === 'function') _efAggSelInfo();
+            return;
+          }
+        }
+        return;
+      }
+
+      // Free polygon — click aggiunge un vertice
+      if(_ef.tool === 'freepoly'){
+        _freepoly.pts.push(p);
+        if(typeof _efRedraw === 'function') _efRedraw();
+        return;
+      }
+
+      // Strumenti V2 con drag (poligoni preimpostati e settore)
+      if(!isV2Tool(_ef.tool)) return;
+      if(typeof _efNewId !== 'function') return;
+
+      _ef.dragging  = true;
+      _ef.dragStart = p;
+
+      if(_ef.tool === 'sector'){
+        _ef.dragShape = {
+          id: _efNewId(), tipo: 'sector',
+          x: p.x, y: p.y, w: 0, h: 0,
+          startAng: -Math.PI/2,
+          endAng: 0,
+          stroke: _ef.stroke, fill: _ef.fill, fillNone: _ef.fillNone, sw: _ef.sw
+        };
+      } else if(GEN[_ef.tool]){
+        _ef.dragShape = {
+          id: _efNewId(), tipo: 'polygon',
+          x: p.x, y: p.y, w: 0, h: 0,
+          points: [], _preset: _ef.tool,
+          stroke: _ef.stroke, fill: _ef.fill, fillNone: _ef.fillNone, sw: _ef.sw
+        };
+      }
+    });
+
+    c.addEventListener('mousemove', function(e){
+      var p = getXY(e);
+
+      if(_ef.tool === 'freepoly' && _freepoly.pts.length > 0){
+        _freepoly.hover = p;
+        if(typeof _efRedraw === 'function') _efRedraw();
+        return;
+      }
+
+      if(!_ef.dragging || !_ef.dragShape) return;
+      if(!isV2Tool(_ef.tool)) return;
+
+      var dx = p.x - _ef.dragStart.x;
+      var dy = p.y - _ef.dragStart.y;
+      _ef.dragShape.x = Math.min(p.x, _ef.dragStart.x);
+      _ef.dragShape.y = Math.min(p.y, _ef.dragStart.y);
+      _ef.dragShape.w = Math.abs(dx);
+      _ef.dragShape.h = Math.abs(dy);
+
+      if(_ef.dragShape.tipo === 'polygon' && GEN[_ef.tool]){
+        _ef.dragShape.points = GEN[_ef.tool](_ef.dragShape.w, _ef.dragShape.h);
+      }
+      if(typeof _efRedraw === 'function') _efRedraw();
+    });
+
+    c.addEventListener('mouseup', function(e){
+      if(!_ef.dragging || !_ef.dragShape) return;
+      if(!isV2Tool(_ef.tool)) return;
+
+      // Filtro forme troppo piccole (click accidentale)
+      if(_ef.dragShape.w < 8 || _ef.dragShape.h < 8){
+        _ef.dragShape = null;
+        _ef.dragging = false;
+        if(typeof _efRedraw === 'function') _efRedraw();
+        return;
+      }
+
+      if(typeof _efPushUndo === 'function') _efPushUndo();
+      _ef.shapes.push(_ef.dragShape);
+      _ef.selectedId = _ef.dragShape.id;
+      _ef.dragShape  = null;
+      _ef.dragging   = false;
+      if(typeof _efRedraw === 'function') _efRedraw();
+      if(typeof _efAggSelInfo === 'function') _efAggSelInfo();
+    });
+
+    // Free polygon — doppio click chiude
+    c.addEventListener('dblclick', function(e){
+      if(_ef.tool !== 'freepoly') return;
+      if(_freepoly.pts.length < 3){
+        _resetFreepoly();
+        if(typeof _efRedraw === 'function') _efRedraw();
+        return;
+      }
+      var xs = _freepoly.pts.map(function(p){ return p.x; });
+      var ys = _freepoly.pts.map(function(p){ return p.y; });
+      var minX = Math.min.apply(null, xs);
+      var minY = Math.min.apply(null, ys);
+      var maxX = Math.max.apply(null, xs);
+      var maxY = Math.max.apply(null, ys);
+      var rel  = _freepoly.pts.map(function(p){ return {x: p.x - minX, y: p.y - minY}; });
+
+      var sh = {
+        id: _efNewId(), tipo: 'polygon',
+        x: minX, y: minY,
+        w: Math.max(maxX - minX, 1),
+        h: Math.max(maxY - minY, 1),
+        points: rel, _preset: 'freepoly',
+        stroke: _ef.stroke, fill: _ef.fill, fillNone: _ef.fillNone, sw: _ef.sw
+      };
+      if(typeof _efPushUndo === 'function') _efPushUndo();
+      _ef.shapes.push(sh);
+      _ef.selectedId = sh.id;
+      _resetFreepoly();
+      if(typeof _efRedraw === 'function') _efRedraw();
+      if(typeof _efAggSelInfo === 'function') _efAggSelInfo();
+    });
+  }
+
+  // Esc → annulla free polygon in corso
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && _freepoly.pts.length > 0){
+      _resetFreepoly();
+      if(typeof _efRedraw === 'function') _efRedraw();
+    }
+  });
+
+  // Reset free polygon quando si cambia strumento
+  if(typeof efSetTool === 'function'){
+    var _origSetTool = efSetTool;
+    window.efSetTool = function(t){
+      if(_freepoly.pts.length > 0 && t !== 'freepoly') _resetFreepoly();
+      _origSetTool(t);
+    };
+  }
+
+  // ── Init: bind quando il canvas è pronto ───────────────────
+  // Il canvas viene creato al primo apriEditorFigura. Wrappo apriEditorFigura
+  // per fare bind subito dopo la creazione del canvas.
+  if(_ef && _ef.canvas){
+    _v2Bind();
+  } else if(typeof apriEditorFigura === 'function'){
+    var _origApri = apriEditorFigura;
+    window.apriEditorFigura = function(idx){
+      _origApri(idx);
+      if(_ef && _ef.canvas) _v2Bind();
+    };
+  }
+})();
+/* === END: editor figure mat — sessione 2A === */
 /* === BEGIN: PEI mat === */
 .v-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;line-height:1.3;white-space:nowrap;font-family:var(--font)}
 .v-badge.ok  {background:#e8f5e9;color:var(--verde);border:1px solid #a5d6a7}
@@ -1061,7 +1492,22 @@ body.prova-finita #diz-widget { display: none !important; }
         <button class="ef-tool" id="ef-t-square"  onclick="efSetTool('square')"  title="Quadrato">◻</button>
         <button class="ef-tool" id="ef-t-circle"  onclick="efSetTool('circle')"  title="Cerchio">◯</button>
         <button class="ef-tool" id="ef-t-ellipse" onclick="efSetTool('ellipse')" title="Ellisse">⬭</button>
-        <button class="ef-tool" id="ef-t-triangle" onclick="efSetTool('triangle')" title="Triangolo">△</button>
+       <button class="ef-tool" id="ef-t-triangle" onclick="efSetTool('triangle')" title="Triangolo generico">△</button>
+        <button class="ef-tool" id="ef-t-tri-equi" onclick="efSetTool('tri-equi')" title="Triangolo equilatero (3 lati uguali)">▲</button>
+        <button class="ef-tool" id="ef-t-tri-iso"  onclick="efSetTool('tri-iso')"  title="Triangolo isoscele (2 lati uguali)">🔺</button>
+        <button class="ef-tool" id="ef-t-tri-rect" onclick="efSetTool('tri-rect')" title="Triangolo rettangolo (con angolo retto)">⊿</button>
+        <div class="ef-tool-sep"></div>
+        <button class="ef-tool" id="ef-t-rombo"     onclick="efSetTool('rombo')"     title="Rombo">◇</button>
+        <button class="ef-tool" id="ef-t-parallelo" onclick="efSetTool('parallelo')" title="Parallelogramma">▱</button>
+        <button class="ef-tool" id="ef-t-trap-rect" onclick="efSetTool('trap-rect')" title="Trapezio rettangolo">⏢ᵣ</button>
+        <button class="ef-tool" id="ef-t-trap-iso"  onclick="efSetTool('trap-iso')"  title="Trapezio isoscele">⏢ᵢ</button>
+        <button class="ef-tool" id="ef-t-trap-scal" onclick="efSetTool('trap-scal')" title="Trapezio scaleno">⏢ₛ</button>
+        <div class="ef-tool-sep"></div>
+        <button class="ef-tool" id="ef-t-poly-5" onclick="efSetTool('poly-5')" title="Pentagono regolare">⬠</button>
+        <button class="ef-tool" id="ef-t-poly-6" onclick="efSetTool('poly-6')" title="Esagono regolare">⬡</button>
+        <button class="ef-tool" id="ef-t-poly-8" onclick="efSetTool('poly-8')" title="Ottagono regolare">🛑</button>
+        <button class="ef-tool" id="ef-t-sector" onclick="efSetTool('sector')" title="Settore circolare (90°)">◔</button>
+        <button class="ef-tool" id="ef-t-freepoly" onclick="efSetTool('freepoly')" title="Poligono libero — click per ogni vertice, doppio-click per chiudere, Esc per annullare">✏</button>
         <div class="ef-tool-sep"></div>
         <button class="ef-tool" id="ef-t-text"    onclick="efSetTool('text')"    title="Testo">🅰️</button>
         <button class="ef-tool" onclick="efCancSel()"  title="Cancella selezione">🧽</button>
@@ -9275,7 +9721,7 @@ function efSetTool(t){
   document.querySelectorAll('.ef-tool').forEach(function(b){ b.classList.remove('att'); });
   var btn = document.getElementById('ef-t-'+t);
   if(btn) btn.classList.add('att');
-  var labels = {select:'Seleziona',line:'Linea',arrow:'Freccia',segq:'Segmento quotato',rect:'Rettangolo',square:'Quadrato',circle:'Cerchio',ellipse:'Ellisse',triangle:'Triangolo',text:'Testo'};
+var labels = {select:'Seleziona',line:'Linea',arrow:'Freccia',segq:'Segmento quotato',rect:'Rettangolo',square:'Quadrato',circle:'Cerchio',ellipse:'Ellisse',triangle:'Triangolo','tri-equi':'Triangolo equilatero','tri-iso':'Triangolo isoscele','tri-rect':'Triangolo rettangolo',rombo:'Rombo',parallelo:'Parallelogramma','trap-rect':'Trapezio rettangolo','trap-iso':'Trapezio isoscele','trap-scal':'Trapezio scaleno','poly-5':'Pentagono','poly-6':'Esagono','poly-8':'Ottagono',sector:'Settore circolare',freepoly:'Poligono libero',text:'Testo'};
   var lblEl = document.getElementById('ef-tool-lbl');
   if(lblEl) lblEl.textContent = labels[t] || t;
   _ef.canvas.className = t==='select' ? 'tool-select' : '';
