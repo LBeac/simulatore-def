@@ -278,13 +278,21 @@ function avviaProva(){
   document.getElementById('hdr-sub').textContent = sub;
   document.title = '📘 ' + titolo;
 
-  if(!prova.domande || !prova.domande.length){
+ if(!prova.domande || !prova.domande.length){
     mostraErr();
     return;
   }
 
+  /* === BEGIN: fix identificativi domanda === */
+  prova.domande.forEach(function(d, i){
+    d.n = i + 1;
+    if(!d.codice_obiettivo && d.id){
+      d.codice_obiettivo = String(d.id).replace(/-[FMD]\d+$/, '');
+    }
+  });
+  /* === END: fix identificativi domanda === */
+
   IDX_DOM = 0;
-  renderDomanda(IDX_DOM);
 }
 
 // ══════════════════════════════════════════════════════════════
