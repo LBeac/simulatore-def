@@ -278,7 +278,7 @@ function avviaProva(){
   document.getElementById('hdr-sub').textContent = sub;
   document.title = '📘 ' + titolo;
 
- if(!prova.domande || !prova.domande.length){
+  if(!prova.domande || !prova.domande.length){
     mostraErr();
     return;
   }
@@ -293,6 +293,16 @@ function avviaProva(){
   /* === END: fix identificativi domanda === */
 
   IDX_DOM = 0;
+  renderDomanda(IDX_DOM);
+
+  /* === BEGIN: rete di sicurezza primo render === */
+  setTimeout(function(){
+    var c = document.getElementById('card-dom');
+    if(c && !c.innerHTML.trim() && PROVA_ATTUALE && PROVA_ATTUALE.domande.length){
+      renderDomanda(IDX_DOM);
+    }
+  }, 400);
+  /* === END: rete di sicurezza primo render === */
 }
 
 // ══════════════════════════════════════════════════════════════
