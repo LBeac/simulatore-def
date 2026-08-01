@@ -708,432 +708,7 @@ tr:hover td{background:var(--grigio-ch)}
 }
 /* === END: editor figure mat === */
 
-/* === BEGIN: editor figure mat — sessione 2A === */
-/*
- Estensioni alla sessione 1: figure piane vincolate e poligoni.
- - Wrappa _efRedraw e _efExportSVG senza modificarne il codice esistente.
- - Le nuove forme usano tipo:'polygon' (con array points relativi al bbox) o tipo:'sector'.
- - Bbox standard {x,y,w,h} → undo/redo, sposta, cancella, salva sono compatibili automaticamente.
-*/
-(function(){
-  var V2_TYPES = ['polygon','sector'];
-
-  // ── Generatori di punti relativi al bounding box (w,h) ──────
-  function _regular(n, w, h){
-    var cx = w/2, cy = h/2;
-    var r  = Math.min(w, h) / 2;
-    var pts = [];
-    for(var i=0; i<n; i++){
-      var ang = -Math.PI/2 + (i * 2 * Math.PI / n);
-      pts.push({x: cx + r*Math.cos(ang), y: cy + r*Math.sin(ang)});
-    }
-    return pts;
-  }
-
-  var GEN = {
-    'tri-equi': function(w,h){
-      // Triangolo equilatero: base orizzontale = larghezza disponibile, altezza = base * √3/2
-      // Centra in altezza dentro il bbox
-      var base = w;
-      var alt  = base * Math.sqrt(3) / 2;
-      var yTop = (h > alt) ? (h - alt) / 2 : 0;
-      var yBot = yTop + Math.min(alt, h);
-      return [
-        {x: w/2, y: yTop},
-        {x: 0,   y: yBot},
-        {x: w,   y: yBot}
-      ];
-    },
-    'tri-iso': function(w,h){
-      // Isoscele: base in basso = w, vertice apice in cima
-      return [
-        {x: w/2, y: 0},
-        {x: 0,   y: h},
-        {x: w,   y: h}
-      ];
-    },
-    'tri-rect': function(w,h){
-      // Rettangolo con angolo retto in basso-sinistra
-      return [
-        {x: 0, y: 0},
-        {x: 0, y: h},
-        {x: w, y: h}
-      ];
-    },
-    'rombo': function(w,h){
-      // Vertici sui punti medi del bbox
-      return [
-        {x: w/2, y: 0},
-        {x: w,   y: h/2},
-        {x: w/2, y: h},
-        {x: 0,   y: h/2}
-      ];
-    },
-    'parallelo': function(w,h){
-      // Offset orizzontale del 25%
-      var dx = w * 0.25;
-      return [
-        {x: dx,    y: 0},
-        {x: w,     y: 0},
-        {x: w-dx,  y: h},
-        {x: 0,     y: h}
-      ];
-    },
-    'trap-rect': function(w,h){
-      // Base maggiore in basso = w, base minore in alto = w*0.6, allineate a sinistra (lato sx verticale)
-      var bMin = w * 0.6;
-      return [
-        {x: 0,     y: 0},
-        {x: bMin,  y: 0},
-        {x: w,     y: h},
-        {x: 0,     y: h}
-      ];
-    },
-    'trap-iso': function(w,h){
-      // Base maggiore = w, base minore = w*0.6, centrata
-      var bMin = w * 0.6;
-      var dx   = (w - bMin) / 2;
-      return [
-        {x: dx,     y: 0},
-        {x: w-dx,   y: 0},
-        {x: w,      y: h},
-        {x: 0,      y: h}
-      ];
-    },
-    'trap-scal': function(w,h){
-      // Base maggiore = w, base minore = w*0.5, sbilanciata
-      var bMin = w * 0.5;
-      return [
-        {x: w * 0.15,        y: 0},
-        {x: w * 0.15 + bMin, y: 0},
-        {x: w,               y: h},
-        {x: 0,               y: h}
-      ];
-    },
-    'poly-5': function(w,h){ return _regular(5, w, h); },
-    'poly-6': function(w,h){ return _regular(6, w, h); },
-    'poly-8': function(w,h){ return _regular(8, w, h); }
-  };
-
-  function isV2Tool(t){ return GEN[t] || t === 'sector' || t === 'freepoly'; }
-
-  // ── Disegno V2 su canvas ────────────────────────────────────
-  function drawV2(ctx, sh, isPreview){
-    if(!ctx) return;
-    ctx.save();
-    ctx.strokeStyle = sh.stroke || '#1a2436';
-    ctx.lineWidth   = sh.sw || 2;
-    ctx.lineJoin    = 'round';
-    ctx.lineCap     = 'round';
-
-    if(sh.tipo === 'polygon'){
-      var pts = sh.points;
-      if(!pts || pts.length < 2){ ctx.restore(); return; }
-      ctx.beginPath();
-      ctx.moveTo(sh.x + pts[0].x, sh.y + pts[0].y);
-      for(var i=1; i<pts.length; i++) ctx.lineTo(sh.x + pts[i].x, sh.y + pts[i].y);
-      ctx.closePath();
-      if(!sh.fillNone){ ctx.fillStyle = sh.fill || '#ffffff'; ctx.fill(); }
-      ctx.stroke();
-    }
-    else if(sh.tipo === 'sector'){
-      var cx = sh.x + sh.w/2;
-      var cy = sh.y + sh.h/2;
-      var r  = Math.min(sh.w, sh.h) / 2;
-      var sa = (sh.startAng != null) ? sh.startAng : -Math.PI/2;
-      var ea = (sh.endAng   != null) ? sh.endAng   : 0;
-      ctx.beginPath();
-      ctx.moveTo(cx, cy);
-      ctx.lineTo(cx + r*Math.cos(sa), cy + r*Math.sin(sa));
-      ctx.arc(cx, cy, r, sa, ea, false);
-      ctx.closePath();
-      if(!sh.fillNone){ ctx.fillStyle = sh.fill || '#ffffff'; ctx.fill(); }
-      ctx.stroke();
-    }
-
-    // Selezione: bbox tratteggiato
-    if(!isPreview && sh.id === _ef.selectedId){
-      ctx.save();
-      ctx.strokeStyle = '#0277bd';
-      ctx.lineWidth   = 1.5;
-      ctx.setLineDash([4, 3]);
-      ctx.strokeRect(sh.x - 2, sh.y - 2, sh.w + 4, sh.h + 4);
-      ctx.restore();
-    }
-
-    ctx.restore();
-  }
-
-  // ── Esportazione SVG per V2 ────────────────────────────────
-  function exportV2(sh){
-    var stroke = sh.stroke || '#1a2436';
-    var fill   = sh.fillNone ? 'none' : (sh.fill || '#ffffff');
-    var sw     = sh.sw || 2;
-
-    if(sh.tipo === 'polygon'){
-      var ptsStr = sh.points.map(function(p){
-        return (sh.x + p.x).toFixed(1) + ',' + (sh.y + p.y).toFixed(1);
-      }).join(' ');
-      return '<polygon points="' + ptsStr + '" fill="' + fill +
-             '" stroke="' + stroke + '" stroke-width="' + sw +
-             '" stroke-linejoin="round"/>';
-    }
-    if(sh.tipo === 'sector'){
-      var cx = sh.x + sh.w/2;
-      var cy = sh.y + sh.h/2;
-      var r  = Math.min(sh.w, sh.h) / 2;
-      var sa = (sh.startAng != null) ? sh.startAng : -Math.PI/2;
-      var ea = (sh.endAng   != null) ? sh.endAng   : 0;
-      var x1 = cx + r*Math.cos(sa), y1 = cy + r*Math.sin(sa);
-      var x2 = cx + r*Math.cos(ea), y2 = cy + r*Math.sin(ea);
-      var large = (ea - sa) > Math.PI ? 1 : 0;
-      var d = 'M ' + cx.toFixed(1) + ',' + cy.toFixed(1) +
-              ' L ' + x1.toFixed(1) + ',' + y1.toFixed(1) +
-              ' A ' + r.toFixed(1) + ',' + r.toFixed(1) + ' 0 ' + large + ',1 ' +
-              x2.toFixed(1) + ',' + y2.toFixed(1) + ' Z';
-      return '<path d="' + d + '" fill="' + fill +
-             '" stroke="' + stroke + '" stroke-width="' + sw + '"/>';
-    }
-    return '';
-  }
-
-  // ── Wrap di _efRedraw (rispetta z-order, aggiunge preview) ──
-  if(typeof _efRedraw === 'function'){
-    var _origRedraw = _efRedraw;
-    window._efRedraw = function(){
-      _origRedraw();
-      if(!_ef || !_ef.ctx) return;
-      // Rendi le forme V2 sopra V1 (sono in coda all'array; per z-order corretto serve rimettere in ordine)
-      _ef.shapes.forEach(function(sh){
-        if(V2_TYPES.indexOf(sh.tipo) !== -1) drawV2(_ef.ctx, sh, false);
-      });
-      // Drag preview V2
-      if(_ef.dragShape && V2_TYPES.indexOf(_ef.dragShape.tipo) !== -1){
-        drawV2(_ef.ctx, _ef.dragShape, true);
-      }
-      // Free polygon: linea tratteggiata + vertici provvisori
-      if(_freepoly.pts.length > 0){
-        var ctx = _ef.ctx;
-        ctx.save();
-        ctx.strokeStyle = _ef.stroke || '#1a2436';
-        ctx.lineWidth   = _ef.sw || 2;
-        ctx.setLineDash([6, 4]);
-        ctx.beginPath();
-        ctx.moveTo(_freepoly.pts[0].x, _freepoly.pts[0].y);
-        for(var i=1; i<_freepoly.pts.length; i++) ctx.lineTo(_freepoly.pts[i].x, _freepoly.pts[i].y);
-        if(_freepoly.hover) ctx.lineTo(_freepoly.hover.x, _freepoly.hover.y);
-        ctx.stroke();
-        ctx.setLineDash([]);
-        ctx.fillStyle = '#0277bd';
-        _freepoly.pts.forEach(function(p){
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, 4, 0, 2*Math.PI);
-          ctx.fill();
-        });
-        ctx.restore();
-      }
-    };
-  }
-
-  // ── Wrap di _efExportSVG (inserisce tag V2 prima di </svg>) ─
-  if(typeof _efExportSVG === 'function'){
-    var _origExport = _efExportSVG;
-    window._efExportSVG = function(){
-      var svgV1 = _origExport();
-      var v2 = _ef.shapes
-        .filter(function(sh){ return V2_TYPES.indexOf(sh.tipo) !== -1; })
-        .map(exportV2)
-        .join('\n  ');
-      if(!v2) return svgV1;
-      return svgV1.replace(/<\/svg>/, '  ' + v2 + '\n</svg>');
-    };
-  }
-
-  // ── Stato free polygon ──────────────────────────────────────
-  var _freepoly = { pts:[], hover:null };
-
-  function _resetFreepoly(){
-    _freepoly.pts = [];
-    _freepoly.hover = null;
-  }
-
-  // ── Bind mouse handlers V2 (alongside V1) ───────────────────
-  function _v2Bind(){
-    var c = _ef.canvas;
-    if(!c || c._v2Bound) return;
-    c._v2Bound = true;
-
-    function getXY(e){
-      var rect = c.getBoundingClientRect();
-      var sx = c.width  / rect.width;
-      var sy = c.height / rect.height;
-      return {
-        x: (e.clientX - rect.left) * sx,
-        y: (e.clientY - rect.top)  * sy
-      };
-    }
-
-    c.addEventListener('mousedown', function(e){
-      var p = getXY(e);
-
-      // Hit test V2 in modalità seleziona — runs alongside V1's
-      if(_ef.tool === 'select'){
-        for(var i = _ef.shapes.length - 1; i >= 0; i--){
-          var sh = _ef.shapes[i];
-          if(V2_TYPES.indexOf(sh.tipo) === -1) continue;
-          if(p.x >= sh.x && p.x <= sh.x + sh.w &&
-             p.y >= sh.y && p.y <= sh.y + sh.h){
-            _ef.selectedId = sh.id;
-            if(typeof _efRedraw === 'function') _efRedraw();
-            if(typeof _efAggSelInfo === 'function') _efAggSelInfo();
-            return;
-          }
-        }
-        return;
-      }
-
-      // Free polygon — click aggiunge un vertice
-      if(_ef.tool === 'freepoly'){
-        _freepoly.pts.push(p);
-        if(typeof _efRedraw === 'function') _efRedraw();
-        return;
-      }
-
-      // Strumenti V2 con drag (poligoni preimpostati e settore)
-      if(!isV2Tool(_ef.tool)) return;
-      if(typeof _efNewId !== 'function') return;
-
-      _ef.dragging  = true;
-      _ef.dragStart = p;
-
-      if(_ef.tool === 'sector'){
-        _ef.dragShape = {
-          id: _efNewId(), tipo: 'sector',
-          x: p.x, y: p.y, w: 0, h: 0,
-          startAng: -Math.PI/2,
-          endAng: 0,
-          stroke: _ef.stroke, fill: _ef.fill, fillNone: _ef.fillNone, sw: _ef.sw
-        };
-      } else if(GEN[_ef.tool]){
-        _ef.dragShape = {
-          id: _efNewId(), tipo: 'polygon',
-          x: p.x, y: p.y, w: 0, h: 0,
-          points: [], _preset: _ef.tool,
-          stroke: _ef.stroke, fill: _ef.fill, fillNone: _ef.fillNone, sw: _ef.sw
-        };
-      }
-    });
-
-    c.addEventListener('mousemove', function(e){
-      var p = getXY(e);
-
-      if(_ef.tool === 'freepoly' && _freepoly.pts.length > 0){
-        _freepoly.hover = p;
-        if(typeof _efRedraw === 'function') _efRedraw();
-        return;
-      }
-
-      if(!_ef.dragging || !_ef.dragShape) return;
-      if(!isV2Tool(_ef.tool)) return;
-
-      var dx = p.x - _ef.dragStart.x;
-      var dy = p.y - _ef.dragStart.y;
-      _ef.dragShape.x = Math.min(p.x, _ef.dragStart.x);
-      _ef.dragShape.y = Math.min(p.y, _ef.dragStart.y);
-      _ef.dragShape.w = Math.abs(dx);
-      _ef.dragShape.h = Math.abs(dy);
-
-      if(_ef.dragShape.tipo === 'polygon' && GEN[_ef.tool]){
-        _ef.dragShape.points = GEN[_ef.tool](_ef.dragShape.w, _ef.dragShape.h);
-      }
-      if(typeof _efRedraw === 'function') _efRedraw();
-    });
-
-    c.addEventListener('mouseup', function(e){
-      if(!_ef.dragging || !_ef.dragShape) return;
-      if(!isV2Tool(_ef.tool)) return;
-
-      // Filtro forme troppo piccole (click accidentale)
-      if(_ef.dragShape.w < 8 || _ef.dragShape.h < 8){
-        _ef.dragShape = null;
-        _ef.dragging = false;
-        if(typeof _efRedraw === 'function') _efRedraw();
-        return;
-      }
-
-      if(typeof _efPushUndo === 'function') _efPushUndo();
-      _ef.shapes.push(_ef.dragShape);
-      _ef.selectedId = _ef.dragShape.id;
-      _ef.dragShape  = null;
-      _ef.dragging   = false;
-      if(typeof _efRedraw === 'function') _efRedraw();
-      if(typeof _efAggSelInfo === 'function') _efAggSelInfo();
-    });
-
-    // Free polygon — doppio click chiude
-    c.addEventListener('dblclick', function(e){
-      if(_ef.tool !== 'freepoly') return;
-      if(_freepoly.pts.length < 3){
-        _resetFreepoly();
-        if(typeof _efRedraw === 'function') _efRedraw();
-        return;
-      }
-      var xs = _freepoly.pts.map(function(p){ return p.x; });
-      var ys = _freepoly.pts.map(function(p){ return p.y; });
-      var minX = Math.min.apply(null, xs);
-      var minY = Math.min.apply(null, ys);
-      var maxX = Math.max.apply(null, xs);
-      var maxY = Math.max.apply(null, ys);
-      var rel  = _freepoly.pts.map(function(p){ return {x: p.x - minX, y: p.y - minY}; });
-
-      var sh = {
-        id: _efNewId(), tipo: 'polygon',
-        x: minX, y: minY,
-        w: Math.max(maxX - minX, 1),
-        h: Math.max(maxY - minY, 1),
-        points: rel, _preset: 'freepoly',
-        stroke: _ef.stroke, fill: _ef.fill, fillNone: _ef.fillNone, sw: _ef.sw
-      };
-      if(typeof _efPushUndo === 'function') _efPushUndo();
-      _ef.shapes.push(sh);
-      _ef.selectedId = sh.id;
-      _resetFreepoly();
-      if(typeof _efRedraw === 'function') _efRedraw();
-      if(typeof _efAggSelInfo === 'function') _efAggSelInfo();
-    });
-  }
-
-  // Esc → annulla free polygon in corso
-  document.addEventListener('keydown', function(e){
-    if(e.key === 'Escape' && _freepoly.pts.length > 0){
-      _resetFreepoly();
-      if(typeof _efRedraw === 'function') _efRedraw();
-    }
-  });
-
-  // Reset free polygon quando si cambia strumento
-  if(typeof efSetTool === 'function'){
-    var _origSetTool = efSetTool;
-    window.efSetTool = function(t){
-      if(_freepoly.pts.length > 0 && t !== 'freepoly') _resetFreepoly();
-      _origSetTool(t);
-    };
-  }
-
-  // ── Init: bind quando il canvas è pronto ───────────────────
-  // Il canvas viene creato al primo apriEditorFigura. Wrappo apriEditorFigura
-  // per fare bind subito dopo la creazione del canvas.
-  if(_ef && _ef.canvas){
-    _v2Bind();
-  } else if(typeof apriEditorFigura === 'function'){
-    var _origApri = apriEditorFigura;
-    window.apriEditorFigura = function(idx){
-      _origApri(idx);
-      if(_ef && _ef.canvas) _v2Bind();
-    };
-  }
-})();
-/* === END: editor figure mat — sessione 2A === */
+/* NOTA: qui c'era un blocco JS della sessione 2A finito per errore dentro <style>: rimosso, non veniva mai eseguito */
 /* === BEGIN: PEI mat === */
 .v-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;line-height:1.3;white-space:nowrap;font-family:var(--font)}
 .v-badge.ok  {background:#e8f5e9;color:var(--verde);border:1px solid #a5d6a7}
@@ -1153,33 +728,72 @@ tr:hover td{background:var(--grigio-ch)}
 .pei-card .pei-opt.ok{background:#e8f5e9;color:var(--verde);font-weight:700}
 .pei-card .pei-msg{font-size:11px;color:#666;font-style:italic;margin-top:6px;padding-top:6px;border-top:1px dashed var(--grigio)}
 .pei-card .pei-fix-note{background:#e3f2fd;border-left:3px solid var(--blu);padding:5px 9px;margin-top:5px;font-size:11px;color:#0d47a1;border-radius:0 4px 4px 0}
-.pei-obj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px;max-height:520px;overflow-y:auto;padding:12px;background:var(--grigio-ch);border-radius:8px;border:1px solid var(--grigio)}
-#pei-obj-wrap.pei-obj-grid{display:grid!important}
-.pei-obj-area{grid-column:1/-1;font-size:11px;font-weight:800;text-transform:uppercase;color:var(--blu);letter-spacing:.6px;margin:12px 0 2px;padding-bottom:4px;border-bottom:1px solid var(--grigio)}
-.pei-obj-area:first-child{margin-top:0}
-.pei-obj-liv{grid-column:1/-1;display:flex;align-items:center;gap:9px;margin:9px 0 1px}
-.pei-liv-tag{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;padding:2px 8px;border-radius:20px;color:#fff}
-.pei-liv-tag.liv-B{background:#2e9e57}.pei-liv-tag.liv-I{background:#1e6fd9}.pei-liv-tag.liv-A{background:#8e44ad}
-.pei-liv-n{font-size:11px;color:#8a93a2}
-.pei-liv-all{margin-left:auto;font-size:11px;font-weight:700;color:var(--blu);background:none;border:1px dashed var(--az);border-radius:5px;padding:2px 9px;cursor:pointer}
-.pei-liv-all:hover{background:#eef4ff}
-.pei-obj-grid .pei-obj-nome{font-weight:600}
-.pei-obj-item{background:#fff;border:1px solid var(--grigio);border-radius:7px;overflow:hidden;transition:border-color .12s,background .12s,box-shadow .12s}
-.pei-obj-item:has(.pei-obj-chk:checked){border-color:var(--blu);background:#eef4ff;box-shadow:0 0 0 1px var(--blu) inset}
-.pei-obj-grid .pei-obj-item label.pei-obj-head{background:none;border:none;border-radius:0;box-shadow:none;margin:0;padding:8px 11px}
-.pei-obj-exp{display:block;width:100%;text-align:left;background:none;border:none;border-top:1px dashed var(--grigio);padding:5px 11px;font-size:11px;font-weight:700;color:var(--blu);cursor:pointer}
-.pei-obj-exp:hover{background:#f3f7ff}
-.pei-dom-box{border-top:1px solid var(--grigio);background:#fafbfc;padding:6px 9px 9px}
-.pei-dom-fascia{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:#8a93a2;margin:7px 0 3px}
-.pei-dom-q{display:flex;align-items:flex-start;gap:7px;padding:5px 7px;border-radius:5px;cursor:pointer;font-size:11.5px;line-height:1.35;color:#333}
-.pei-dom-q:hover{background:#eef4ff}
-.pei-dom-q input{width:14px;height:14px;accent-color:var(--blu);flex-shrink:0;margin-top:1px}
-.pei-dom-q.sel{background:#e3f2fd;font-weight:600}
-.pei-dom-tipo{font-size:9px;font-weight:800;color:#fff;background:#b0b8c4;border-radius:3px;padding:1px 4px;flex-shrink:0;margin-top:1px}
-.pei-cerca-wrap{margin-bottom:8px;display:flex;gap:8px;align-items:center}
-.pei-cerca{flex:1;padding:7px 11px;border:1px solid var(--grigio);border-radius:6px;font-size:12px;font-family:inherit}
-.pei-cerca:focus{outline:none;border-color:var(--blu)}
-.pei-cerca-info{font-size:11px;color:#8a93a2;white-space:nowrap}
+/* ── Pannello obiettivi PEI: accordion per ambito → livello → obiettivo ── */
+.pei-acc{max-height:600px;overflow-y:auto;padding:10px;background:var(--grigio-ch);border-radius:10px;border:1px solid var(--grigio);display:flex;flex-direction:column;gap:9px}
+.pei-acc::-webkit-scrollbar{width:9px}
+.pei-acc::-webkit-scrollbar-thumb{background:#c9d2dd;border-radius:5px}
+
+.pei-fold{display:grid;grid-template-rows:0fr;transition:grid-template-rows .28s ease}
+.aperto>.pei-fold{grid-template-rows:1fr}
+.pei-fold-in{overflow:hidden;min-height:0}
+.pei-chev{margin-left:6px;font-size:13px;transition:transform .28s ease;opacity:.85}
+.aperto>.pei-area-head .pei-chev,.aperto>.pei-liv-head .pei-chev{transform:rotate(180deg)}
+
+/* Livello 1: macro-aree */
+.pei-area{border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(20,40,80,.10)}
+.pei-area-head{display:flex;align-items:center;gap:10px;width:100%;padding:12px 14px;border:none;cursor:pointer;
+  background:var(--ac);color:#fff;font-family:inherit;font-size:14px;font-weight:800;letter-spacing:.2px;text-align:left;transition:filter .15s}
+.pei-area-head:hover{filter:brightness(1.08)}
+.pei-area-ico{font-size:17px;line-height:1}
+.pei-area-nome{flex:1}
+.pei-area-meta{font-size:11px;font-weight:600;opacity:.85}
+.pei-area-badge{font-size:11px;font-weight:800;background:#fff;color:var(--ac);border-radius:20px;padding:2px 9px;display:none}
+.pei-area-badge.on{display:inline-block}
+.pei-area>.pei-fold .pei-fold-in{background:#fff;padding:9px;display:flex;flex-direction:column;gap:7px}
+
+/* Livello 2: fasce Base / Intermedio / Avanzato */
+.pei-liv{border:1.5px solid var(--lc);border-radius:8px;overflow:hidden;background:var(--lb)}
+.pei-liv.liv-B{--lc:#8fd0a6;--lb:#f1faf4;--lt:#1e7a45}
+.pei-liv.liv-I{--lc:#9dc3f0;--lb:#f1f6fd;--lt:#14559f}
+.pei-liv.liv-A{--lc:#cba7e0;--lb:#f9f4fc;--lt:#6a2c8c}
+.pei-liv-head{display:flex;align-items:center;gap:9px;width:100%;padding:8px 11px;border:none;background:none;cursor:pointer;font-family:inherit;text-align:left}
+.pei-liv-head:hover{background:rgba(255,255,255,.65)}
+.pei-pill{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#fff;background:var(--lt);border-radius:20px;padding:3px 11px}
+.pei-liv-meta{flex:1;font-size:11.5px;color:#6b7684;font-weight:600}
+.pei-liv-badge{font-size:11px;font-weight:800;color:#fff;background:var(--lt);border-radius:20px;padding:2px 8px;display:none}
+.pei-liv-badge.on{display:inline-block}
+.pei-liv>.pei-fold .pei-fold-in{padding:4px 9px 10px;display:flex;flex-direction:column;gap:6px}
+.pei-sel-all{align-self:flex-start;font-size:11px;font-weight:700;color:var(--lt);background:#fff;border:1px dashed var(--lc);border-radius:6px;padding:3px 11px;cursor:pointer;font-family:inherit}
+.pei-sel-all:hover{background:var(--lb);border-style:solid}
+
+/* Livello 3: obiettivi */
+.pei-obj-item{background:#fff;border:1.5px solid #e3e8ef;border-radius:8px;overflow:hidden;transition:border-color .15s,box-shadow .15s}
+.pei-obj-item:has(.pei-obj-chk:checked){border-color:var(--lt);box-shadow:0 0 0 1px var(--lt) inset}
+.pei-obj-head{display:flex;align-items:flex-start;gap:9px;padding:8px 11px;cursor:pointer}
+.pei-obj-head:hover{background:#f7fafd}
+.pei-obj-head input{width:16px;height:16px;accent-color:var(--lt);flex-shrink:0;margin-top:1px;cursor:pointer}
+.pei-obj-txt{display:flex;flex-direction:column;line-height:1.3;min-width:0}
+.pei-obj-nome{font-size:13px;font-weight:700;color:#243447}
+.pei-obj-cod{font-size:9.5px;font-weight:700;color:#a7b0bd;letter-spacing:.4px;margin-top:2px}
+.pei-obj-exp{display:block;width:100%;text-align:left;background:none;border:none;border-top:1px dashed #e3e8ef;padding:5px 11px;font-size:11px;font-weight:700;color:var(--lt);cursor:pointer;font-family:inherit}
+.pei-obj-exp:hover{background:#f7fafd}
+
+/* Livello 4: le domande vere della banca */
+.pei-dom-box{border-top:1px solid #e3e8ef;background:#fbfcfe;padding:4px 10px 9px}
+.pei-dom-fascia{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#9aa3b2;margin:8px 0 3px}
+.pei-dom-q{display:flex;align-items:flex-start;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;font-size:12px;line-height:1.4;color:#37424f;border:1px solid transparent}
+.pei-dom-q:hover{background:#fff;border-color:#dde4ee}
+.pei-dom-q input{width:14px;height:14px;accent-color:var(--lt);flex-shrink:0;margin-top:2px;cursor:pointer}
+.pei-dom-q:has(input:checked){background:#fff;border-color:var(--lt);font-weight:600}
+.pei-dom-tipo{font-size:8.5px;font-weight:800;color:#fff;background:#aab3c0;border-radius:4px;padding:2px 5px;flex-shrink:0;margin-top:1px;letter-spacing:.3px}
+.pei-dom-q:has(input:checked) .pei-dom-tipo{background:var(--lt)}
+
+/* Ricerca */
+.pei-cerca-wrap{margin-bottom:9px;display:flex;gap:9px;align-items:center}
+.pei-cerca{flex:1;padding:9px 13px;border:1.5px solid var(--grigio);border-radius:8px;font-size:12.5px;font-family:inherit;transition:border-color .15s,box-shadow .15s}
+.pei-cerca:focus{outline:none;border-color:var(--blu);box-shadow:0 0 0 3px rgba(30,111,217,.13)}
+.pei-cerca-info{font-size:11.5px;color:#7c8798;font-weight:600;white-space:nowrap}
+.pei-vuoto{text-align:center;color:#9aa3b2;font-size:12px;padding:18px}
 .pei-obj-grid .pei-obj-cod{margin:2px 0 0}
 .pei-obj-grid label{display:flex;align-items:flex-start;gap:9px;cursor:pointer;padding:8px 11px;background:#fff;border:1px solid var(--grigio);border-radius:7px;transition:border-color .12s,background .12s,box-shadow .12s}
 .pei-obj-grid label:hover{border-color:var(--az)}
@@ -9393,9 +9007,18 @@ function _peiEsc(s){
 function _peiRenderObiettivi(lista){
   var wrap = document.getElementById('pei-obj-wrap');
   if(!wrap) return;
+  wrap.className = 'pei-acc';
+  var META = {
+    'Numeri':               { k:'NUM', ico:'\ud83d\udd22', col:'#1565c0' },
+    'Spazio e figure':      { k:'SPA', ico:'\ud83d\udcd0', col:'#e07b00' },
+    'Relazioni e funzioni': { k:'REL', ico:'\ud83d\udd17', col:'#2e7d32' },
+    'Dati e previsioni':    { k:'DAT', ico:'\ud83d\udcca', col:'#6a1b9a' },
+    'Altro':                { k:'ALT', ico:'\u2699\ufe0f', col:'#546e7a' }
+  };
   var ordineArea = ['Numeri','Spazio e figure','Relazioni e funzioni','Dati e previsioni','Altro'];
   var livNome = { B:'Base', I:'Intermedio', A:'Avanzato' };
   var livOrd  = ['B','I','A'];
+
   var perArea = {};
   lista.forEach(function(o){
     var area = o.area || 'Altro';
@@ -9406,34 +9029,71 @@ function _peiRenderObiettivi(lista){
   });
   var aree = ordineArea.filter(function(a){ return perArea[a]; })
     .concat(Object.keys(perArea).filter(function(a){ return ordineArea.indexOf(a) < 0; }));
+
   var html = '';
   aree.forEach(function(area){
-    var ak = area.replace(/[^a-zA-Z]/g,'');
-    html += '<div class="pei-obj-area" data-area="'+ak+'">'+_peiEsc(area)+'</div>';
+    var m  = META[area] || META['Altro'];
+    var ak = m.k;
+    var nTot = livOrd.reduce(function(s,L){ return s + ((perArea[area][L]||[]).length); }, 0);
+    html += '<div class="pei-area" data-area="'+ak+'" style="--ac:'+m.col+'">'
+          +   '<button type="button" class="pei-area-head" onclick="_peiApriArea(\''+ak+'\')">'
+          +     '<span class="pei-area-ico">'+m.ico+'</span>'
+          +     '<span class="pei-area-nome">'+_peiEsc(area)+'</span>'
+          +     '<span class="pei-area-meta">'+nTot+' obiettivi</span>'
+          +     '<span class="pei-area-badge" id="bd-'+ak+'"></span>'
+          +     '<span class="pei-chev">\u25be</span>'
+          +   '</button>'
+          +   '<div class="pei-fold"><div class="pei-fold-in">';
     livOrd.forEach(function(L){
       var arr = perArea[area][L];
       if(!arr || !arr.length) return;
-      var gid = 'g-'+ak+'-'+L;
-      html += '<div class="pei-obj-liv" data-area="'+ak+'" data-liv="'+L+'">'
-            + '<span class="pei-liv-tag liv-'+L+'">'+livNome[L]+'</span>'
-            + '<span class="pei-liv-n">'+arr.length+(arr.length===1?' obiettivo':' obiettivi')+'</span>'
-            + '<button type="button" class="pei-liv-all" onclick="_peiSelGruppo(\''+gid+'\')">seleziona tutti</button>'
-            + '</div>';
+      html += '<div class="pei-liv liv-'+L+'" data-area="'+ak+'" data-liv="'+L+'">'
+            +   '<button type="button" class="pei-liv-head" onclick="_peiApriLiv(\''+ak+'\',\''+L+'\')">'
+            +     '<span class="pei-pill">'+livNome[L]+'</span>'
+            +     '<span class="pei-liv-meta">'+arr.length+(arr.length===1?' obiettivo':' obiettivi')+'</span>'
+            +     '<span class="pei-liv-badge" id="bl-'+ak+'-'+L+'"></span>'
+            +     '<span class="pei-chev">\u25be</span>'
+            +   '</button>'
+            +   '<div class="pei-fold"><div class="pei-fold-in">'
+            +     '<button type="button" class="pei-sel-all" onclick="_peiSelGruppo(\''+ak+'\',\''+L+'\')">\u2713 seleziona tutti</button>';
       arr.forEach(function(o){
-        html += '<div class="pei-obj-item" data-grp="'+gid+'" data-area="'+ak+'" data-liv="'+L+'" data-cod="'+_peiEsc(o.codice)+'">'
-              + '<label class="pei-obj-head"><input type="checkbox" class="pei-obj-chk" value="'+_peiEsc(o.codice)+'" onchange="_peiObjChk(this)">'
-              + '<span class="pei-obj-txt">'
-              + '<span class="pei-obj-nome">'+_peiEsc(o.nome||o.codice)+'</span>'
-              + '<span class="pei-obj-cod">'+_peiEsc(o.codice)+'</span>'
-              + '</span></label>'
-              + '<button type="button" class="pei-obj-exp" onclick="_peiToggleDom(\''+_peiEsc(o.codice)+'\', this)">&#9656; vedi le domande</button>'
-              + '<div class="pei-dom-box" id="peidom-'+_peiEsc(o.codice)+'" style="display:none"></div>'
+        html += '<div class="pei-obj-item" data-area="'+ak+'" data-liv="'+L+'" data-cod="'+_peiEsc(o.codice)+'">'
+              +   '<label class="pei-obj-head"><input type="checkbox" class="pei-obj-chk" value="'+_peiEsc(o.codice)+'" onchange="_peiObjChk(this)">'
+              +     '<span class="pei-obj-txt">'
+              +       '<span class="pei-obj-nome">'+_peiEsc(o.nome||o.codice)+'</span>'
+              +       '<span class="pei-obj-cod">'+_peiEsc(o.codice)+'</span>'
+              +     '</span></label>'
+              +   '<button type="button" class="pei-obj-exp" onclick="_peiToggleDom(\''+_peiEsc(o.codice)+'\', this)">\u25b8 vedi le domande</button>'
+              +   '<div class="pei-dom-box" id="peidom-'+_peiEsc(o.codice)+'" style="display:none"></div>'
               + '</div>';
       });
+      html += '</div></div></div>';
     });
+    html += '</div></div></div>';
   });
-  wrap.innerHTML = html;
+  wrap.innerHTML = html || '<div class="pei-vuoto">Banca domande non caricata.</div>';
   _peiAggCountObj();
+}
+
+// Apre una macro-area alla volta
+function _peiApriArea(ak){
+  var card = document.querySelector('.pei-area[data-area="'+ak+'"]');
+  if(!card) return;
+  var apri = !card.classList.contains('aperto');
+  document.querySelectorAll('.pei-area.aperto').forEach(function(x){ x.classList.remove('aperto'); });
+  if(apri){
+    card.classList.add('aperto');
+    setTimeout(function(){ card.scrollIntoView({block:'nearest', behavior:'smooth'}); }, 300);
+  }
+}
+
+// Apre una fascia alla volta dentro la sua area
+function _peiApriLiv(ak, L){
+  var box = document.querySelector('.pei-liv[data-area="'+ak+'"][data-liv="'+L+'"]');
+  if(!box) return;
+  var apri = !box.classList.contains('aperto');
+  document.querySelectorAll('.pei-liv[data-area="'+ak+'"].aperto').forEach(function(x){ x.classList.remove('aperto'); });
+  if(apri) box.classList.add('aperto');
 }
 
 // Espande un obiettivo mostrando le sue domande reali dalla banca
@@ -9457,12 +9117,12 @@ function _peiToggleDom(cod, btn){
            + '<span>'+_peiEsc(q.testo)+'</span></label>';
       });
     });
-    box.innerHTML = h || '<div style="font-size:11px;color:#aaa;padding:6px">Nessuna domanda in banca.</div>';
+    box.innerHTML = h || '<div class="pei-vuoto">Nessuna domanda in banca.</div>';
     box.dataset.pronto = '1';
   }
   var apri = box.style.display === 'none';
   box.style.display = apri ? 'block' : 'none';
-  if(btn) btn.innerHTML = (apri ? '&#9662; nascondi le domande' : '&#9656; vedi le domande');
+  if(btn) btn.innerHTML = (apri ? '\u25be nascondi le domande' : '\u25b8 vedi le domande');
 }
 
 // Spunta di una singola domanda: attiva l'obiettivo padre
@@ -9484,8 +9144,8 @@ function _peiObjChk(chk){
   _peiAggCountObj();
 }
 
-function _peiSelGruppo(gid){
-  var els = document.querySelectorAll('.pei-obj-item[data-grp="'+gid+'"] .pei-obj-chk');
+function _peiSelGruppo(ak, L){
+  var els = document.querySelectorAll('.pei-obj-item[data-area="'+ak+'"][data-liv="'+L+'"] .pei-obj-chk');
   var tutti = Array.prototype.every.call(els, function(c){ return c.checked; });
   Array.prototype.forEach.call(els, function(c){
     c.checked = !tutti;
@@ -9502,16 +9162,14 @@ function _peiFiltraObj(){
   var inp = document.getElementById('pei-cerca');
   var info = document.getElementById('pei-cerca-info');
   var q = (inp ? inp.value : '').trim().toLowerCase();
-  var items = document.querySelectorAll('.pei-obj-item');
   var BANCA = window.BANCA_PEI_MAT || {};
-  var visibili = 0, trovate = 0;
+  var trovate = 0, obTrovati = 0;
 
-  items.forEach(function(it){
+  document.querySelectorAll('.pei-obj-item').forEach(function(it){
     var cod = it.dataset.cod || '';
     if(!q){
       it.style.display = '';
       it.querySelectorAll('.pei-dom-q').forEach(function(l){ l.style.display = ''; });
-      visibili++;
       return;
     }
     var ob = BANCA[cod] || {};
@@ -9519,8 +9177,7 @@ function _peiFiltraObj(){
     var hit = (ob.domande||[]).filter(function(d){ return String(d.testo||'').toLowerCase().indexOf(q) >= 0; });
     if(nomeMatch || hit.length){
       it.style.display = '';
-      visibili++;
-      trovate += hit.length;
+      obTrovati++; trovate += hit.length;
       if(hit.length){
         var btn = it.querySelector('.pei-obj-exp');
         var box = document.getElementById('peidom-'+cod);
@@ -9534,19 +9191,23 @@ function _peiFiltraObj(){
     }
   });
 
-  // nasconde le intestazioni rimaste vuote
-  document.querySelectorAll('.pei-obj-liv').forEach(function(h){
-    var n = document.querySelectorAll('.pei-obj-item[data-area="'+h.dataset.area+'"][data-liv="'+h.dataset.liv+'"]');
-    var vis = Array.prototype.filter.call(n, function(x){ return x.style.display !== 'none'; }).length;
-    h.style.display = vis ? '' : 'none';
+  // apre e mostra solo i rami che contengono risultati
+  document.querySelectorAll('.pei-liv').forEach(function(lv){
+    var vis = Array.prototype.filter.call(
+      lv.querySelectorAll('.pei-obj-item'), function(x){ return x.style.display !== 'none'; }).length;
+    lv.style.display = (!q || vis) ? '' : 'none';
+    if(q){ lv.classList.toggle('aperto', !!vis); }
+    else { lv.classList.remove('aperto'); }
   });
-  document.querySelectorAll('.pei-obj-area').forEach(function(h){
-    var n = document.querySelectorAll('.pei-obj-item[data-area="'+h.dataset.area+'"]');
-    var vis = Array.prototype.filter.call(n, function(x){ return x.style.display !== 'none'; }).length;
-    h.style.display = vis ? '' : 'none';
+  document.querySelectorAll('.pei-area').forEach(function(ar){
+    var vis = Array.prototype.filter.call(
+      ar.querySelectorAll('.pei-obj-item'), function(x){ return x.style.display !== 'none'; }).length;
+    ar.style.display = (!q || vis) ? '' : 'none';
+    if(q){ ar.classList.toggle('aperto', !!vis); }
+    else { ar.classList.remove('aperto'); }
   });
 
-  if(info) info.textContent = q ? (visibili+' obiettivi · '+trovate+' domande') : '';
+  if(info) info.textContent = q ? (obTrovati+' obiettivi \u00b7 '+trovate+' domande') : '';
 }
 
 // Totale reale: manuale dove c'è, automatico altrove
@@ -9578,6 +9239,26 @@ function _peiRenderTic(lista){
 }
 
 function _peiAggCountObj(){
+  // pallini di riepilogo su aree e fasce, così vedi cosa hai preso anche da chiuso
+  var perArea = {}, perLiv = {};
+  document.querySelectorAll('.pei-obj-item').forEach(function(it){
+    var o = it.querySelector('.pei-obj-chk');
+    if(!o || !o.checked) return;
+    var ak = it.dataset.area, L = it.dataset.liv;
+    perArea[ak] = (perArea[ak]||0) + 1;
+    perLiv[ak+'-'+L] = (perLiv[ak+'-'+L]||0) + 1;
+  });
+  document.querySelectorAll('.pei-area-badge').forEach(function(b){
+    var n = perArea[b.id.replace('bd-','')] || 0;
+    b.textContent = n ? (n + ' scelti') : '';
+    b.classList.toggle('on', !!n);
+  });
+  document.querySelectorAll('.pei-liv-badge').forEach(function(b){
+    var n = perLiv[b.id.replace('bl-','')] || 0;
+    b.textContent = n || '';
+    b.classList.toggle('on', !!n);
+  });
+
   var el = document.getElementById('pei-obj-count');
   if(!el) return;
   var t = _peiConta();
@@ -10719,8 +10400,8 @@ function generaLinkCP(){
       <input type="text" id="pei-cerca" class="pei-cerca" placeholder="🔎 Cerca nel testo delle 531 domande (es. frazioni, perimetro, euro)…" oninput="_peiFiltraObj()">
       <span id="pei-cerca-info" class="pei-cerca-info"></span>
     </div>
-    <div id="pei-obj-wrap" class="pei-obj-grid">
-      <div style="grid-column:1/-1;text-align:center;color:#aaa;font-size:12px;padding:10px">⏳ Carico obiettivi…</div>
+    <div id="pei-obj-wrap" class="pei-acc">
+      <div class="pei-vuoto">⏳ Carico obiettivi…</div>
     </div>
     <div id="pei-obj-count" style="margin-top:8px;font-size:12px;color:#666">Selezionati: <strong>0</strong></div>
   </div>
