@@ -729,13 +729,12 @@ tr:hover td{background:var(--grigio-ch)}
 .pei-card .pei-msg{font-size:11px;color:#666;font-style:italic;margin-top:6px;padding-top:6px;border-top:1px dashed var(--grigio)}
 .pei-card .pei-fix-note{background:#e3f2fd;border-left:3px solid var(--blu);padding:5px 9px;margin-top:5px;font-size:11px;color:#0d47a1;border-radius:0 4px 4px 0}
 /* ── Pannello obiettivi PEI: accordion per ambito → livello → obiettivo ── */
-.pei-acc{max-height:600px;overflow-y:auto;padding:10px;background:var(--grigio-ch);border-radius:10px;border:1px solid var(--grigio);display:flex;flex-direction:column;gap:9px}
+.pei-acc{max-height:680px;overflow-y:auto;overscroll-behavior:contain;padding:10px;background:var(--grigio-ch);border-radius:10px;border:1px solid var(--grigio);display:flex;flex-direction:column;gap:9px}
 .pei-acc::-webkit-scrollbar{width:9px}
 .pei-acc::-webkit-scrollbar-thumb{background:#c9d2dd;border-radius:5px}
 
-.pei-fold{display:grid;grid-template-rows:0fr;transition:grid-template-rows .28s ease}
-.aperto>.pei-fold{grid-template-rows:1fr}
-.pei-fold-in{overflow:hidden;min-height:0}
+.pei-fold{max-height:0;overflow:hidden;transition:max-height .3s ease}
+.pei-area,.pei-liv,.pei-obj-item{flex:0 0 auto}
 .pei-chev{margin-left:6px;font-size:13px;transition:transform .28s ease;opacity:.85}
 .aperto>.pei-area-head .pei-chev,.aperto>.pei-liv-head .pei-chev{transform:rotate(180deg)}
 
@@ -9075,15 +9074,44 @@ function _peiRenderObiettivi(lista){
   _peiAggCountObj();
 }
 
+// Apertura/chiusura misurata: niente contenuto tagliato, e dopo l'animazione
+// l'altezza resta libera così i livelli annidati possono crescere
+function _peiFold(el, apri){
+  if(!el) return;
+  clearTimeout(el._t);
+  if(apri){
+    el.style.maxHeight = el.scrollHeight + 'px';
+    el._t = setTimeout(function(){ el.style.maxHeight = 'none'; }, 320);
+  } else {
+    if(el.style.maxHeight === 'none') el.style.maxHeight = el.scrollHeight + 'px';
+    void el.offsetHeight;
+    el.style.maxHeight = '0px';
+  }
+}
+
+// Quando qualcosa si espande più in profondità, libera tutti i contenitori sopra
+function _peiAdatta(node){
+  var p = node && node.parentElement ? node.parentElement.closest('.pei-fold') : null;
+  while(p){
+    clearTimeout(p._t);
+    p.style.maxHeight = 'none';
+    p = p.parentElement ? p.parentElement.closest('.pei-fold') : null;
+  }
+}
+
 // Apre una macro-area alla volta
 function _peiApriArea(ak){
   var card = document.querySelector('.pei-area[data-area="'+ak+'"]');
   if(!card) return;
   var apri = !card.classList.contains('aperto');
-  document.querySelectorAll('.pei-area.aperto').forEach(function(x){ x.classList.remove('aperto'); });
+  document.querySelectorAll('.pei-area.aperto').forEach(function(x){
+    x.classList.remove('aperto');
+    _peiFold(x.querySelector(':scope > .pei-fold'), false);
+  });
   if(apri){
     card.classList.add('aperto');
-    setTimeout(function(){ card.scrollIntoView({block:'nearest', behavior:'smooth'}); }, 300);
+    _peiFold(card.querySelector(':scope > .pei-fold'), true);
+    setTimeout(function(){ card.scrollIntoView({block:'start', behavior:'smooth'}); }, 320);
   }
 }
 
@@ -9092,8 +9120,17 @@ function _peiApriLiv(ak, L){
   var box = document.querySelector('.pei-liv[data-area="'+ak+'"][data-liv="'+L+'"]');
   if(!box) return;
   var apri = !box.classList.contains('aperto');
-  document.querySelectorAll('.pei-liv[data-area="'+ak+'"].aperto').forEach(function(x){ x.classList.remove('aperto'); });
-  if(apri) box.classList.add('aperto');
+  document.querySelectorAll('.pei-liv[data-area="'+ak+'"].aperto').forEach(function(x){
+    x.classList.remove('aperto');
+    _peiFold(x.querySelector(':scope > .pei-fold'), false);
+  });
+  if(apri){
+    box.classList.add('aperto');
+    var f = box.querySelector(':scope > .pei-fold');
+    _peiFold(f, true);
+    _peiAdatta(f);
+    setTimeout(function(){ box.scrollIntoView({block:'nearest', behavior:'smooth'}); }, 330);
+  }
 }
 
 // Espande un obiettivo mostrando le sue domande reali dalla banca
@@ -9123,6 +9160,7 @@ function _peiToggleDom(cod, btn){
   var apri = box.style.display === 'none';
   box.style.display = apri ? 'block' : 'none';
   if(btn) btn.innerHTML = (apri ? '\u25be nascondi le domande' : '\u25b8 vedi le domande');
+  _peiAdatta(box);
 }
 
 // Spunta di una singola domanda: attiva l'obiettivo padre
@@ -9196,15 +9234,17 @@ function _peiFiltraObj(){
     var vis = Array.prototype.filter.call(
       lv.querySelectorAll('.pei-obj-item'), function(x){ return x.style.display !== 'none'; }).length;
     lv.style.display = (!q || vis) ? '' : 'none';
-    if(q){ lv.classList.toggle('aperto', !!vis); }
-    else { lv.classList.remove('aperto'); }
+    var lf = lv.querySelector(':scope > .pei-fold');
+    if(q){ lv.classList.toggle('aperto', !!vis); if(lf) lf.style.maxHeight = vis ? 'none' : '0px'; }
+    else { lv.classList.remove('aperto'); if(lf) lf.style.maxHeight = '0px'; }
   });
   document.querySelectorAll('.pei-area').forEach(function(ar){
     var vis = Array.prototype.filter.call(
       ar.querySelectorAll('.pei-obj-item'), function(x){ return x.style.display !== 'none'; }).length;
     ar.style.display = (!q || vis) ? '' : 'none';
-    if(q){ ar.classList.toggle('aperto', !!vis); }
-    else { ar.classList.remove('aperto'); }
+    var af = ar.querySelector(':scope > .pei-fold');
+    if(q){ ar.classList.toggle('aperto', !!vis); if(af) af.style.maxHeight = vis ? 'none' : '0px'; }
+    else { ar.classList.remove('aperto'); if(af) af.style.maxHeight = '0px'; }
   });
 
   if(info) info.textContent = q ? (obTrovati+' obiettivi \u00b7 '+trovate+' domande') : '';
