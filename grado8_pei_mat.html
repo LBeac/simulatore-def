@@ -28,6 +28,22 @@ body.tic-contrasto{background:#111!important;color:#fff!important}
 body.tic-contrasto .card,body.tic-contrasto .risbox{background:#1a1a1a!important;color:#fff!important}
 body.tic-contrasto .opt{background:#222!important;color:#fff!important;border-color:#555!important}
 body.tic-contrasto .dom-cod{background:#333!important;color:#fff!important}
+body.tic-contrasto .dom-testo,
+body.tic-contrasto .dom-meta,
+body.tic-contrasto .ris-lbl,
+body.tic-contrasto .opt-testo,
+body.tic-contrasto .opt-lett,
+body.tic-contrasto #nav-info,
+body.tic-contrasto .blbl{color:#fff!important}
+body.tic-contrasto .num-input{background:#222!important;color:#fff!important;border-color:#777!important}
+body.tic-contrasto .opt.sel{background:#0d47a1!important;border-color:#90caf9!important}
+body.tic-contrasto .det-row{background:#222!important;color:#fff!important}
+body.tic-contrasto .det-row.ok{background:#1b3a1b!important}
+body.tic-contrasto .det-row.no{background:#3a1b1b!important}
+body.tic-contrasto .det-ris,
+body.tic-contrasto .det-num{color:#e0e0e0!important}
+body.tic-contrasto .btts{background:#333!important;color:#fff!important;border-color:#777!important}
+.td.sugg{box-shadow:0 0 0 3px #ffd54f}
 
 /* ══ HEADER ══ */
 .hdr{background:var(--c1);color:#fff;text-align:center;padding:14px 20px 10px;border-bottom:5px solid var(--ob);position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,.28)}
@@ -118,6 +134,18 @@ body.tic-contrasto .dom-cod{background:#333!important;color:#fff!important}
   .hdr,.barra-wrap,.nav,.ris-btns,#tic-dots,.btts{display:none!important}
   .risbox{box-shadow:none;border:1px solid #ccc;display:block!important}
   body{background:#fff}
+  /* il dettaglio è un riquadro a scorrimento: in stampa va aperto tutto */
+  .risbox .det{max-height:none!important;overflow:visible!important;padding-right:0!important}
+  .det-row{page-break-inside:avoid;break-inside:avoid}
+  .tic-modal,.tic-calc-w{display:none!important}
+  body.tic-contrasto,
+  body.tic-contrasto .card,
+  body.tic-contrasto .risbox,
+  body.tic-contrasto .det-row{background:#fff!important;color:#000!important}
+  body.tic-contrasto .dom-testo,
+  body.tic-contrasto .det-ris,
+  body.tic-contrasto .det-num,
+  body.tic-contrasto .det-row{color:#000!important}
 }
 </style>
 </head>
@@ -197,7 +225,8 @@ function buildTicDots(){
   box.innerHTML = '';
   TIC_DEF.forEach(function(t){
     const btn = document.createElement('div');
-    btn.className = 'td' + (document.body.classList.contains('tic-'+t.id)?' on':'');
+    btn.className = 'td' + (document.body.classList.contains('tic-'+t.id)?' on':'')
+                  + (TIC_CONSIGLIATI.indexOf(t.id) >= 0 ? ' sugg':'');
     btn.style.borderColor = t.col;
     if(document.body.classList.contains('tic-'+t.id)) btn.style.background = t.col;
     btn.setAttribute('title', t.label);
@@ -214,6 +243,9 @@ function buildTicDots(){
   box.classList.add('vis');
 }
 function togTicSilent(nome){ document.body.classList.add('tic-'+nome); }
+// Segna uno strumento come attivato dal docente senza aprirne la finestra
+var TIC_CONSIGLIATI = [];
+function _ticConsigliato(nome){ if(TIC_CONSIGLIATI.indexOf(nome) < 0) TIC_CONSIGLIATI.push(nome); }
 
 // ══════════════════════════════════════════════════════════════
 //  INIT — carica prova dall'URL
@@ -234,8 +266,10 @@ window.addEventListener('load', function(){
   if(p.get('spaziatura')==='1')togTicSilent('spaziatura');
  if(p.get('contrasto')==='1') togTicSilent('contrasto');
     if(p.get('calc')==='1') togTicSilent('calc');
-    if(p.get('pitagorica')==='1') togTicSilent('pitagorica');
-    if(p.get('formulario')==='1') togTicSilent('formulario');
+    // pitagorica e formulario sono finestre: restano disponibili nei pallini
+    // laterali ma non si aprono da sole sopra la prova
+    if(p.get('pitagorica')==='1') _ticConsigliato('pitagorica');
+    if(p.get('formulario')==='1') _ticConsigliato('formulario');
 
   if(p.get('tic-editable') === '1') buildTicDots();
 
@@ -350,7 +384,7 @@ function renderDomanda(i){
   } else if(tipo === 'num' || tipo === 'numerica' || tipo === 'aperta'){
     var rispSalv2 = RISPOSTE[d.n] !== undefined ? RISPOSTE[d.n] : '';
     inner += '<div style="text-align:center;margin-top:12px">'
-      + '<label style="font-size:.92rem;color:#555;display:block;margin-bottom:8px;font-weight:700">✍️ Scrivi qui la tua risposta:</label>'
+      + '<label class="ris-lbl" style="font-size:.92rem;display:block;margin-bottom:8px;font-weight:700;color:#555">✍️ Scrivi qui la tua risposta:</label>'
       + '<input type="text" class="num-input" id="num-inp" value="'+rispSalv2+'" oninput="salvaRispostaNum()">'
       + '</div>';
   }
