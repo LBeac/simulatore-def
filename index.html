@@ -793,6 +793,16 @@ tr:hover td{background:var(--grigio-ch)}
 .pei-cerca:focus{outline:none;border-color:var(--blu);box-shadow:0 0 0 3px rgba(30,111,217,.13)}
 .pei-cerca-info{font-size:11.5px;color:#7c8798;font-weight:600;white-space:nowrap}
 .pei-vuoto{text-align:center;color:#9aa3b2;font-size:12px;padding:18px}
+
+/* TIC del passo 2 */
+.pei-tic-tools{display:flex;align-items:center;gap:9px;padding-bottom:7px;margin-bottom:5px;border-bottom:1px dashed var(--grigio);position:sticky;top:-8px;background:var(--grigio-ch);z-index:2}
+.pei-tic-all{font-size:11px;font-weight:700;color:var(--blu);background:#fff;border:1px dashed var(--az);border-radius:6px;padding:4px 11px;cursor:pointer;font-family:inherit}
+.pei-tic-all:hover{background:#eef4ff;border-style:solid}
+.pei-tic-count{font-size:11px;font-weight:700;color:#7c8798}
+.pei-tic-riga{display:flex;align-items:center;gap:7px;padding:5px 7px;border-radius:6px;cursor:pointer;transition:background .12s}
+.pei-tic-riga:hover{background:#fff}
+.pei-tic-riga input{width:15px;height:15px;accent-color:var(--blu);cursor:pointer}
+.pei-tic-riga:has(input:checked){background:#fff;font-weight:600;color:var(--blu)}
 .pei-obj-grid .pei-obj-cod{margin:2px 0 0}
 .pei-obj-grid label{display:flex;align-items:flex-start;gap:9px;cursor:pointer;padding:8px 11px;background:#fff;border:1px solid var(--grigio);border-radius:7px;transition:border-color .12s,background .12s,box-shadow .12s}
 .pei-obj-grid label:hover{border-color:var(--az)}
@@ -9273,9 +9283,31 @@ function _peiConta(){
 function _peiRenderTic(lista){
   var wrap = document.getElementById('pei-tic-wrap');
   if(!wrap) return;
-  wrap.innerHTML = lista.map(function(t){
-    return '<label style="display:flex;align-items:center;gap:6px;padding:3px 0;cursor:pointer"><input type="checkbox" class="pei-tic-chk" value="'+t.codice+'" style="width:14px;height:14px;accent-color:var(--blu)"> '+t.nome+'</label>';
+  var h = '<div class="pei-tic-tools">'
+        +   '<button type="button" class="pei-tic-all" onclick="_peiSelTic()">\u2713 seleziona tutti</button>'
+        +   '<span id="pei-tic-count" class="pei-tic-count"></span>'
+        + '</div>';
+  h += lista.map(function(t){
+    return '<label class="pei-tic-riga"><input type="checkbox" class="pei-tic-chk" value="'+t.codice+'" onchange="_peiAggCountTic()"> '+t.nome+'</label>';
   }).join('');
+  wrap.innerHTML = h;
+  _peiAggCountTic();
+}
+
+function _peiSelTic(){
+  var els = document.querySelectorAll('.pei-tic-chk');
+  var tutti = Array.prototype.every.call(els, function(c){ return c.checked; });
+  Array.prototype.forEach.call(els, function(c){ c.checked = !tutti; });
+  _peiAggCountTic();
+}
+
+function _peiAggCountTic(){
+  var n = document.querySelectorAll('.pei-tic-chk:checked').length;
+  var tot = document.querySelectorAll('.pei-tic-chk').length;
+  var el = document.getElementById('pei-tic-count');
+  if(el) el.textContent = n ? (n+' di '+tot) : '';
+  var b = document.querySelector('.pei-tic-all');
+  if(b) b.innerHTML = (n && n === tot) ? '\u2715 togli tutti' : '\u2713 seleziona tutti';
 }
 
 function _peiAggCountObj(){
