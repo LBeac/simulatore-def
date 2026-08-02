@@ -9620,6 +9620,17 @@ function peiDelDom(idx){
   _peiRenderAnteprima();
 }
 
+// Rimuove l'attributo data-ef-state (stato base64 dell'editor figure) da una stringa SVG.
+// Usato solo sulla copia che finisce nel link dell'alunno: la copia del docente lo conserva,
+// altrimenti la figura non sarebbe più riapribile nell'editor.
+function _peiSvgSenzaStato(svg){
+  if(typeof svg !== 'string' || svg.indexOf('data-ef-state') === -1) return svg;
+  try{
+    return svg.replace(/\s*data-ef-state\s*=\s*'[^']*'/g, '')
+              .replace(/\s*data-ef-state\s*=\s*"[^"]*"/g, '');
+  }catch(e){ return svg; }
+}
+
 function peiApprovaSalva(){
   if(!_peiState.prova || !_peiState.prova.domande.length){
     alert('Nessuna domanda da salvare.'); return;
@@ -9635,6 +9646,10 @@ function peiApprovaSalva(){
     glossario: [],
     domande: prova.domande.map(function(d){
       var dp = {}; Object.keys(d).forEach(function(k){ if(k!=='_verifica') dp[k]=d[k]; });
+      // Alleggerimento link: lo stato dell'editor (data-ef-state) serve solo al docente
+      // per rimodificare la figura. All'alunno arriva l'SVG puro, che pesa circa la metà.
+      // L'originale resta intatto in _peiState.prova.domande[i].svg.
+      if(dp.svg) dp.svg = _peiSvgSenzaStato(dp.svg);
       return dp;
     })
   };
