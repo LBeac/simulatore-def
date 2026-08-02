@@ -1163,12 +1163,20 @@ body.prova-finita #diz-widget { display: none !important; }
         <button class="ef-tool" id="ef-t-poly-8" onclick="efSetTool('poly-8')" title="Ottagono regolare">🛑</button>
         <button class="ef-tool" id="ef-t-sector" onclick="efSetTool('sector')" title="Settore circolare (90°)">◔</button>
         <div class="ef-tool-sep"></div>
+        <button class="ef-tool" id="ef-t-cubo"    onclick="efSetTool('cubo')"    title="Cubo — spigoli nascosti tratteggiati">🧊</button>
+        <button class="ef-tool" id="ef-t-parall"  onclick="efSetTool('parall')"  title="Parallelepipedo — spigoli nascosti tratteggiati">📦</button>
+        <button class="ef-tool" id="ef-t-piramide" onclick="efSetTool('piramide')" title="Piramide a base quadrata">⛰</button>
+        <button class="ef-tool" id="ef-t-cilindro" onclick="efSetTool('cilindro')" title="Cilindro">🥫</button>
+        <button class="ef-tool" id="ef-t-cono"    onclick="efSetTool('cono')"    title="Cono">🍦</button>
+        <button class="ef-tool" id="ef-t-sfera"   onclick="efSetTool('sfera')"   title="Sfera">⚪</button>
+        <div class="ef-tool-sep"></div>
         <button class="ef-tool" id="ef-t-ang-45"  onclick="efSetTool('ang-45')"  title="Angolo acuto (45°) — trascina dal vertice">∠</button>
         <button class="ef-tool" id="ef-t-ang-90"  onclick="efSetTool('ang-90')"  title="Angolo retto (90°) — trascina dal vertice">∟</button>
         <button class="ef-tool" id="ef-t-ang-135" onclick="efSetTool('ang-135')" title="Angolo ottuso (135°) — trascina dal vertice">∡</button>
         <button class="ef-tool" id="ef-t-freepoly" onclick="efSetTool('freepoly')" title="Poligono libero — click per ogni vertice, doppio-click per chiudere, Esc per annullare">✏</button>
         <div class="ef-tool-sep"></div>
         <button class="ef-tool" id="ef-t-text"    onclick="efSetTool('text')"    title="Testo">🅰️</button>
+        <button class="ef-tool" id="ef-t-fill" onclick="efSetTool('fill')" title="Secchiello — clic per colorare una figura, Alt+clic per togliere il colore">🪣</button>
         <button class="ef-tool" onclick="efCancSel()"  title="Cancella selezione">🧽</button>
         <div class="ef-tool-sep"></div>
         <button class="ef-tool" onclick="efUndo()" title="Annulla">↶</button>
@@ -9719,7 +9727,7 @@ function efSetTool(t){
   document.querySelectorAll('.ef-tool').forEach(function(b){ b.classList.remove('att'); });
   var btn = document.getElementById('ef-t-'+t);
   if(btn) btn.classList.add('att');
-var labels = {select:'Seleziona',line:'Linea',arrow:'Freccia',segq:'Segmento quotato',rect:'Rettangolo',square:'Quadrato',circle:'Cerchio',ellipse:'Ellisse',triangle:'Triangolo','tri-equi':'Triangolo equilatero','tri-iso':'Triangolo isoscele','tri-rect':'Triangolo rettangolo',rombo:'Rombo',parallelo:'Parallelogramma','trap-rect':'Trapezio rettangolo','trap-iso':'Trapezio isoscele','trap-scal':'Trapezio scaleno','poly-5':'Pentagono','poly-6':'Esagono','poly-8':'Ottagono',sector:'Settore circolare',freepoly:'Poligono libero','ang-45':'Angolo acuto (45°)','ang-90':'Angolo retto (90°)','ang-135':'Angolo ottuso (135°)',text:'Testo'};
+var labels = {select:'Seleziona',line:'Linea',arrow:'Freccia',segq:'Segmento quotato',rect:'Rettangolo',square:'Quadrato',circle:'Cerchio',ellipse:'Ellisse',triangle:'Triangolo','tri-equi':'Triangolo equilatero','tri-iso':'Triangolo isoscele','tri-rect':'Triangolo rettangolo',rombo:'Rombo',parallelo:'Parallelogramma','trap-rect':'Trapezio rettangolo','trap-iso':'Trapezio isoscele','trap-scal':'Trapezio scaleno','poly-5':'Pentagono','poly-6':'Esagono','poly-8':'Ottagono',sector:'Settore circolare',freepoly:'Poligono libero',fill:'Secchiello',cubo:'Cubo',parall:'Parallelepipedo',piramide:'Piramide',cilindro:'Cilindro',cono:'Cono',sfera:'Sfera','ang-45':'Angolo acuto (45°)','ang-90':'Angolo retto (90°)','ang-135':'Angolo ottuso (135°)',text:'Testo'};
   var lblEl = document.getElementById('ef-tool-lbl');
   if(lblEl) lblEl.textContent = labels[t] || t;
   _ef.canvas.className = t==='select' ? 'tool-select' : '';
@@ -11220,6 +11228,212 @@ const initInterval = setInterval(function() {
   window._efAng = { tipi: Object.keys(ANG), geo: geo, is: isAng };
 })();
 // === END: editor figure — sessione 2C === //
+
+// === BEGIN: editor figure — sessione 3: solidi 3D === //
+(function(){
+  if (typeof window._efDrawShape !== 'function') return;
+
+  var SOLIDI = ['cubo','parall','piramide','cilindro','cono','sfera'];
+  function isSol(t){ return SOLIDI.indexOf(t) >= 0; }
+
+  function norm(sh){
+    var x = Math.min(sh.x, sh.x + (sh.w||0)), y = Math.min(sh.y, sh.y + (sh.h||0));
+    var w = Math.abs(sh.w||0), h = Math.abs(sh.h||0);
+    return { x:x, y:y, w:w, h:h, x2:x+w, y2:y+h, cx:x+w/2, cy:y+h/2 };
+  }
+
+  // Le parti sono descritte una volta sola e servono sia al canvas sia all'SVG,
+  // così il disegno a schermo e quello esportato non possono divergere.
+  function parti(sh){
+    var b = norm(sh);
+    var vis = [], nasc = [];
+    var P = function(pts, chiuso, pieno){ return { t:'poly', pts:pts, chiuso:!!chiuso, pieno:!!pieno }; };
+    var E = function(cx, cy, rx, ry, a0, a1, pieno){ return { t:'arco', cx:cx, cy:cy, rx:rx, ry:ry, a0:a0, a1:a1, pieno:!!pieno }; };
+
+    if (sh.tipo === 'cubo' || sh.tipo === 'parall'){
+      var w = b.w, h = b.h;
+      if (sh.tipo === 'cubo'){ var lato = Math.min(w, h); w = lato; h = lato; }
+      var o = Math.max(10, Math.min(w, h) * 0.32);
+      var ox = o * 0.72, oy = -o * 0.72;
+      var x = b.x, y = b.y - oy;               // lascio spazio in alto per la profondità
+      var A=[x,y], B=[x+w,y], C=[x+w,y+h], D=[x,y+h];
+      var A2=[A[0]+ox,A[1]+oy], B2=[B[0]+ox,B[1]+oy], C2=[C[0]+ox,C[1]+oy], D2=[D[0]+ox,D[1]+oy];
+      vis.push(P([A,B,C,D], true, true));                 // faccia frontale
+      vis.push(P([A,A2,B2,B], true, false));              // faccia superiore
+      vis.push(P([B,B2,C2,C], true, false));              // faccia laterale destra
+      nasc.push(P([D,D2], false));                        // spigolo nascosto verticale
+      nasc.push(P([A2,D2], false));                       // spigolo nascosto a sinistra
+      nasc.push(P([D2,C2], false));                       // spigolo nascosto in basso
+    }
+    else if (sh.tipo === 'piramide'){
+      var bh = Math.max(10, b.h * 0.22);
+      var sx = b.cx, sy = b.y;                                    // vertice
+      var L=[b.x, b.y2-bh/2], T=[b.cx, b.y2-bh], R=[b.x2, b.y2-bh/2], F=[b.cx, b.y2];
+      vis.push(P([[sx,sy],L,F,R], true, true));                   // facce visibili
+      vis.push(P([L,F],false)); vis.push(P([F,R],false));         // spigoli di base davanti
+      nasc.push(P([L,T],false)); nasc.push(P([T,R],false));       // base dietro
+      nasc.push(P([[sx,sy],T],false));                            // spigolo verso il vertice dietro
+    }
+    else if (sh.tipo === 'cilindro'){
+      var ry = Math.max(6, b.h * 0.13), rx = b.w/2;
+      var yt = b.y + ry, yb = b.y2 - ry;
+      vis.push(P([[b.x,yt],[b.x,yb]], false));
+      vis.push(P([[b.x2,yt],[b.x2,yb]], false));
+      vis.push(E(b.cx, yt, rx, ry, 0, Math.PI*2, true));          // base superiore intera
+      vis.push(E(b.cx, yb, rx, ry, 0, Math.PI));                  // metà anteriore di quella inferiore
+      nasc.push(E(b.cx, yb, rx, ry, Math.PI, Math.PI*2));         // metà posteriore
+    }
+    else if (sh.tipo === 'cono'){
+      var ry2 = Math.max(6, b.h * 0.13), rx2 = b.w/2;
+      var yb2 = b.y2 - ry2;
+      vis.push(P([[b.cx,b.y],[b.x,yb2]], false));
+      vis.push(P([[b.cx,b.y],[b.x2,yb2]], false));
+      vis.push(E(b.cx, yb2, rx2, ry2, 0, Math.PI));
+      nasc.push(E(b.cx, yb2, rx2, ry2, Math.PI, Math.PI*2));
+    }
+    else if (sh.tipo === 'sfera'){
+      var r = Math.min(b.w, b.h)/2;
+      vis.push(E(b.cx, b.cy, r, r, 0, Math.PI*2, true));
+      nasc.push(E(b.cx, b.cy, r, Math.max(4, r*0.28), 0, Math.PI*2)); // equatore
+    }
+    return { vis: vis, nasc: nasc };
+  }
+
+  function traccia(ctx, p){
+    ctx.beginPath();
+    if (p.t === 'poly'){
+      ctx.moveTo(p.pts[0][0], p.pts[0][1]);
+      for (var i=1;i<p.pts.length;i++) ctx.lineTo(p.pts[i][0], p.pts[i][1]);
+      if (p.chiuso) ctx.closePath();
+    } else {
+      ctx.ellipse(p.cx, p.cy, Math.abs(p.rx), Math.abs(p.ry), 0, p.a0, p.a1);
+    }
+  }
+
+  var _drawPrec = window._efDrawShape;
+  window._efDrawShape = function(ctx, sh, selected){
+    if (!isSol(sh.tipo)) return _drawPrec(ctx, sh, selected);
+    var pp = parti(sh);
+    ctx.save();
+    ctx.strokeStyle = sh.stroke || '#000';
+    ctx.fillStyle   = sh.fill   || '#fff';
+    ctx.lineWidth   = sh.sw     || 2;
+    ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+
+    if (!sh.fillNone){
+      pp.vis.forEach(function(p){ if (p.pieno){ traccia(ctx, p); ctx.fill(); } });
+    }
+    pp.vis.forEach(function(p){ traccia(ctx, p); ctx.stroke(); });
+
+    ctx.setLineDash([7,5]);
+    pp.nasc.forEach(function(p){ traccia(ctx, p); ctx.stroke(); });
+    ctx.setLineDash([]);
+
+    if (selected){
+      ctx.strokeStyle = '#1565c0'; ctx.lineWidth = 1.5; ctx.setLineDash([6,4]);
+      var bb = _efBBox(sh);
+      ctx.strokeRect(bb.x-4, bb.y-4, bb.w+8, bb.h+8);
+      ctx.setLineDash([]);
+    }
+    ctx.restore();
+  };
+
+  var _svgPrec = window._efShapeToSVG;
+  window._efShapeToSVG = function(sh){
+    if (!isSol(sh.tipo)) return _svgPrec(sh);
+    var pp = parti(sh), sw = sh.sw || 2, col = sh.stroke || '#000';
+    var n = function(v){ return Math.round(v*100)/100; };
+    var base = 'stroke="'+col+'" stroke-width="'+sw+'" stroke-linecap="round" stroke-linejoin="round"';
+    var out = [];
+
+    function svgParte(p, nascosta){
+      var dash = nascosta ? ' stroke-dasharray="7,5"' : '';
+      var riemp = (!nascosta && p.pieno && !sh.fillNone) ? (sh.fill || '#fff') : 'none';
+      if (p.t === 'poly'){
+        var pts = p.pts.map(function(q){ return n(q[0])+','+n(q[1]); }).join(' ');
+        return '<'+(p.chiuso?'polygon':'polyline')+' points="'+pts+'" fill="'+riemp+'" '+base+dash+'/>';
+      }
+      var giro = Math.abs(p.a1 - p.a0) >= Math.PI*2 - 0.001;
+      if (giro){
+        return '<ellipse cx="'+n(p.cx)+'" cy="'+n(p.cy)+'" rx="'+n(Math.abs(p.rx))+'" ry="'+n(Math.abs(p.ry))+'" fill="'+riemp+'" '+base+dash+'/>';
+      }
+      var x0 = p.cx + Math.cos(p.a0)*p.rx, y0 = p.cy + Math.sin(p.a0)*p.ry;
+      var x1 = p.cx + Math.cos(p.a1)*p.rx, y1 = p.cy + Math.sin(p.a1)*p.ry;
+      var grande = Math.abs(p.a1 - p.a0) > Math.PI ? 1 : 0;
+      return '<path d="M '+n(x0)+' '+n(y0)+' A '+n(Math.abs(p.rx))+' '+n(Math.abs(p.ry))+' 0 '+grande+' 1 '+n(x1)+' '+n(y1)+'" fill="none" '+base+dash+'/>';
+    }
+
+    pp.vis.forEach(function(p){ out.push(svgParte(p, false)); });
+    pp.nasc.forEach(function(p){ out.push(svgParte(p, true)); });
+    return out.join('');
+  };
+
+  var _hitPrec = window._efHitTest;
+  window._efHitTest = function(sh, p){
+    if (!isSol(sh.tipo)) return _hitPrec(sh, p);
+    var r0 = sh.rot || 0;
+    if (r0){
+      var bb0 = _efBBox(sh), cx = bb0.x+bb0.w/2, cy = bb0.y+bb0.h/2;
+      var a = -r0*Math.PI/180, s = Math.sin(a), co = Math.cos(a);
+      var dx = p.x-cx, dy = p.y-cy;
+      p = { x: cx + dx*co - dy*s, y: cy + dx*s + dy*co };
+    }
+    var b = norm(sh), tol = Math.max(6, (sh.sw||2)+3);
+    return p.x >= b.x-tol && p.x <= b.x2+tol && p.y >= b.y-tol && p.y <= b.y2+tol;
+  };
+
+  window._efSol = { tipi: SOLIDI, parti: parti, is: isSol };
+})();
+// === END: editor figure — sessione 3 === //
+
+// === BEGIN: editor figure — sessione 5: secchiello === //
+(function(){
+  if (typeof window._efHitTest !== 'function') return;
+
+  // Su un disegno fatto di figure, il secchiello non riempie i pixel:
+  // colora la figura che sta sotto il cursore. Il risultato per chi usa
+  // è lo stesso, ma resta tutto modificabile e l'SVG resta pulito.
+  var SENZA_RIEMPIMENTO = ['line','arrow','segq','ang-45','ang-90','ang-135'];
+
+  function coloraSotto(e){
+    if (!window._ef || _ef.tool !== 'fill') return;
+    var p = _efPos(e);
+    var colpita = null;
+    for (var i = _ef.shapes.length-1; i >= 0; i--){
+      if (_efHitTest(_ef.shapes[i], p)){ colpita = _ef.shapes[i]; break; }
+    }
+    e.stopPropagation(); e.preventDefault();
+    if (!colpita) return;
+    _efPushUndo();
+    if (SENZA_RIEMPIMENTO.indexOf(colpita.tipo) >= 0){
+      colpita.stroke = _ef.stroke;              // linee e angoli: cambia il tratto
+    } else if (colpita.tipo === 'text'){
+      colpita.fill = _ef.fill; colpita.stroke = _ef.fill;
+    } else if (e.altKey){
+      colpita.fillNone = true;                  // Alt: torna trasparente
+    } else {
+      colpita.fill = _ef.fill; colpita.fillNone = false;
+    }
+    _efRedraw();
+    if (typeof _efAggSelInfo === 'function') _efAggSelInfo();
+  }
+
+  function blocca(e){ if (window._ef && _ef.tool === 'fill'){ e.stopPropagation(); e.preventDefault(); } }
+
+  var _bindPrec = window._efBindEvents;
+  window._efBindEvents = function(){
+    _bindPrec();
+    var c = _ef.canvas;
+    if (!c || c.dataset.efFill) return;
+    c.dataset.efFill = '1';
+    c.addEventListener('mousedown', coloraSotto, true);
+    c.addEventListener('mousemove', blocca, true);   // il secchiello non trascina
+    c.addEventListener('mouseup',   blocca, true);
+  };
+
+  window._efFill = { coloraSotto: coloraSotto };
+})();
+// === END: editor figure — sessione 5 === //
 </script>
 </body>
 </html>
