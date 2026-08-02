@@ -810,6 +810,19 @@ tr:hover td{background:var(--grigio-ch)}
 .ef-str-riga::-webkit-scrollbar{height:9px}
 .ef-str-riga::-webkit-scrollbar-thumb{background:#c9d2dd;border-radius:5px}
 .ef-str-nota{font-size:10.5px;color:#8a93a2;margin-top:5px}
+.ef-str-testa{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.ef-str-testa span{font-size:11.5px;font-weight:800;color:#5a6675}
+.ef-str-x{border:none;background:none;cursor:pointer;font-size:14px;color:#8a93a2;padding:0 4px;line-height:1}
+.ef-str-x:hover{color:#c62828}
+#ef-tasti-box{position:absolute;top:64px;right:18px;z-index:20;background:#fff;border:1px solid var(--grigio);
+  border-radius:10px;box-shadow:0 8px 28px rgba(20,40,80,.22);padding:12px 14px;max-height:70vh;overflow-y:auto;width:290px}
+.ef-tasti-t{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;font-weight:800;color:#243447;margin-bottom:8px}
+.ef-tasti-t button{border:none;background:none;cursor:pointer;font-size:14px;color:#8a93a2}
+.ef-tasti-g{display:grid;grid-template-columns:auto 1fr;gap:5px 10px;align-items:center}
+.ef-tasti-g kbd{font-family:ui-monospace,monospace;font-size:10.5px;font-weight:700;background:#eef2f7;border:1px solid #cfd8e6;
+  border-bottom-width:2px;border-radius:4px;padding:2px 6px;white-space:nowrap;color:#37424f}
+.ef-tasti-g span{font-size:11.5px;color:#5a6675}
+#ov-editor-figure .ef-card{position:relative}
 /* schermo intero */
 #ov-editor-figure.pieno{padding:0}
 #ov-editor-figure.pieno .ef-card{max-width:none;width:100vw;height:100vh;max-height:100vh;border-radius:0}
@@ -1160,6 +1173,7 @@ body.prova-finita #diz-widget { display: none !important; }
         <div class="ef-hdr-sub" id="ef-sub">Domanda —</div>
       </div>
       <div style="display:flex;gap:8px;align-items:center">
+        <button class="ef-close" onclick="efTastiRapidi()" title="Elenco dei tasti rapidi">⌨️ Tasti</button>
         <button class="ef-close" id="ef-pieno" onclick="efSchermoIntero()" title="Ingrandisci a schermo intero">⛶ Schermo intero</button>
         <button class="ef-close" onclick="efAnnulla()">✕ Annulla</button>
       </div>
@@ -11816,6 +11830,7 @@ const initInterval = setInterval(function() {
   var scelta = { euro:'e1', pitto:'🍎', frazione:[1,4] };
 
   var catAttiva = { euro:'Monete', pitto:'Frutta' };
+  var strisciaTool = null;
 
   function chip(html, attivo, onclick){
     return '<button type="button" class="ef-chip'+(attivo?' att':'')+'" onclick="'+onclick+'">'+html+'</button>';
@@ -11830,7 +11845,10 @@ const initInterval = setInterval(function() {
   function disegnaStriscia(tool){
     var el = document.getElementById('ef-striscia');
     if (!el) return;
-    if (!mio(tool)){ el.style.display = 'none'; el.innerHTML = ''; return; }
+    // Resta aperta anche cambiando strumento: si chiude solo con la ✕.
+    if (mio(tool)) strisciaTool = tool;
+    tool = strisciaTool;
+    if (!tool){ el.style.display = 'none'; el.innerHTML = ''; return; }
     var tabs = '', riga = '', nota = '';
 
     if (tool === 'euro'){
@@ -11860,10 +11878,21 @@ const initInterval = setInterval(function() {
       nota = 'La parte colorata usa il colore di riempimento scelto nel pannello a destra.';
     }
 
-    el.innerHTML = (tabs ? '<div class="ef-str-tabs">'+tabs+'</div>' : '')
+    var titolo = (tool === 'euro') ? '💶 Monete e banconote'
+               : (tool === 'pitto') ? '🍎 Pittogrammi' : '🥧 Torte delle frazioni';
+    el.innerHTML = '<div class="ef-str-testa"><span>'+titolo+'</span>'
+                 +   '<button type="button" class="ef-str-x" onclick="_efPitto.chiudi()" title="Chiudi la barra">✕</button>'
+                 + '</div>'
+                 + (tabs ? '<div class="ef-str-tabs">'+tabs+'</div>' : '')
                  + '<div class="ef-str-riga">'+riga+'</div>'
                  + '<div class="ef-str-nota">'+nota+'</div>';
     el.style.display = 'block';
+  }
+
+  function chiudiStriscia(){
+    strisciaTool = null;
+    var el = document.getElementById('ef-striscia');
+    if (el){ el.style.display = 'none'; el.innerHTML = ''; }
   }
 
   function cambiaCat(tool, nome){
@@ -11874,6 +11903,17 @@ const initInterval = setInterval(function() {
   function scegli(tool, v){
     if (tool === 'frazione'){ var p = v.split('-'); scelta.frazione = [parseInt(p[0]), parseInt(p[1])]; }
     else scelta[tool] = v;
+    // la linguetta segue la scelta, così vedi sempre dove sei
+    if (tool === 'euro'){
+      var e = trovaEuro(v);
+      if (e) catAttiva.euro = e.m ? 'Monete' : 'Banconote';
+    } else if (tool === 'pitto'){
+      PITTO.forEach(function(cat){
+        cat.voci.forEach(function(x){ if (x[0] === v) catAttiva.pitto = cat.g; });
+      });
+    }
+    strisciaTool = tool;
+    if (_ef.tool !== tool) efSetTool(tool);   // pronto a posarne un altro
     disegnaStriscia(tool);
   }
 
@@ -11883,7 +11923,21 @@ const initInterval = setInterval(function() {
     disegnaStriscia(t);
   };
 
-  // al rilascio del trascinamento la forma prende il taglio scelto
+  // il taglio scelto va applicato subito, non al rilascio: altrimenti
+  // mentre trascini vedi sempre la moneta predefinita
+  var _downPrec = window._efOnDown;
+  window._efOnDown = function(e){
+    var r = _downPrec.call(this, e);
+    var d = _ef.dragShape;
+    if (d && mio(d.tipo)){
+      if (d.tipo === 'euro') d.val = scelta.euro;
+      else if (d.tipo === 'pitto') d.ch = scelta.pitto;
+      else { d.n = scelta.frazione[1]; d.m = scelta.frazione[0]; }
+    }
+    return r;
+  };
+
+  // al rilascio resta il vincolo della moneta tonda
   var _upPrec = window._efOnUp;
   window._efOnUp = function(e){
     var d = _ef.dragShape;
@@ -11907,9 +11961,157 @@ const initInterval = setInterval(function() {
     if (b) b.innerHTML = pieno ? '⤡ Riduci' : '⛶ Schermo intero';
   };
 
-  window._efPitto = { scegli: scegli, cat: cambiaCat, striscia: disegnaStriscia, monete: MONETE, biglietti: BIGLIETTI, pitto: PITTO, frazioni: FRAZIONI, scelta: function(){ return scelta; } };
+  window._efPitto = { scegli: scegli, cat: cambiaCat, chiudi: chiudiStriscia, striscia: disegnaStriscia, monete: MONETE, biglietti: BIGLIETTI, pitto: PITTO, frazioni: FRAZIONI, scelta: function(){ return scelta; } };
 })();
 // === END: editor figure — sessione 4 === //
+
+// === BEGIN: editor figure — tasti rapidi === //
+(function(){
+  if (typeof window.efSetTool !== 'function') return;
+
+  var STRUMENTI = {
+    v:'select',  l:'line',   f:'arrow',  r:'rect',    q:'square',
+    c:'circle',  e:'ellipse', t:'triangle', o:'rombo', p:'poly-6',
+    a:'ang-90',  s:'cubo',   n:'cilindro', x:'text',  b:'fill',
+    m:'euro',    g:'pitto',  z:'frazione'
+  };
+  var NOMI = [
+    ['V','Seleziona e sposta'], ['L','Linea'], ['F','Freccia'], ['R','Rettangolo'],
+    ['Q','Quadrato'], ['C','Cerchio'], ['E','Ellisse'], ['T','Triangolo'],
+    ['O','Rombo'], ['P','Esagono'], ['A','Angolo retto'], ['S','Cubo'],
+    ['N','Cilindro'], ['X','Testo'], ['B','Secchiello'], ['M','Monete ed euro'],
+    ['G','Pittogrammi'], ['Z','Frazioni'],
+    ['Ctrl+C','Copia (se non c\'è nulla di scelto, prende l\'ultima figura)'],
+    ['Ctrl+V','Incolla'], ['Ctrl+X','Taglia'],
+    ['Ctrl+Z','Annulla'], ['Ctrl+Y','Ripristina'], ['Ctrl+D','Duplica la figura scelta'],
+    ['Canc','Elimina la figura scelta'], ['Esc','Deseleziona'],
+    ['Frecce','Sposta di 1 px'], ['Shift+Frecce','Sposta di 10 px'],
+    ['+ / −','Ingrandisci o rimpicciolisci del 10%'], ['F11 o ⛶','Schermo intero']
+  ];
+
+  var appunti = null;   // figura copiata
+  var incolli = 0;      // quante volte l'ho già incollata, per sfalsare le copie
+
+  function copiaFigura(sh){
+    if (!sh) return false;
+    appunti = JSON.parse(JSON.stringify(sh));
+    incolli = 0;
+    return true;
+  }
+  function incollaFigura(){
+    if (!appunti) return false;
+    _efPushUndo();
+    incolli++;
+    var copia = JSON.parse(JSON.stringify(appunti));
+    copia.id = _efNewId();
+    copia.x += 18 * incolli; copia.y += 18 * incolli;
+    if (copia.tipo === 'freepoly' && Array.isArray(copia.points)){
+      copia.points = copia.points.map(function(p){ return { x: p.x + 18*incolli, y: p.y + 18*incolli }; });
+    }
+    _ef.shapes.push(copia);
+    _ef.selectedId = copia.id;
+    efSetTool('select');
+    _efRedraw();
+    if (typeof _efAggSelInfo === 'function') _efAggSelInfo();
+    return true;
+  }
+
+  function editorAperto(){
+    var ov = document.getElementById('ov-editor-figure');
+    return ov && ov.classList.contains('vis');
+  }
+  function scriveInUnCampo(t){
+    if (!t) return false;
+    var n = (t.tagName || '').toUpperCase();
+    return n === 'INPUT' || n === 'TEXTAREA' || n === 'SELECT' || t.isContentEditable;
+  }
+  function scala(sh, f){
+    if (sh.tipo === 'text'){ sh.fontSize = Math.max(8, Math.min(200, Math.round((sh.fontSize||18)*f))); return; }
+    var b = _efBBox(sh), cx = b.x + b.w/2, cy = b.y + b.h/2;
+    sh.w = (sh.w||0) * f; sh.h = (sh.h||0) * f;
+    var b2 = _efBBox(sh);
+    sh.x += cx - (b2.x + b2.w/2);          // ingrandisce restando al suo posto
+    sh.y += cy - (b2.y + b2.h/2);
+  }
+
+  document.addEventListener('keydown', function(e){
+    if (!editorAperto() || scriveInUnCampo(e.target)) return;
+    var sh = _ef.selectedId ? _efFindShape(_ef.selectedId) : null;
+    var k = (e.key || '').toLowerCase();
+
+    if (e.ctrlKey || e.metaKey){
+      if (k === 'c'){
+        // senza selezione copio l'ultima figura messa, come hai chiesto
+        e.preventDefault();
+        copiaFigura(sh || _ef.shapes[_ef.shapes.length-1]);
+        return;
+      }
+      if (k === 'v'){ e.preventDefault(); incollaFigura(); return; }
+      if (k === 'x'){
+        e.preventDefault();
+        var da = sh || _ef.shapes[_ef.shapes.length-1];
+        if (da && copiaFigura(da)){
+          _efPushUndo();
+          _ef.shapes = _ef.shapes.filter(function(s){ return s.id !== da.id; });
+          _ef.selectedId = null;
+          _efRedraw();
+          if (typeof _efAggSelInfo === 'function') _efAggSelInfo();
+        }
+        return;
+      }
+      if (k === 'z'){ e.preventDefault(); if (e.shiftKey) efRedo(); else efUndo(); return; }
+      if (k === 'y'){ e.preventDefault(); efRedo(); return; }
+      if (k === 'd' && sh){
+        e.preventDefault(); _efPushUndo();
+        var copia = JSON.parse(JSON.stringify(sh));
+        copia.id = _efNewId(); copia.x += 16; copia.y += 16;
+        _ef.shapes.push(copia); _ef.selectedId = copia.id;
+        _efRedraw(); if (typeof _efAggSelInfo === 'function') _efAggSelInfo();
+        return;
+      }
+      return;
+    }
+
+    if (e.key === 'Escape'){ _ef.selectedId = null; _efRedraw(); return; }
+    if (e.key === 'Delete' || e.key === 'Backspace'){
+      if (sh){ e.preventDefault(); efCancSel(); }
+      return;
+    }
+    if (e.key.indexOf('Arrow') === 0 && sh){
+      e.preventDefault(); _efPushUndo();
+      var d = e.shiftKey ? 10 : 1;
+      if (e.key === 'ArrowLeft')  sh.x -= d;
+      if (e.key === 'ArrowRight') sh.x += d;
+      if (e.key === 'ArrowUp')    sh.y -= d;
+      if (e.key === 'ArrowDown')  sh.y += d;
+      _efRedraw();
+      return;
+    }
+    if ((e.key === '+' || e.key === '-') && sh){
+      e.preventDefault(); _efPushUndo();
+      scala(sh, e.key === '+' ? 1.1 : 0.9);
+      _efRedraw();
+      return;
+    }
+    if (e.key === 'F11'){ e.preventDefault(); efSchermoIntero(); return; }
+    if (STRUMENTI[k]){ e.preventDefault(); efSetTool(STRUMENTI[k]); }
+  });
+
+  window._efAppunti = { copia: copiaFigura, incolla: incollaFigura, contenuto: function(){ return appunti; } };
+
+  window.efTastiRapidi = function(){
+    var el = document.getElementById('ef-tasti-box');
+    if (el){ el.remove(); return; }
+    var d = document.createElement('div');
+    d.id = 'ef-tasti-box';
+    d.innerHTML = '<div class="ef-tasti-t">Tasti rapidi<button onclick="efTastiRapidi()">✕</button></div>'
+      + '<div class="ef-tasti-g">'
+      + NOMI.map(function(r){ return '<kbd>'+r[0]+'</kbd><span>'+r[1]+'</span>'; }).join('')
+      + '</div>';
+    (document.querySelector('#ov-editor-figure .ef-card') || document.body).appendChild(d);
+  };
+})();
+// === END: editor figure — tasti rapidi === //
 </script>
 </body>
 </html>
