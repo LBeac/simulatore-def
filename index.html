@@ -795,8 +795,14 @@ tr:hover td{background:var(--grigio-ch)}
 .pei-vuoto{text-align:center;color:#9aa3b2;font-size:12px;padding:18px}
 
 /* striscia di scelta sopra il foglio da disegno */
-.ef-striscia{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 10px;margin-bottom:8px;
-  background:#f4f7fb;border:1px solid #dbe3ee;border-radius:9px;max-height:132px;overflow-y:auto}
+/* il contenitore del foglio impila in colonna, così la striscia sta davvero sopra */
+.ef-canvas-wrap{flex-direction:column}
+.ef-canvas-wrap > #ef-canvas{flex:0 0 auto}
+.ef-striscia{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:9px 11px;margin-bottom:10px;
+  width:100%;flex:0 0 auto;box-sizing:border-box;
+  background:#f4f7fb;border:1px solid #dbe3ee;border-radius:9px;max-height:190px;overflow-y:auto}
+.ef-striscia::-webkit-scrollbar{width:9px}
+.ef-striscia::-webkit-scrollbar-thumb{background:#c9d2dd;border-radius:5px}
 .ef-str-tit{width:100%;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#7c8798;margin:2px 0 1px}
 .ef-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border:1.5px solid #cfd8e6;border-radius:20px;
   background:#fff;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;color:#243447;transition:all .12s}
@@ -1192,7 +1198,7 @@ body.prova-finita #diz-widget { display: none !important; }
         <button class="ef-tool" id="ef-t-frazione" onclick="efSetTool('frazione')" title="Torta delle frazioni">🥧</button>
         <div class="ef-tool-sep"></div>
         <button class="ef-tool" id="ef-t-text"    onclick="efSetTool('text')"    title="Testo">🅰️</button>
-        <button class="ef-tool" id="ef-t-fill" onclick="efSetTool('fill')" title="Secchiello — clic per colorare una figura, Alt+clic per togliere il colore">🪣</button>
+        <button class="ef-tool" id="ef-t-fill" onclick="efSetTool('fill')" title="Secchiello — clic colora la figura (sui solidi la singola faccia), Shift+clic colora tutto il solido, Alt+clic toglie il colore">🪣</button>
         <button class="ef-tool" onclick="efCancSel()"  title="Cancella selezione">🧽</button>
         <div class="ef-tool-sep"></div>
         <button class="ef-tool" onclick="efUndo()" title="Annulla">↶</button>
@@ -11027,6 +11033,7 @@ const initInterval = setInterval(function() {
     var sh = _efFindShape(_ef.selectedId);
     if (!sh) return;
     var p = _efPos(e);
+    if (window._efVeto && window._efVeto(sh, p)) return;   // maniglie proprie della figura
     var h = souManiglia(sh, p);
     if (!h) return;
     var b = box(sh);
@@ -11131,7 +11138,7 @@ const initInterval = setInterval(function() {
   // decide insieme lunghezza e inclinazione. Il secondo lato è il primo
   // ruotato dell'ampiezza, in senso antiorario a schermo.
   function geo(sh){
-    var g = ANG[sh.tipo] || 90;
+    var g = (typeof sh.gradi === 'number') ? sh.gradi : (ANG[sh.tipo] || 90);
     var L = Math.hypot(sh.w||0, sh.h||0);
     var a1 = Math.atan2(sh.h||0, sh.w||0);
     var a2 = a1 - g*Math.PI/180;
@@ -11167,7 +11174,7 @@ const initInterval = setInterval(function() {
     ctx.stroke();
 
     var r = Math.max(14, Math.min(42, g.L*0.28));
-    if (g.gradi === 90){
+    if (Math.abs(g.gradi - 90) < 0.5){
       // convenzione: l'angolo retto si segna col quadratino, non con l'arco
       var ux = Math.cos(g.a1)*r, uy = Math.sin(g.a1)*r;
       var vx2 = Math.cos(g.a2)*r, vy2 = Math.sin(g.a2)*r;
@@ -11185,6 +11192,17 @@ const initInterval = setInterval(function() {
     ctx.beginPath(); ctx.arc(g.vx, g.vy, Math.max(2.5, (sh.sw||2)*1.1), 0, Math.PI*2); ctx.fill();
 
     if (selected){
+      // maniglia arancione in punta al secondo lato: trascinala per aprire o chiudere
+      ctx.fillStyle = '#ef6c00'; ctx.strokeStyle = '#ef6c00'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(g.p2.x, g.p2.y, 6, 0, Math.PI*2); ctx.fill();
+      var am = (g.a1 + g.a2)/2;
+      ctx.fillStyle = '#ef6c00';
+      ctx.font = 'bold 13px Segoe UI, sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(Math.round(g.gradi) + '°', g.vx + Math.cos(am)*(r+16), g.vy + Math.sin(am)*(r+16));
+      ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
+    }
+    if (selected){
       ctx.strokeStyle = '#1565c0'; ctx.lineWidth = 1.5; ctx.setLineDash([6,4]);
       var bb = _efBBox(sh);
       ctx.strokeRect(bb.x-4, bb.y-4, bb.w+8, bb.h+8);
@@ -11201,7 +11219,7 @@ const initInterval = setInterval(function() {
     var n = function(v){ return Math.round(v*100)/100; };
     var out = '<polyline points="'+n(g.p1.x)+','+n(g.p1.y)+' '+n(g.vx)+','+n(g.vy)+' '+n(g.p2.x)+','+n(g.p2.y)+'" '+comune+'/>';
     var r = Math.max(14, Math.min(42, g.L*0.28));
-    if (g.gradi === 90){
+    if (Math.abs(g.gradi - 90) < 0.5){
       var ux = Math.cos(g.a1)*r, uy = Math.sin(g.a1)*r;
       var vx2 = Math.cos(g.a2)*r, vy2 = Math.sin(g.a2)*r;
       out += '<polyline points="'+n(g.vx+ux)+','+n(g.vy+uy)+' '+n(g.vx+ux+vx2)+','+n(g.vy+uy+vy2)+' '+n(g.vx+vx2)+','+n(g.vy+vy2)+'" '+comune+'/>';
@@ -11230,7 +11248,67 @@ const initInterval = setInterval(function() {
       var len=C*C+D*D, t=len>0 ? Math.max(0, Math.min(1, (A*C+B*D)/len)) : 0;
       return Math.hypot(p.x-(g.vx+t*C), p.y-(g.vy+t*D)) < tol;
     }
-    return vicino(g.p1) || vicino(g.p2) || Math.hypot(p.x-g.vx, p.y-g.vy) < tol+4;
+    if (vicino(g.p1) || vicino(g.p2)) return true;
+    var d = Math.hypot(p.x-g.vx, p.y-g.vy);
+    if (d < tol+4) return true;
+    // area comoda: dentro l'apertura, fin dove arriva l'archetto
+    var r = Math.max(14, Math.min(42, g.L*0.28)) + 6;
+    if (d <= r){
+      var giro = Math.PI*2;
+      var a = Math.atan2(p.y-g.vy, p.x-g.vx);
+      var da = ((a - g.a2) % giro + giro) % giro;
+      var ampiezza = ((g.a1 - g.a2) % giro + giro) % giro;
+      if (da <= ampiezza) return true;
+    }
+    return false;
+  };
+
+  // ── trascinamento della maniglia arancione: cambia l'apertura ──
+  var apertura = null;
+  function giuAng(e){
+    if (!window._ef || _ef.tool !== 'select' || !_ef.selectedId) return;
+    var sh = _efFindShape(_ef.selectedId);
+    if (!sh || !isAng(sh.tipo)) return;
+    var p = _efPos(e), g = geo(sh);
+    if (Math.hypot(p.x-g.p2.x, p.y-g.p2.y) > 9) return;
+    _efPushUndo();
+    apertura = { sh: sh, a1: g.a1 };
+    e.stopPropagation(); e.preventDefault();
+  }
+  function muoviAng(e){
+    if (!apertura) return;
+    var sh = apertura.sh, p = _efPos(e);
+    var a = Math.atan2(p.y - sh.y, p.x - sh.x);
+    var giro = Math.PI*2;
+    var g = ((apertura.a1 - a) % giro + giro) % giro * 180/Math.PI;
+    g = Math.max(5, Math.min(355, g));
+    sh.gradi = e.shiftKey ? Math.round(g/15)*15 : Math.round(g);
+    _efRedraw();
+    e.stopPropagation(); e.preventDefault();
+  }
+  function suAng(e){
+    if (!apertura) return;
+    apertura = null; _efRedraw();
+    if (typeof _efAggSelInfo === 'function') _efAggSelInfo();
+    e.stopPropagation();
+  }
+  // la maniglia dell'apertura vince su quelle del riquadro quando si sovrappongono
+  window._efVeto = function(sh, p){
+    if (!isAng(sh.tipo)) return false;
+    var g = geo(sh);
+    return Math.hypot(p.x-g.p2.x, p.y-g.p2.y) <= 9;
+  };
+
+  var _bindPrecAng = window._efBindEvents;
+  window._efBindEvents = function(){
+    _bindPrecAng();
+    var c = _ef.canvas;
+    if (!c || c.dataset.efAng) return;
+    c.dataset.efAng = '1';
+    c.addEventListener('mousedown',  giuAng,  true);
+    c.addEventListener('mousemove',  muoviAng, true);
+    c.addEventListener('mouseup',    suAng,   true);
+    c.addEventListener('mouseleave', suAng,   true);
   };
 
   // il ridimensionamento allunga i lati tenendo fermo il vertice
@@ -11327,6 +11405,30 @@ const initInterval = setInterval(function() {
     }
   }
 
+  // Il disegno sporge oltre il rettangolo trascinato, per via della profondità:
+  // l'ingombro vero è l'unione di tutte le parti, altrimenti metà solido
+  // resta fuori dalla selezione e dalle maniglie.
+  function ingombro(sh){
+    var pp = parti(sh), xs = [], ys = [];
+    pp.vis.concat(pp.nasc).forEach(function(p){
+      if (p.t === 'poly'){ p.pts.forEach(function(q){ xs.push(q[0]); ys.push(q[1]); }); }
+      else { xs.push(p.cx-Math.abs(p.rx), p.cx+Math.abs(p.rx)); ys.push(p.cy-Math.abs(p.ry), p.cy+Math.abs(p.ry)); }
+    });
+    if (!xs.length) return norm(sh);
+    var x = Math.min.apply(null, xs), y = Math.min.apply(null, ys);
+    return { x:x, y:y, w: Math.max.apply(null, xs)-x, h: Math.max.apply(null, ys)-y };
+  }
+  var _bboxPrec = window._efBBox;
+  window._efBBox = function(sh){ return isSol(sh.tipo) ? ingombro(sh) : _bboxPrec(sh); };
+
+  if (window._ef2b && typeof window._ef2b.setRidim === 'function'){
+    window._ef2b.setRidim(isSol, function(sh, b, nw, nh, stato){
+      var fx = b.w ? nw/b.w : 1, fy = b.h ? nh/b.h : 1;
+      sh.w = (stato.w0 || 0) * Math.max(0.1, fx);
+      sh.h = (stato.h0 || 0) * Math.max(0.1, fy);
+    });
+  }
+
   var _drawPrec = window._efDrawShape;
   window._efDrawShape = function(ctx, sh, selected){
     if (!isSol(sh.tipo)) return _drawPrec(ctx, sh, selected);
@@ -11337,9 +11439,15 @@ const initInterval = setInterval(function() {
     ctx.lineWidth   = sh.sw     || 2;
     ctx.lineJoin = 'round'; ctx.lineCap = 'round';
 
-    if (!sh.fillNone){
-      pp.vis.forEach(function(p){ if (p.pieno){ traccia(ctx, p); ctx.fill(); } });
-    }
+    // sh.facce tiene il colore di ogni faccia colorata singolarmente;
+    // se manca, vale il riempimento generale della figura
+    var facce = sh.facce || {};
+    pp.vis.forEach(function(p, i){
+      var col = facce[i] || ((p.pieno && !sh.fillNone) ? (sh.fill || '#fff') : null);
+      if (!col) return;
+      ctx.fillStyle = col; traccia(ctx, p); ctx.fill();
+    });
+    ctx.fillStyle = sh.fill || '#fff';
     pp.vis.forEach(function(p){ traccia(ctx, p); ctx.stroke(); });
 
     ctx.setLineDash([7,5]);
@@ -11363,9 +11471,13 @@ const initInterval = setInterval(function() {
     var base = 'stroke="'+col+'" stroke-width="'+sw+'" stroke-linecap="round" stroke-linejoin="round"';
     var out = [];
 
-    function svgParte(p, nascosta){
+    var facce = sh.facce || {};
+    function svgParte(p, nascosta, idx){
       var dash = nascosta ? ' stroke-dasharray="7,5"' : '';
-      var riemp = (!nascosta && p.pieno && !sh.fillNone) ? (sh.fill || '#fff') : 'none';
+      var riemp = 'none';
+      if (!nascosta){
+        riemp = facce[idx] || ((p.pieno && !sh.fillNone) ? (sh.fill || '#fff') : 'none');
+      }
       if (p.t === 'poly'){
         var pts = p.pts.map(function(q){ return n(q[0])+','+n(q[1]); }).join(' ');
         return '<'+(p.chiuso?'polygon':'polyline')+' points="'+pts+'" fill="'+riemp+'" '+base+dash+'/>';
@@ -11380,8 +11492,8 @@ const initInterval = setInterval(function() {
       return '<path d="M '+n(x0)+' '+n(y0)+' A '+n(Math.abs(p.rx))+' '+n(Math.abs(p.ry))+' 0 '+grande+' 1 '+n(x1)+' '+n(y1)+'" fill="none" '+base+dash+'/>';
     }
 
-    pp.vis.forEach(function(p){ out.push(svgParte(p, false)); });
-    pp.nasc.forEach(function(p){ out.push(svgParte(p, true)); });
+    pp.vis.forEach(function(p, i){ out.push(svgParte(p, false, i)); });
+    pp.nasc.forEach(function(p){ out.push(svgParte(p, true, -1)); });
     return out.join('');
   };
 
@@ -11395,11 +11507,32 @@ const initInterval = setInterval(function() {
       var dx = p.x-cx, dy = p.y-cy;
       p = { x: cx + dx*co - dy*s, y: cy + dx*s + dy*co };
     }
-    var b = norm(sh), tol = Math.max(6, (sh.sw||2)+3);
-    return p.x >= b.x-tol && p.x <= b.x2+tol && p.y >= b.y-tol && p.y <= b.y2+tol;
+    var b = ingombro(sh), tol = Math.max(6, (sh.sw||2)+3);
+    return p.x >= b.x-tol && p.x <= b.x+b.w+tol && p.y >= b.y-tol && p.y <= b.y+b.h+tol;
   };
 
-  window._efSol = { tipi: SOLIDI, parti: parti, is: isSol };
+  // quale faccia visibile sta sotto il cursore
+  function facciaSotto(sh, p){
+    var pp = parti(sh);
+    for (var i = pp.vis.length-1; i >= 0; i--){
+      var q = pp.vis[i];
+      if (q.t === 'poly' && q.chiuso && q.pts.length >= 3){
+        var dentro = false;
+        for (var a=0, b=q.pts.length-1; a<q.pts.length; b=a++){
+          var xi=q.pts[a][0], yi=q.pts[a][1], xj=q.pts[b][0], yj=q.pts[b][1];
+          if (((yi > p.y) !== (yj > p.y)) && (p.x < (xj-xi)*(p.y-yi)/((yj-yi)||1e-9) + xi)) dentro = !dentro;
+        }
+        if (dentro) return i;
+      } else if (q.t === 'arco'){
+        var dx = (p.x-q.cx)/(Math.abs(q.rx)||1), dy = (p.y-q.cy)/(Math.abs(q.ry)||1);
+        if (dx*dx + dy*dy <= 1) return i;
+      }
+    }
+    return -1;
+  }
+
+  window._efSol = { tipi: SOLIDI, parti: parti, is: isSol, facciaSotto: facciaSotto,
+                    nFacce: function(sh){ return parti(sh).vis.length; } };
 })();
 // === END: editor figure — sessione 3 === //
 
@@ -11422,7 +11555,23 @@ const initInterval = setInterval(function() {
     e.stopPropagation(); e.preventDefault();
     if (!colpita) return;
     _efPushUndo();
-    if (SENZA_RIEMPIMENTO.indexOf(colpita.tipo) >= 0){
+
+    // Sui solidi: clic normale colora la singola faccia sotto il cursore,
+    // Shift+clic colora tutto il solido. Alt+clic riporta al trasparente.
+    if (window._efSol && _efSol.is(colpita.tipo)){
+      if (e.altKey){ colpita.facce = {}; colpita.fillNone = true; }
+      else if (e.shiftKey){
+        var n = _efSol.nFacce(colpita), tutte = {};
+        for (var i=0;i<n;i++) tutte[i] = _ef.fill;
+        colpita.facce = tutte; colpita.fill = _ef.fill; colpita.fillNone = false;
+      } else {
+        var k = _efSol.facciaSotto(colpita, p);
+        if (k < 0) k = 0;                       // fuori dalle facce: vale la frontale
+        colpita.facce = colpita.facce || {};
+        colpita.facce[k] = _ef.fill;
+      }
+    }
+    else if (SENZA_RIEMPIMENTO.indexOf(colpita.tipo) >= 0){
       colpita.stroke = _ef.stroke;              // linee e angoli: cambia il tratto
     } else if (colpita.tipo === 'text'){
       colpita.fill = _ef.fill; colpita.stroke = _ef.fill;
