@@ -11386,6 +11386,14 @@ const initInterval = setInterval(function() {
     else if (sh.tipo === 'cilindro'){
       var ry = Math.max(6, b.h * 0.13), rx = b.w/2;
       var yt = b.y + ry, yb = b.y2 - ry;
+      // superficie laterale: campiono il profilo, così è una superficie vera
+      // che si può riempire (prima non esisteva e restava impossibile colorarla)
+      var corpo = [];
+      for (var t1=0; t1<=24; t1++){ var a = Math.PI + Math.PI*t1/24;
+        corpo.push([b.cx + Math.cos(a)*rx, yt + Math.sin(a)*ry]); }
+      for (var t2=0; t2<=24; t2++){ var a2 = -Math.PI*t2/24;
+        corpo.push([b.cx + Math.cos(a2)*rx, yb - Math.sin(a2)*ry]); }
+      vis.push({ t:'poly', pts:corpo, chiuso:true, pieno:true, noTratto:true });
       vis.push(P([[b.x,yt],[b.x,yb]], false));
       vis.push(P([[b.x2,yt],[b.x2,yb]], false));
       vis.push(E(b.cx, yt, rx, ry, 0, Math.PI*2, true));          // base superiore intera
@@ -11395,6 +11403,10 @@ const initInterval = setInterval(function() {
     else if (sh.tipo === 'cono'){
       var ry2 = Math.max(6, b.h * 0.13), rx2 = b.w/2;
       var yb2 = b.y2 - ry2;
+      var corpoC = [[b.cx, b.y]];
+      for (var t3=0; t3<=24; t3++){ var a3 = Math.PI - Math.PI*t3/24;
+        corpoC.push([b.cx + Math.cos(a3)*rx2, yb2 + Math.sin(a3)*ry2]); }
+      vis.push({ t:'poly', pts:corpoC, chiuso:true, pieno:true, noTratto:true });
       vis.push(P([[b.cx,b.y],[b.x,yb2]], false));
       vis.push(P([[b.cx,b.y],[b.x2,yb2]], false));
       vis.push(E(b.cx, yb2, rx2, ry2, 0, Math.PI));
@@ -11462,7 +11474,7 @@ const initInterval = setInterval(function() {
       ctx.fillStyle = col; traccia(ctx, p); ctx.fill();
     });
     ctx.fillStyle = sh.fill || '#fff';
-    pp.vis.forEach(function(p){ traccia(ctx, p); ctx.stroke(); });
+    pp.vis.forEach(function(p){ if (p.noTratto) return; traccia(ctx, p); ctx.stroke(); });
 
     ctx.setLineDash([7,5]);
     pp.nasc.forEach(function(p){ traccia(ctx, p); ctx.stroke(); });
@@ -11494,7 +11506,8 @@ const initInterval = setInterval(function() {
       }
       if (p.t === 'poly'){
         var pts = p.pts.map(function(q){ return n(q[0])+','+n(q[1]); }).join(' ');
-        return '<'+(p.chiuso?'polygon':'polyline')+' points="'+pts+'" fill="'+riemp+'" '+base+dash+'/>';
+        var tratto = p.noTratto ? 'stroke="none"' : base;
+        return '<'+(p.chiuso?'polygon':'polyline')+' points="'+pts+'" fill="'+riemp+'" '+tratto+dash+'/>';
       }
       var giro = Math.abs(p.a1 - p.a0) >= Math.PI*2 - 0.001;
       if (giro){
@@ -11580,9 +11593,15 @@ const initInterval = setInterval(function() {
         colpita.facce = tutte; colpita.fill = _ef.fill; colpita.fillNone = false;
       } else {
         var k = _efSol.facciaSotto(colpita, p);
-        if (k < 0) k = 0;                       // fuori dalle facce: vale la frontale
         colpita.facce = colpita.facce || {};
-        colpita.facce[k] = _ef.fill;
+        if (k < 0){
+          // punto senza una faccia sotto (sfondo del solido): coloro tutto
+          var tot = _efSol.nFacce(colpita);
+          for (var j=0;j<tot;j++) colpita.facce[j] = _ef.fill;
+          colpita.fill = _ef.fill; colpita.fillNone = false;
+        } else {
+          colpita.facce[k] = _ef.fill;
+        }
       }
     }
     else if (SENZA_RIEMPIMENTO.indexOf(colpita.tipo) >= 0){
