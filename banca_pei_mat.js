@@ -4220,9 +4220,9 @@ window.BANCA_PEI_MAT = {
         id: "DAT-I-03-D1",
         livello: "difficile",
         tipo: "multipla",
-        testo: "Istogramma vendite: gen 120, feb 105, mar 135, apr 150. In quale mese le vendite sono cresciute di più?",
+        testo: "Istogramma vendite: gen 120, feb 105, mar 135, apr 150. In quale mese le vendite sono cresciute di più rispetto al mese precedente?",
         opzioni: ["Gennaio", "Febbraio", "Marzo", "Aprile"],
-        corretta: 3
+        corretta: 2
       },
       {
         id: "DAT-I-03-D2",
