@@ -794,6 +794,17 @@ tr:hover td{background:var(--grigio-ch)}
 .pei-cerca-info{font-size:11.5px;color:#7c8798;font-weight:600;white-space:nowrap}
 .pei-vuoto{text-align:center;color:#9aa3b2;font-size:12px;padding:18px}
 
+/* striscia di scelta sopra il foglio da disegno */
+.ef-striscia{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 10px;margin-bottom:8px;
+  background:#f4f7fb;border:1px solid #dbe3ee;border-radius:9px;max-height:132px;overflow-y:auto}
+.ef-str-tit{width:100%;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#7c8798;margin:2px 0 1px}
+.ef-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border:1.5px solid #cfd8e6;border-radius:20px;
+  background:#fff;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;color:#243447;transition:all .12s}
+.ef-chip:hover{border-color:#1565c0;background:#eef4ff}
+.ef-chip.att{border-color:#1565c0;background:#1565c0;color:#fff;box-shadow:0 1px 4px rgba(21,101,192,.35)}
+.ef-chip .pastiglia{width:16px;height:16px;border-radius:50%;border:1px solid rgba(0,0,0,.25);display:inline-block}
+.ef-chip .bigl{width:22px;height:12px;border-radius:2px;border:1px solid rgba(0,0,0,.25);display:inline-block}
+
 /* TIC del passo 2 */
 .pei-tic-tools{display:flex;align-items:center;gap:9px;padding-bottom:7px;margin-bottom:5px;border-bottom:1px dashed var(--grigio);position:sticky;top:-8px;background:var(--grigio-ch);z-index:2}
 .pei-tic-all{font-size:11px;font-weight:700;color:var(--blu);background:#fff;border:1px dashed var(--az);border-radius:6px;padding:4px 11px;cursor:pointer;font-family:inherit}
@@ -1175,6 +1186,11 @@ body.prova-finita #diz-widget { display: none !important; }
         <button class="ef-tool" id="ef-t-ang-135" onclick="efSetTool('ang-135')" title="Angolo ottuso (135°) — trascina dal vertice">∡</button>
         <button class="ef-tool" id="ef-t-freepoly" onclick="efSetTool('freepoly')" title="Poligono libero — click per ogni vertice, doppio-click per chiudere, Esc per annullare">✏</button>
         <div class="ef-tool-sep"></div>
+        <div class="ef-tool-sep"></div>
+        <button class="ef-tool" id="ef-t-euro"     onclick="efSetTool('euro')"     title="Monete e banconote in euro">💶</button>
+        <button class="ef-tool" id="ef-t-pitto"    onclick="efSetTool('pitto')"    title="Pittogrammi per i problemi (frutta, oggetti)">🍎</button>
+        <button class="ef-tool" id="ef-t-frazione" onclick="efSetTool('frazione')" title="Torta delle frazioni">🥧</button>
+        <div class="ef-tool-sep"></div>
         <button class="ef-tool" id="ef-t-text"    onclick="efSetTool('text')"    title="Testo">🅰️</button>
         <button class="ef-tool" id="ef-t-fill" onclick="efSetTool('fill')" title="Secchiello — clic per colorare una figura, Alt+clic per togliere il colore">🪣</button>
         <button class="ef-tool" onclick="efCancSel()"  title="Cancella selezione">🧽</button>
@@ -1186,6 +1202,7 @@ body.prova-finita #diz-widget { display: none !important; }
 
       <!-- CANVAS -->
       <div class="ef-canvas-wrap">
+        <div id="ef-striscia" class="ef-striscia" style="display:none"></div>
         <canvas id="ef-canvas" width="900" height="600"></canvas>
       </div>
 
@@ -9727,7 +9744,7 @@ function efSetTool(t){
   document.querySelectorAll('.ef-tool').forEach(function(b){ b.classList.remove('att'); });
   var btn = document.getElementById('ef-t-'+t);
   if(btn) btn.classList.add('att');
-var labels = {select:'Seleziona',line:'Linea',arrow:'Freccia',segq:'Segmento quotato',rect:'Rettangolo',square:'Quadrato',circle:'Cerchio',ellipse:'Ellisse',triangle:'Triangolo','tri-equi':'Triangolo equilatero','tri-iso':'Triangolo isoscele','tri-rect':'Triangolo rettangolo',rombo:'Rombo',parallelo:'Parallelogramma','trap-rect':'Trapezio rettangolo','trap-iso':'Trapezio isoscele','trap-scal':'Trapezio scaleno','poly-5':'Pentagono','poly-6':'Esagono','poly-8':'Ottagono',sector:'Settore circolare',freepoly:'Poligono libero',fill:'Secchiello',cubo:'Cubo',parall:'Parallelepipedo',piramide:'Piramide',cilindro:'Cilindro',cono:'Cono',sfera:'Sfera','ang-45':'Angolo acuto (45°)','ang-90':'Angolo retto (90°)','ang-135':'Angolo ottuso (135°)',text:'Testo'};
+var labels = {select:'Seleziona',line:'Linea',arrow:'Freccia',segq:'Segmento quotato',rect:'Rettangolo',square:'Quadrato',circle:'Cerchio',ellipse:'Ellisse',triangle:'Triangolo','tri-equi':'Triangolo equilatero','tri-iso':'Triangolo isoscele','tri-rect':'Triangolo rettangolo',rombo:'Rombo',parallelo:'Parallelogramma','trap-rect':'Trapezio rettangolo','trap-iso':'Trapezio isoscele','trap-scal':'Trapezio scaleno','poly-5':'Pentagono','poly-6':'Esagono','poly-8':'Ottagono',sector:'Settore circolare',freepoly:'Poligono libero',euro:'Monete e banconote',pitto:'Pittogramma',frazione:'Torta delle frazioni',fill:'Secchiello',cubo:'Cubo',parall:'Parallelepipedo',piramide:'Piramide',cilindro:'Cilindro',cono:'Cono',sfera:'Sfera','ang-45':'Angolo acuto (45°)','ang-90':'Angolo retto (90°)','ang-135':'Angolo ottuso (135°)',text:'Testo'};
   var lblEl = document.getElementById('ef-tool-lbl');
   if(lblEl) lblEl.textContent = labels[t] || t;
   _ef.canvas.className = t==='select' ? 'tool-select' : '';
@@ -11434,6 +11451,261 @@ const initInterval = setInterval(function() {
   window._efFill = { coloraSotto: coloraSotto };
 })();
 // === END: editor figure — sessione 5 === //
+
+// === BEGIN: editor figure — sessione 4: pittogrammi (euro, oggetti, frazioni) === //
+(function(){
+  if (typeof window._efDrawShape !== 'function') return;
+
+  // ── Monete e banconote in euro ────────────────────────────────
+  // Disegni schematici: colore, forma e taglio, non riproduzioni delle
+  // banconote vere (che l'BCE non consente di riprodurre fedelmente).
+  var MONETE = [
+    { id:'c1',  et:'1c',  r:0.36, bordo:'#a55a2a', faccia:'#c87137', txt:'1c'  },
+    { id:'c2',  et:'2c',  r:0.40, bordo:'#a55a2a', faccia:'#c87137', txt:'2c'  },
+    { id:'c5',  et:'5c',  r:0.44, bordo:'#a55a2a', faccia:'#c87137', txt:'5c'  },
+    { id:'c10', et:'10c', r:0.42, bordo:'#b8952f', faccia:'#e0c14e', txt:'10c' },
+    { id:'c20', et:'20c', r:0.46, bordo:'#b8952f', faccia:'#e0c14e', txt:'20c' },
+    { id:'c50', et:'50c', r:0.50, bordo:'#b8952f', faccia:'#e0c14e', txt:'50c' },
+    { id:'e1',  et:'1 €', r:0.48, bordo:'#b8952f', faccia:'#dcdcdc', txt:'1 €', bimetallo:true },
+    { id:'e2',  et:'2 €', r:0.52, bordo:'#c9c9c9', faccia:'#e0c14e', txt:'2 €', bimetallo:true }
+  ];
+  var BIGLIETTI = [
+    { id:'b5',   et:'5 €',   col:'#9e9e9e', txt:'5'   },
+    { id:'b10',  et:'10 €',  col:'#d5675a', txt:'10'  },
+    { id:'b20',  et:'20 €',  col:'#5a86c4', txt:'20'  },
+    { id:'b50',  et:'50 €',  col:'#e0913f', txt:'50'  },
+    { id:'b100', et:'100 €', col:'#6aa96f', txt:'100' },
+    { id:'b200', et:'200 €', col:'#d0b45e', txt:'200' },
+    { id:'b500', et:'500 €', col:'#9b7fbe', txt:'500' }
+  ];
+  function trovaEuro(id){
+    for (var i=0;i<MONETE.length;i++) if (MONETE[i].id===id) return { m:MONETE[i] };
+    for (var j=0;j<BIGLIETTI.length;j++) if (BIGLIETTI[j].id===id) return { b:BIGLIETTI[j] };
+    return null;
+  }
+
+  // ── Pittogrammi per i problemi ────────────────────────────────
+  // Semplici caratteri: si ridimensionano senza perdere qualità e la
+  // libreria si allarga aggiungendo una riga qui sotto.
+  var PITTO = [
+    { g:'Frutta',  voci:[['🍎','mela'],['🍐','pera'],['🍌','banana'],['🍊','arancia'],['🍓','fragola'],['🍇','uva'],['🍉','anguria'],['🍋','limone']] },
+    { g:'Scuola',  voci:[['📗','quaderno'],['📚','libri'],['✏️','matita'],['🖊️','penna'],['🖍️','pennarello'],['📐','squadra'],['📏','righello'],['🎒','zaino']] },
+    { g:'Cose',    voci:[['🍬','caramella'],['🍪','biscotto'],['⚽','pallone'],['🚗','auto'],['🧃','succo'],['🍾','bottiglia'],['📦','scatola'],['🪙','gettone']] },
+    { g:'Persone', voci:[['🧒','bambino'],['👧','bambina'],['🧑‍🏫','maestro'],['👥','gruppo']] },
+    { g:'Tempo',   voci:[['🕐','orologio'],['📅','calendario'],['⏱️','cronometro']] }
+  ];
+
+  // ── Torte delle frazioni ──────────────────────────────────────
+  var FRAZIONI = [[1,2],[1,3],[2,3],[1,4],[3,4],[1,5],[2,5],[1,6],[5,6],[3,8],[1,8],[1,10]];
+
+  function norm(sh){
+    var x = Math.min(sh.x, sh.x + (sh.w||0)), y = Math.min(sh.y, sh.y + (sh.h||0));
+    return { x:x, y:y, w:Math.abs(sh.w||0), h:Math.abs(sh.h||0), cx:x+Math.abs(sh.w||0)/2, cy:y+Math.abs(sh.h||0)/2 };
+  }
+  var MIEI = ['euro','pitto','frazione'];
+  function mio(t){ return MIEI.indexOf(t) >= 0; }
+
+  // ── disegno su canvas ─────────────────────────────────────────
+  var _drawPrec = window._efDrawShape;
+  window._efDrawShape = function(ctx, sh, selected){
+    if (!mio(sh.tipo)) return _drawPrec(ctx, sh, selected);
+    var b = norm(sh);
+    ctx.save();
+    ctx.lineWidth = sh.sw || 2;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+
+    if (sh.tipo === 'euro'){
+      var e = trovaEuro(sh.val) || { m: MONETE[6] };
+      if (e.m){
+        var rr = Math.min(b.w, b.h)/2;
+        if (e.m.bimetallo){
+          ctx.fillStyle = e.m.bordo; ctx.beginPath(); ctx.arc(b.cx, b.cy, rr, 0, Math.PI*2); ctx.fill();
+          ctx.fillStyle = e.m.faccia; ctx.beginPath(); ctx.arc(b.cx, b.cy, rr*0.66, 0, Math.PI*2); ctx.fill();
+        } else {
+          ctx.fillStyle = e.m.faccia; ctx.beginPath(); ctx.arc(b.cx, b.cy, rr, 0, Math.PI*2); ctx.fill();
+        }
+        ctx.strokeStyle = e.m.bordo; ctx.beginPath(); ctx.arc(b.cx, b.cy, rr, 0, Math.PI*2); ctx.stroke();
+        ctx.fillStyle = '#3a2a10';
+        ctx.font = 'bold ' + Math.max(9, rr*0.62) + 'px Segoe UI, sans-serif';
+        ctx.fillText(e.m.txt, b.cx, b.cy);
+      } else {
+        var g = e.b;
+        ctx.fillStyle = g.col; ctx.strokeStyle = '#3a3a3a';
+        ctx.beginPath(); ctx.rect(b.x, b.y, b.w, b.h); ctx.fill(); ctx.stroke();
+        ctx.strokeStyle = 'rgba(255,255,255,.75)';
+        ctx.strokeRect(b.x + b.w*0.06, b.y + b.h*0.12, b.w*0.88, b.h*0.76);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold ' + Math.max(11, b.h*0.42) + 'px Segoe UI, sans-serif';
+        ctx.fillText(g.txt, b.x + b.w*0.32, b.cy);
+        ctx.font = 'bold ' + Math.max(9, b.h*0.26) + 'px Segoe UI, sans-serif';
+        ctx.fillText('EURO', b.x + b.w*0.74, b.cy);
+      }
+    }
+    else if (sh.tipo === 'pitto'){
+      var dim = Math.min(b.w, b.h);
+      ctx.font = Math.max(10, dim*0.92) + 'px "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif';
+      ctx.fillStyle = '#000';
+      ctx.fillText(sh.ch || '🍎', b.cx, b.cy);
+    }
+    else { // frazione
+      var n = sh.n || 4, m = sh.m || 1;
+      var r2 = Math.min(b.w, b.h)/2, passo = Math.PI*2/n, a0 = -Math.PI/2;
+      for (var i=0;i<n;i++){
+        ctx.beginPath(); ctx.moveTo(b.cx, b.cy);
+        ctx.arc(b.cx, b.cy, r2, a0 + i*passo, a0 + (i+1)*passo); ctx.closePath();
+        ctx.fillStyle = (i < m) ? (sh.fill || '#ff9800') : '#ffffff';
+        ctx.fill();
+        ctx.strokeStyle = sh.stroke || '#000'; ctx.stroke();
+      }
+    }
+
+    if (selected){
+      ctx.strokeStyle = '#1565c0'; ctx.lineWidth = 1.5; ctx.setLineDash([6,4]);
+      ctx.strokeRect(b.x-4, b.y-4, b.w+8, b.h+8);
+      ctx.setLineDash([]);
+    }
+    ctx.restore();
+  };
+
+  // ── esportazione SVG ──────────────────────────────────────────
+  var _svgPrec = window._efShapeToSVG;
+  window._efShapeToSVG = function(sh){
+    if (!mio(sh.tipo)) return _svgPrec(sh);
+    var b = norm(sh), sw = sh.sw || 2, n2 = function(v){ return Math.round(v*100)/100; };
+    var esc = function(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+    var out = [];
+
+    if (sh.tipo === 'euro'){
+      var e = trovaEuro(sh.val) || { m: MONETE[6] };
+      if (e.m){
+        var rr = Math.min(b.w, b.h)/2;
+        if (e.m.bimetallo){
+          out.push('<circle cx="'+n2(b.cx)+'" cy="'+n2(b.cy)+'" r="'+n2(rr)+'" fill="'+e.m.bordo+'" stroke="'+e.m.bordo+'" stroke-width="'+sw+'"/>');
+          out.push('<circle cx="'+n2(b.cx)+'" cy="'+n2(b.cy)+'" r="'+n2(rr*0.66)+'" fill="'+e.m.faccia+'"/>');
+        } else {
+          out.push('<circle cx="'+n2(b.cx)+'" cy="'+n2(b.cy)+'" r="'+n2(rr)+'" fill="'+e.m.faccia+'" stroke="'+e.m.bordo+'" stroke-width="'+sw+'"/>');
+        }
+        out.push('<text x="'+n2(b.cx)+'" y="'+n2(b.cy)+'" text-anchor="middle" dominant-baseline="central" font-family="Segoe UI, sans-serif" font-weight="bold" font-size="'+n2(Math.max(9, rr*0.62))+'" fill="#3a2a10">'+esc(e.m.txt)+'</text>');
+      } else {
+        var g = e.b;
+        out.push('<rect x="'+n2(b.x)+'" y="'+n2(b.y)+'" width="'+n2(b.w)+'" height="'+n2(b.h)+'" fill="'+g.col+'" stroke="#3a3a3a" stroke-width="'+sw+'"/>');
+        out.push('<rect x="'+n2(b.x+b.w*0.06)+'" y="'+n2(b.y+b.h*0.12)+'" width="'+n2(b.w*0.88)+'" height="'+n2(b.h*0.76)+'" fill="none" stroke="rgba(255,255,255,.75)" stroke-width="'+sw+'"/>');
+        out.push('<text x="'+n2(b.x+b.w*0.32)+'" y="'+n2(b.cy)+'" text-anchor="middle" dominant-baseline="central" font-family="Segoe UI, sans-serif" font-weight="bold" font-size="'+n2(Math.max(11,b.h*0.42))+'" fill="#fff">'+esc(g.txt)+'</text>');
+        out.push('<text x="'+n2(b.x+b.w*0.74)+'" y="'+n2(b.cy)+'" text-anchor="middle" dominant-baseline="central" font-family="Segoe UI, sans-serif" font-weight="bold" font-size="'+n2(Math.max(9,b.h*0.26))+'" fill="#fff">EURO</text>');
+      }
+    }
+    else if (sh.tipo === 'pitto'){
+      var dim = Math.min(b.w, b.h);
+      out.push('<text x="'+n2(b.cx)+'" y="'+n2(b.cy)+'" text-anchor="middle" dominant-baseline="central" font-size="'+n2(Math.max(10,dim*0.92))+'" font-family="Segoe UI Emoji, Apple Color Emoji, Noto Color Emoji, sans-serif">'+esc(sh.ch||'🍎')+'</text>');
+    }
+    else {
+      var nn = sh.n || 4, mm = sh.m || 1, r3 = Math.min(b.w,b.h)/2, passo2 = Math.PI*2/nn, aa = -Math.PI/2;
+      for (var k=0;k<nn;k++){
+        var s0 = aa + k*passo2, s1 = aa + (k+1)*passo2;
+        var x0 = b.cx + Math.cos(s0)*r3, y0 = b.cy + Math.sin(s0)*r3;
+        var x1 = b.cx + Math.cos(s1)*r3, y1 = b.cy + Math.sin(s1)*r3;
+        var grande = (passo2 > Math.PI) ? 1 : 0;
+        var col = (k < mm) ? (sh.fill || '#ff9800') : '#ffffff';
+        if (nn === 1){
+          out.push('<circle cx="'+n2(b.cx)+'" cy="'+n2(b.cy)+'" r="'+n2(r3)+'" fill="'+col+'" stroke="'+(sh.stroke||'#000')+'" stroke-width="'+sw+'"/>');
+        } else {
+          out.push('<path d="M '+n2(b.cx)+' '+n2(b.cy)+' L '+n2(x0)+' '+n2(y0)+' A '+n2(r3)+' '+n2(r3)+' 0 '+grande+' 1 '+n2(x1)+' '+n2(y1)+' Z" fill="'+col+'" stroke="'+(sh.stroke||'#000')+'" stroke-width="'+sw+'"/>');
+        }
+      }
+    }
+    return out.join('');
+  };
+
+  // ── selezione ─────────────────────────────────────────────────
+  var _hitPrec = window._efHitTest;
+  window._efHitTest = function(sh, p){
+    if (!mio(sh.tipo)) return _hitPrec(sh, p);
+    var r0 = sh.rot || 0, b = norm(sh);
+    if (r0){
+      var a = -r0*Math.PI/180, s = Math.sin(a), co = Math.cos(a);
+      var dx = p.x-b.cx, dy = p.y-b.cy;
+      p = { x: b.cx + dx*co - dy*s, y: b.cy + dx*s + dy*co };
+    }
+    var tol = Math.max(6, (sh.sw||2)+3);
+    return p.x >= b.x-tol && p.x <= b.x+b.w+tol && p.y >= b.y-tol && p.y <= b.y+b.h+tol;
+  };
+
+  // ── striscia di scelta sopra il foglio ────────────────────────
+  var scelta = { euro:'e1', pitto:'🍎', frazione:[1,4] };
+
+  function chip(html, attivo, onclick){
+    return '<button type="button" class="ef-chip'+(attivo?' att':'')+'" onclick="'+onclick+'">'+html+'</button>';
+  }
+  function disegnaStriscia(tool){
+    var el = document.getElementById('ef-striscia');
+    if (!el) return;
+    if (!mio(tool)){ el.style.display = 'none'; el.innerHTML = ''; return; }
+    var h = '';
+    if (tool === 'euro'){
+      h += '<div class="ef-str-tit">Monete</div>';
+      MONETE.forEach(function(m){
+        h += chip('<span class="pastiglia" style="background:'+m.faccia+';border-color:'+m.bordo+'"></span>'+m.et,
+                  scelta.euro===m.id, "_efPitto.scegli('euro','"+m.id+"')");
+      });
+      h += '<div class="ef-str-tit">Banconote</div>';
+      BIGLIETTI.forEach(function(g){
+        h += chip('<span class="bigl" style="background:'+g.col+'"></span>'+g.et,
+                  scelta.euro===g.id, "_efPitto.scegli('euro','"+g.id+"')");
+      });
+      h += '<div class="ef-str-tit" style="color:#9aa3b2;text-transform:none;font-weight:600">Scegli il taglio, poi trascina sul foglio per posarlo e dargli la misura.</div>';
+    }
+    else if (tool === 'pitto'){
+      PITTO.forEach(function(cat){
+        h += '<div class="ef-str-tit">'+cat.g+'</div>';
+        cat.voci.forEach(function(v){
+          h += chip('<span style="font-size:16px">'+v[0]+'</span>'+v[1],
+                    scelta.pitto===v[0], "_efPitto.scegli('pitto','"+v[0]+"')");
+        });
+      });
+    }
+    else {
+      h += '<div class="ef-str-tit">Frazione da rappresentare</div>';
+      FRAZIONI.forEach(function(f){
+        h += chip(f[0]+'/'+f[1], (scelta.frazione[0]===f[0] && scelta.frazione[1]===f[1]),
+                  "_efPitto.scegli('frazione','"+f[0]+"-"+f[1]+"')");
+      });
+      h += '<div class="ef-str-tit" style="color:#9aa3b2;text-transform:none;font-weight:600">La parte colorata usa il colore di riempimento scelto nel pannello a destra.</div>';
+    }
+    el.innerHTML = h;
+    el.style.display = 'flex';
+  }
+
+  function scegli(tool, v){
+    if (tool === 'frazione'){ var p = v.split('-'); scelta.frazione = [parseInt(p[0]), parseInt(p[1])]; }
+    else scelta[tool] = v;
+    disegnaStriscia(tool);
+  }
+
+  var _setToolPrec = window.efSetTool;
+  window.efSetTool = function(t){
+    _setToolPrec(t);
+    disegnaStriscia(t);
+  };
+
+  // al rilascio del trascinamento la forma prende il taglio scelto
+  var _upPrec = window._efOnUp;
+  window._efOnUp = function(e){
+    var d = _ef.dragShape;
+    if (d && mio(d.tipo)){
+      if (d.tipo === 'euro'){
+        d.val = scelta.euro;
+        var e2 = trovaEuro(d.val);
+        if (e2 && e2.m){ var lato = Math.max(Math.abs(d.w), Math.abs(d.h)); d.w = (d.w<0?-lato:lato); d.h = (d.h<0?-lato:lato); }
+      }
+      else if (d.tipo === 'pitto'){ d.ch = scelta.pitto; }
+      else { d.n = scelta.frazione[1]; d.m = scelta.frazione[0]; }
+    }
+    return _upPrec.call(this, e);
+  };
+
+  window._efPitto = { scegli: scegli, striscia: disegnaStriscia, monete: MONETE, biglietti: BIGLIETTI, pitto: PITTO, frazioni: FRAZIONI, scelta: function(){ return scelta; } };
+})();
+// === END: editor figure — sessione 4 === //
 </script>
 </body>
 </html>
