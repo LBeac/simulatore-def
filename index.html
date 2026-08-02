@@ -795,17 +795,28 @@ tr:hover td{background:var(--grigio-ch)}
 .pei-vuoto{text-align:center;color:#9aa3b2;font-size:12px;padding:18px}
 
 /* striscia di scelta sopra il foglio da disegno */
-/* il contenitore del foglio impila in colonna, così la striscia sta davvero sopra */
-.ef-canvas-wrap{flex-direction:column}
-.ef-canvas-wrap > #ef-canvas{flex:0 0 auto}
-.ef-striscia{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:9px 11px;margin-bottom:10px;
-  width:100%;flex:0 0 auto;box-sizing:border-box;
-  background:#f4f7fb;border:1px solid #dbe3ee;border-radius:9px;max-height:190px;overflow-y:auto}
-.ef-striscia::-webkit-scrollbar{width:9px}
-.ef-striscia::-webkit-scrollbar-thumb{background:#c9d2dd;border-radius:5px}
+/* Il contenitore del foglio impila in colonna e parte dall'alto: centrando
+   in verticale, ciò che sborda sopra non si raggiunge più con lo scorrimento. */
+.ef-canvas-wrap{flex-direction:column;justify-content:flex-start}
+.ef-canvas-wrap > #ef-canvas{flex:0 0 auto;margin:auto}
+.ef-striscia{width:100%;flex:0 0 auto;box-sizing:border-box;margin-bottom:10px;padding:8px 10px;
+  background:#f4f7fb;border:1px solid #dbe3ee;border-radius:9px}
+.ef-str-tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:7px}
+.ef-tab{padding:4px 13px;border:1.5px solid #cfd8e6;border-radius:20px;background:#fff;cursor:pointer;
+  font-family:inherit;font-size:11.5px;font-weight:700;color:#5a6675;transition:all .12s}
+.ef-tab:hover{border-color:var(--blu);color:var(--blu)}
+.ef-tab.att{background:var(--blu);border-color:var(--blu);color:#fff}
+.ef-str-riga{display:flex;gap:6px;align-items:center;overflow-x:auto;overflow-y:hidden;padding-bottom:5px}
+.ef-str-riga::-webkit-scrollbar{height:9px}
+.ef-str-riga::-webkit-scrollbar-thumb{background:#c9d2dd;border-radius:5px}
+.ef-str-nota{font-size:10.5px;color:#8a93a2;margin-top:5px}
+/* schermo intero */
+#ov-editor-figure.pieno{padding:0}
+#ov-editor-figure.pieno .ef-card{max-width:none;width:100vw;height:100vh;max-height:100vh;border-radius:0}
 .ef-str-tit{width:100%;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#7c8798;margin:2px 0 1px}
-.ef-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border:1.5px solid #cfd8e6;border-radius:20px;
-  background:#fff;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;color:#243447;transition:all .12s}
+.ef-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border:1.5px solid #cfd8e6;border-radius:20px;
+  background:#fff;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;color:#243447;transition:all .12s;
+  white-space:nowrap;flex:0 0 auto}
 .ef-chip:hover{border-color:#1565c0;background:#eef4ff}
 .ef-chip.att{border-color:#1565c0;background:#1565c0;color:#fff;box-shadow:0 1px 4px rgba(21,101,192,.35)}
 .ef-chip .pastiglia{width:16px;height:16px;border-radius:50%;border:1px solid rgba(0,0,0,.25);display:inline-block}
@@ -1148,7 +1159,10 @@ body.prova-finita #diz-widget { display: none !important; }
         <h3>✏️ Editor figure matematica</h3>
         <div class="ef-hdr-sub" id="ef-sub">Domanda —</div>
       </div>
-      <button class="ef-close" onclick="efAnnulla()">✕ Annulla</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="ef-close" id="ef-pieno" onclick="efSchermoIntero()" title="Ingrandisci a schermo intero">⛶ Schermo intero</button>
+        <button class="ef-close" onclick="efAnnulla()">✕ Annulla</button>
+      </div>
     </div>
 
     <div class="ef-body" id="ef-body">
@@ -11782,46 +11796,60 @@ const initInterval = setInterval(function() {
   // ── striscia di scelta sopra il foglio ────────────────────────
   var scelta = { euro:'e1', pitto:'🍎', frazione:[1,4] };
 
+  var catAttiva = { euro:'Monete', pitto:'Frutta' };
+
   function chip(html, attivo, onclick){
     return '<button type="button" class="ef-chip'+(attivo?' att':'')+'" onclick="'+onclick+'">'+html+'</button>';
   }
+  function tab(nome, attiva, tool){
+    return '<button type="button" class="ef-tab'+(attiva?' att':'')+'" onclick="_efPitto.cat(\''+tool+'\',\''+nome+'\')">'+nome+'</button>';
+  }
+
+  // Una riga sola che scorre in orizzontale, con le categorie a linguette:
+  // l'altezza resta costante e ogni voce è raggiungibile senza dipendere
+  // da quanto è alta la finestra.
   function disegnaStriscia(tool){
     var el = document.getElementById('ef-striscia');
     if (!el) return;
     if (!mio(tool)){ el.style.display = 'none'; el.innerHTML = ''; return; }
-    var h = '';
+    var tabs = '', riga = '', nota = '';
+
     if (tool === 'euro'){
-      h += '<div class="ef-str-tit">Monete</div>';
-      MONETE.forEach(function(m){
-        h += chip('<span class="pastiglia" style="background:'+m.faccia+';border-color:'+m.bordo+'"></span>'+m.et,
-                  scelta.euro===m.id, "_efPitto.scegli('euro','"+m.id+"')");
+      ['Monete','Banconote'].forEach(function(nc){ tabs += tab(nc, catAttiva.euro===nc, 'euro'); });
+      var lista = (catAttiva.euro === 'Monete') ? MONETE : BIGLIETTI;
+      lista.forEach(function(v){
+        var anteprima = (catAttiva.euro === 'Monete')
+          ? '<span class="pastiglia" style="background:'+v.faccia+';border-color:'+v.bordo+'"></span>'
+          : '<span class="bigl" style="background:'+v.col+'"></span>';
+        riga += chip(anteprima + v.et, scelta.euro===v.id, "_efPitto.scegli('euro','"+v.id+"')");
       });
-      h += '<div class="ef-str-tit">Banconote</div>';
-      BIGLIETTI.forEach(function(g){
-        h += chip('<span class="bigl" style="background:'+g.col+'"></span>'+g.et,
-                  scelta.euro===g.id, "_efPitto.scegli('euro','"+g.id+"')");
-      });
-      h += '<div class="ef-str-tit" style="color:#9aa3b2;text-transform:none;font-weight:600">Scegli il taglio, poi trascina sul foglio per posarlo e dargli la misura.</div>';
+      nota = 'Scegli il taglio, poi trascina sul foglio per posarlo e dargli la misura.';
     }
     else if (tool === 'pitto'){
-      PITTO.forEach(function(cat){
-        h += '<div class="ef-str-tit">'+cat.g+'</div>';
-        cat.voci.forEach(function(v){
-          h += chip('<span style="font-size:16px">'+v[0]+'</span>'+v[1],
-                    scelta.pitto===v[0], "_efPitto.scegli('pitto','"+v[0]+"')");
-        });
+      PITTO.forEach(function(cat){ tabs += tab(cat.g, catAttiva.pitto===cat.g, 'pitto'); });
+      var attiva = PITTO.filter(function(cat){ return cat.g === catAttiva.pitto; })[0] || PITTO[0];
+      attiva.voci.forEach(function(v){
+        riga += chip('<span style="font-size:17px">'+v[0]+'</span>'+v[1], scelta.pitto===v[0], "_efPitto.scegli('pitto','"+v[0]+"')");
       });
+      nota = 'Scelto il pittogramma, trascina sul foglio: si ingrandisce e si ruota come le altre figure.';
     }
     else {
-      h += '<div class="ef-str-tit">Frazione da rappresentare</div>';
       FRAZIONI.forEach(function(f){
-        h += chip(f[0]+'/'+f[1], (scelta.frazione[0]===f[0] && scelta.frazione[1]===f[1]),
-                  "_efPitto.scegli('frazione','"+f[0]+"-"+f[1]+"')");
+        riga += chip(f[0]+'/'+f[1], (scelta.frazione[0]===f[0] && scelta.frazione[1]===f[1]),
+                     "_efPitto.scegli('frazione','"+f[0]+"-"+f[1]+"')");
       });
-      h += '<div class="ef-str-tit" style="color:#9aa3b2;text-transform:none;font-weight:600">La parte colorata usa il colore di riempimento scelto nel pannello a destra.</div>';
+      nota = 'La parte colorata usa il colore di riempimento scelto nel pannello a destra.';
     }
-    el.innerHTML = h;
-    el.style.display = 'flex';
+
+    el.innerHTML = (tabs ? '<div class="ef-str-tabs">'+tabs+'</div>' : '')
+                 + '<div class="ef-str-riga">'+riga+'</div>'
+                 + '<div class="ef-str-nota">'+nota+'</div>';
+    el.style.display = 'block';
+  }
+
+  function cambiaCat(tool, nome){
+    catAttiva[tool] = nome;
+    disegnaStriscia(tool);
   }
 
   function scegli(tool, v){
@@ -11852,7 +11880,15 @@ const initInterval = setInterval(function() {
     return _upPrec.call(this, e);
   };
 
-  window._efPitto = { scegli: scegli, striscia: disegnaStriscia, monete: MONETE, biglietti: BIGLIETTI, pitto: PITTO, frazioni: FRAZIONI, scelta: function(){ return scelta; } };
+  window.efSchermoIntero = function(){
+    var ov = document.getElementById('ov-editor-figure');
+    if (!ov) return;
+    var pieno = ov.classList.toggle('pieno');
+    var b = document.getElementById('ef-pieno');
+    if (b) b.innerHTML = pieno ? '⤡ Riduci' : '⛶ Schermo intero';
+  };
+
+  window._efPitto = { scegli: scegli, cat: cambiaCat, striscia: disegnaStriscia, monete: MONETE, biglietti: BIGLIETTI, pitto: PITTO, frazioni: FRAZIONI, scelta: function(){ return scelta; } };
 })();
 // === END: editor figure — sessione 4 === //
 </script>
