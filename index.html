@@ -10832,6 +10832,198 @@ const initInterval = setInterval(function() {
   console.log('[editor cleanup] freepoly nascosto + badge figura attivo');
 })();
 // === END: editor figure cleanup === //
+
+// === BEGIN: editor figure — sessione 2B: maniglie e rotazione === //
+(function(){
+  if (typeof window._efDrawShape !== 'function') return;
+
+  var HS = 9;        // mezzo lato della zona sensibile della maniglia
+  var ROT_OFF = 28;  // quanto sta in alto la maniglia di rotazione
+  var azione = null; // stato del trascinamento in corso
+
+  function box(sh){
+    var b = _efBBox(sh);
+    return { x:b.x, y:b.y, w:b.w, h:b.h, cx:b.x + b.w/2, cy:b.y + b.h/2 };
+  }
+  function ruota(x, y, cx, cy, gradi){
+    var a = gradi * Math.PI/180, s = Math.sin(a), co = Math.cos(a);
+    var dx = x - cx, dy = y - cy;
+    return { x: cx + dx*co - dy*s, y: cy + dx*s + dy*co };
+  }
+  function maniglie(sh){
+    var b = box(sh), r = sh.rot || 0;
+    var base = [
+      {k:'nw', x:b.x,       y:b.y},
+      {k:'n',  x:b.cx,      y:b.y},
+      {k:'ne', x:b.x+b.w,   y:b.y},
+      {k:'e',  x:b.x+b.w,   y:b.cy},
+      {k:'se', x:b.x+b.w,   y:b.y+b.h},
+      {k:'s',  x:b.cx,      y:b.y+b.h},
+      {k:'sw', x:b.x,       y:b.y+b.h},
+      {k:'w',  x:b.x,       y:b.cy},
+      {k:'rot',x:b.cx,      y:b.y - ROT_OFF}
+    ];
+    return base.map(function(p){
+      var q = ruota(p.x, p.y, b.cx, b.cy, r);
+      q.k = p.k; return q;
+    });
+  }
+  var PRIORITA = ['rot','nw','ne','se','sw','n','s','e','w'];
+  function souManiglia(sh, p){
+    var hs = maniglie(sh);
+    for (var g=0; g<PRIORITA.length; g++){
+      for (var i=0; i<hs.length; i++){
+        if (hs[i].k !== PRIORITA[g]) continue;
+        if (Math.abs(p.x-hs[i].x) <= HS && Math.abs(p.y-hs[i].y) <= HS) return hs[i];
+      }
+    }
+    return null;
+  }
+
+  // ── disegno: applica la rotazione e aggiunge le maniglie ──
+  var _drawPrec = window._efDrawShape;
+  window._efDrawShape = function(ctx, sh, selected){
+    var r = sh.rot || 0;
+    if (r){
+      var b = box(sh);
+      ctx.save();
+      ctx.translate(b.cx, b.cy); ctx.rotate(r*Math.PI/180); ctx.translate(-b.cx, -b.cy);
+      _drawPrec(ctx, sh, selected);
+      ctx.restore();
+    } else {
+      _drawPrec(ctx, sh, selected);
+    }
+    if (!selected) return;
+    var hs = maniglie(sh), b2 = box(sh);
+    var top = ruota(b2.cx, b2.y, b2.cx, b2.cy, r);
+    var rot = hs[hs.length-1];
+    ctx.save();
+    ctx.strokeStyle = '#1565c0'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(top.x, top.y); ctx.lineTo(rot.x, rot.y); ctx.stroke();
+    hs.forEach(function(h){
+      ctx.beginPath();
+      if (h.k === 'rot'){
+        ctx.arc(h.x, h.y, 6, 0, Math.PI*2);
+        ctx.fillStyle = '#1565c0';
+      } else {
+        ctx.rect(h.x-4.5, h.y-4.5, 9, 9);
+        ctx.fillStyle = '#ffffff';
+      }
+      ctx.fill(); ctx.stroke();
+    });
+    ctx.restore();
+  };
+
+  // ── selezione: il click va confrontato nel sistema non ruotato ──
+  var _hitPrec = window._efHitTest;
+  window._efHitTest = function(sh, p){
+    var r = sh.rot || 0;
+    if (r){ var b = box(sh); p = ruota(p.x, p.y, b.cx, b.cy, -r); }
+    return _hitPrec(sh, p);
+  };
+
+  // ── export SVG: la rotazione diventa un gruppo con transform ──
+  var _svgPrec = window._efShapeToSVG;
+  window._efShapeToSVG = function(sh){
+    var out = _svgPrec(sh);
+    var r = sh.rot || 0;
+    if (!r) return out;
+    var b = box(sh);
+    return '<g transform="rotate('+ (Math.round(r*100)/100) +' '+ (Math.round(b.cx*100)/100) +' '+ (Math.round(b.cy*100)/100) +')">' + out + '</g>';
+  };
+
+  // ── applica il ridimensionamento conservando il verso di linee e frecce ──
+  function applicaBox(sh, x1, y1, x2, y2){
+    var nw = x2 - x1, nh = y2 - y1;
+    if ((sh.w || 0) >= 0){ sh.x = x1; sh.w = nw; } else { sh.x = x2; sh.w = -nw; }
+    if ((sh.h || 0) >= 0){ sh.y = y1; sh.h = nh; } else { sh.y = y2; sh.h = -nh; }
+  }
+
+  function giu(e){
+    if (_ef.tool !== 'select' || !_ef.selectedId) return;
+    var sh = _efFindShape(_ef.selectedId);
+    if (!sh) return;
+    var p = _efPos(e);
+    var h = souManiglia(sh, p);
+    if (!h) return;
+    var b = box(sh);
+    _efPushUndo();
+    azione = {
+      sh: sh, k: h.k, b: b, rot0: sh.rot || 0,
+      ang0: Math.atan2(p.y - b.cy, p.x - b.cx),
+      fs0: sh.fontSize || 18
+    };
+    e.stopPropagation(); e.preventDefault();
+  }
+
+  function muovi(e){
+    var sh0 = (_ef.tool === 'select' && _ef.selectedId) ? _efFindShape(_ef.selectedId) : null;
+    if (!azione){
+      if (sh0 && _ef.canvas){
+        var h0 = souManiglia(sh0, _efPos(e));
+        _ef.canvas.style.cursor = h0 ? (h0.k === 'rot' ? 'grab' : 'nwse-resize') : '';
+      }
+      return;
+    }
+    var sh = azione.sh, b = azione.b, p = _efPos(e);
+
+    if (azione.k === 'rot'){
+      var ang = Math.atan2(p.y - b.cy, p.x - b.cx);
+      var g = azione.rot0 + (ang - azione.ang0) * 180/Math.PI;
+      if (e.shiftKey) g = Math.round(g/15)*15;          // con Shift scatta di 15°
+      sh.rot = Math.round(g*10)/10;
+      _efRedraw();
+      e.stopPropagation(); e.preventDefault();
+      return;
+    }
+
+    // ridimensionamento: lavoro nel sistema non ruotato della figura
+    var q = (sh.rot ? ruota(p.x, p.y, b.cx, b.cy, -sh.rot) : p);
+    var x1 = b.x, y1 = b.y, x2 = b.x + b.w, y2 = b.y + b.h;
+    if (azione.k.indexOf('w') >= 0) x1 = Math.min(q.x, x2 - 4);
+    if (azione.k.indexOf('e') >= 0) x2 = Math.max(q.x, x1 + 4);
+    if (azione.k.indexOf('n') >= 0) y1 = Math.min(q.y, y2 - 4);
+    if (azione.k.indexOf('s') >= 0) y2 = Math.max(q.y, y1 + 4);
+
+    if (sh.tipo === 'text'){
+      // il testo non ha larghezza propria: si ridimensiona il corpo del carattere.
+      // Le maniglie verticali e d'angolo usano l'altezza, quelle laterali la larghezza.
+      var vert = (azione.k.indexOf('n') >= 0 || azione.k.indexOf('s') >= 0);
+      var f = vert ? (y2 - y1) / Math.max(1, b.h)
+                   : (x2 - x1) / Math.max(1, b.w);
+      sh.fontSize = Math.max(8, Math.min(200, Math.round(azione.fs0 * f)));
+    } else {
+      applicaBox(sh, x1, y1, x2, y2);
+    }
+    _efRedraw();
+    e.stopPropagation(); e.preventDefault();
+  }
+
+  function su(e){
+    if (!azione) return;
+    azione = null;
+    if (_ef.canvas) _ef.canvas.style.cursor = '';
+    _efRedraw();
+    if (typeof _efAggSelInfo === 'function') _efAggSelInfo();
+    e.stopPropagation();
+  }
+
+  // i listener vanno in cattura, così intercettano prima dello spostamento
+  var _bindPrec = window._efBindEvents;
+  window._efBindEvents = function(){
+    _bindPrec();
+    var c = _ef.canvas;
+    if (!c || c.dataset.ef2b) return;
+    c.dataset.ef2b = '1';
+    c.addEventListener('mousedown',  giu,   true);
+    c.addEventListener('mousemove',  muovi, true);
+    c.addEventListener('mouseup',    su,    true);
+    c.addEventListener('mouseleave', su,    true);
+  };
+
+  window._ef2b = { maniglie: maniglie, box: box, ruota: ruota, souManiglia: souManiglia, stato: function(){ return azione; } };
+})();
+// === END: editor figure — sessione 2B === //
 </script>
 </body>
 </html>
