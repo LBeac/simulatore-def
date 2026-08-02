@@ -1162,6 +1162,10 @@ body.prova-finita #diz-widget { display: none !important; }
         <button class="ef-tool" id="ef-t-poly-6" onclick="efSetTool('poly-6')" title="Esagono regolare">⬡</button>
         <button class="ef-tool" id="ef-t-poly-8" onclick="efSetTool('poly-8')" title="Ottagono regolare">🛑</button>
         <button class="ef-tool" id="ef-t-sector" onclick="efSetTool('sector')" title="Settore circolare (90°)">◔</button>
+        <div class="ef-tool-sep"></div>
+        <button class="ef-tool" id="ef-t-ang-45"  onclick="efSetTool('ang-45')"  title="Angolo acuto (45°) — trascina dal vertice">∠</button>
+        <button class="ef-tool" id="ef-t-ang-90"  onclick="efSetTool('ang-90')"  title="Angolo retto (90°) — trascina dal vertice">∟</button>
+        <button class="ef-tool" id="ef-t-ang-135" onclick="efSetTool('ang-135')" title="Angolo ottuso (135°) — trascina dal vertice">∡</button>
         <button class="ef-tool" id="ef-t-freepoly" onclick="efSetTool('freepoly')" title="Poligono libero — click per ogni vertice, doppio-click per chiudere, Esc per annullare">✏</button>
         <div class="ef-tool-sep"></div>
         <button class="ef-tool" id="ef-t-text"    onclick="efSetTool('text')"    title="Testo">🅰️</button>
@@ -9715,7 +9719,7 @@ function efSetTool(t){
   document.querySelectorAll('.ef-tool').forEach(function(b){ b.classList.remove('att'); });
   var btn = document.getElementById('ef-t-'+t);
   if(btn) btn.classList.add('att');
-var labels = {select:'Seleziona',line:'Linea',arrow:'Freccia',segq:'Segmento quotato',rect:'Rettangolo',square:'Quadrato',circle:'Cerchio',ellipse:'Ellisse',triangle:'Triangolo','tri-equi':'Triangolo equilatero','tri-iso':'Triangolo isoscele','tri-rect':'Triangolo rettangolo',rombo:'Rombo',parallelo:'Parallelogramma','trap-rect':'Trapezio rettangolo','trap-iso':'Trapezio isoscele','trap-scal':'Trapezio scaleno','poly-5':'Pentagono','poly-6':'Esagono','poly-8':'Ottagono',sector:'Settore circolare',freepoly:'Poligono libero',text:'Testo'};
+var labels = {select:'Seleziona',line:'Linea',arrow:'Freccia',segq:'Segmento quotato',rect:'Rettangolo',square:'Quadrato',circle:'Cerchio',ellipse:'Ellisse',triangle:'Triangolo','tri-equi':'Triangolo equilatero','tri-iso':'Triangolo isoscele','tri-rect':'Triangolo rettangolo',rombo:'Rombo',parallelo:'Parallelogramma','trap-rect':'Trapezio rettangolo','trap-iso':'Trapezio isoscele','trap-scal':'Trapezio scaleno','poly-5':'Pentagono','poly-6':'Esagono','poly-8':'Ottagono',sector:'Settore circolare',freepoly:'Poligono libero','ang-45':'Angolo acuto (45°)','ang-90':'Angolo retto (90°)','ang-135':'Angolo ottuso (135°)',text:'Testo'};
   var lblEl = document.getElementById('ef-tool-lbl');
   if(lblEl) lblEl.textContent = labels[t] || t;
   _ef.canvas.className = t==='select' ? 'tool-select' : '';
@@ -10840,6 +10844,7 @@ const initInterval = setInterval(function() {
 (function(){
   if (typeof window._efDrawShape !== 'function') return;
 
+  var ridimSpeciali = [];   // forme con una regola di ridimensionamento propria
   var HS = 9;        // mezzo lato della zona sensibile della maniglia
   var ROT_OFF = 28;  // quanto sta in alto la maniglia di rotazione
   var azione = null; // stato del trascinamento in corso
@@ -11004,7 +11009,8 @@ const initInterval = setInterval(function() {
     azione = {
       sh: sh, k: h.k, b: b, rot0: sh.rot || 0,
       ang0: Math.atan2(p.y - b.cy, p.x - b.cx),
-      fs0: sh.fontSize || 18
+      fs0: sh.fontSize || 18,
+      w0: sh.w, h0: sh.h
     };
     e.stopPropagation(); e.preventDefault();
   }
@@ -11038,7 +11044,14 @@ const initInterval = setInterval(function() {
     if (azione.k.indexOf('n') >= 0) y1 = Math.min(q.y, y2 - 4);
     if (azione.k.indexOf('s') >= 0) y2 = Math.max(q.y, y1 + 4);
 
-    if (sh.tipo === 'text'){
+    var speciale = null;
+    for (var si=0; si<ridimSpeciali.length; si++){
+      if (ridimSpeciali[si].test(sh.tipo)){ speciale = ridimSpeciali[si].fn; break; }
+    }
+    if (speciale){
+      speciale(sh, b, x2 - x1, y2 - y1, azione);
+    }
+    else if (sh.tipo === 'text'){
       // il testo non ha larghezza propria: si ridimensiona il corpo del carattere.
       // Le maniglie verticali e d'angolo usano l'altezza, quelle laterali la larghezza.
       var vert = (azione.k.indexOf('n') >= 0 || azione.k.indexOf('s') >= 0);
@@ -11074,9 +11087,139 @@ const initInterval = setInterval(function() {
     c.addEventListener('mouseleave', su,    true);
   };
 
-  window._ef2b = { maniglie: maniglie, box: box, ruota: ruota, souManiglia: souManiglia, stato: function(){ return azione; } };
+  window._ef2b = {
+    maniglie: maniglie, box: box, ruota: ruota, souManiglia: souManiglia,
+    stato: function(){ return azione; },
+    setRidim: function(test, fn){ ridimSpeciali.push({ test:test, fn:fn }); }
+  };
 })();
 // === END: editor figure — sessione 2B === //
+
+// === BEGIN: editor figure — sessione 2C: angoli === //
+(function(){
+  if (typeof window._efDrawShape !== 'function') return;
+
+  var ANG = { 'ang-45':45, 'ang-90':90, 'ang-135':135 };
+  function isAng(t){ return Object.prototype.hasOwnProperty.call(ANG, t); }
+
+  // (x,y) è il vertice; (w,h) è il primo lato, quindi il trascinamento
+  // decide insieme lunghezza e inclinazione. Il secondo lato è il primo
+  // ruotato dell'ampiezza, in senso antiorario a schermo.
+  function geo(sh){
+    var g = ANG[sh.tipo] || 90;
+    var L = Math.hypot(sh.w||0, sh.h||0);
+    var a1 = Math.atan2(sh.h||0, sh.w||0);
+    var a2 = a1 - g*Math.PI/180;
+    return {
+      vx: sh.x, vy: sh.y, L: L, gradi: g, a1: a1, a2: a2,
+      p1: { x: sh.x + Math.cos(a1)*L, y: sh.y + Math.sin(a1)*L },
+      p2: { x: sh.x + Math.cos(a2)*L, y: sh.y + Math.sin(a2)*L }
+    };
+  }
+
+  // ── ingombro reale: i tre punti, non il rettangolo del trascinamento ──
+  var _bboxPrec = window._efBBox;
+  window._efBBox = function(sh){
+    if (!isAng(sh.tipo)) return _bboxPrec(sh);
+    var g = geo(sh);
+    var xs = [g.vx, g.p1.x, g.p2.x], ys = [g.vy, g.p1.y, g.p2.y];
+    var x = Math.min.apply(null, xs), y = Math.min.apply(null, ys);
+    return { x:x, y:y, w: Math.max.apply(null, xs) - x, h: Math.max.apply(null, ys) - y };
+  };
+
+  var _drawPrec = window._efDrawShape;
+  window._efDrawShape = function(ctx, sh, selected){
+    if (!isAng(sh.tipo)) return _drawPrec(ctx, sh, selected);
+    var g = geo(sh);
+    ctx.save();
+    ctx.strokeStyle = sh.stroke || '#000';
+    ctx.fillStyle   = sh.stroke || '#000';
+    ctx.lineWidth   = sh.sw || 2;
+    ctx.lineCap = 'round';
+
+    ctx.beginPath();
+    ctx.moveTo(g.p1.x, g.p1.y); ctx.lineTo(g.vx, g.vy); ctx.lineTo(g.p2.x, g.p2.y);
+    ctx.stroke();
+
+    var r = Math.max(14, Math.min(42, g.L*0.28));
+    if (g.gradi === 90){
+      // convenzione: l'angolo retto si segna col quadratino, non con l'arco
+      var ux = Math.cos(g.a1)*r, uy = Math.sin(g.a1)*r;
+      var vx2 = Math.cos(g.a2)*r, vy2 = Math.sin(g.a2)*r;
+      ctx.beginPath();
+      ctx.moveTo(g.vx+ux, g.vy+uy);
+      ctx.lineTo(g.vx+ux+vx2, g.vy+uy+vy2);
+      ctx.lineTo(g.vx+vx2, g.vy+vy2);
+      ctx.stroke();
+    } else {
+      ctx.beginPath();
+      ctx.arc(g.vx, g.vy, r, g.a2, g.a1);
+      ctx.stroke();
+    }
+    // pallino sul vertice, come si usa nei libri di testo
+    ctx.beginPath(); ctx.arc(g.vx, g.vy, Math.max(2.5, (sh.sw||2)*1.1), 0, Math.PI*2); ctx.fill();
+
+    if (selected){
+      ctx.strokeStyle = '#1565c0'; ctx.lineWidth = 1.5; ctx.setLineDash([6,4]);
+      var bb = _efBBox(sh);
+      ctx.strokeRect(bb.x-4, bb.y-4, bb.w+8, bb.h+8);
+      ctx.setLineDash([]);
+    }
+    ctx.restore();
+  };
+
+  var _svgPrec = window._efShapeToSVG;
+  window._efShapeToSVG = function(sh){
+    if (!isAng(sh.tipo)) return _svgPrec(sh);
+    var g = geo(sh), sw = sh.sw || 2, col = sh.stroke || '#000';
+    var comune = 'stroke="'+col+'" fill="none" stroke-width="'+sw+'" stroke-linecap="round" stroke-linejoin="round"';
+    var n = function(v){ return Math.round(v*100)/100; };
+    var out = '<polyline points="'+n(g.p1.x)+','+n(g.p1.y)+' '+n(g.vx)+','+n(g.vy)+' '+n(g.p2.x)+','+n(g.p2.y)+'" '+comune+'/>';
+    var r = Math.max(14, Math.min(42, g.L*0.28));
+    if (g.gradi === 90){
+      var ux = Math.cos(g.a1)*r, uy = Math.sin(g.a1)*r;
+      var vx2 = Math.cos(g.a2)*r, vy2 = Math.sin(g.a2)*r;
+      out += '<polyline points="'+n(g.vx+ux)+','+n(g.vy+uy)+' '+n(g.vx+ux+vx2)+','+n(g.vy+uy+vy2)+' '+n(g.vx+vx2)+','+n(g.vy+vy2)+'" '+comune+'/>';
+    } else {
+      var s = { x: g.vx + Math.cos(g.a2)*r, y: g.vy + Math.sin(g.a2)*r };
+      var e = { x: g.vx + Math.cos(g.a1)*r, y: g.vy + Math.sin(g.a1)*r };
+      out += '<path d="M '+n(s.x)+' '+n(s.y)+' A '+n(r)+' '+n(r)+' 0 0 1 '+n(e.x)+' '+n(e.y)+'" '+comune+'/>';
+    }
+    out += '<circle cx="'+n(g.vx)+'" cy="'+n(g.vy)+'" r="'+n(Math.max(2.5, sw*1.1))+'" fill="'+col+'"/>';
+    return out;
+  };
+
+  var _hitPrec = window._efHitTest;
+  window._efHitTest = function(sh, p){
+    if (!isAng(sh.tipo)) return _hitPrec(sh, p);
+    var r0 = sh.rot || 0;
+    if (r0){
+      var bb = _efBBox(sh), cx = bb.x+bb.w/2, cy = bb.y+bb.h/2;
+      var a = -r0*Math.PI/180, s = Math.sin(a), co = Math.cos(a);
+      var dx = p.x-cx, dy = p.y-cy;
+      p = { x: cx + dx*co - dy*s, y: cy + dx*s + dy*co };
+    }
+    var g = geo(sh), tol = Math.max(7, (sh.sw||2)+4);
+    function vicino(q){
+      var A=p.x-g.vx, B=p.y-g.vy, C=q.x-g.vx, D=q.y-g.vy;
+      var len=C*C+D*D, t=len>0 ? Math.max(0, Math.min(1, (A*C+B*D)/len)) : 0;
+      return Math.hypot(p.x-(g.vx+t*C), p.y-(g.vy+t*D)) < tol;
+    }
+    return vicino(g.p1) || vicino(g.p2) || Math.hypot(p.x-g.vx, p.y-g.vy) < tol+4;
+  };
+
+  // il ridimensionamento allunga i lati tenendo fermo il vertice
+  if (window._ef2b && typeof window._ef2b.setRidim === 'function'){
+    window._ef2b.setRidim(isAng, function(sh, b, nw, nh, stato){
+      var f = Math.max(0.1, Math.max(b.w ? nw/b.w : 1, b.h ? nh/b.h : 1));
+      sh.w = (stato.w0 || 0) * f;
+      sh.h = (stato.h0 || 0) * f;
+    });
+  }
+
+  window._efAng = { tipi: Object.keys(ANG), geo: geo, is: isAng };
+})();
+// === END: editor figure — sessione 2C === //
 </script>
 </body>
 </html>
