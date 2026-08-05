@@ -6357,10 +6357,11 @@ var _disAIProva = null;
 
 async function _geminiCall(prompt) {
   // POST ad Apps Script che chiama Gemini con UrlFetchApp
-  var resp = await fetch(SCRIPT_URL_DOCENTE, {
+  var resp = await fetch(SCRIPT_URL, {
     method: 'POST',
     body: JSON.stringify({
       token:  SCRIPT_TOKEN,
+      chiaveDocente: getChiaveDocente(),
       action: 'generaDomande',
       prompt: prompt
     })
@@ -7097,7 +7098,7 @@ function salvaSessOnSheet(sessKey, sessData){
 // Carica sessioni dallo Sheet nel localStorage (sync cross-browser)
 async function caricaSessioniDaSheet(){
   try{
-    const url = `${SCRIPT_URL_DOCENTE}?action=leggiSessioni&token=${encodeURIComponent(SCRIPT_TOKEN)}`; // [FIX-1] token sulle GET
+    const url = urlDocente('?action=leggiSessioni');
     const res  = await fetch(url);
     const data = await res.json();
     if(data.ok && data.sessioni){
@@ -7613,7 +7614,7 @@ async function importaDaSheet(){
 
   const sessBase = sessione.replace(/-3[AE]$/,'');
   // Cerca sia "prova-1" che "prova-1-3E" nello Sheet (Irene potrebbe avere l'una o l'altra)
- const url = `${SCRIPT_URL_DOCENTE}?action=leggi&sessione=${encodeURIComponent(sessBase)}&sessione2=${encodeURIComponent(sessione)}&token=${encodeURIComponent(SCRIPT_TOKEN)}`; // [FIX-1]
+  const url = urlDocente('?action=leggi&sessione=' + encodeURIComponent(sessBase) + '&sessione2=' + encodeURIComponent(sessione));
 
   // Prova prima con fetch normale
   try{
@@ -7765,7 +7766,7 @@ async function importaTutteSessioni(){
   if(statEl){ statEl.style.display='block'; statEl.innerHTML='⏳ Connessione al Google Sheet…'; statEl.style.color='#555'; }
 
   // ── Fetch TUTTI i risultati (nessun parametro sessione) ────
-  const url = `${SCRIPT_URL_DOCENTE}?action=leggi&token=${encodeURIComponent(SCRIPT_TOKEN)}`;
+  const url = urlDocente('?action=leggi');
   let tuttiRis = [];
 
   try{
@@ -8547,9 +8548,36 @@ function _scrollSelectIntoView(el){
 // ══════════════════════════════════════════════════════
 //  INVIO AUTOMATICO A GOOGLE SHEET
 // ══════════════════════════════════════════════════════
+// Porta ALUNNI (accesso: chiunque). Indirizzo preso dal tuo file, non ritrascritto.
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwJObTCeKjodXiEFyZ7MYXkCyZcdIi-FcHf_tsw5sEEssovWB4YV0YAl6Ih4sxa_sQI4w/exec';
-const SCRIPT_URL_DOCENTE = 'https://script.google.com/macros/s/AKfycby-0dKI-x-h831bV25TNq4FyRKcIq51n6yefYw36M8IrAN2RcVHbTqsxKCiRRyyyvELZQ/exec';
-const SCRIPT_TOKEN = 'inv8_2026_Gd7kPqR3'; // ⚠️ Aggiorna anche Apps Script e rideploya se lo cambi // token condiviso con Apps Script per validare le richieste
+
+// Il backend nuovo non usa piu' il token: la riga resta solo perche' il nome
+// e' nominato in una decina di punti del file. Lasciarla vuota va benissimo.
+const SCRIPT_TOKEN = '';
+
+// ── Chiave personale del docente ──────────────────────────────────────────
+// Si incolla UNA volta e resta in questo browser. Non e' scritta nel file,
+// quindi non finisce su GitHub. Se la perdi, dall'editor Apps Script esegui
+// rigeneraChiave("tua@email") e ne ottieni una nuova.
+function getChiaveDocente(){
+  try { return localStorage.getItem('inv_chiave_docente') || ''; } catch(e){ return ''; }
+}
+function chiediChiaveDocente(){
+  const v = prompt('Incolla la tua chiave personale.\n\nLa trovi nel foglio dei risultati, scheda "Docenti",\ncolonna "Chiave personale".', getChiaveDocente());
+  if (v !== null) { try { localStorage.setItem('inv_chiave_docente', v.trim()); } catch(e){} }
+  return getChiaveDocente();
+}
+function cancellaChiaveDocente(){
+  try { localStorage.removeItem('inv_chiave_docente'); } catch(e){}
+  alert('Chiave rimossa da questo browser.');
+}
+// Costruisce un indirizzo di lettura con la chiave in coda.
+// qs deve iniziare con "?", es. urlDocente('?action=leggi')
+function urlDocente(qs){
+  let k = getChiaveDocente();
+  if (!k) k = chiediChiaveDocente();
+  return SCRIPT_URL + qs + (k ? '&chiaveDocente=' + encodeURIComponent(k) : '');
+}
 
 function inviaARisultatiSheet(entry){
   // Aggiunge il titolo della prova e (se assente) la materia corrente
@@ -9621,17 +9649,6 @@ function peiDelDom(idx){
   _peiRenderAnteprima();
 }
 
-// Rimuove l'attributo data-ef-state (stato base64 dell'editor figure) da una stringa SVG.
-// Usato solo sulla copia che finisce nel link dell'alunno: la copia del docente lo conserva,
-// altrimenti la figura non sarebbe più riapribile nell'editor.
-function _peiSvgSenzaStato(svg){
-  if(typeof svg !== 'string' || svg.indexOf('data-ef-state') === -1) return svg;
-  try{
-    return svg.replace(/\s*data-ef-state\s*=\s*'[^']*'/g, '')
-              .replace(/\s*data-ef-state\s*=\s*"[^"]*"/g, '');
-  }catch(e){ return svg; }
-}
-
 function peiApprovaSalva(){
   if(!_peiState.prova || !_peiState.prova.domande.length){
     alert('Nessuna domanda da salvare.'); return;
@@ -9647,10 +9664,6 @@ function peiApprovaSalva(){
     glossario: [],
     domande: prova.domande.map(function(d){
       var dp = {}; Object.keys(d).forEach(function(k){ if(k!=='_verifica') dp[k]=d[k]; });
-      // Alleggerimento link: lo stato dell'editor (data-ef-state) serve solo al docente
-      // per rimodificare la figura. All'alunno arriva l'SVG puro, che pesa circa la metà.
-      // L'originale resta intatto in _peiState.prova.domande[i].svg.
-      if(dp.svg) dp.svg = _peiSvgSenzaStato(dp.svg);
       return dp;
     })
   };
