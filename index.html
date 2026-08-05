@@ -6357,7 +6357,7 @@ var _disAIProva = null;
 
 async function _geminiCall(prompt) {
   // POST ad Apps Script che chiama Gemini con UrlFetchApp
-  var resp = await fetch(SCRIPT_URL, {
+  var resp = await fetch(SCRIPT_URL_DOCENTE, {
     method: 'POST',
     body: JSON.stringify({
       token:  SCRIPT_TOKEN,
@@ -7097,7 +7097,7 @@ function salvaSessOnSheet(sessKey, sessData){
 // Carica sessioni dallo Sheet nel localStorage (sync cross-browser)
 async function caricaSessioniDaSheet(){
   try{
-    const url = `${SCRIPT_URL}?action=leggiSessioni&token=${encodeURIComponent(SCRIPT_TOKEN)}`; // [FIX-1] token sulle GET
+    const url = `${SCRIPT_URL_DOCENTE}?action=leggiSessioni&token=${encodeURIComponent(SCRIPT_TOKEN)}`; // [FIX-1] token sulle GET
     const res  = await fetch(url);
     const data = await res.json();
     if(data.ok && data.sessioni){
@@ -7613,7 +7613,7 @@ async function importaDaSheet(){
 
   const sessBase = sessione.replace(/-3[AE]$/,'');
   // Cerca sia "prova-1" che "prova-1-3E" nello Sheet (Irene potrebbe avere l'una o l'altra)
-  const url = `${SCRIPT_URL}?action=leggi&sessione=${encodeURIComponent(sessBase)}&sessione2=${encodeURIComponent(sessione)}&token=${encodeURIComponent(SCRIPT_TOKEN)}`; // [FIX-1]
+ const url = `${SCRIPT_URL_DOCENTE}?action=leggi&sessione=${encodeURIComponent(sessBase)}&sessione2=${encodeURIComponent(sessione)}&token=${encodeURIComponent(SCRIPT_TOKEN)}`; // [FIX-1]
 
   // Prova prima con fetch normale
   try{
@@ -7765,7 +7765,7 @@ async function importaTutteSessioni(){
   if(statEl){ statEl.style.display='block'; statEl.innerHTML='⏳ Connessione al Google Sheet…'; statEl.style.color='#555'; }
 
   // ── Fetch TUTTI i risultati (nessun parametro sessione) ────
-  const url = `${SCRIPT_URL}?action=leggi&token=${encodeURIComponent(SCRIPT_TOKEN)}`;
+  const url = `${SCRIPT_URL_DOCENTE}?action=leggi&token=${encodeURIComponent(SCRIPT_TOKEN)}`;
   let tuttiRis = [];
 
   try{
@@ -8547,7 +8547,8 @@ function _scrollSelectIntoView(el){
 // ══════════════════════════════════════════════════════
 //  INVIO AUTOMATICO A GOOGLE SHEET
 // ══════════════════════════════════════════════════════
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyi3j1opanbfed0PuGITdHE4f8BHjPBwWEKuSubnKr4kJjvgfGIXZMUOTfEoXDBvRSu/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwJObTCeKjodXiEFyZ7MYXkCyZcdIi-FcHf_tsw5sEEssovWB4YV0YAl6Ih4sxa_sQI4w/exec;
+const SCRIPT_URL_DOCENTE = 'https://script.google.com/macros/s/AKfycby-0dKI-x-h831bV25TNq4FyRKcIq51n6yefYw36M8IrAN2RcVHbTqsxKCiRRyyyvELZQ/exec';
 const SCRIPT_TOKEN = 'inv8_2026_Gd7kPqR3'; // ⚠️ Aggiorna anche Apps Script e rideploya se lo cambi // token condiviso con Apps Script per validare le richieste
 
 function inviaARisultatiSheet(entry){
