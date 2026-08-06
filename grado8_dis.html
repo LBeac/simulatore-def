@@ -1266,7 +1266,274 @@ function fineProvaDoppia() {
   container.appendChild(wrap);
 }
 // ══ FINE PROVA DOPPIA ══════════════════════════════════════════
+/* ===========================================================================
+   === BEGIN: prova dal foglio + dettaglio consegna ===
+   Da incollare in grado8_dis.html SUBITO PRIMA di </script>, in fondo al file.
 
+   FA DUE COSE, INDIPENDENTI FRA LORO.
+
+   1. LINK CORTO. Se l'indirizzo contiene ?id=abcdefghijkm la prova viene
+      chiesta al foglio invece di essere decompressa dall'indirizzo. Il link
+      passa da ottomilacinquecento caratteri a una novantina, e il testo del
+      brano non finisce piu' nella cronologia del browser ne' nell'anteprima
+      di WhatsApp.
+      I link vecchi con ?data= continuano a funzionare: questo blocco non li
+      tocca nemmeno. Serve per le prove gia' consegnate.
+
+   2. DETTAGLIO. Fino a ieri la consegna della prova adattata mandava il campo
+      del dettaglio vuoto (det:[]): nel foglio arrivava il punteggio e basta,
+      e il tab Dettaglio restava vuoto. Adesso arriva una riga per ogni
+      domanda, con la risposta data e quella giusta - lo stesso dato che hai
+      appena verificato per le prove standard.
+
+   COME FA, IN BREVE. Non riscrive controlla(): la lascia lavorare, le impedisce
+   solo di spedire la consegna incompleta (azzerando per un istante la chiave
+   di sessione), e subito dopo spedisce lei quella completa. Cosi' se un domani
+   correggi controlla() per altri motivi, questo blocco continua a funzionare.
+   =========================================================================== */
+(function () {
+
+  var _p = new URLSearchParams(window.location.search);
+  var _idProva = (_p.get('id') || '').trim();
+
+  // ─────────────────────────────────────────────────────────────────────
+  //  PARTE 1 — la prova arriva dal foglio
+  // ─────────────────────────────────────────────────────────────────────
+
+  if (_idProva) {
+
+    // La pagina, trovando ?id= e non ?prova=custom, chiamerebbe mostraErr()
+    // e farebbe lampeggiare "Prova non trovata" prima ancora di provarci.
+    // Finche' stiamo caricando, mostraErr mostra invece l'attesa.
+    var _errVero = window.mostraErr;
+    window.mostraErr = function () { _schermata('attesa'); };
+
+    window.addEventListener('load', function () { _chiediAlFoglio(_idProva); });
+  }
+
+  function _schermata(quale, testo) {
+    var split = document.getElementById('split-wrap');
+    var barra = document.querySelector('.barra-wrap');
+    var istr  = document.querySelector('.istr');
+    var err   = document.getElementById('scr-err');
+    if (split) split.style.display = 'none';
+    if (barra) barra.style.display = 'none';
+    if (istr)  istr.style.display  = 'none';
+    if (!err) return;
+    err.style.display = 'flex';
+    if (quale === 'attesa') {
+      err.innerHTML =
+        '<div style="font-size:3rem">📖</div>' +
+        '<h2 style="color:#01579b">Sto aprendo la prova…</h2>' +
+        '<p>Un momento solo.</p>';
+    } else {
+      err.innerHTML =
+        '<div style="font-size:3rem">⚠️</div>' +
+        '<h2>Prova non disponibile</h2>' +
+        '<p>' + (testo || 'Chiedi al docente di rimandarti il link.') + '</p>';
+    }
+  }
+
+  function _chiediAlFoglio(id) {
+    var url = SCRIPT_URL + '?action=caricaProva&id=' + encodeURIComponent(id);
+
+    fetch(url)
+      .then(function (r) { return r.json(); })
+      .then(function (d) { _apri(d); })
+      .catch(function () { _chiediConScript(url); });   // browser scolastico
+  }
+
+  // Alcuni browser della scuola bloccano la lettura diretta. In quel caso la
+  // risposta si chiede con un tag script, che passa da un'altra strada.
+  function _chiediConScript(url) {
+    var nome = '_provaCb_' + Date.now();
+    var tag = document.createElement('script');
+    var scaduto = setTimeout(function () {
+      delete window[nome];
+      if (tag.parentNode) tag.parentNode.removeChild(tag);
+      _schermata('errore', 'Il server non risponde. Riprova fra un minuto.');
+    }, 12000);
+
+    window[nome] = function (d) {
+      clearTimeout(scaduto);
+      delete window[nome];
+      if (tag.parentNode) tag.parentNode.removeChild(tag);
+      _apri(d);
+    };
+    tag.src = url + '&callback=' + nome;
+    tag.onerror = function () {
+      clearTimeout(scaduto);
+      _schermata('errore', 'Il server non risponde. Riprova fra un minuto.');
+    };
+    document.body.appendChild(tag);
+  }
+
+  function _apri(d) {
+    if (!d || !d.ok || !d.prova) {
+      _schermata('errore', (d && d.err) || 'Prova non trovata.');
+      return;
+    }
+    var prova = d.prova;
+    prova.id = 'custom';
+    PROVA_ATTUALE = prova;
+    if (!CLASSE_STUD && d.classe) CLASSE_STUD = d.classe;
+
+    // Ripristina la schermata d'errore vera per gli errori successivi
+    var err = document.getElementById('scr-err');
+    if (err) err.style.display = 'none';
+    var barra = document.querySelector('.barra-wrap');
+    var istr  = document.querySelector('.istr');
+    if (barra) barra.style.display = '';
+    if (istr)  istr.style.display  = '';
+
+    renderProva(prova);
+  }
+
+
+  // ─────────────────────────────────────────────────────────────────────
+  //  PARTE 2 — la consegna porta il dettaglio domanda per domanda
+  // ─────────────────────────────────────────────────────────────────────
+
+  var _controllaVecchia = window.controlla;
+
+  window.controlla = function () {
+    var sessione = SESSIONE_KEY;
+    SESSIONE_KEY = '';          // zittisce la consegna incompleta di prima
+    try { _controllaVecchia(); } finally { SESSIONE_KEY = sessione; }
+    if (sessione && CLASSE_STUD) _consegnaCompleta(sessione);
+  };
+
+  var _AREE = ['comprensione', 'lessico', 'grammatica'];
+
+  // Rilegge quello che l'alunno ha segnato e ricostruisce l'esito.
+  // E' la stessa regola che la pagina usa per colorare verde e rosso:
+  // qui pero' non si tocca niente a schermo, si prepara solo la riga.
+  function _raccogli() {
+    var det = [], errori = {}, sez = [{c:0,t:0},{c:0,t:0},{c:0,t:0}];
+    var corr = 0, tot = 0, risposte = 0;
+
+    function segna(d, n, testo, mia, corretta, ok, aperta) {
+      var s = Number(d.sez) || 0;
+      det.push({
+        n: n, sez: s, comp: _AREE[s] || 'comprensione',
+        testo: String(testo || '').substring(0, 300),
+        mia: mia || '— senza risposta —',
+        corretta: corretta,
+        ok: !!ok,
+        esito: aperta ? 'da valutare' : (ok ? 'giusta' : 'sbagliata')
+      });
+      if (aperta) return;                 // le aperte non fanno punteggio
+      tot++; sez[s].t++;
+      if (ok) { corr++; sez[s].c++; }
+      else { errori[_AREE[s]] = (errori[_AREE[s]] || 0) + 1; }
+    }
+
+    (PROVA_ATTUALE.domande || []).forEach(function (d) {
+      var tipo = (d.tipo || 'sm').toLowerCase();
+
+      if (tipo === 'sm') {
+        var ops = d.opts || d.opzioni || [];
+        var giusta = (d.ok !== undefined) ? parseInt(d.ok) : parseInt(d.corretta);
+        var scelto = document.querySelector('input[name="d' + d.n + '"]:checked');
+        if (scelto) risposte++;
+        segna(d, d.n, d.testo,
+              scelto ? ops[parseInt(scelto.value)] : '',
+              ops[giusta] || '—',
+              scelto && parseInt(scelto.value) === giusta);
+
+      } else if (tipo === 'vf') {
+        var righe = d.righeVF || d.righe || [];
+        righe.forEach(function (r, i) {
+          var attesa = r.ok ? 'V' : 'F';
+          var scelto2 = document.querySelector('input[name="vf' + d.n + '_' + i + '"]:checked');
+          if (scelto2) risposte++;
+          segna(d, d.n + '.' + (i + 1), (r.t || r),
+                scelto2 ? scelto2.value : '',
+                attesa,
+                scelto2 && scelto2.value === attesa);
+        });
+
+      } else if (tipo === 'ap') {
+        var ta = document.querySelector('textarea[name="ap' + d.n + '"]');
+        var scritto = (ta && ta.value || '').trim();
+        if (scritto) risposte++;
+        // Il testo scritto dall'alunno arriva nel foglio: e' l'unico posto
+        // dove il docente puo' rileggerlo con calma.
+        segna(d, d.n, d.testo, scritto, '(risposta aperta)', false, true);
+
+      } else if (tipo === 'comp') {
+        if (d.gaps && d.gaps.length) {
+          d.gaps.forEach(function (g, gi) {
+            var sel = document.querySelector('select[name="comp' + d.n + '_' + gi + '"]');
+            var v = sel && sel.value !== '' ? parseInt(sel.value) : null;
+            if (v !== null) risposte++;
+            segna(d, d.n + '.' + (gi + 1),
+                  (g.prima || '') + ' ___ ' + (g.dopo || ''),
+                  v !== null ? (d.parole || [])[v] : '',
+                  (d.parole || [])[g.ok_idx] || '—',
+                  v === g.ok_idx);
+          });
+        } else {
+          var sel2 = document.querySelector('select[name="comp' + d.n + '"]');
+          var giusta2 = (d.parole || [])[(d.ok !== undefined ? parseInt(d.ok) : 0)] ||
+                        (d.parole || [])[0];
+          if (sel2 && sel2.value) risposte++;
+          segna(d, d.n, d.frase || d.testo,
+                sel2 ? sel2.value : '', giusta2,
+                sel2 && sel2.value === giusta2);
+        }
+
+      } else if (tipo === 'col') {
+        var sx = d.sinistra || d.sx || [];
+        var dx = d.destra   || d.dx || [];
+        var coppie = d.coppie || [];
+        sx.forEach(function (el, i) {
+          var sel3 = document.querySelector('select[name="col' + d.n + '_' + i + '"]');
+          var giusta3 = coppie.length ? dx[coppie[i]] : dx[i];
+          if (sel3 && sel3.value) risposte++;
+          segna(d, d.n + '.' + (i + 1), 'Collega: ' + el,
+                sel3 ? sel3.value : '', giusta3,
+                sel3 && sel3.value === giusta3);
+        });
+      }
+    });
+
+    return { det: det, errori: errori, sez: sez,
+             corr: corr, tot: tot, risposte: risposte };
+  }
+
+  function _consegnaCompleta(sessione) {
+    var r;
+    try { r = _raccogli(); }
+    catch (e) { console.warn('dettaglio non costruito:', e); return; }
+
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        codice:     NOME_STUD || 'Alunno-dis',
+        sessione:   sessione,
+        classe:     CLASSE_STUD,
+        materia:    'italiano',
+        titolo:     PROVA_ATTUALE.titolo || '',
+        totale:     r.corr,
+        su:         r.tot,
+        pct:        r.tot > 0 ? Math.round(r.corr / r.tot * 100) : 0,
+        sezioni:    r.sez,
+        errori:     r.errori,
+        det:        r.det,
+        n_risposte: r.risposte,
+        completata: true,
+        modalita:   'dis',
+        flag_dis:   true,
+        data:       new Date().toISOString()
+      })
+    }).catch(function () { /* muta per costruzione: la prova resta a schermo */ });
+  }
+
+})();
+/* === END: prova dal foglio + dettaglio consegna === */
 </script>
 </body>
 </html>
