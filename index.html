@@ -12561,6 +12561,197 @@ const initInterval = setInterval(function() {
 
 })();
 /* === END: generazione dal server === */
+    /* ===========================================================================
+   === BEGIN: crea prova da zero (percorso A) ===
+   Da incollare in index.html in fondo, dentro l'ultimo blocco di codice,
+   dopo il blocco "generazione dal server".
+
+   COSA FA
+   Toglie la generazione automatica dal pannello delle prove adattate e la
+   sostituisce con la composizione a mano. Il docente incolla il brano, la
+   piattaforma lo divide in paragrafi numerati, e da lì lui aggiunge le
+   domande che vuole con i pulsanti +SM +VF +AP +COMP +COL che ci sono gia'.
+
+   PERCHE'
+   La chiave Groq e' una sola per tutta la piattaforma: il tetto di ottomila
+   token al minuto e' condiviso, quindi due docenti che preparano una prova
+   nello stesso momento si bloccano a vicenda. Non e' un difetto da correggere,
+   e' il modello che non regge appena i docenti sono piu' di uno.
+   Senza generazione automatica non c'e' nessun tetto, nessuna chiave, nessuna
+   attesa: la prova si compone sempre, per tutti, anche senza rete.
+
+   COSA NON TOCCA
+   Tutto quello che viene dopo resta identico: l'anteprima modificabile, il
+   deposito nel foglio, il link corto, l'impaginazione inclusiva, la lettura
+   ad alta voce, la correzione e il dettaglio nel foglio.
+
+   IL PULSANTE VECCHIO
+   "Genera domande" resta nel pannello ma diventa secondario e avvisa prima di
+   partire. Non lo cancello: il giorno in cui una scuola avesse una chiave
+   propria si riaccende senza aver buttato niente.
+   =========================================================================== */
+(function () {
+
+  function _el(id) { return document.getElementById(id); }
+
+
+  // ─── divisione in paragrafi ────────────────────────────────────────────
+  //
+  // Se il docente ha gia' separato il testo con righe vuote, si rispetta la
+  // sua divisione: e' quella che ha in mente lui mentre lo legge.
+  // Altrimenti si spezza sui punti fermi, puntando a paragrafi da un
+  // centinaio di parole — oltre, un alunno con difficolta' di lettura si
+  // perde, e il rimando "vai al paragrafo 3" non lo aiuta piu'.
+
+  function _dividiParagrafi(testo) {
+    var t = String(testo).replace(/\r\n/g, '\n').trim();
+
+    var blocchi = t.split(/\n\s*\n+/)
+      .map(function (x) { return x.trim(); })
+      .filter(function (x) { return x.length > 0; });
+
+    if (blocchi.length < 2) {
+      var frasi = t.match(/[^.!?…]+[.!?…]+["»']?\s*|[^.!?…]+$/g) || [t];
+      frasi = frasi.map(function (f) { return f.trim(); })
+                   .filter(function (f) { return f.length > 0; });
+
+      var parole  = t.split(/\s+/).length;
+      var quanti  = Math.max(2, Math.min(12, Math.round(parole / 110)));
+
+      if (frasi.length <= quanti) {
+        blocchi = frasi;
+      } else {
+        var perGruppo = Math.ceil(frasi.length / quanti);
+        blocchi = [];
+        for (var i = 0; i < frasi.length; i += perGruppo) {
+          blocchi.push(frasi.slice(i, i + perGruppo).join(' '));
+        }
+      }
+    }
+
+    // Paragrafi troppo lunghi restano difficili anche se li ha fatti il
+    // docente: sopra le 200 parole si spezzano ancora, sulle frasi.
+    var finali = [];
+    blocchi.forEach(function (b) {
+      if (b.split(/\s+/).length <= 200) { finali.push(b); return; }
+      var fr = b.match(/[^.!?…]+[.!?…]+["»']?\s*|[^.!?…]+$/g) || [b];
+      var meta = Math.ceil(fr.length / Math.ceil(b.split(/\s+/).length / 130));
+      for (var k = 0; k < fr.length; k += meta) {
+        finali.push(fr.slice(k, k + meta).join(' ').trim());
+      }
+    });
+
+    return finali.map(function (testoPar, n) {
+      return { n: n + 1, testo: testoPar };
+    });
+  }
+
+
+  // ─── il percorso nuovo ─────────────────────────────────────────────────
+
+  window.creaProvaDaZero = function () {
+    var errEl  = _el('dis-ai-err');
+    var prevEl = _el('dis-ai-preview');
+    var loadEl = _el('dis-ai-loading');
+
+    var titolo = ((_el('dis-ai-titolo') || {}).value || '').trim();
+    var testo  = ((_el('dis-ai-testo')  || {}).value || '').trim();
+
+    if (errEl) errEl.style.display = 'none';
+    if (loadEl) loadEl.style.display = 'none';
+
+    if (!testo) {
+      if (errEl) {
+        errEl.textContent = 'Incolla prima il brano: le domande si appoggiano ai suoi paragrafi.';
+        errEl.style.display = 'block';
+      }
+      return;
+    }
+
+    var paragrafi = _dividiParagrafi(testo);
+
+    _disAIProva = {
+      titolo:      titolo || 'Prova personalizzata',
+      sottotitolo: 'Prova personalizzata',
+      glossario:   [],
+      paragrafi:   paragrafi,
+      domande:     []
+    };
+
+    if (typeof _renderTestoPreview === 'function') _renderTestoPreview(paragrafi);
+
+    var lista = _el('dis-dom-list');
+    if (lista) {
+      lista.innerHTML = '';
+      lista.appendChild(_guida(paragrafi.length));
+    }
+
+    if (prevEl) prevEl.style.display = 'block';
+
+    // Una scheda gia' aperta: sulla pagina vuota non si capisce cosa fare.
+    aggiungiDomandaManuale('sm');
+
+    var titoloPasso3 = document.querySelector('#dis-ai-preview h3');
+    if (titoloPasso3) titoloPasso3.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  function _guida(nPar) {
+    var d = document.createElement('div');
+    d.style.cssText = 'background:#e3f2fd;border:1.5px solid #90caf9;border-radius:8px;' +
+      'padding:10px 14px;font-size:12px;color:#01579b;line-height:1.7;margin-bottom:10px';
+    d.innerHTML =
+      '📄 Il brano è stato diviso in <strong>' + nPar + ' paragrafi</strong> — li vedi qui sopra, numerati.<br>' +
+      'Aggiungi le domande con i pulsanti <strong>+SM +VF +AP +COMP +COL</strong> in alto a destra. ' +
+      'In ogni scheda indica il <strong>numero del paragrafo</strong> dove l\'alunno trova la risposta: ' +
+      'è quello che gli fa illuminare il punto giusto del testo durante la prova.<br>' +
+      '<span style="color:#555">Se vuoi paragrafi diversi, separali con una riga vuota nel Passo 1 e ricomponi.</span>';
+    return d;
+  }
+
+
+  // ─── i pulsanti del Passo 2 ────────────────────────────────────────────
+
+  function _sistemaPulsanti() {
+    var bottoni = document.querySelectorAll('#st-dis button');
+    Array.prototype.forEach.call(bottoni, function (b) {
+      var t = (b.textContent || '').trim();
+
+      if (t.indexOf('Genera domande') !== -1) {
+        b.textContent = '📝 Componi la prova';
+        b.setAttribute('onclick', 'creaProvaDaZero()');
+        b.onclick = null;
+      }
+
+      if (t.indexOf('Crea manualmente') !== -1) {
+        b.textContent = '🤖 Genera con AI (sconsigliato)';
+        b.title = 'Usa la chiave Groq condivisa: se un altro docente sta generando in questo momento, fallisce.';
+        b.setAttribute('onclick', '_generaConAvviso()');
+        b.onclick = null;
+        b.style.opacity = '.6';
+        b.style.fontSize = '11px';
+      }
+    });
+  }
+
+  window._generaConAvviso = function () {
+    var ok = confirm(
+      'La generazione automatica usa una chiave condivisa da tutta la piattaforma.\n\n' +
+      'Il limite è di ottomila token al minuto per TUTTI i docenti insieme: se un collega ' +
+      'sta generando in questo momento, questa richiesta fallisce senza motivo apparente.\n\n' +
+      'Vuoi provare lo stesso?');
+    if (ok && typeof generaDomandeAI === 'function') generaDomandeAI();
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _sistemaPulsanti);
+  } else {
+    _sistemaPulsanti();
+  }
+  // Il pannello si ricostruisce quando si cambia materia: rimettiamo i nomi.
+  setInterval(_sistemaPulsanti, 3000);
+
+})();
+/* === END: crea prova da zero (percorso A) === */
 </script>
 </body>
 </html>
