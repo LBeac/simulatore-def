@@ -12752,6 +12752,246 @@ const initInterval = setInterval(function() {
 
 })();
 /* === END: crea prova da zero (percorso A) === */   
+    /* ===========================================================================
+   === BEGIN: pannello prove adattate — sistemazioni ===
+   ULTIMO BLOCCO. Da incollare in index.html in fondo, dentro l'ultimo blocco
+   di codice, dopo  === END: crea prova da zero (percorso A) ===
+
+   Sostituisce e riunisce i due blocchi passati dopo l'ultimo commit
+   ("pulizia pannello" e "sezioni e refusi"): se li avevi gia' incollati,
+   togli quelli e tieni solo questo.
+
+   ─────────────────────────────────────────────────────────────────────────
+   CINQUE SISTEMAZIONI
+
+   1. I NOMI DEI PULSANTI, questa volta trovati davvero.
+      Nel blocco precedente li cercavo dentro #st-dis, ma li' l'HTML ha
+      qualche </div> di troppo e il browser considera il pannello gia' chiuso:
+      i pulsanti restano fuori e non li trovavo. Ora si guarda l'attributo
+      onclick su tutta la pagina, che non dipende da come e' annidato l'HTML.
+
+   2. VIA IL PASSO 2.
+      Numero di domande, spunte dei tipi, tutta la sezione grammaticale:
+      servivano al generatore automatico. Adesso le domande le aggiungi una
+      alla volta, del tipo che vuoi. Quei comandi non li legge piu' nessuno e
+      restavano li' solo a far credere che contassero ancora.
+
+   3. VIA "AGGIUNGI TESTO B" e l'avviso verde che promette ancora domande
+      generate da Gemini.
+
+   4. I PULSANTI DEI TIPI ANCHE IN FONDO.
+      Stavano solo in cima al Passo 3: per aggiungere la domanda dopo bisognava
+      risalire ogni volta. Con venti domande sono venti risalite.
+
+   5. IL CONTATORE DELLE SEZIONI, e via il pulsante "Disegna figura".
+      Nella prova vista dall'alunno le domande si raggruppano sotto tre titoli,
+      ma un titolo compare solo se quella sezione ha almeno una domanda: mentre
+      componi non hai modo di accorgertene, lo scopri aprendo il link.
+      Il pulsante della figura invece nasce per le prove PEI di matematica e
+      cerca la prova dentro lo stato del modulo matematico, che qui e' vuoto:
+      si preme e non succede niente, senza nemmeno un errore. Nel pannello di
+      matematica resta dov'e'.
+
+   NON CANCELLA NIENTE: nasconde soltanto. Togli il blocco e il pannello torna
+   esattamente com'era.
+   =========================================================================== */
+(function () {
+
+  var NOMI_SEZ = ['Comprensione', 'Lessico', 'Grammatica'];
+
+  function _lista() { return document.getElementById('dis-dom-list'); }
+  function _testo(el) { return (el && el.textContent || '').trim(); }
+  function _apertoPasso3() {
+    var p = document.getElementById('dis-ai-preview');
+    return !!(p && p.style.display !== 'none');
+  }
+
+
+  // ─── 1. i due pulsanti in fondo al pannello ────────────────────────────
+  function _pulsanti() {
+    Array.prototype.forEach.call(document.querySelectorAll('button'), function (b) {
+      var azione = b.getAttribute('onclick') || '';
+
+      if (azione.indexOf('generaDomandeAI') !== -1) {
+        b.textContent = '📝 Componi la prova';
+        b.setAttribute('onclick', 'creaProvaDaZero()');
+        b.onclick = null;
+      }
+      if (azione.indexOf('apriFinestraManuale') !== -1) {
+        b.textContent = '🤖 Genera con AI (sconsigliato)';
+        b.title = 'Usa la chiave Groq condivisa da tutta la piattaforma: ' +
+                  'se un altro docente sta generando in questo momento, fallisce.';
+        b.setAttribute('onclick', '_generaConAvviso()');
+        b.onclick = null;
+        b.style.opacity = '.55';
+        b.style.fontSize = '11px';
+      }
+    });
+  }
+
+
+  // ─── 2 e 3. quello che non serve piu' ──────────────────────────────────
+  function _nascondi() {
+    Array.prototype.forEach.call(document.querySelectorAll('.panel-card h3'), function (h) {
+      if (_testo(h).indexOf('Passo 2') === -1) return;
+      var card = h.closest('.panel-card');
+      if (card) card.style.display = 'none';
+    });
+
+    ['btn-aggiungi-b-wrap', 'panel-testo-b'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll('.info-panel'), function (p) {
+      var t = _testo(p);
+      if (t.indexOf('disabilit') === -1) return;
+      if (t.indexOf('Gemini') === -1 && t.indexOf('AI') === -1) return;
+      p.innerHTML = '🌟 <strong>Prove adattate per alunni con disabilità</strong> — ' +
+        'Incolla il brano e premi <strong>Componi la prova</strong>: il testo viene diviso in ' +
+        'paragrafi numerati e tu aggiungi le domande che vuoi, del tipo che vuoi. ' +
+        'Nessuna attesa e nessun limite.';
+    });
+
+    var ta = document.getElementById('dis-ai-testo');
+    if (ta && (ta.placeholder || '').indexOf('1000') !== -1) {
+      ta.placeholder = 'Incolla qui il brano della prova…';
+    }
+  }
+
+
+  // ─── 4. i pulsanti dei tipi, anche in fondo ────────────────────────────
+  var TIPI = [
+    ['sm',   '+SM',   '#e3f2fd', '#1565c0', '#90caf9'],
+    ['vf',   '+VF',   '#e8f5e9', '#2e7d32', '#a5d6a7'],
+    ['ap',   '+AP',   '#fff3e0', '#e65100', '#ffcc80'],
+    ['comp', '+COMP', '#f3e5f5', '#6a1b9a', '#ce93d8'],
+    ['col',  '+COL',  '#fce4ec', '#880e4f', '#f48fb1']
+  ];
+
+  function _barraInFondo() {
+    var lista = _lista();
+    if (!lista) return;
+
+    var barra = document.getElementById('barra-tipi-fondo');
+    if (!barra) {
+      barra = document.createElement('div');
+      barra.id = 'barra-tipi-fondo';
+      barra.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;align-items:center;' +
+        'margin-top:12px;padding-top:12px;border-top:2px dashed var(--grigio)';
+
+      var et = document.createElement('span');
+      et.style.cssText = 'font-size:11px;color:#888;font-weight:700;margin-right:4px';
+      et.textContent = 'Aggiungi domanda:';
+      barra.appendChild(et);
+
+      TIPI.forEach(function (t) {
+        var b = document.createElement('button');
+        b.textContent = t[1];
+        b.style.cssText = 'padding:6px 12px;background:' + t[2] + ';color:' + t[3] +
+          ';border:1px solid ' + t[4] + ';border-radius:5px;font-size:12px;' +
+          'font-weight:800;cursor:pointer;font-family:var(--font)';
+        b.onclick = function () {
+          aggiungiDomandaManuale(t[0]);
+          _giro();
+          var schede = _lista().querySelectorAll('.ap-dom');
+          if (schede.length) {
+            schede[schede.length - 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        };
+        barra.appendChild(b);
+      });
+    }
+
+    // La scheda nuova si accoda alla lista: la barra va rimessa sotto,
+    // altrimenti finisce in mezzo alle domande.
+    lista.appendChild(barra);
+  }
+
+
+  // ─── 5. contatore delle sezioni e pulsante figura ──────────────────────
+  function _togliFigura() {
+    var lista = _lista();
+    if (!lista) return;
+    Array.prototype.forEach.call(lista.querySelectorAll('button'), function (b) {
+      if ((b.getAttribute('onclick') || '').indexOf('apriEditorFigura') !== -1) {
+        b.style.display = 'none';
+      }
+    });
+  }
+
+  function _contatore() {
+    var lista = _lista();
+    if (!lista) return;
+
+    var n = [0, 0, 0];
+    Array.prototype.forEach.call(lista.querySelectorAll('.ap-dom'), function (card) {
+      var sel = card.querySelector('.dom-sez');
+      var s = sel ? parseInt(sel.value) : 0;
+      if (s >= 0 && s <= 2) n[s]++;
+    });
+
+    var barra = document.getElementById('conta-sezioni');
+    if (!barra) {
+      barra = document.createElement('div');
+      barra.id = 'conta-sezioni';
+      barra.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;align-items:center;' +
+        'background:#fff;border:1.5px solid var(--grigio);border-radius:8px;' +
+        'padding:8px 12px;margin-bottom:10px;font-size:12px';
+    }
+    if (barra.parentNode !== lista || lista.firstChild !== barra) {
+      lista.insertBefore(barra, lista.firstChild);
+    }
+
+    var tot = n[0] + n[1] + n[2];
+    var html = '<span style="font-weight:800;color:var(--blu)">' + tot +
+               (tot === 1 ? ' domanda' : ' domande') + '</span><span style="color:#ccc">·</span>';
+
+    n.forEach(function (q, i) {
+      var vuota = (q === 0);
+      html += '<span style="padding:2px 10px;border-radius:12px;font-weight:700;' +
+        (vuota ? 'background:#f0f0f0;color:#aaa' : 'background:#e3f2fd;color:#1565c0') +
+        '">' + NOMI_SEZ[i] + ': ' + q + '</span>';
+    });
+
+    var vuote = NOMI_SEZ.filter(function (_, i) { return n[i] === 0; });
+    if (tot > 0 && vuote.length) {
+      html += '<span style="color:#888;font-size:11px;flex-basis:100%;margin-top:4px">' +
+        'Nella prova dell\'alunno ' +
+        (vuote.length === 1 ? 'il titolo «' + vuote[0] + '» non comparirà'
+                            : 'i titoli «' + vuote.join('» e «') + '» non compariranno') +
+        ': una sezione senza domande non viene disegnata. ' +
+        'La sezione si cambia dal menù dentro ogni scheda.</span>';
+    }
+
+    barra.innerHTML = html;
+  }
+
+
+  // ─── il giro ───────────────────────────────────────────────────────────
+  function _giro() {
+    _pulsanti();
+    _nascondi();
+    if (!_apertoPasso3()) return;
+    _togliFigura();
+    _contatore();
+    _barraInFondo();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _giro);
+  } else {
+    _giro();
+  }
+  // Il pannello si ricostruisce cambiando materia o sotto-scheda: si rifa'.
+  setInterval(_giro, 1500);
+
+  document.addEventListener('change', function (e) {
+    if (e.target && e.target.classList && e.target.classList.contains('dom-sez')) _contatore();
+  });
+
+})();
+/* === END: pannello prove adattate — sistemazioni === */
 </script>
 </body>
 </html>
