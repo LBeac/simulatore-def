@@ -12141,6 +12141,238 @@ const initInterval = setInterval(function() {
   };
 })();
 // === END: editor figure — tasti rapidi === //
+    /* ===========================================================================
+   === BEGIN: link corto prova adattata ===
+   Da incollare in index.html in fondo, dentro l'ultimo blocco di codice,
+   dopo l'ultimo === END: … === che trovi.
+
+   COSA CAMBIA
+   Prima: testo, domande e risposte corrette venivano compressi e infilati
+   dentro l'indirizzo. Con un brano da 1354 parole venivano fuori 8536
+   caratteri e il server tagliava sopra gli 8192: il link non si apriva.
+   Adesso la prova si deposita nel tab Prove_DIS e il link contiene solo un
+   identificativo di dodici lettere. Una novantina di caratteri in tutto.
+
+   SE IL DEPOSITO NON RIESCE
+   Non ti lascia a piedi: ricompone il link vecchio, lungo, e te lo dice.
+   Con un testo corto quel link funziona ancora, quindi la lezione si fa
+   lo stesso e il problema lo guardiamo dopo.
+
+   ALZA ANCHE IL TETTO DELLE DOMANDE
+   Il campo si fermava a 20 per via di una vecchia riga; il generatore ne
+   accetta gia' 30. Ora il campo arriva a 30.
+   =========================================================================== */
+(function () {
+
+  // ─── il tetto delle domande ────────────────────────────────────────────
+  window.clampDomande = function () {
+    var inp = document.getElementById('dis-ai-ndom');
+    if (!inp) return;
+    var n = parseInt(inp.value) || 10;
+    if (n > 30) inp.value = 30;
+    if (n < 3)  inp.value = 3;
+    var lbl = document.getElementById('lbl-max-dom');
+    if (lbl) lbl.textContent = 'da 3 a 30 domande';
+  };
+  document.addEventListener('DOMContentLoaded', function () {
+    var inp = document.getElementById('dis-ai-ndom');
+    if (inp) inp.setAttribute('max', '30');
+    var lbl = document.getElementById('lbl-max-dom');
+    if (lbl) lbl.textContent = 'da 3 a 30 domande';
+  });
+
+
+  // ─── deposito della prova nel foglio ───────────────────────────────────
+
+  // POST senza intestazioni: e' l'unico modo perche' il browser ci lasci
+  // leggere la risposta. Se aggiungiamo Content-Type il browser manda prima
+  // una richiesta di permesso che Apps Script non sa gestire, e la chiamata
+  // muore senza dire perche'.
+  function _deposita(prova, classe) {
+    var chiave = getChiaveDocente();
+    if (!chiave) chiave = chiediChiaveDocente();
+
+    return fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'salvaProvaDis',
+        chiaveDocente: chiave,
+        prova: prova,
+        classe: classe
+      })
+    }).then(function (r) { return r.json(); });
+  }
+
+
+  // ─── composizione del link ─────────────────────────────────────────────
+
+  function _paramiComuni(sessKey, classe, nome) {
+    var t = {
+      grande:     _spuntato('dis-tic-grande'),
+      maiuscolo:  _spuntato('dis-tic-maiuscolo'),
+      contrasto:  _spuntato('dis-tic-contrasto'),
+      spaziatura: _spuntato('dis-tic-spaziatura'),
+      font:       _spuntato('dis-tic-font'),
+      bes:        _spuntato('dis-tic-bes')
+    };
+    var attivi = Object.keys(t).filter(function (k) { return t[k]; });
+    var p = new URLSearchParams();
+    p.set('sessione', sessKey);
+    p.set('classe', classe);
+    if (nome) p.set('nome', nome);
+    if (attivi.length) p.set('tic', attivi.join(','));
+    if (_spuntato('dis-tic-editable')) p.set('tic-editable', '1');
+    return { params: p, tic: t };
+  }
+
+  function _spuntato(id) {
+    var el = document.getElementById(id);
+    return !!(el && el.checked);
+  }
+
+  function _base() {
+    return window.location.href.replace(/[^/]*$/, '') + 'grado8_dis.html';
+  }
+
+
+  // ─── la funzione nuova ─────────────────────────────────────────────────
+
+  window.creaLinkDisAI = function () {
+    var classe = (document.getElementById('dis-classe') || {}).value || '';
+    var nome   = ((document.getElementById('dis-nome') || {}).value || '').trim();
+
+    if (!classe)      { alert('⚠️ Seleziona una classe.'); return; }
+    if (!_disAIProva) { alert('⚠️ Prima genera o crea le domande.'); return; }
+
+    var domande = raccogliDomandeDis();
+    if (!domande.length) { alert('⚠️ Aggiungi almeno una domanda.'); return; }
+
+    // La prova che si deposita: niente nome di alunno dentro, cosi' la stessa
+    // prova la dai a piu' ragazzi e la riga nel foglio non e' un dato personale.
+    var prova = {
+      titolo:      _disAIProva.titolo || 'Prova',
+      sottotitolo: 'Prova personalizzata',
+      glossario:   (_disAIProva.glossario || []).slice(0, 5),
+      paragrafi:   _disAIProva.paragrafi || [],
+      domande:     domande
+    };
+
+    // Secondo brano, se c'e'
+    if (_disAIProvaB && _disAIProvaB.domande && _disAIProvaB.domande.length) {
+      prova.tipo   = 'doppio';
+      prova.testoA = { titolo: prova.titolo, paragrafi: prova.paragrafi, domande: domande };
+      prova.testoB = { titolo: _disAIProvaB.titolo || 'Testo B',
+                       paragrafi: _disAIProvaB.paragrafi,
+                       domande: _disAIProvaB.domande };
+    }
+
+    var sessKey = 'dis-' + classe + '-' + Date.now();
+    var comuni  = _paramiComuni(sessKey, classe, nome);
+
+    // Sessione nel foglio: serve al pannello per elencare e importare
+    DB.sessioni[sessKey] = {
+      provaId: 'custom', titolo: prova.titolo, classe: classe,
+      materia: 'italiano', tipo: 'disabilita', tic: comuni.tic,
+      data: new Date().toISOString(), studenti: 0, chiusa: false
+    };
+    saveDB();
+    try {
+      fetch(SCRIPT_URL, {
+        method: 'POST', mode: 'no-cors',
+        body: JSON.stringify({
+          action: 'salvaSessione', sessione: sessKey, classe: classe,
+          materia: 'italiano', provaId: 'custom', provaTitolo: prova.titolo,
+          chiaveDocente: getChiaveDocente(), data: new Date().toISOString()
+        })
+      }).catch(function () {});
+    } catch (e) {}
+
+    _mostraAttesa();
+
+    _deposita(prova, classe)
+      .then(function (d) {
+        if (!d || !d.ok) throw new Error((d && d.err) || 'deposito non riuscito');
+        var p = comuni.params;
+        p.set('id', d.id);
+        var link = _base() + '?' + p.toString();
+        _mostraEsito(link, classe, domande.length, d.id, d.caratteri);
+      })
+      .catch(function (err) {
+        console.warn('deposito fallito:', err);
+        _ripiegoLinkLungo(prova, comuni.params, classe, domande.length, err);
+      });
+  };
+
+
+  // ─── ripiego: il link vecchio, lungo ───────────────────────────────────
+  function _ripiegoLinkLungo(prova, params, classe, nDom, err) {
+    var codificata;
+    try {
+      codificata = (typeof LZString !== 'undefined')
+        ? LZString.compressToEncodedURIComponent(JSON.stringify(prova))
+        : btoa(unescape(encodeURIComponent(JSON.stringify(prova))));
+    } catch (e) {
+      _mostraFallimento(err);
+      return;
+    }
+    params.set('prova', 'custom');
+    params.set('data', codificata);
+    if (typeof LZString !== 'undefined') params.set('fmt', 'lz');
+    var link = _base() + '?' + params.toString();
+    window._linkDisAI = link;
+
+    var el = document.getElementById('dis-succ');
+    if (!el) return;
+    var troppo = link.length > 8000;
+    el.innerHTML =
+      '<div style="background:#fff8e1;border:2px solid #f9a825;border-radius:8px;padding:10px 14px;margin-bottom:10px;color:#7a5000;font-size:12px">' +
+      '⚠️ <strong>Il deposito nel foglio non è riuscito</strong> (' + (err && err.message || 'motivo sconosciuto') + ').<br>' +
+      'Ho ricomposto il link vecchio, quello lungo: ' + link.length + ' caratteri.' +
+      (troppo ? ' <strong>Sopra gli 8000 non si aprirà.</strong> Accorcia il testo per oggi.' : ' Con questa lunghezza dovrebbe aprirsi.') +
+      '</div>' + _bottoneCopia() +
+      '<div style="margin-top:6px;font-size:11px;color:#555">Classe: <strong>' + classe + '</strong> · Domande: <strong>' + nDom + '</strong></div>';
+    el.style.display = 'block';
+  }
+
+  function _mostraFallimento(err) {
+    var el = document.getElementById('dis-succ');
+    if (!el) return;
+    el.innerHTML = '<div style="background:#fce4e4;border:2px solid #ef9a9a;border-radius:8px;padding:10px 14px;color:#c62828;font-size:12px">' +
+      '❌ Non sono riuscito né a depositare la prova né a comporre il link vecchio.<br>' +
+      (err && err.message || '') + '</div>';
+    el.style.display = 'block';
+  }
+
+  function _mostraAttesa() {
+    var el = document.getElementById('dis-succ');
+    if (!el) return;
+    el.innerHTML = '⏳ Deposito la prova nel foglio…';
+    el.style.display = 'block';
+  }
+
+  function _bottoneCopia() {
+    return '<div style="margin-top:8px;padding:8px 12px;background:#fff;border:1px solid var(--verde);border-radius:6px;word-break:break-all;font-size:11px;font-family:monospace" id="dis-link-txt"></div>' +
+      '<button onclick="navigator.clipboard.writeText(window._linkDisAI).then(function(){alert(\'✅ Copiato!\')})" class="btn btn-g" style="margin-top:10px;width:100%;padding:9px;font-weight:700;font-size:13px">📋 Copia link</button>';
+  }
+
+  function _mostraEsito(link, classe, nDom, id, caratteri) {
+    window._linkDisAI = link;
+    var el = document.getElementById('dis-succ');
+    if (!el) return;
+    el.innerHTML =
+      '✅ Prova depositata nel foglio.<br>' + _bottoneCopia() +
+      '<div style="margin-top:6px;font-size:11px;color:#555">' +
+      'Classe: <strong>' + classe + '</strong> · Domande: <strong>' + nDom + '</strong> · ' +
+      'Link: <strong>' + link.length + ' caratteri</strong> (prima erano migliaia)<br>' +
+      'Identificativo: <code>' + id + '</code> — serve se un domani vuoi ritirarla.' +
+      '</div>';
+    var box = document.getElementById('dis-link-txt');
+    if (box) box.textContent = link;
+    el.style.display = 'block';
+  }
+
+})();
+/* === END: link corto prova adattata === */
 </script>
 </body>
 </html>
