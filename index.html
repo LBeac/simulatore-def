@@ -12373,6 +12373,194 @@ const initInterval = setInterval(function() {
 
 })();
 /* === END: link corto prova adattata === */
+    /* ===========================================================================
+   === BEGIN: generazione dal server ===
+   Da incollare in index.html in fondo, dentro l'ultimo blocco di codice,
+   subito dopo il blocco "link corto prova adattata".
+
+   COSA CAMBIA E PERCHE'
+
+   Fino a ieri il pannello si confezionava il prompt da solo e lo mandava ad
+   Apps Script gia' pronto. Da qui venivano tre difetti che sembravano del
+   modello e invece erano nostri:
+
+   · I COLLEGAMENTI VUOTI. Nel prompt confezionato qui il formato della
+     domanda di collegamento non c'era proprio: si chiedeva al modello un tipo
+     che nessuno gli aveva spiegato, e tornava senza sinistra e destra.
+     Il formato giusto c'e' gia' sul server, in _buildPromptGenera.
+
+   · I PARAGRAFI SFALSATI. Al modello arrivava il testo con tutti i suoi
+     capoversi, ma subito dopo il browser li riaccorpava in quattro. Il
+     modello ne aveva numerati dieci, l'alunno ne vedeva quattro: da qui i
+     rimandi al paragrafo 7 su un testo che ne aveva cinque. Ora la divisione
+     la fa il server una volta sola, e il testo che torna e' gia' quello che
+     l'alunno vedra'.
+
+   · LE REGOLE VINCOLANTI IGNORATE. Completamento copiato alla lettera,
+     opzione corretta presente nel brano, grammatica che non si ripete:
+     sono nel prompt del server, e finche' si mandava un prompt gia' fatto
+     non venivano nemmeno lette.
+
+   Non c'e' codice nuovo da inventare: c'e' da smettere di scavalcare quello
+   che gia' esiste.
+
+   NOTA SU "DESCRIVI IL TESTO"
+   Quella modalita' e' nascosta nel pannello da tempo. Se un domani la
+   riaccendi, va rifatta a parte: questo blocco gestisce solo il testo
+   incollato.
+   =========================================================================== */
+(function () {
+
+  function _el(id) { return document.getElementById(id); }
+  function _spuntato(id) { var e = _el(id); return !!(e && e.checked); }
+
+  // Quanti paragrafi. Se il docente ha gia' separato il testo con righe vuote
+  // rispettiamo la sua divisione: e' quella che ha in mente lui leggendolo.
+  // Altrimenti puntiamo a paragrafi da un centinaio di parole, che per un
+  // alunno con difficolta' di lettura sono gia' abbastanza.
+  function _quantiParagrafi(testo) {
+    var blocchi = testo.split(/\n\s*\n+/).filter(function (b) { return b.trim().length > 20; });
+    if (blocchi.length >= 2) return Math.min(12, blocchi.length);
+    var parole = testo.split(/\s+/).length;
+    return Math.max(3, Math.min(12, Math.round(parole / 110)));
+  }
+
+  function _ticScelti() {
+    var t = [];
+    if (_spuntato('dis-tic-grande'))     t.push('testo grande');
+    if (_spuntato('dis-tic-maiuscolo'))  t.push('stampato maiuscolo');
+    if (_spuntato('dis-tic-contrasto'))  t.push('alto contrasto');
+    if (_spuntato('dis-tic-spaziatura')) t.push('spaziatura aumentata');
+    if (_spuntato('dis-ai-inferenza'))   t.push('includi qualche domanda di inferenza');
+    return t;
+  }
+
+  function _tipiScelti() {
+    var t = [];
+    if (_spuntato('dis-tipo-sm'))   t.push('sm');
+    if (_spuntato('dis-tipo-vf'))   t.push('vf');
+    if (_spuntato('dis-tipo-ap'))   t.push('ap');
+    if (_spuntato('dis-tipo-comp')) t.push('comp');
+    if (_spuntato('dis-tipo-col'))  t.push('col');
+    return t.length ? t : ['sm'];
+  }
+
+  function _grammatica() {
+    var g = { tipi: _tipiScelti(), morfologia: [], analisi_logica: [] };
+
+    if (_spuntato('dis-gram-morfo')) {
+      [['nome', 'nome'], ['aggettivo', 'aggettivo'], ['verbo', 'verbo'],
+       ['avverbio', 'avverbio'], ['prep-semplici', 'preposizioni semplici'],
+       ['prep-articolate', 'preposizioni articolate'], ['articoli', 'articoli']
+      ].forEach(function (c) {
+        if (_spuntato('dis-morfo-' + c[0])) g.morfologia.push(c[1]);
+      });
+      if (!g.morfologia.length) g.morfologia = ['nome', 'verbo', 'aggettivo', 'avverbio'];
+    }
+
+    if (_spuntato('dis-gram-logica')) {
+      if (_spuntato('dis-logica-soggetto'))  g.analisi_logica.push('soggetto');
+      if (_spuntato('dis-logica-predicato')) g.analisi_logica.push('predicato verbale e nominale');
+      if (_spuntato('dis-logica-oggetto'))   g.analisi_logica.push('complemento oggetto');
+    }
+
+    return g;
+  }
+
+
+  // ─── la funzione nuova ─────────────────────────────────────────────────
+
+  window.generaDomandeAI = function () {
+    var loadEl = _el('dis-ai-loading');
+    var errEl  = _el('dis-ai-err');
+    var prevEl = _el('dis-ai-preview');
+
+    var titolo = ((_el('dis-ai-titolo') || {}).value || 'Prova personalizzata').trim();
+    var testo  = ((_el('dis-ai-testo')  || {}).value || '').trim();
+    var ndom   = Math.min(30, Math.max(3, parseInt((_el('dis-ai-ndom') || {}).value) || 10));
+
+    if (errEl)  errEl.style.display = 'none';
+    if (prevEl) prevEl.style.display = 'none';
+
+    if (!testo) {
+      if (errEl) { errEl.textContent = 'Incolla un testo prima di generare.'; errEl.style.display = 'block'; }
+      return;
+    }
+
+    var nPar = _quantiParagrafi(testo);
+    if (loadEl) {
+      loadEl.style.display = 'block';
+      loadEl.textContent = '⏳ Genero ' + ndom + ' domande su ' + nPar + ' paragrafi…';
+    }
+
+    var chiave = getChiaveDocente();
+    if (!chiave) chiave = chiediChiaveDocente();
+
+    // POST senza intestazioni: cosi' il browser ci lascia leggere la risposta.
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action:        'generaDomande',
+        chiaveDocente: chiave,
+        testo:         testo,
+        titolo:        titolo,
+        n_domande:     ndom,
+        n_paragrafi:   nPar,
+        tic:           _ticScelti(),
+        livello_gramm: _grammatica()
+      })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (!d || !d.ok) throw new Error((d && (d.error || d.err)) || 'generazione non riuscita');
+        var prova = d.prova;
+        if (!prova || !prova.domande || !prova.domande.length) {
+          throw new Error('Il modello non ha restituito domande utilizzabili. Riprova.');
+        }
+
+        // Il testo dell'alunno e' quello che torna dal server: gia' diviso,
+        // gia' numerato, identico a quello incollato. Non lo ritocchiamo piu'.
+        _disAIProva = {
+          titolo:      prova.titolo || titolo,
+          sottotitolo: prova.sottotitolo || 'Prova personalizzata',
+          glossario:   prova.glossario || [],
+          paragrafi:   prova.paragrafi || [],
+          domande:     prova.domande
+        };
+
+        if (typeof _renderTestoPreview === 'function') _renderTestoPreview(_disAIProva.paragrafi);
+        renderPreviewDisAI(_disAIProva.domande);
+
+        if (loadEl) loadEl.style.display = 'none';
+        if (prevEl) prevEl.style.display = 'block';
+
+        // Se il server ne ha scartate perche' la risposta non stava nel testo,
+        // il docente deve saperlo: sono meno di quante ne aveva chieste.
+        if (_disAIProva.domande.length < ndom) _avvisoMeno(_disAIProva.domande.length, ndom);
+      })
+      .catch(function (err) {
+        if (loadEl) loadEl.style.display = 'none';
+        if (errEl) {
+          errEl.textContent = err.message || 'Errore nella generazione. Riprova.';
+          errEl.style.display = 'block';
+        }
+      });
+  };
+
+  function _avvisoMeno(quante, chieste) {
+    var lista = _el('dis-dom-list');
+    if (!lista) return;
+    var nota = document.createElement('div');
+    nota.style.cssText = 'background:#fff8e1;border:1.5px solid #f9a825;border-radius:8px;' +
+      'padding:8px 12px;font-size:12px;color:#7a5000;margin-bottom:8px';
+    nota.innerHTML = '⚠️ Sono arrivate <strong>' + quante + '</strong> domande invece di ' + chieste +
+      '. Le altre sono state scartate perché la risposta corretta non si trovava nel testo. ' +
+      'Puoi aggiungerne a mano con i pulsanti qui sopra, oppure rigenerare.';
+    lista.insertBefore(nota, lista.firstChild);
+  }
+
+})();
+/* === END: generazione dal server === */
 </script>
 </body>
 </html>
