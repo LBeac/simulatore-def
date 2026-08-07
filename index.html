@@ -12993,27 +12993,34 @@ const initInterval = setInterval(function() {
 })();
 /* === END: pannello prove adattate — sistemazioni === */
 </script>
-  <!-- BEGIN scorrimento al testo generato -->
+  <!-- BEGIN scorrimento al testo generato + pulizia passo 1 -->
 <script>
 (function(){
-  function agganciaScorrimento(nome){
-    if (typeof window[nome] !== 'function') return;
-    var originale = window[nome];
-    window[nome] = function(){
-      var r = originale.apply(this, arguments);
-      setTimeout(function(){
-        var cand = [].slice.call(document.querySelectorAll('h1,h2,h3,h4,div,section'))
-          .filter(function(e){ return /testo generato/i.test(e.textContent || ''); });
-        var t = cand.pop();
-        if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 150);
-      return r;
-    };
+
+  // Scorre alla sezione generata dopo il clic su "Componi la prova".
+  document.addEventListener('click', function(e){
+    var b = e.target && e.target.closest ? e.target.closest('button') : null;
+    if (!b) return;
+    if ((b.getAttribute('onclick') || '').indexOf('creaProvaDaZero') === -1) return;
+    setTimeout(function(){
+      var s = [].slice.call(document.querySelectorAll('h1,h2,h3,h4,div,section'))
+        .filter(function(el){ return /testo generato/i.test(el.textContent || ''); }).pop();
+      if (s) s.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 200);
+  }, false);
+
+  // Toglie "Incolla il testo della prova": la textarea sta subito sotto.
+  function _nascondiIncolla(){
+    [].slice.call(document.querySelectorAll('button')).forEach(function(b){
+      if (/incolla il testo/i.test(b.textContent || '')) b.style.display = 'none';
+    });
   }
-  agganciaScorrimento('creaProvaDaZero');
-  console.log('[scorrimento passo 2] attivo');
+  _nascondiIncolla();
+  setInterval(_nascondiIncolla, 1500);
+
+  console.log('[scorrimento passo 2 v2] attivo');
 })();
 </script>
-<!-- END scorrimento al testo generato -->
+<!-- END scorrimento al testo generato + pulizia passo 1 -->
 </body>
 </html>
