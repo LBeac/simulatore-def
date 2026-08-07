@@ -12993,34 +12993,48 @@ const initInterval = setInterval(function() {
 })();
 /* === END: pannello prove adattate — sistemazioni === */
 </script>
-  <!-- BEGIN scorrimento al testo generato + pulizia passo 1 -->
+<!-- BEGIN riattiva gestori onclick + pulizia passo 1 -->
 <script>
 (function(){
 
-  // Scorre alla sezione generata dopo il clic su "Componi la prova".
-  document.addEventListener('click', function(e){
-    var b = e.target && e.target.closest ? e.target.closest('button') : null;
-    if (!b) return;
-    if ((b.getAttribute('onclick') || '').indexOf('creaProvaDaZero') === -1) return;
-    setTimeout(function(){
-      var s = [].slice.call(document.querySelectorAll('h1,h2,h3,h4,div,section'))
-        .filter(function(el){ return /testo generato/i.test(el.textContent || ''); }).pop();
-      if (s) s.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 200);
-  }, false);
+  // Ricompila i gestori onclick rimasti spenti (elementi nati fuori dal documento).
+  function _riattiva(){
+    var n = 0;
+    [].slice.call(document.querySelectorAll('[onclick]')).forEach(function(el){
+      if (typeof el.onclick !== 'function') {
+        try { el.onclick = new Function('event', el.getAttribute('onclick')); n++; }
+        catch(e){ console.log('[riattiva] non compilabile:', el.getAttribute('onclick')); }
+      }
+    });
+    if (n) console.log('[riattiva] gestori ripristinati:', n);
+  }
 
   // Toglie "Incolla il testo della prova": la textarea sta subito sotto.
-  function _nascondiIncolla(){
+  function _pulisci(){
     [].slice.call(document.querySelectorAll('button')).forEach(function(b){
       if (/incolla il testo/i.test(b.textContent || '')) b.style.display = 'none';
     });
   }
-  _nascondiIncolla();
-  setInterval(_nascondiIncolla, 1500);
 
-  console.log('[scorrimento passo 2 v2] attivo');
+  // Porta al testo generato dopo "Componi la prova".
+  document.addEventListener('click', function(e){
+    var b = e.target.closest && e.target.closest('button');
+    if (!b || (b.getAttribute('onclick')||'').indexOf('creaProvaDaZero') === -1) return;
+    setTimeout(function(){
+      var s = [].slice.call(document.querySelectorAll('h3,h4,div,section'))
+        .filter(function(el){ return /testo generato/i.test(el.textContent||''); }).pop();
+      if (s) s.scrollIntoView({ behavior:'smooth', block:'start' });
+    }, 250);
+  }, true);
+
+  function _giro(){ _riattiva(); _pulisci(); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _giro);
+  else _giro();
+  setInterval(_giro, 1500);
+
+  console.log('[riattiva onclick] attivo');
 })();
 </script>
-<!-- END scorrimento al testo generato + pulizia passo 1 -->
+<!-- END riattiva gestori onclick + pulizia passo 1 -->
 </body>
 </html>
