@@ -12993,5 +12993,27 @@ const initInterval = setInterval(function() {
 })();
 /* === END: pannello prove adattate — sistemazioni === */
 </script>
+  <!-- BEGIN scorrimento al testo generato -->
+<script>
+(function(){
+  function agganciaScorrimento(nome){
+    if (typeof window[nome] !== 'function') return;
+    var originale = window[nome];
+    window[nome] = function(){
+      var r = originale.apply(this, arguments);
+      setTimeout(function(){
+        var cand = [].slice.call(document.querySelectorAll('h1,h2,h3,h4,div,section'))
+          .filter(function(e){ return /testo generato/i.test(e.textContent || ''); });
+        var t = cand.pop();
+        if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 150);
+      return r;
+    };
+  }
+  agganciaScorrimento('creaProvaDaZero');
+  console.log('[scorrimento passo 2] attivo');
+})();
+</script>
+<!-- END scorrimento al testo generato -->
 </body>
 </html>
